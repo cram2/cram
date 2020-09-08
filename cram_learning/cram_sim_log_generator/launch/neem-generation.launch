@@ -1,7 +1,11 @@
 <launch>
   <arg name="objects" default="bowl spoon cup breakfast-cereal milk" />
-    <node pkg="cram_sim_log_generator" type="cram-sim-log-generator" name="neem_generator"
-            output="screen" >
+    <node pkg="cram_sim_log_generator" type="cram-sim-log-generator" name="main"
+            output="screen" respawn="true" >
         <param name="objects" value="$(arg objects)" />
       </node>
+
+  <include file="$(find knowrob)/launch/knowrob.launch" />
+   <include file="$(find cram_pr2_pick_place_demo)/launch/sandbox.launch" />
+
 </launch>

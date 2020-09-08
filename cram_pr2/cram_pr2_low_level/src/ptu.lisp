@@ -107,7 +107,9 @@
              (make-ptu-action-goal goal-point-stamped)
              :timeout action-timeout)))
       (ensure-ptu-goal-reached status)
-      (values result status))))
+      (values result status)
+      ;; return the joint state, which is our observation
+      (joints:full-joint-states-as-hash-table))))
 
 (defun shake-head (n-times)
   (dotimes (n n-times)
@@ -116,7 +118,7 @@
 
 (defun look-at-gripper (left-or-right)
   (call-ptu-action :pose
-                   (cl-tf:make-pose-stamped
+                   (cl-transforms-stamped:make-pose-stamped
                     (ecase left-or-right
                       (:left "l_gripper_tool_frame")
                       (:right "r_gripper_tool_frame"))

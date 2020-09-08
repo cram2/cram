@@ -1,0 +1,93 @@
+
+Primitives
+==========
+
+FDP   navigating ((location ?location-designator))
+
+MPPP  picking-up ((object ?object-designator)
+                  O(arm ?arm)
+                  O(grasp ?grasp))
+
+MPPP  placing (O(object ?object-designator)
+               O(arm ?arm)
+               O(target ?location-desginator)
+               O(grasp ?grasp))
+
+UEM   opening-container ((object ?object-designator)
+                         O(arm ?arm)
+                         O(distance ?distance)
+                         O(grasp ?grasp))
+
+UEM   closing-container (--||--)
+
+FDP   turning-towards ((target ?location-designator))
+
+MPPP  perceiving ((object ?object-designator))
+
+---
+
+MPPP  moving-torso ((joint-angle ?angle))
+
+MPPP  opening-gripper ((gripper ?left-or-right))
+
+
+
+
+--------------------------
+
+FDP   accessing / sealing ((location (a location
+                                        (in ?object)))
+                           O(arm ?arm)
+                           O(distance ?distance)
+                           O(robot-location (a location
+                                               (reachable-for ?robot)
+                                               (arm ?arm)
+                                               (object ?object))))
+- navigating ((location ?robot-location))
+- opening/closing-container ((arm ?arm)
+                             (object ?object)
+                             O(distance ?distance))
+- (fail) opening-gripper ((gripper (left right)))
+
+
+FDP   searching ((object ?object-designator)
+                 (location ?location-designator)
+                 O(robot-location (a location
+                                     (visible-for ?robot)
+                                     (location ?location-designator))))
+- navigating ((location ?robot-location))
+- (fail) moving-torso ((joint-angle upper-limit))
+- turning-towards ((target ?location-designator))
+- perceiving ((object ?object-designator))
+
+
+FDP   fetching ((object ?object-designator)
+                O(arm ?arm)
+                O(arms ?arms)
+                O(grasp ?grasp)
+                O(grasps ?grasps)
+                O(robot-location (a location
+                                    (reachable-for ?robot)
+                                    (object ?object-designator)
+                                    O(arm ?arm))))
+- navigating ((location ?robot-location)
+- turning-towards ((target ((a location (of ?object-designator)))))
+- perceiving ((object ?object-designator))
+- picking-up ((object ?object-designator-more-precise)
+              O(arm ?arm)
+              O(arms ?arms)
+              O(grasp ?grasp)
+              O(grasps ?grasps))
+
+
+FDP   delivering ((object ?object-designator)
+                  (target ?location-designator)
+                  O(arm ?arm)
+                  O(robot-location (a location
+                                      (reachable-for ?robot)
+                                      (location ?location-designator))))
+- navigating ((location ?robot-location))
+- turning-towards ((target ?location-designator))
+- placing ((object ?object-designator)
+           (target ?location-designator)
+           O(arm ?arm))

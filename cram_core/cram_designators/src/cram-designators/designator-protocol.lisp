@@ -126,9 +126,15 @@
   (:method ((solution-1 array) (solution-2 array))
     (equalp solution-1 solution-2)))
 
-(defgeneric reset (desig)
-  (:documentation "Resets the designator by deleting all associated solutions.
-Used for recalculating a designator when its dependent designator got updated."))
+(defun reset (desig)
+  "Resets the designator by deleting all associated solutions.
+Used for recalculating a designator when its dependent designator got updated.
+The actual implementation creates a copy of the designator, such that only
+the description is preserved. The returned designator is equated to the input one,
+in case one would want to get back to the old one through the equated designator chain."
+  (let ((desig-copy (copy-designator desig)))
+    (equate desig desig-copy)
+    (setf desig desig-copy)))
 
 (defvar *designator-pprint-description* t
   "If set to T, DESIGNATOR objects will be pretty printed with their description.")
@@ -232,10 +238,6 @@ class (derived from class DESIGNATOR), e.g. OBJECT-DESIGNATOR."
   "Allow asking current-desig also on NULL objects."
   NIL)
 
-(defmethod reset ((desig designator))
-  "Empties the data slot"
-  (setf (slot-value desig 'data) nil))
-
 (defun newest-effective-designator (desig)
   (labels ((find-effective-desig (desig)
              (cond ((not desig) nil)
@@ -321,3 +323,11 @@ by `property-extension' and returns a new (unequated) designator."
   (make-designator
    (class-of designator)
    (append (properties designator) property-extension)))
+
+(defun rename-designator-property-key (designator old-property new-property)
+  "Non-destructively renames a KEY in a designator description"
+  (let ((old-property-pair (find old-property (description designator) :key #'car)))
+    (make-designator
+     (class-of designator)
+     (append (remove old-property-pair (description designator))
+             `((,new-property ,@(rest old-property-pair)))))))

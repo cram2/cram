@@ -1,5 +1,6 @@
 ;;;
 ;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;;               2019, Thomas Lipps <tlipps@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -30,8 +31,10 @@
 
 (in-package :btr)
 
+(defparameter *all-meshes-as-compound* T)
+
 (defclass object ()
-  ((name :initarg :name :reader name)
+  ((name :initarg :name :reader name :type keyword)
    (rigid-bodies :initform (make-hash-table :test 'equal))
    (pose-reference-body :initarg :pose-reference-body
                         :documentation "The name of the rigid-body
@@ -188,6 +191,9 @@
     (when disable-collisions-with
       (disable-collisions world name disable-collisions-with))))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;; SPAWNING PRIMITIVE-SHAPED OBJECTS ;;;;;;;;;;;;;;;
+
 (defmethod add-object ((world bt-world) (type (eql :box)) name pose &key mass size)
   (destructuring-bind (size-x size-y size-z) size
     (make-object world name
@@ -287,25 +293,146 @@
                   :collision-shape (make-instance 'convex-hull-shape :points points)))))
 
 
+;;;;;;;;;;;;;;;;;;;;;;; MESH LOADING UTILS ;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun load-mesh (mesh-filename &key (scale nil) (size nil)
+                                  (compound *all-meshes-as-compound*)
+                                  (flip-winding-order nil))
+  "Loads and resizes the 3d-model. If `compound' is T we have a list of meshes, instead of one."
+  (let* ((uri
+           (physics-utils:parse-uri mesh-filename))
+         (mesh-model
+           (cut:with-file-cache model uri
+               (multiple-value-list
+                (physics-utils:load-3d-model
+                 uri :compound compound :flip-winding-order flip-winding-order))
+             model)))
+    (cond (scale
+           (mapcar (lambda (model-part)
+                     (physics-utils:scale-3d-model model-part scale))
+                   mesh-model))
+          (size
+           (mapcar (lambda (model-part)
+                     (physics-utils:resize-3d-model model-part size))
+                   mesh-model))
+          (t
+           mesh-model))))
+
+(defun make-collision-shape-from-mesh (mesh-filename &key (color '(0.8 0.8 0.8 1.0))
+                                                       (scale nil) (size nil)
+                                                       (compound *all-meshes-as-compound*)
+                                                       (disable-face-culling nil)
+                                                       (flip-winding-order nil))
+  "Loads the meshes from the specified filename and creates either:
+      a `convex-hull-shape' if `compound' is NIL or
+      a `compound-shape' if compound it T.
+  The former combines all meshes and faces into one convex-hull-shape, while the latter
+  contains every single mesh as a seperate convex-hull-shape as children in a compound-shape."
+  (flet ((make-ch-mesh-shape (model-part)
+           (make-instance 'convex-hull-mesh-shape
+             :color color
+             :disable-face-culling disable-face-culling
+             :faces (physics-utils:3d-model-faces model-part)
+             :points (physics-utils:3d-model-vertices model-part))))
+    (let ((model (load-mesh mesh-filename
+                            :scale scale
+                            :size size
+                            :compound compound
+                            :flip-winding-order flip-winding-order)))
+      ;; model has multiple components, such that it makes sense to make a compound shape
+      (if (and compound (> (length model) 1))
+          (let ((compound-shape (make-instance 'compound-shape))
+                (id-pose (cl-transforms:make-pose
+                          (cl-transforms:make-3d-vector 0 0 0)
+                          (cl-transforms:make-identity-rotation))))
+            (mapcar (alexandria:compose
+                     (alexandria:curry #'add-child-shape compound-shape id-pose)
+                     #'make-ch-mesh-shape)
+                    model)
+            compound-shape)
+          (make-ch-mesh-shape (car model))))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;; OBJECT ATTACHMENTS ;;;;;;;;;;;;;;;;;;;;;;
+
 (defstruct collision-information
   rigid-body-name flags)
 
-(defmethod create-static-collision-information ((object object))
+(defun get-collision-information (object other-object)
+  "Collision information about `object' from `other-object',
+who is the parent of `object' in the attachment."
+  (cdr (cdr (assoc (name object) (attached-objects other-object)))))
+
+(defun create-static-collision-information (object)
   (if (not (object *current-bullet-world* (name object)))
       (error "Cannot find object named ~a" (name object))
       (loop for body in (rigid-bodies object)
             collecting (make-collision-information
                         :rigid-body-name (name body)
-                        :flags (collision-flags body))
+                        :flags (cond (;; If the object does have no
+                                      ;; attached objects we take the
+                                      ;; current state of it.
+                                      (not (attached-objects object))
+                                      (collision-flags body))
+                                     ;; If the object is attached with
+                                     ;; other objects we use the saved
+                                     ;; collision information from
+                                     ;; these objects. If the
+                                     ;; collision information of all
+                                     ;; these objects is static, this
+                                     ;; returns static too.
+                                     ((only-static-in-attachments-p object)
+                                      '(:cf-static-object))
+                                     (t
+                                      NIL)))
             do (setf (collision-flags body) :cf-static-object))))
 
-(defmethod reset-collision-information ((object object) collision-information)
+(defun only-static-in-attachments-p (object)
+  "Returns T, if the `object's flags are `cf-static-object' in
+  the attachments of `object's attached objects."
+  (declare (type object object))
+  (let* ((attached-object-names
+           (mapcar #'car
+                   (attached-objects
+                    (object
+                     *current-bullet-world*
+                     (name object)))))
+         (attachments-of-attached-objects
+           (mapcar
+            (alexandria:compose
+             #'attached-objects
+             (alexandria:curry #'object *current-bullet-world*))
+           attached-object-names))
+         (attachments-to-object
+           (mapcar 
+            #'car
+            (loop for attachments in attachments-of-attached-objects
+                  collecting
+                  (remove-if-not (alexandria:curry 
+                                  #'equalp
+                                  (name object))
+                                 attachments :key #'car))))
+         (collision-information-list
+           (mapcar
+            #'caddr
+            (remove-if-not #'identity
+                           attachments-to-object))))
+
+    (when collision-information-list
+      (every (alexandria:curry #'equalp '(:cf-static-object))
+             (mapcar #'collision-information-flags
+                     collision-information-list)))))
+
+
+(defun reset-collision-information (object collision-information)
   (loop for collision-data in collision-information
         for body = (rigid-body
                     object (collision-information-rigid-body-name
                             collision-data))
         do (setf (collision-flags body)
-                 (collision-information-flags collision-data))))
+                 (if (attached-objects object)
+                     '(:cf-static-object)
+                     (collision-information-flags collision-data)))))
 
 
 (defstruct attachment
@@ -326,6 +453,9 @@ of the object should _not_ be updated. `grasp' is the type of grasp orientation.
 
 (defgeneric detach-object (object-to-detach-from object &key &allow-other-keys)
   (:documentation "Removes `object' from the attached objects of `object-to-detach-from'."))
+
+(defgeneric detach-all-from-link (object link)
+  (:documentation "Removes all attachments form the given `link' of `object'."))
 
 (defgeneric detach-all-objects (object)
   (:documentation "Removes all attachments form the list of attached objects of `object'."))
@@ -369,9 +499,53 @@ the names of which are in `object-to-attach-names'."
       (when (and obj-found other-obj-found)
         (detach-object obj other-obj)))))
 
+(defmethod detach-all-from-link ((object-to-detach-from-name symbol) link)
+  "Detaches objects from object named `object-to-detach-from-name'."
+  (multiple-value-bind (obj obj-found)
+      (btr:object *current-bullet-world* object-to-detach-from-name)
+    (when obj-found
+      (detach-all-from-link obj link))))
+
 (defmethod detach-all-objects ((object-to-detach-from-name symbol))
   "Detaches objects from object named `object-to-detach-from-name'."
   (multiple-value-bind (obj obj-found)
       (btr:object *current-bullet-world* object-to-detach-from-name)
     (when obj-found
       (detach-all-objects obj))))
+
+(defun get-loose-attached-objects (object)
+  "Returns all objects attached to `object',
+where ATTACHMENTs have the keyword LOOSE as not NIL."
+  (mapcar #'car
+          (remove-if-not
+           (alexandria:compose #'attachment-loose #'car #'car #'cdr)
+           (attached-objects object))))
+
+(let ((already-visited '()))
+  (defun remove-loose-attachment-for (object)
+    "Searches if the `object' was connected loosely to other
+objects and removes ALL corresponding attachments if so.
+To search through the attached objects of `object' the variable
+ALREADY-VISITED will help to prevent endless loops, as this is a
+recursive function."
+    (let ((loose-attached-objects (get-loose-attached-objects object)))
+      (when loose-attached-objects
+        ;; Map the following: (detach-object object loosely-attached-object)
+        (mapcar (alexandria:curry #'detach-object object)
+                (mapcar (alexandria:curry #'object *current-bullet-world*)
+                        loose-attached-objects))))
+    ;; searching recursivly:
+    ;; if `object' has attachments, `remove-loose-attachment-for'
+    ;; gets called with these to remove every indirect loose
+    ;; attachment: e. g. `object' is not loosely attached but one of
+    ;; its attached objects is connected loosely to something
+    (when (and (slot-boundp object 'attached-objects)
+               (> (length (attached-objects object)) 0))
+      (push (name object) already-visited)
+      (loop for attached-object in (mapcar (lambda (attach)
+                                             (object *current-bullet-world* (car attach)))
+                                           (attached-objects object))
+            do (unless (member (name attached-object) already-visited)
+                 (remove-loose-attachment-for attached-object)))
+      (if (equal (car (last already-visited)) (name object))
+          (setf already-visited '())))))

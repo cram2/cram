@@ -39,10 +39,11 @@
   (:shadowing-import-from #:cl-bullet points pose)
   (:shadow copy-object)
   (:export *current-bullet-world* *current-timeline* *visibility-threshold*
+           *all-meshes-as-compound*
            merge-bounding-boxes aabb calculate-bb-dims
            with-stored-world *debug-window*
            add-debug-window add-costmap-function-object add-vis-axis-object
-           add-costmap-sample-object clear-costmap-vis-object add-vis-axis-object
+           add-costmap-sample-object clear-costmap-vis-object
            camera width
            height fov-y z-near z-far pose gl-execute-with-camera
            camera-transform look-at-object-rotation
@@ -56,14 +57,18 @@
            cutlery fork knife mug plate mondamin pot bowl sugar-box apple orange
            cereal spatula pancake pancake-maker
            bt-reasoning-world invalidate-object objects object %object
-           bt-reasoning-world-state robot-object links joint-states
+           bt-reasoning-world-state
+           get-world-objects-pose-info restore-world-poses
+           robot-object links joint-states
            assert joint-state urdf joint-names joint-state link-names
            link-pose
            semantic-map-object ensure-pose ensure-vector object-visibility
            semantic-map container semantic-map-part semantic-map-part-type
            semantic-map-part-pose object-visibility-percentage
            object-visibility-occluding-objects flat-color-object-proxy
-           calculate-object-visibility object-visible-p
+           calculate-object-visibility
+           object-visible-p looking-at-object-p object-in-view-p
+           looking-at-pose-p
            occluding-objects simulate find-objects contact-p
            find-all-contacts find-objects-in-contact
            object-pose-different
@@ -84,7 +89,8 @@
            init-ros-object-database clear-bullet-world
            ros-household-object execute open close ;; reach-ik-solution
            attached attached-objects object-attached
-           attach-object detach-object detach-all-objects
+           attach-object detach-object detach-all-objects detach-all-from-link
+           get-loose-attached-objects
            item-dimensions
            add-objects-to-mesh-list
            open-object close-object
@@ -97,11 +103,12 @@
            #:set-robot-state-from-joints
            #:make-robot-joint-state-msg
            #:make-joint-state-message
-           #:calculate-pan-tilt
-           #:get-robot-object #:get-robot-name
-           #:get-environment-object
+           #:calculate-pan-tilt #:looking-in-direction-p
+           #:robot-converged-to-goal-joint-states
+           #:get-robot-object #:get-environment-object
            #:robot-colliding-objects-without-attached
            #:robot-attached-objects-in-collision
+           #:find-levels-under-link
            ;; temporal-reasoning
            event make-event timeline timeline-init timeline-advance
            timeline-current-world-state timeline-lookup

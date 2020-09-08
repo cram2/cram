@@ -37,11 +37,56 @@
 ;;; rcg_f has the to date better grasps
 ;;; eval2 has best full set pick and place
 ;;; rcg_d different grasps
+
 (in-package :kvr)
 
+(defvar *kvr-enabled* t)
+
 (defvar *episode-path*
-  "/media/thomas/C53E-7039/episodes/bachelor-thesis/"
-  "path of where the episode data is located")
+  ;;"/media/thomas/C53E-7039/episodes/bachelor-thesis/"
+  ;;"path of where the episode data is located")
+  (directory-namestring
+   (cram-physics-utils:parse-uri "package://episodes/Own-Episodes/set-clean-table/"))
+  "rospackage path of where the episode data is located")
+
+(defparameter *furniture-offsets-original-kitchen*
+  '(("sink_area_footprint_joint"
+     ((1.855d0 1.3d0 0.0d0) (0 0 1 0)))
+    ("oven_area_footprint_joint"
+     ((1.855d0 2.47d0 0.0d0) (0 0 1 0)))
+    ("kitchen_island_footprint_joint"
+     ((-1.365d0 0.59d0 0.0d0) (0 0 0 1)))
+    ("fridge_area_footprint_joint"
+     ((1.845d0 -0.73d0 0.0d0) (0 0 1 0)))
+    ("table_area_main_joint"
+     ((-2.4d0 -1.5d0 0.0d0) (0 0 1 0)))))
+
+(defparameter *furniture-offsets-flipped-sink-kitchen*
+  '(("sink_area_footprint_joint"
+     ((1.155d0 0.9d0 0.0d0) (0 0 0 1)))
+    ("oven_area_footprint_joint"
+     ((-0.155d0 2.97d0 0.0d0) (0 0 -0.5 0.5)))
+    ("kitchen_island_footprint_joint"
+     ((-0.60d0 -0.2d0 0.0d0) (0 0 0.5 0.5)))
+    ("fridge_area_footprint_joint"
+     ((-2.30d0 0.5d0 0.0d0) (0 0 0.5 0.5)))
+    ("table_area_main_joint"
+     ((1.6d0 -1.0d0 0.0d0) (0 0 0.5 0.5)))))
+
+(defparameter *furniture-offsets-realistic-kitchen-variation*
+  '(("sink_area_footprint_joint"
+     ((1.855d0 2.9d0 0.0d0) (0 0 1 0)))
+    ("oven_area_footprint_joint"
+     ((1.2d0 -1.8d0 0.0d0) (0 0 0.5 0.5)))
+    ("kitchen_island_footprint_joint"
+     ((-0.5d0 0.45d0 0.0d0) (0 0 0.5 0.5)))
+    ("fridge_area_footprint_joint"
+     ((-0.05d0 -1.78d0 0.0d0) (0 0 0.5 0.5)))
+    ("table_area_main_joint"
+     ((1.6d0 -1.0d0 0.0d0) (0 0 0.5 0.5)))))
+
+(defparameter *robot-starting-pose-in-realistic-kitchen-variation*
+  '((-1 2.0 0) (0 0 0 1)))
 
 (defun load-multiple-episodes (&optional namedir-list)
   ;;make a list of all directories of episodes and load them
@@ -54,8 +99,10 @@
                                             *episode-path* namedir "/Episodes/"))
               (owl-parse (concatenate 'string
                                       *episode-path* namedir "/SemanticMap.owl"))
-              (connect-to-db "bachelor-thesis")
+	      (connect-to-db "Own-Episodes_set-clean-table")
+	      ;;(connect-to-db "bachelor-thesis")
               (format t "loaded ~A ~%" (concatenate 'string *episode-path* namedir)))
+              (connect-to-db "Own-Episodes_set-clean-table"))
           namedir-list))
 
 (defun init-episode (&optional namedir-list)
@@ -130,126 +177,64 @@ semantic map kitchen."
                            object-types)))
       objects)))
 
-(defun init-location-costmap-parameters ()
-  (def-fact-group costmap-metadata (costmap:costmap-size
-                                    costmap:costmap-origin
-                                    costmap:costmap-resolution
-                                    costmap:orientation-samples
-                                    costmap:orientation-sample-step)
-    (<- (costmap:costmap-size 12 12))
-    (<- (costmap:costmap-origin -6 -6))
-    (<- (costmap:costmap-resolution 0.04))
-    (<- (costmap:orientation-samples 2))
-    (<- (costmap:orientation-sample-step 0.3)))
-
-  ;; (def-fact-group costmap-metadata ()
-  ;;   (<- (location-costmap:costmap-size 12 12))
-  ;;   (<- (location-costmap:costmap-origin -6 -6))
-  ;;   (<- (location-costmap:costmap-resolution 0.04))
-
-  ;;   (<- (location-costmap:costmap-padding 0.3))
-  ;;   (<- (location-costmap:costmap-manipulation-padding 0.4))
-  ;;   (<- (location-costmap:costmap-in-reach-distance 0.9))
-  ;;   (<- (location-costmap:costmap-reach-minimal-distance 0.2))
-  ;;   (<- (location-costmap:visibility-costmap-size 2))
-  ;;   (<- (location-costmap:orientation-samples 2))
-  ;;   (<- (location-costmap:orientation-sample-step 0.1)))
-  )
-
-(defun init-full-simulation (&optional namedir)
+(defun init-full-simulation (&key namedir urdf-new-kitchen?)
    "Spawns all the objects which are necessary for the current
 scenario (Meaning: Kitchen, Robot, Muesli, Milk, Cup, Bowl, Fork and 3 Axis
 objects for debugging."
+  ;; set the "unreal" prefix for the json_prolog node if we are running on a robot
+  ;; and don't want to interfere with its KnowRob
+  ;; we'll have our own KnowRob, with blackjack
+  (setq json-prolog:*service-namespace* "/unreal/json_prolog")
+
   (roslisp-utilities:startup-ros)
+
+  (when urdf-new-kitchen?
+    (let ((kitchen-urdf-string
+            (roslisp:get-param rob-int:*environment-description-parameter* nil)))
+      (when kitchen-urdf-string
+        (setf rob-int:*environment-urdf*
+              (cl-urdf:parse-urdf kitchen-urdf-string))))
+    (btr-belief:vary-kitchen-urdf *furniture-offsets-realistic-kitchen-variation*))
+
   (coe:clear-belief)
-  (init-episode *episode-names*)
-  (spawn-semantic-map)
+
+  (when urdf-new-kitchen?
+    (setf (btr:pose (btr:object btr:*current-bullet-world* (rob-int:get-robot-name)))
+          (cram-tf:list->pose *robot-starting-pose-in-realistic-kitchen-variation*)))
+
+  (cram-bullet-reasoning:clear-costmap-vis-object)
+
   (spawn-urdf-items)
-  (spawn-semantic-items)
-  (init-location-costmap-parameters))
+;;(init-episode *episode-names*)
+  (init-episode
+   (or namedir
+       ;; (loop for i from 1 to 18 collecting (format nil "ep~a" i))
+       '(
+         ;; "original1" "original2" "original3" "original4" "original5"
+         ;; "original6" "original7" "original8" "original9" "original10"
+         ;; "original11" "original12" "original13" "original14" "original15"
+         ;; "original16" "original17" "original18" "original19" "original20"
+         ;; "original21" "original22" "original23" "original24" "original25"
+         ;; "original26" "original27"
+         ;; "exp1_t_1" "exp1_t_2" "exp1_t_3" "exp1_t_4" "exp1_t_5"
+         ;; "exp1_tc_1" "exp1_tc_2" "exp1_tc_3" "exp1_tc_4" "exp1_tc_5"
+         ;; "exp1_tr_1" "exp1_tr_2" "exp1_tr_3" "exp1_tr_4" "exp1_tr_5"
+         "cosy1" "cosy2" "cosy3" "cosy4" "cosy5"
+         "cosy6" "cosy7"
+         "cosy8" "cosy9" "cosy10"
+         "diagonal1" "diagonal2"  "diagonal3"  "diagonal4"  "diagonal5"
+         "diagonal6" "diagonal7" "diagonal8"  "diagonal9" "diagonal10"
+         ;;   "spacy1" "spacy2"
+         ;;    "spacy3" "spacy4" "spacy5"
+         ;; "spacy6" "spacy7"  "spacy8" "spacy9"  "spacy10"
+         "flipped_sink1" "flipped_sink2" "flipped_sink3"  "flipped_sink4"
+         "flipped_sink5" "flipped_sink6" "flipped_sink7" "flipped_sink8"
+         "flipped_sink9" "flipped_sink10"
+         ;; "l_cosy1" "l_cosy2" "l_cosy3"
+         ;; "l_diagonal1" "l_diagonal2" "l_diagonal3"
+         ;; "l_spacy1" "l_spacy2" "l_spacy3"
+         )))
+  ;; (spawn-semantic-map)
+  ;; (spawn-semantic-items)
+)
 
-
-#+currently-using-pr2-pick-place-demo-to-initialize-world
-(
- (defun init-bullet-world ()
-   "Initializes the bullet world. The robot spawns in the white urdf kitchen,
-while the semantic map kitchen is spawned right next to the urdf kitchen,
-representing the Virtual Reality world, and how the kitchen was set up there."
-   ;; reset bullet world
-   (setq btr:*current-bullet-world* nil)
-
-   ;; append own meshes to meshes list so that they can be loaded.
-   (btr:add-objects-to-mesh-list "cram_knowrob_vr")
-
-   (setf btr:*mesh-path-whitelist* *mesh-path-whitelist-unreal-kitchen*)
-
-   ;; init tf early. Otherwise there will be exceptions.
-   (cram-tf::init-tf)
-   (setf cram-tf:*tf-default-timeout* 2.0)
-   (setf prolog:*break-on-lisp-errors* t)
-
-   (cram-occupancy-grid-costmap::init-occupancy-grid-costmap)
-   (cram-bullet-reasoning-belief-state::ros-time-init)
-   (cram-location-costmap::location-costmap-vis-init)
-
-   ;; set costmap parameters
-   (prolog:def-fact-group costmap-metadata ()
-     (prolog:<- (location-costmap:costmap-size 12 12))
-     (prolog:<- (location-costmap:costmap-origin -6 -6))
-     (prolog:<- (location-costmap:costmap-resolution 0.05))
-
-     (prolog:<- (location-costmap:costmap-padding 0.2))
-     (prolog:<- (location-costmap:costmap-manipulation-padding 0.2))
-     (prolog:<- (location-costmap:costmap-in-reach-distance 0.6))
-     (prolog:<- (location-costmap:costmap-reach-minimal-distance 0.2)))
-
-;;; initialization from the tutorial
-   (prolog:prolog '(and (btr:bullet-world ?world)
-                    (assert
-                     (btr:object ?world :static-plane :floor ((0 0 0) (0 0 0 1))
-                                                      :normal (0 0 1) :constant 0))))
-   (prolog:prolog '(and (btr:bullet-world ?world)
-                    (btr:debug-window ?world)))
-
-;;; load robot description
-   (setf rob-int:*robot-urdf*
-         (cl-urdf:parse-urdf
-          (roslisp:get-param btr-belief:*robot-parameter*)))
-   (prolog:prolog
-    `(and (btr:bullet-world ?world)
-          (cram-robot-interfaces:robot ?robot)
-          (assert (btr:object ?world :urdf ?robot ((0 0 0) (0 0 0 1)) :urdf ,rob-int:*robot-urdf*))
-          (rob-int:robot-joint-states ?robot :arm :left :park ?left-joint-states)
-          (assert (btr:joint-state ?world ?robot ?left-joint-states))
-          (rob-int:robot-joint-states ?robot :arm :right :park ?right-joint-states)
-          (assert (btr:joint-state ?world ?robot ?right-joint-states))
-          (rob-int:robot-torso-link-joint ?robot ?_ ?torso-joint)
-          (rob-int:joint-lower-limit ?robot ?torso-joint ?lower-limit)
-          (rob-int:joint-upper-limit ?robot ?torso-joint ?upper-limit)
-          (prolog:lisp-fun + ?lower-limit ?upper-limit ?sum)
-          (prolog:lisp-fun / ?sum 2.0 ?average-joint-value)
-          (assert (btr:joint-state ?world ?robot
-                                   ((?torso-joint ?average-joint-value))))))
-
-   (ros-info (kvr) "spawning semantic-map kitchen...")
-
-   (sem-map:get-semantic-map)
-
-   ;; spawning semantic map kitchen
-   (prolog:prolog
-    `(and (btr:bullet-world ?world)
-          (assert (btr:object ?world :semantic-map :semantic-map-kitchen
-                              ((0 -3 0) (0 0 0 1))))))
-
-   ;; spawning urdf kitchen
-   (prolog:prolog
-    `(and (btr:bullet-world ?world)
-          (assert (btr:object ?world :urdf :kitchen ((0 0 0) (0 0 0 1))
-                                           :collision-group :static-filter
-                                           :collision-mask (:default-filter
-                                                            :character-filter)
-                                           :compound t
-                                           :urdf ,(cl-urdf:parse-urdf
-                                                   (roslisp:get-param
-                                                    "kitchen_description")))))))
- )

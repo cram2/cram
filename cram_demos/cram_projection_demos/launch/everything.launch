@@ -1,0 +1,110 @@
+<launch>
+  <!-- choose the robot -->
+  <arg name="pr2" default="false" />
+  <arg name="boxy" default="false" />
+  <arg name="donbot" default="false" />
+
+  <!-- choose environment -->
+  <arg name="household" default="false" />
+  <arg name="retail" default="false" />
+
+  <!-- upload or not upload the robot description (in case one is already uploaded) -->
+  <arg name="upload_robot" default="true" />
+
+  <!-- publish or not robot state with joint state publisher -->
+  <!-- this is mostly used to examine the URDF and use the GUI sliders etc. -->
+  <arg name="publish_robot" default="false" />
+
+  <!-- upload the occupancy map or not -->
+  <arg name="occupancy_map" default="true" />
+
+  <!-- start the tf2 buffer server -->
+  <arg name="tf2_buffer" default="false" />
+
+  <!-- robot URDFs -->
+  <group if="$(arg upload_robot)">
+    <group if="$(arg pr2)">
+      <param name="robot_description"
+             command="$(find xacro)/xacro.py
+                      '$(find pr2_description)/robots/pr2.urdf.xacro'" />
+    </group>
+    <group if="$(arg boxy)">
+      <include file="$(find iai_boxy_description)/launch/upload_boxy.launch" />
+    </group>
+    <group if="$(arg donbot)">
+      <include file="$(find iai_donbot_description)/launch/upload_with_refills_finger.launch" />
+    </group>
+  </group>
+
+  <!-- robot state publisher -->
+  <group if="$(arg publish_robot)">
+    <node pkg="joint_state_publisher" type="joint_state_publisher"
+          name="robot_joint_state_publisher" output="screen">
+      <param name="rate" value="25"/>
+      <param name="use_gui" value="True"/>
+    </node>
+    <node pkg="robot_state_publisher" type="robot_state_publisher"
+          name="robot_state_publisher" output="screen">
+      <param name="publish_frequency" value="25"/>
+    </node>
+  </group>
+
+  <!-- environment URDFs -->
+  <group if="$(arg household)">
+    <param name="kitchen_description"
+           command="$(find xacro)/xacro.py
+                    '$(find iai_kitchen)/urdf_obj/iai_kitchen_python.urdf.xacro'"/>
+  </group>
+  <group if="$(arg retail)">
+    <param name="kitchen_description"
+           command="$(find xacro)/xacro.py
+                    '$(find iai_refills_lab)/urdf/dm_room.urdf.xacro'"/>
+  </group>
+
+  <!-- environment state publisher -->
+  <node pkg="joint_state_publisher" type="joint_state_publisher"
+        name="environment_joint_state_publisher" output="screen">
+    <remap from="robot_description" to="kitchen_description"/>
+    <param name="rate" value="25"/>
+    <param name="use_gui" value="False"/>
+    <remap from="joint_states" to="kitchen/joint_states" />
+    <rosparam param="source_list">
+      - /kitchen/cram_joint_states
+    </rosparam>
+  </node>
+  <node pkg="robot_state_publisher" type="robot_state_publisher"
+        name="environment_tf_publisher" output="screen">
+    <param name="tf_prefix" value="iai_kitchen"/>
+    <param name="publish_frequency" value="25"/>
+    <remap from="robot_description" to="kitchen_description" />
+    <remap from="joint_states" to="kitchen/joint_states" />
+  </node>
+  <node pkg="tf" type="static_transform_publisher" name="kitchen_link_broadcaster"
+        args="0 0 0 0 0 0 /map /iai_kitchen/world 25">
+  </node>
+
+  <!-- environment occupancy maps  -->
+  <group if="$(arg occupancy_map)">
+    <group if="$(arg household)">
+      <include file="$(find iai_maps)/launch/map.launch" />
+    </group>
+    <group if="$(arg retail)">
+      <node name="map_server" pkg="map_server" type="map_server" output="screen"
+            args="$(find iai_refills_lab)/maps/refills_lab.yaml" />
+    </group>
+  </group>
+
+  <!-- tf2 buffer server -->
+  <group if="$(arg tf2_buffer)">
+    <node pkg="tf2_ros" type="buffer_server" name="tf_server" output="screen" />
+  </group>
+
+  <!-- ik solvers -->
+  <group if="$(arg pr2)">
+    <include file="$(find pr2_arm_kinematics)/launch/pr2_ik_larm_node.launch" />
+    <include file="$(find pr2_arm_kinematics)/launch/pr2_ik_rarm_node.launch" />
+  </group>
+  <group if="$(eval arg('donbot') | arg('boxy'))">
+    <include file="$(find kdl_ik_service)/launch/kdl_ik.launch" />
+  </group>
+</launch>

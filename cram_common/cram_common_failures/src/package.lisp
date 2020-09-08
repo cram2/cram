@@ -53,6 +53,12 @@
    #:object-nowhere-to-be-found-object
    #:environment-manipulation-impossible
    #:environment-unreachable
+   #:searching-failed
+   #:searching-failed-object
+   #:fetching-failed
+   #:fetching-failed-object
+   #:delivering-failed
+   #:delivering-failed-object
    ;; manipulation
    #:manipulation-low-level-failure
    #:gripper-low-level-failure

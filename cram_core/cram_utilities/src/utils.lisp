@@ -106,6 +106,9 @@
 (defun maximum (seq &key (test #'>) (key #'identity))
   (extremum seq test :key key))
 
+(defun random-with-minimum (value offset)
+  (+ (random (- value offset)) offset))
+
 (defun style-warn (datum &rest arguments)
   (apply #'sb-int:style-warn datum arguments))
 
@@ -165,19 +168,30 @@ removes deletes the file and the compiled file after loading it."
 
 
 
-(defun equalize-two-list-lengths (first-list second-list)
+(defun equalize-two-list-lengths (first-list second-list &key return-as-list)
   "Returns two lists of equal length as VALUES.
 To achieve equal length appends NILs at the end of the shorter of `first-list' and `second-list'."
-  (let* ((first-length (length first-list))
-         (second-length (length second-list))
-         (max-length (max first-length second-length)))
-    (values
-     (if (> max-length first-length)
-        (append first-list (make-list (- max-length first-length)))
-        first-list)
-     (if (> max-length second-length)
-        (append second-list (make-list (- max-length second-length)))
-        second-list))))
+  (unless (listp first-list)
+    (setf first-list (list first-list)))
+  (unless (listp second-list)
+    (setf second-list (list second-list)))
+  (let* ((first-length
+           (length first-list))
+         (second-length
+           (length second-list))
+         (max-length
+           (max first-length second-length))
+         (first-list-equalized
+           (if (> max-length first-length)
+               (append first-list (make-list (- max-length first-length)))
+               first-list))
+         (second-list-equalized
+           (if (> max-length second-length)
+               (append second-list (make-list (- max-length second-length)))
+               second-list)))
+    (if return-as-list
+        (list first-list-equalized second-list-equalized)
+        (values first-list-equalized second-list-equalized))))
 
 (defun equalize-lists-of-lists-lengths (first-list-of-lists second-list-of-lists)
   "Equalizes the length of lists inside of lists. E.g.:
@@ -198,3 +212,35 @@ To achieve equal length appends NILs at the end of the shorter of `first-list' a
 
    (values first-result-l-of-ls
            second-result-l-of-ls)))
+
+
+(defun recursive-alist-hash-table (alist &rest hash-table-initargs)
+  "Returns a hash table containing the keys and values of the association list
+ALIST. Hash table is initialized using the HASH-TABLE-INITARGS.
+This is a recursive version of alexandria:alist-hash-table."
+  (let ((table (apply #'make-hash-table hash-table-initargs)))
+    (dolist (cons alist)
+      (alexandria:ensure-gethash
+       (car cons)
+       table
+       (if (listp (cdr cons))
+           (apply #'recursive-alist-hash-table (cdr cons) hash-table-initargs)
+           (cdr cons))))
+    table))
+
+
+(defun replace-all (string part replacement &key (test #'char=))
+  "Returns a new string in which all the occurences of the part
+is replaced with replacement.
+  Taken from Common Lisp Cookbook."
+  (with-output-to-string (out)
+    (loop with part-length = (length part)
+          for old-pos = 0 then (+ pos part-length)
+          for pos = (search part string
+                            :start2 old-pos
+                            :test test)
+          do (write-string string out
+                           :start old-pos
+                           :end (or pos (length string)))
+          when pos do (write-string replacement out)
+            while pos)))

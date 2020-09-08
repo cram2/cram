@@ -33,6 +33,53 @@
   (actionlib-client:make-simple-action-client
    'giskard-action
    "giskardpy/command" "giskard_msgs/MoveAction"
-   60))
+   120))
 
 (roslisp-utilities:register-ros-init-function make-giskard-action-client)
+
+
+(defun call-action (&key action-goal action-timeout check-goal-function)
+  (declare (type giskard_msgs-msg:movegoal action-goal)
+           (type (or number null) action-timeout)
+           (type (or function null) check-goal-function))
+
+  ;; check if the goal has already been reached
+  (when (and check-goal-function
+             (not (funcall check-goal-function)))
+    (roslisp:ros-warn (giskard action-client)
+                      "Giskard action goal already reached.")
+    (return-from call-action))
+
+  ;; call the actionlib action
+  (multiple-value-bind (result status)
+      (actionlib-client:call-simple-action-client
+       'giskard-action
+       :action-goal action-goal
+       :action-timeout action-timeout)
+
+    ;; print a debug statement if the status is unexpected
+    (case status
+      (:preempted
+       (roslisp:ros-warn (giskard action-client)
+                         "Giskard action preempted.~%Result: ~a" result))
+      (:timeout
+       (roslisp:ros-warn (giskard action-client)
+                         "Giskard action timed out."))
+      (:aborted
+       (roslisp:ros-warn (giskard cartesian)
+                         "Giskard action aborted.~%Result: ~a" result)))
+
+    ;; check if the goal was reached, if not, throw a failure
+    (when check-goal-function
+      (let ((failure (funcall check-goal-function)))
+        (when failure
+          (roslisp:ros-warn (giskard action-client)
+                            "Giskard action goal was not reached.")
+          (cpl:fail failure))))
+
+    ;; this is only used by HPN:
+    ;; return the joint state, which is our observation
+    ;; (joints:full-joint-states-as-hash-table)
+
+    ;; return the result and status
+    (values result status)))

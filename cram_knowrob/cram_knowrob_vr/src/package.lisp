@@ -30,4 +30,7 @@
 
 (defpackage :cram-knowrob-vr-pkg
 	(:nicknames :kvr :knowrob-vr)
-  (:use #:roslisp #:cl #:cram-manipulation-interfaces #:cram-prolog))
+  (:use #:roslisp #:cl #:cram-manipulation-interfaces #:cram-prolog)
+  (:export
+   ;; init
+   #:*kvr-enabled*))

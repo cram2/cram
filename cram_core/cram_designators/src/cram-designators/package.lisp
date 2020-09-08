@@ -45,7 +45,7 @@
            #:make-designator
            #:copy-designator
            #:merge-desig-descriptions
-           #:extend-designator-properties
+           #:extend-designator-properties #:rename-designator-property-key
            #:first-desig
            #:current-desig
            #:current-designator
@@ -72,6 +72,7 @@
            #:motion-designator #:motion-grounding
            #:location-designator
            #:*location-generator-max-retries*
+           #:*print-location-validation-function-results*
            #:register-location-generator
            #:register-location-validation-function
            #:list-location-generators

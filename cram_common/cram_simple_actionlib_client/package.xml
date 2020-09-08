@@ -11,7 +11,7 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>roslisp</depend>
-  <depend>actionlib</depend>
+  <depend>actionlib_lisp</depend>
   <depend>roslisp_utilities</depend>
   <depend>cram_language</depend>
 </package>

@@ -20,6 +20,7 @@
   <build_depend>cram_prolog</build_depend>
   <build_depend>cram_location_costmap</build_depend>
   <build_depend>cram_robot_interfaces</build_depend>
+  <build_depend>cram_manipulation_interfaces</build_depend>
   <build_depend>cram_tf</build_depend>
   <build_depend>cl_transforms</build_depend>
   <build_depend>cl_transforms_stamped</build_depend>
@@ -28,6 +29,7 @@
   <run_depend>cram_prolog</run_depend>
   <run_depend>cram_location_costmap</run_depend>
   <run_depend>cram_robot_interfaces</run_depend>
+  <run_depend>cram_manipulation_interfaces</run_depend>
   <run_depend>cram_tf</run_depend>
   <run_depend>cl_transforms</run_depend>
   <run_depend>cl_transforms_stamped</run_depend>

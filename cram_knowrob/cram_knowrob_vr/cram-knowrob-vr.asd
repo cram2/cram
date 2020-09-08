@@ -28,7 +28,8 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
 (asdf:defsystem cram-knowrob-vr
-	:depends-on (cram-tf
+	:depends-on (alexandria ; for shuffle
+               cram-tf
                roslisp
                cram-language
                cram-json-prolog
@@ -45,11 +46,19 @@
                cram-executive
                cram-designators
                cram-prolog
+               cram-utilities
                cram-common-failures
                cram-urdf-projection
-               cram-pr2-description
+               ;; cram-pr2-description
                cram-robot-interfaces
-               cram-fetch-deliver-plans)
+               cram-fetch-deliver-plans
+               ;; costmaps are loaded for comparison with heuristics experiments
+               cram-location-costmap
+               cram-btr-visibility-costmap
+               cram-btr-spatial-relations-costmap
+               cram-robot-pose-gaussian-costmap
+               ;; cram-occupancy-grid-costmap
+               )
 	:components
 	((:module "src"
 	  :components
@@ -69,32 +78,20 @@
 
      ;; visibility and reachability location resolution through VR
      (:file "designator-integration" :depends-on ("package"
+                                                  "init" ; for *kvr-enabled*
                                                   "query-based-calculations"))
+     ;; experiment log csv file generator stuff
+     (:file "experiment-log-generator" :depends-on ("package"))
      ;; plans that call fetch and deliver actions
      (:file "fetch-and-deliver-based-demo" :depends-on ("package"
+                                                        "init" ; for *kvr-enabled*
+                                                        "experiment-log-generator"
                                                         "query-based-calculations"
                                                         "designator-integration"))
      ;; json queries and lisp code for exporting saved vr data 
      (:file "csv-queries" :depends-on ("package" "queries"))
      (:file "csv-export" :depends-on ("package" "csv-queries"))
-
-     ;; integration with grasping interface from cram_manipulation_interfaces
-     ;; (:file "grasping" :depends-on ("package" "query-based-calculations"))
-     ;; move-to-object, pick, place and pick-and-place plans, queries for get-hand
-     ;; (:file "plans" :depends-on ("package" "queries" "mapping-urdf-semantic"))
-     ;; calling plans with correct arguments
-     ;; (:file "plan-execution" :depends-on ("package" "query-based-calculations"))
-     ;; utilities for moving objects to poses for the demo-plans file
-     ;; (:file "move-utils" :depends-on ("package"
-     ;;                                  "mapping-urdf-semantic"
-     ;;                                  "query-based-calculations"))
-     ;; plans for demonstrations
-     ;; (:file "demo-plans" :depends-on ("package" "plan-execution" "move-utils"))
-     ;; only used for debugging
-     ;; (:file "debugging-utils" :depends-on ("package"
-     ;;                                       "queries"
-     ;;                                       "query-based-calculations"
-     ;;                                       "init"
-     ;;                                       "move-utils"
-     ;;                                       "mapping-urdf-semantic"))
-     ))))
+     ;; (:file "plan-execution" :depends-on ("package"))
+     ;; (:file "demo-plans" :depends-on ("package"))
+     ;; arrows for visualization plots and other utils
+     (:file "debugging-utils" :depends-on ("package"))))))

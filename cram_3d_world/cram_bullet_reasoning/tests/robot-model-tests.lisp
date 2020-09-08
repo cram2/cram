@@ -31,20 +31,21 @@
 
 (defun setup-world ()
   (setf rob-int:*robot-urdf*
-        (cl-urdf:parse-urdf (roslisp:get-param "robot_description")))
+        (cl-urdf:parse-urdf
+         (roslisp:get-param rob-int:*robot-description-parameter*)))
   (prolog:prolog
    `(and (btr:bullet-world ?world)
          (rob-int:robot ?robot)
          (assert (btr:object ?world :urdf ?robot ((0 0 0) (0 0 0 1))
                              :urdf ,rob-int:*robot-urdf*))))
-  (clrhash btr::*updated-attachments*)
+  (clrhash (btr::get-updated-attachments))
   (btr:detach-all-objects (btr:get-robot-object)))
 
 (define-test attach-object-unknown-link
   ;; Tries to attach an item to an unkown link of the robot. This
   ;; should fail.
   (setup-world)
-  (btr-utils:spawn-object 'o1 :mug :pose 
+  (btr-utils:spawn-object 'o1 :mug :pose
                           '((-1 0.0 0.92)(0 0 0 1)))
   (lisp-unit:assert-error 'simple-error
                           (btr:attach-object (btr:get-robot-object) (btr:object
@@ -61,7 +62,7 @@
   ;; attached. The collision information is therefore shared between
   ;; the attachments.
   (setup-world)
-  (btr-utils:spawn-object 'o1 :mug :pose 
+  (btr-utils:spawn-object 'o1 :mug :pose
                           '((-1 0.0 0.92)(0 0 0 1)))
   (let ((link1 "base_link")
         (link2 "base_footprint"))
@@ -86,9 +87,9 @@
   ;; Attaches two object to two links of the robot and checks if it is
   ;; saved properly in the list under the name of the item attached.
   (setup-world)
-  (btr-utils:spawn-object 'o1 :mug :pose 
+  (btr-utils:spawn-object 'o1 :mug :pose
                           '((-1 0.0 0.92)(0 0 0 1)))
-  (btr-utils:spawn-object 'o2 :mug :pose 
+  (btr-utils:spawn-object 'o2 :mug :pose
                           '((-1 0.0 0.92)(0 0 0 1)))
   (let ((link1 "base_link")
         (link2 "base_footprint"))
@@ -117,9 +118,9 @@
   ;; Attaches two objects to one link of the robot and checks if it is
   ;; saved properly in the list under the name of the item attached.
   (setup-world)
-  (btr-utils:spawn-object 'o1 :mug :pose 
+  (btr-utils:spawn-object 'o1 :mug :pose
                           '((-1 0.0 0.92)(0 0 0 1)))
-  (btr-utils:spawn-object 'o2 :mug :pose 
+  (btr-utils:spawn-object 'o2 :mug :pose
                           '((-1 0.0 0.92)(0 0 0 1)))
   (let ((link "base_link"))
     (btr:attach-object (btr:get-robot-object) (btr:object btr:*current-bullet-world*
@@ -148,9 +149,9 @@
   ;; checks if it is removed properly in the list under the name of
   ;; the item attached. Moreover, it should not touch other object attachments.
   (setup-world)
-  (btr-utils:spawn-object 'o1 :mug :pose 
+  (btr-utils:spawn-object 'o1 :mug :pose
                           '((-1 0.0 0.92)(0 0 0 1)))
-  (btr-utils:spawn-object 'o2 :mug :pose 
+  (btr-utils:spawn-object 'o2 :mug :pose
                           '((-1 0.0 0.92)(0 0 0 1)))
   (let ((link1 "base_link")
         (link2 "base_footprint"))
@@ -161,7 +162,7 @@
     (btr:attach-object (btr:get-robot-object) (btr:object btr:*current-bullet-world*
                                                           'o2) :link link1)
     ;;'((o1
-    ;;   (list of attachments) <- link1 (x), link2 (x) 
+    ;;   (list of attachments) <- link1 (x), link2 (x)
     ;;   collision-info of o1)
     ;;  (o2
     ;;   (list of attachments) <- link1
@@ -184,9 +185,9 @@
   ;; and checks if it is removed properly in the list under the name
   ;; of the item attached. Moreover, it should not touch other object attachments.
   (setup-world)
-  (btr-utils:spawn-object 'o1 :mug :pose 
+  (btr-utils:spawn-object 'o1 :mug :pose
                           '((-1 0.0 0.92)(0 0 0 1)))
-  (btr-utils:spawn-object 'o2 :mug :pose 
+  (btr-utils:spawn-object 'o2 :mug :pose
                           '((-1 0.0 0.92)(0 0 0 1)))
   (let ((link1 "base_link")
         (link2 "base_footprint"))
@@ -197,7 +198,7 @@
     (btr:attach-object (btr:get-robot-object) (btr:object btr:*current-bullet-world*
                                                           'o2) :link link1)
     ;;'((o1
-    ;;   (list of attachments) <- link1 (x), link2 
+    ;;   (list of attachments) <- link1 (x), link2
     ;;   collision-info of o1)
     ;;  (o2
     ;;   (list of attachments) <- link1
@@ -225,28 +226,28 @@
   ;; Tests if the function updated-link-in-attachment work as the doc of
   ;; it explains
   (setup-world)
-  (btr-utils:spawn-object 'o1 :mug :pose 
+  (btr-utils:spawn-object 'o1 :mug :pose
                           '((-1 0.0 0.92)(0 0 0 1)))
   (let ((link "base_link"))
     (btr:attach-object (btr:get-robot-object) (btr:object btr:*current-bullet-world*
                                                           'o1) :link link)
     ;;'((o1
-    ;;   (list of attachments) <- link1, link2 
+    ;;   (list of attachments) <- link1, link2
     ;;   collision-info of o1))
     (lisp-unit:assert-false
      (btr::updated-link-in-attachment
       (gethash link (cl-urdf:links (btr:urdf (btr:get-robot-object))))
       (first (btr::attached-objects (btr:get-robot-object)))))
-    (lisp-unit:assert-number-equal 0 (length (gethash 'o1 btr::*updated-attachments*)))
-    (lisp-unit:assert-false (gethash 'o1 btr::*updated-attachments*))
-    
+    (lisp-unit:assert-number-equal 0 (length (gethash 'o1 (btr::get-updated-attachments))))
+    (lisp-unit:assert-false (gethash 'o1 (btr::get-updated-attachments)))
+
     (btr:remove-object btr:*current-bullet-world* 'o1)))
 
 (define-test updated-link-in-attachment-with-attachment-attached-to-two-links
   ;; Tests if the function updated-link-in-attachment work as the doc of
   ;; it explains
   (setup-world)
-  (btr-utils:spawn-object 'o1 :mug :pose 
+  (btr-utils:spawn-object 'o1 :mug :pose
                           '((-1 0.0 0.92)(0 0 0 1)))
   (let ((link1 "base_link")
         (link2 "base_footprint"))
@@ -261,22 +262,22 @@
      (btr::updated-link-in-attachment
       (gethash link1 (cl-urdf:links (btr:urdf (btr:get-robot-object))))
       (first (btr::attached-objects (btr:get-robot-object)))))
-    (lisp-unit:assert-number-equal 1 (length (gethash 'o1 btr::*updated-attachments*)))
-    (lisp-unit:assert-equal link1 (first (gethash 'o1 btr::*updated-attachments*)))
-    
+    (lisp-unit:assert-number-equal 1 (length (gethash 'o1 (btr::get-updated-attachments))))
+    (lisp-unit:assert-equal link1 (first (gethash 'o1 (btr::get-updated-attachments))))
+
     (lisp-unit:assert-true
      (btr::updated-link-in-attachment
       (gethash link2 (cl-urdf:links (btr:urdf (btr:get-robot-object))))
       (first (btr::attached-objects (btr:get-robot-object)))))
-    (lisp-unit:assert-false (gethash 'o1 btr::*updated-attachments*))
-    
+    (lisp-unit:assert-false (gethash 'o1 (btr::get-updated-attachments)))
+
     (btr:remove-object btr:*current-bullet-world* 'o1)))
 
 (define-test updated-link-in-attachment-negative
   ;; Tests if the function updated-link-in-attachment work if it gets
   ;; invalid input
   (setup-world)
-  (btr-utils:spawn-object 'o1 :mug :pose 
+  (btr-utils:spawn-object 'o1 :mug :pose
                           '((-1 0.0 0.92)(0 0 0 1)))
   (let ((link1 "base_link")
         (link2 "base_footprint"))
@@ -291,8 +292,8 @@
      (btr::updated-link-in-attachment
       (gethash "asdasdasd" (cl-urdf:links (btr:urdf (btr:get-robot-object))))
       (first (btr::attached-objects (btr:get-robot-object)))))
-    (lisp-unit:assert-false (gethash 'o1 btr::*updated-attachments*))
-    
+    (lisp-unit:assert-false (gethash 'o1 (btr::get-updated-attachments)))
+
     (btr:remove-object btr:*current-bullet-world* 'o1)))
 
 (define-test setf-pose-robot-object-with-one-attached-object-to-one-link
@@ -300,19 +301,19 @@
   ;; attached to two links and the robot moves and rotates
   (setup-world)
   (setf (pose (btr:get-robot-object)) (cl-transforms:make-pose
-                                       (cl-tf:make-3d-vector 0 0 0)
+                                       (cl-transforms:make-3d-vector 0 0 0)
                                        (cl-transforms:make-quaternion
                                         0 0 0 1)))
-  (btr-utils:spawn-object 'o1 :mug :pose 
+  (btr-utils:spawn-object 'o1 :mug :pose
                           '((0.2 0.0 0.9)(0 0 0 1)))
   (let ((link "base_link"))
     (btr:attach-object (btr:get-robot-object) (btr:object btr:*current-bullet-world*
                                                           'o1) :link link)
     ;;'((o1
-    ;;   (list of attachments) <- link1, link2 
+    ;;   (list of attachments) <- link1, link2
     ;;   collision-info of o1))
     (setf (pose (btr:get-robot-object)) (cl-transforms:make-pose
-                                         (cl-tf:make-3d-vector 0.2 0 0)
+                                         (cl-transforms:make-3d-vector 0.2 0 0)
                                          (cl-transforms:make-quaternion
                                           0 0 1 1)))
     (lisp-unit:assert-equal
@@ -331,10 +332,10 @@
   ;; attached to two links and the robot moves and rotates
   (setup-world)
   (setf (pose (btr:get-robot-object)) (cl-transforms:make-pose
-                                       (cl-tf:make-3d-vector 0 0 0)
+                                       (cl-transforms:make-3d-vector 0 0 0)
                                        (cl-transforms:make-quaternion
                                         0 0 0 1)))
-  (btr-utils:spawn-object 'o1 :mug :pose 
+  (btr-utils:spawn-object 'o1 :mug :pose
                           '((0.2 0.0 0.9)(0 0 0 1)))
   (let ((link1 "base_link")
         (link2 "base_footprint"))
@@ -343,10 +344,10 @@
     (btr:attach-object (btr:get-robot-object) (btr:object btr:*current-bullet-world*
                                                           'o1) :link link2)
     ;;'((o1
-    ;;   (list of attachments) <- link1, link2 
+    ;;   (list of attachments) <- link1, link2
     ;;   collision-info of o1))
     (setf (pose (btr:get-robot-object)) (cl-transforms:make-pose
-                                         (cl-tf:make-3d-vector 0.2 0 0)
+                                         (cl-transforms:make-3d-vector 0.2 0 0)
                                          (cl-transforms:make-quaternion
                                           0 0 1 1)))
     (lisp-unit:assert-equal

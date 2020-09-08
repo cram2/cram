@@ -1,4 +1,4 @@
-;;;
+;;
 ;;; Copyright (c) 2019, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
@@ -29,19 +29,28 @@
 
 (in-package :kvr)
 
+;;; These are not used, as the objects are spawned randomly on the sink
+;;; in randomly chosen 'buckets'
 (defparameter *object-spawning-poses*
-  '((:breakfast-cereal . ((1.4 0.4 0.85) (0 0 0 1)))
+  '((:bowl . ((1.6 0.5 0.87) (0 0 0.4 0.6)))
     (:cup . ((1.3 0.1 0.9) (0 0 -0.7 0.7)))
-    (:bowl . ((1.6 0.5 0.87) (0 0 0.4 0.6)))
     (:spoon . ((1.43 0.4 0.85) (0 0 0.3 0.7)))
-    (:milk . ((1.4 0.62 0.95) (0 0 1 0)))))
+    ;;     (:breakfast-cereal . ((1.4 0.4 0.85) (0 0 0 1)))
+    ;;     (:milk . ((1.4 0.62 0.95) (0 0 1 0)))))
+    ))
 
 (defparameter *object-delivering-poses*
-  '((breakfast-cereal . ((1.4 0.4 0.85) (0 0 0 1)))
-    (cup . ((-0.888 1.207885 0.9) (0 0 0.99 0.07213)))
-    (bowl . ((-0.7846 1.38127 0.89953) (0.09 0.038 0.995 -0.02)))
-    (spoon . ((-0.7573 1.587 0.86835) (0.0 -0.0 0.999 0.036)))
-    (milk . ((1.4 0.62 0.95) (0 0 1 0)))))
+  '((bowl . ((-0.7846 1.38127 0.89953) (0.09 0.038 0.995 -0.02)))
+    (cup . ((-0.888 1.60885 0.9) (0 0 0.99 0.07213)))
+    (spoon . ((-0.7573 1.787 0.86835) (0.0 -0.0 0.999 0.036)))
+    ;; (breakfast-cereal . ((1.4 0.4 0.85) (0 0 0 1)))
+    ;; (milk . ((1.4 0.62 0.95) (0 0 1 0)))
+    ))
+
+(defparameter *object-delivering-poses-varied-kitchen*
+  '((bowl . ((-0.68 0.95 0.89953) (0 0 0.1 0.9)))
+    (cup . ((-0.85 0.85 0.9) (0 0 0.99 0.07213)))
+    (spoon . ((-0.9573 1.0 0.86835) (0.0 -0.0 -0.5 0.5)))))
 
 ;; (defparameter *object-delivering-poses*
 ;;   '((breakfast-cereal . ((1.4 0.4 0.85) (0 0 0 1)))
@@ -66,34 +75,60 @@
 (defparameter *object-colors*
   '((:spoon . "blue")))
 
-(defun spawn-objects-on-sink-counter (&optional (spawning-poses *object-spawning-poses*))
+(defun spawn-objects-on-sink-counter ()
   (btr-utils:kill-all-objects)
   (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo")
   (btr:detach-all-objects (btr:get-robot-object))
-  (let ((object-types '(;; :breakfast-cereal
-                        :cup
-                        :bowl ;; :milk
-                        :spoon
-                        )))
-    ;; spawn objects at default poses
+  (let* ((sink-area-y (cl-transforms:y
+                       (cl-transforms:origin
+                        (btr:pose
+                         (btr:rigid-body
+                          (btr:get-environment-object)
+                          :|ENVIRONMENT.sink_area|)))))
+         (object-types '(:cup :bowl :spoon))
+         (delta-alpha (* 2 pi))
+         (delta-y 0.3)
+         (x0 1.35)
+         (y0 (- sink-area-y 0.3))
+         (y-bucket-padding 0.2)
+         (y-bucket-length 0.3)
+         (y-buckets (alexandria:shuffle '(0 1 2))))
+    ;; spawn objects at random poses
     (let ((objects (mapcar (lambda (object-type)
-                             (btr-utils:spawn-object
-                              (intern (format nil "~a" object-type) :keyword)
-                              object-type
-                              :pose (let* ((x (+ 1.5 (- (random 0.4) 0.2)))
-                                           (y (+ 0.5 (- (random 1.0) 0.5)))
-                                           (pi-number (- (random 0.5) 0.2))
-                                           ;; (pi-number (- (random 2.0) 1.0))
-                                           (pi-other (- 1.0 (abs pi-number)))
-                                           (pose `((,x ,y 0.87) (0 0 ,pi-number ,pi-other))))
-                                      pose)))
+                             (let* ((delta-x (ecase object-type
+                                               (:spoon 0.2)
+                                               (:bowl 0.15)
+                                               (:cup 0.1)))
+                                    (x (+ x0 (random delta-x)))
+                                    (y-bucket (ecase object-type
+                                                (:spoon (first y-buckets))
+                                                (:bowl (second y-buckets))
+                                                (:cup (third y-buckets))))
+                                    (y (+ y0
+                                          (* (+ y-bucket-padding y-bucket-length) y-bucket)
+                                          (random delta-y)))
+                                    (z (ecase object-type
+                                         (:spoon 0.87)
+                                         (:bowl 0.89)
+                                         (:cup 0.9)))
+                                    (alpha (cl-transforms:normalize-angle (random delta-alpha)))
+                                    (pose (cl-transforms:make-pose
+                                           (cl-transforms:make-3d-vector x y z)
+                                           (cl-transforms:axis-angle->quaternion
+                                            (cl-transforms:make-3d-vector 0 0 1)
+                                            alpha))))
+                               (btr:add-vis-axis-object pose)
+                               (btr-utils:spawn-object
+                                (intern (format nil "~a" object-type) :keyword)
+                                object-type
+                                :pose (cram-tf:pose->list pose))))
                            object-types)))
       ;; stabilize world
       (btr:simulate btr:*current-bullet-world* 100)
       objects)))
 
-(defmethod exe:generic-perform :before (designator)
-  (roslisp:ros-info (demo perform) "~%~A~%~%" designator))
+;; (defmethod exe:generic-perform :before (designator)
+;;   (roslisp:ros-info (demo perform) "~%~A~%~%" designator))
 
 (cpl:def-cram-function park-robot ()
   (cpl:with-failure-handling
@@ -103,9 +138,7 @@
     (cpl:par
       (exe:perform
        (desig:an action
-                 (type positioning-arm)
-                 (left-configuration park)
-                 (right-configuration park)))
+                 (type parking-arms)))
       (let ((?pose (cl-transforms-stamped:make-pose-stamped
                     cram-tf:*fixed-frame*
                     0.0
@@ -132,30 +165,20 @@
   (setf proj-reasoning::*projection-checks-enabled* t)
 
   (btr:detach-all-objects (btr:get-robot-object))
-  (btr:detach-all-objects (btr:object btr:*current-bullet-world* :kitchen))
+  (btr:detach-all-objects (btr:get-environment-object))
   (btr-utils:kill-all-objects)
-  (setf (btr:joint-state (btr:object btr:*current-bullet-world* :kitchen)
+  (setf (btr:joint-state (btr:get-environment-object)
                          "sink_area_left_upper_drawer_main_joint")
         0.0)
   (btr-belief::publish-environment-joint-state
-   (btr:joint-states (btr:object btr:*current-bullet-world* :kitchen)))
+   (btr:joint-states (btr:get-environment-object)))
 
   (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))
 
   (unless cram-projection:*projection-environment*
     (json-prolog:prolog-simple "rdf_retractall(A,B,C,belief_state).")
-    (btr-belief::call-giskard-environment-service :kill-all "attached")
-    (cram-bullet-reasoning-belief-state::call-giskard-environment-service
-     :add-kitchen
-     "kitchen"
-     (cl-transforms-stamped:make-pose-stamped
-      "map"
-      0.0
-      (cl-transforms:make-identity-vector)
-      (cl-transforms:make-identity-rotation))))
-
-  ;; (setf cram-robot-pose-guassian-costmap::*orientation-samples* 3)
-  )
+    ;; (cram-occasions-events:clear-belief) ; to clear giskard environment
+    ))
 
 (defun finalize ()
   ;; (setf proj-reasoning::*projection-reasoning-enabled* nil)
@@ -172,66 +195,99 @@
 ;;   (ccl::connect-to-cloud-logger)
 ;;   (ccl::reset-logged-owl))
 
-(cpl:def-cram-function demo (&optional
-                             (list-of-objects
-                              '(bowl
-                                spoon
-                                cup)))
+(defun demo (&optional
+               (list-of-objects
+                '(bowl
+                  cup
+                  spoon)))
+
+  (experiment-log-start-demo-run)
 
   (initialize)
   (when cram-projection:*projection-environment*
     (spawn-objects-on-sink-counter))
-
   (park-robot)
 
-  (dolist (type list-of-objects)
-    (cpl:with-failure-handling
-        ((common-fail:high-level-failure (e)
-           (declare (ignore e))
-           (return)))
-      (let ((?bullet-type
-              (object-type-filter-bullet type))
-            (?search-poses
-              (alexandria:shuffle (cut:force-ll (look-poses-ll-for-searching type))))
-            (?search-base-poses
-              (alexandria:shuffle (cut:force-ll (base-poses-ll-for-searching type))))
-            (?fetch-base-poses
-              (alexandria:shuffle (cut:force-ll (base-poses-ll-for-searching type)))
-              ;; (base-poses-ll-for-fetching-based-on-object-desig
-              ;;  object-designator)
-              )
-            (?grasps
-              (alexandria:shuffle (cut:force-ll (object-grasped-faces-ll-from-kvr-type type))))
-            (?arms
-              (alexandria:shuffle '(:left :right) ;; (cut:force-ll (arms-for-fetching-ll type))
-                                  ))
-            (?delivering-poses
-              (list (cl-transforms-stamped:pose->pose-stamped
-                     cram-tf:*fixed-frame* 0.0
-                     (cram-tf:list->pose (cdr (assoc type *object-delivering-poses*)))))
-              ;; (alexandria:shuffle (cut:force-ll (object-poses-ll-for-placing type)))
-              )
-            (?delivering-base-poses
-              (remove
-               NIL
-               (mapcar (lambda (pose)
-                         (when (> (cl-transforms:x (cl-transforms:origin pose)) -1)
-                           pose))
-                       (alexandria:shuffle (cut:force-ll (base-poses-ll-for-placing type)))))))
-        (exe:perform
-         (desig:an action
-                   (type transporting)
-                   (object (desig:an object (type ?bullet-type)))
-                   (location (desig:a location (poses ?search-poses)))
-                   (search-robot-location (desig:a location (poses ?search-base-poses)))
-                   (fetch-robot-location (desig:a location (poses ?fetch-base-poses)))
-                   (arms ?arms)
-                   (grasps ?grasps)
-                   (target (desig:a location (poses ?delivering-poses)))
-                   (deliver-robot-location (desig:a location (poses ?delivering-base-poses))))))))
+  (unwind-protect
+       (dolist (type list-of-objects)
 
-  (park-robot)
+         (experiment-log-start-object-transport type)
 
-  (finalize)
+         (cpl:with-failure-handling
+             ((common-fail:high-level-failure (e)
+                (declare (ignore e))
+                (experiment-log-finish-object-transport-failed type)
+                (return)))
 
-  cpl:*current-path*)
+           (let* ((?delivering-poses
+                    (list (cl-transforms-stamped:pose->pose-stamped
+                           cram-tf:*fixed-frame* 0.0
+                           (cram-tf:list->pose
+                            (cdr
+                             (assoc type
+                                    (if (> (cl-transforms:y
+                                            (cl-transforms:origin
+                                             (btr:pose
+                                              (btr:rigid-body
+                                               (btr:get-environment-object)
+                                               :|ENVIRONMENT.sink_area|))))
+                                           1.0)
+                                        *object-delivering-poses-varied-kitchen*
+                                        *object-delivering-poses*)))))))
+
+                  (?bullet-type
+                    (object-type-filter-bullet type)))
+
+             (if *kvr-enabled*
+
+                 (let* ((?search-poses
+                          (alexandria:shuffle
+                           (cut:force-ll (look-poses-ll-for-searching type))))
+                        (?arms
+                          (alexandria:shuffle
+                           ;; (cut:force-ll (arms-for-fetching-ll type))
+                           '(:left :right)))
+                        (?grasps
+                          (alexandria:shuffle
+                           (ecase ?bullet-type
+                             (:bowl '(:top))
+                             (:cup '(::RIGHT-SIDE :FRONT :LEFT-SIDE :TOP :BACK))
+                             (:spoon '(:top))))))
+                   ;; (cut:force-ll (object-grasped-faces-ll-from-kvr-type type))
+
+                   (exe:perform
+                    (desig:an action
+                              (type transporting)
+                              (object (desig:an object (type ?bullet-type)))
+                              (target (desig:a location (poses ?delivering-poses)))
+
+                              (location (desig:a location (poses ?search-poses)))
+                              (arms ?arms)
+                              (grasps ?grasps))))
+
+                 (exe:perform
+                  (desig:an action
+                            (type transporting)
+                            (object (desig:an object (type ?bullet-type)))
+                            (target (desig:a location (poses ?delivering-poses)))
+
+                            (location (desig:a location
+                                               (on (desig:an object
+                                                             (type counter-top)
+                                                             (urdf-name sink-area-surface)
+                                                             (part-of iai-kitchen)))
+                                               (side front)))))))
+
+           (experiment-log-finish-object-transport-successful type))
+
+         (experiment-log-current-demo-run-failures *experiment-log-current-object*))
+
+    (experiment-log-finish-demo-run)
+
+    (park-robot)
+
+    (finalize)
+
+    cpl:*current-path*))
+
+
