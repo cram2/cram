@@ -88,21 +88,21 @@
                                      cram-tf:*robot-right-tool-frame*
                                      right-pose)))
      :collisions (ecase collision-mode
-                   (:avoid-all (make-avoid-all-collision 0.1))
+                   (:avoid-all (make-avoid-all-collision))
                    (:allow-all (make-allow-all-collision))
-                   (:allow-hand (list (make-avoid-all-collision 0.05)
+                   (:allow-hand (list ;; (make-avoid-all-collision)
                                       (make-allow-hand-collision
                                        arms collision-object-b
                                        collision-object-b-link)
                                       (make-allow-hand-collision
                                        arms (rob-int:get-environment-name))))
-                   (:allow-arm (list (make-avoid-all-collision 0.05)
+                   (:allow-arm (list ;; (make-avoid-all-collision)
                                      (make-allow-arm-collision
                                       arms collision-object-b
                                       collision-object-b-link)
                                      (make-allow-arm-collision
                                       arms (rob-int:get-environment-name))))
-                   (:allow-attached (list (make-avoid-all-collision 0.02)
+                   (:allow-attached (list ;; (make-avoid-all-collision)
                                           (make-allow-attached-collision
                                            collision-object-a
                                            collision-object-b-link)))))))

@@ -42,7 +42,7 @@
                  (make-open-or-close-constraint
                   open-or-close arm handle-link joint-state))
    :collisions (make-constraints-vector
-                (make-avoid-all-collision 0.05)
+                (make-avoid-all-collision)
                 (ecase open-or-close
                   (:open (make-allow-hand-collision
                           (list arm) (rob-int:get-environment-name) handle-link))

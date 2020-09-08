@@ -183,4 +183,7 @@
                  (type retracting)
                  (left-poses ?left-retract-poses)
                  (right-poses ?right-retract-poses)
-                 (goal ?goal))))))
+                 (goal ?goal)))))
+  (exe:perform
+   (desig:an action
+             (type parking-arms))))

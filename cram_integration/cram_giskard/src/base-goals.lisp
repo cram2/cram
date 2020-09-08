@@ -29,17 +29,32 @@
 
 (in-package :giskard)
 
-(defparameter *base-convergence-delta-xy* 0.05 "in meters")
-(defparameter *base-convergence-delta-theta* 0.1 "in radiants, about 6 degrees.")
+(defparameter *base-convergence-delta-xy*
+  0.05 "in meters.")
+(defparameter *base-convergence-delta-theta*
+  0.1 "in radiants, about 6 degrees.")
+(defparameter *base-collision-avoidance-distance*
+  0.2 "In meters.")
+(defparameter *base-collision-avoidance-hint-vector*
+  (cl-transforms-stamped:make-vector-stamped
+   cram-tf:*fixed-frame* 0.0
+   (cl-transforms:make-3d-vector 0 -1 0)))
+(defparameter *base-collision-avoidance-hint-link*
+  "kitchen_island" "A link name from the environment URDF.")
 
 (defun make-giskard-base-action-goal (pose)
   (declare (type cl-transforms-stamped:pose-stamped pose))
   (make-giskard-goal
-   :constraints (make-cartesian-constraint
-                 cram-tf:*odom-frame* cram-tf:*robot-base-frame* pose
-                 :avoid-collisions-much t)
+   :constraints (list
+                 (make-cartesian-constraint
+                  cram-tf:*odom-frame* cram-tf:*robot-base-frame* pose
+                  :avoid-collisions-much t)
+                 (make-collision-avoidance-hint-constraint
+                  cram-tf:*robot-base-frame*
+                  *base-collision-avoidance-hint-link*
+                  *base-collision-avoidance-hint-vector*))
    :joint-constraints (make-current-joint-state-constraint '(:left :right))
-   :collisions (make-avoid-all-collision)))
+   :collisions (make-avoid-all-collision *base-collision-avoidance-distance*)))
 
 (defun ensure-base-goal-input (pose)
   (cram-tf:ensure-pose-in-frame pose cram-tf:*fixed-frame*))

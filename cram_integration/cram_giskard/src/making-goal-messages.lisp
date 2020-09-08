@@ -33,6 +33,8 @@
 (defparameter *prefer-base-low-cost* 0.0001)
 (defparameter *avoid-collisions-distance* 0.10 "In cm, not used atm")
 (defparameter *unmovable-joint-weight* 9001)
+(defparameter *collision-avoidance-hint-threshold* 0.3 "In cm")
+(defparameter *collision-avoidance-hint-velocity* 1.0 "In m/s")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; UTILS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -272,11 +274,41 @@
           weights))
 
 (defun make-unmovable-joints-constraint (joint-names
-                                         &optional (weight *unmovable-joint-weight*))
+                                         &optional (weight
+                                                    *unmovable-joint-weight*))
+  (declare (type list joint-names)
+           (type (or number null) weight))
   (make-joint-constraint
    (list joint-names
          (joints:joint-positions joint-names))
-   (make-list (length joint-names) :initial-element weight )))
+   (make-list (length joint-names) :initial-element weight)))
+
+(defun make-collision-avoidance-hint-constraint (robot-link environment-link
+                                                 vector
+                                                 &optional
+                                                   (threshold
+                                                    *collision-avoidance-hint-threshold*)
+                                                   (max-velocity
+                                                    *collision-avoidance-hint-velocity*))
+  (declare (type string robot-link environment-link)
+           (type cl-transforms-stamped:vector-stamped vector)
+           (type number threshold max-velocity))
+  (roslisp:make-message
+   'giskard_msgs-msg:constraint
+   :type
+   "CollisionAvoidanceHint"
+   :parameter_value_pair
+   (alist->json-string
+    `(("link_name" . ,robot-link)
+      ("avoidance_hint" . ,(to-hash-table vector))
+      ("threshold" . ,threshold)
+      ("max_velocity" . ,max-velocity)
+      ("body_b" . ,(roslisp-utilities:rosify-underscores-lisp-name
+                    (rob-int:get-environment-name)))
+      ("link_b" . ,environment-link)
+      ("weight" . ,(roslisp-msg-protocol:symbol-code
+                    'giskard_msgs-msg:constraint
+                    :weight_collision_avoidance))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; NON-JSON CONSTRAINTS ;;;;;;;;;;;;;;;;;;;;;;;;;;;
