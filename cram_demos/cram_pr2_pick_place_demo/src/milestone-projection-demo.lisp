@@ -203,6 +203,7 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
                            cram-tf:*fixed-frame*))
            (?deliver-location (a location (pose ?deliver-pose)))
            (?color (cdr (assoc ?object-type *object-colors*)))
+           (?arm (cdr (assoc ?object-type *object-arms*)))
            (?material (cdr (assoc ?object-type *object-materials*)))
            ;; (?grasp (cdr (assoc ?object-type *object-grasps*)))
            (?object (an object
@@ -218,7 +219,8 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
            (object ?object)
            (context :table-setting)
            ;; (grasps (:back :top :front))
-           ;; (arms (left right))
+           (desig:when ?arm
+             (arms (?arm)))
            ;; (desig:when ?grasp
            ;;   (grasp ?grasp))
            (target ?deliver-location)
