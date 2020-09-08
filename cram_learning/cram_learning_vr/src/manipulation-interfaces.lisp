@@ -234,7 +234,7 @@ the vr-data. For more information see the defgeneric. The priority of
                                (owl-name ?vr-owl)
                                (part-of ?kitchen-name)))))))
 
-(defmethod man-int:get-object-likely-destination :vr-owl 10 (?kitchen-name ?human-name ?context ?object-type)
+(defmethod man-int:get-object-destination :vr-owl 10 (?kitchen-name ?human-name ?context ?object-type)
   "Returns a designator representing the location of given object in
 vr-data. For more information see the defgeneric. The priority of
   this function should be higher than the priority of the :heuristics functions."

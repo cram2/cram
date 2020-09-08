@@ -829,4 +829,4 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                            (location ?delivering-location)
                            (goal ?goal))))
 
-  (desig:current-desig ?object-designator))
+  (desig:current-desig ?object-designator)))

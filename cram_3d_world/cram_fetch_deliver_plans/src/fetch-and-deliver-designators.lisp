@@ -152,7 +152,7 @@ the `look-pose-stamped'."
              (equal ?object-designator ?object-designator-with-location))
         (and (spec:property ?object-designator (:type ?object-type))
              (rob-int:environment-name ?environment)
-             (lisp-fun man-int:	get-object-likely-location
+             (lisp-fun man-int:get-object-likely-location
                        ?object-type ?environment nil ?context ?location-designator)
              (equal ?new-props ((:location ?location-designator)))
              (lisp-fun desig:extend-designator-properties
