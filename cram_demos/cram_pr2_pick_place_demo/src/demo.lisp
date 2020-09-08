@@ -52,6 +52,9 @@
     (:cup . :top)
     (:bowl . :top)))
 
+(defparameter *object-arms*
+  '((:milk . :left)))
+
 (defun park-robot ()
   (cpl:with-failure-handling
       ((cpl:plan-failure (e)
