@@ -54,7 +54,8 @@
    :constraints (list
                  (make-cartesian-constraint
                   cram-tf:*odom-frame* cram-tf:*robot-base-frame* pose
-                  :avoid-collisions-much t)
+                  :avoid-collisions-much t
+                  :max-velocity *base-max-velocity-fast-xy*)
                  (make-collision-avoidance-hint-constraint
                   cram-tf:*robot-base-frame*
                   *base-collision-avoidance-hint-link*
