@@ -54,7 +54,8 @@
     (make-giskard-goal
      :constraints (list
                    (make-avoid-joint-limits-constraint)
-                   (when prefer-base (make-prefer-base-constraint))
+                   (when prefer-base
+                     (make-prefer-base-constraint))
                    ;; (when align-planes-left
                    ;;   (make-align-planes-constraint
                    ;;    pose-base-frame
@@ -75,8 +76,10 @@
                    ;;    (cl-transforms-stamped:make-vector-stamped
                    ;;     cram-tf:*robot-base-frame* 0.0
                    ;;     (cl-transforms:make-3d-vector 0 0 1))))
-                   (when unmovable-joints (make-unmovable-joints-constraint
-                                           unmovable-joints)))
+                   (when unmovable-joints
+                     (make-unmovable-joints-constraint unmovable-joints))
+                   (make-base-velocity-constraint
+                    *base-max-velocity-slow-xy* *base-max-velocity-slow-theta*))
      :cartesian-constraints (list (when left-pose
                                     (make-simple-cartesian-constraint
                                      pose-base-frame
