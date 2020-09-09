@@ -310,6 +310,19 @@
                     'giskard_msgs-msg:constraint
                     :weight_collision_avoidance))))))
 
+(defun make-base-velocity-constraint (max-linear-velocity max-angular-velocity)
+  (declare (type number max-linear-velocity max-angular-velocity))
+  (roslisp:make-message
+   'giskard_msgs-msg:constraint
+   :type
+   "CartesianVelocityLimit"
+   :parameter_value_pair
+   (alist->json-string
+    `(("root_link" . ,cram-tf:*odom-frame*)
+      ("tip_link" . ,cram-tf:*robot-base-frame*)
+      ("max_linear_velocity" . ,max-linear-velocity)
+      ("max_angular_velocity" . ,max-angular-velocity)))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; NON-JSON CONSTRAINTS ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
