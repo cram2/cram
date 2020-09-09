@@ -36,11 +36,17 @@
 (defparameter *base-collision-avoidance-distance*
   0.2 "In meters.")
 (defparameter *base-collision-avoidance-hint-vector*
-  (cl-transforms-stamped:make-vector-stamped
-   cram-tf:*fixed-frame* 0.0
-   (cl-transforms:make-3d-vector 0 -1 0)))
+  (cl-transforms:make-3d-vector 0 -1 0))
 (defparameter *base-collision-avoidance-hint-link*
   "kitchen_island" "A link name from the environment URDF.")
+(defparameter *base-max-velocity-fast-xy*
+  0.5 "In meters")
+(defparameter *base-max-velocity-fast-theta*
+  0.2 "In rad, about 11.5 deg.")
+(defparameter *base-max-velocity-slow-xy*
+  0.1 "In meters")
+(defparameter *base-max-velocity-slow-theta*
+  0.2 "In rad, about 11.5 deg.")
 
 (defun make-giskard-base-action-goal (pose)
   (declare (type cl-transforms-stamped:pose-stamped pose))
@@ -52,7 +58,11 @@
                  (make-collision-avoidance-hint-constraint
                   cram-tf:*robot-base-frame*
                   *base-collision-avoidance-hint-link*
-                  *base-collision-avoidance-hint-vector*))
+                  (cl-transforms-stamped:make-vector-stamped
+                   cram-tf:*fixed-frame* 0.0
+                   *base-collision-avoidance-hint-vector*))
+                 (make-base-velocity-constraint
+                  *base-max-velocity-fast-xy* *base-max-velocity-fast-theta*))
    :joint-constraints (make-current-joint-state-constraint '(:left :right))
    :collisions (make-avoid-all-collision *base-collision-avoidance-distance*)))
 

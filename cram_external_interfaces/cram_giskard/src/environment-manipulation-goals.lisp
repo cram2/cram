@@ -40,7 +40,9 @@
    :constraints (list
                  (when prefer-base (make-prefer-base-constraint))
                  (make-open-or-close-constraint
-                  open-or-close arm handle-link joint-state))
+                  open-or-close arm handle-link joint-state)
+                 (make-base-velocity-constraint
+                  *base-max-velocity-slow-xy* *base-max-velocity-slow-theta*))
    :collisions (make-constraints-vector
                 (make-avoid-all-collision)
                 (ecase open-or-close
