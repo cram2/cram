@@ -217,11 +217,13 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;; cup ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *cup-pregrasp-xy-offset* 0.15 "in meters")
+;; (defparameter *cup-eco-orange-grasp-xy-offset* 0.02 "in meters")
 (defparameter *cup-grasp-xy-offset* 0.02 "in meters")
 ;; (defparameter *cup-eco-orange-grasp-z-offset* 0.01 "in meters")
-(defparameter *cup-grasp-z-offset* 0.04 "in meters")
+(defparameter *cup-grasp-z-offset* 0.01 "in meters")
 (defparameter *cup-top-grasp-x-offset* 0.03 "in meters")
-(defparameter *cup-top-grasp-z-offset* 0.02 "in meters")
+;; (defparameter *cup-eco-orange-top-grasp-z-offset* 0.02 "in meters")
+(defparameter *cup-top-grasp-z-offset* 0.04 "in meters")
 
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms :cup '(:left :right) :top
@@ -375,8 +377,10 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;; bowl ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter *bowl-grasp-x-offset* 0.07 "in meters")
-(defparameter *bowl-grasp-z-offset* 0.0 "in meters")
+;; (defparameter *edeka-red-bowl-grasp-x-offset* 0.07 "in meters")
+(defparameter *bowl-grasp-x-offset* 0.08 "in meters")
+;; (defparameter *edeka-red-bowl-grasp-z-offset* 0.0 "in meters")
+(defparameter *bowl-grasp-z-offset* 0.02 "in meters")
 (defparameter *bowl-pregrasp-z-offset* 0.20 "in meters")
 
 ;; TOP grasp
