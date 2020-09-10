@@ -99,7 +99,10 @@
                ;;(log-cram-finish-action action-id)
                (set-event-status-to-failed action-id)
                (set-event-diagnosis action-id (ccl::get-failure-uri (subseq (write-to-string e) 2 (search " " (write-to-string e)))))
-               ;;(log-failure action-id e)
+               (let ((action-designator-parameters (desig:properties (or (second (desig:reference designator)) designator))))
+                 (log-action-designator-parameters-for-logged-action-designator action-designator-parameters action-id))
+                (ccl::stop-situation action-id)
+               
                ;;(equate action-id (log-perform-call  (second (desig:reference designator)))))
                (print "plan failure")))
 
@@ -117,7 +120,6 @@
           ;;(log-cram-sibling-action
           ;; (car *action-parents*) action-id (get-knowrob-action-name cram-action-name designator))
           (push action-id *action-parents*)
-
           (ccl::start-situation action-id)
           (multiple-value-bind (perform-result action-desig)
               (call-next-method)
