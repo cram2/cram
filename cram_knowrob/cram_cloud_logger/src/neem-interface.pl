@@ -1,7 +1,7 @@
 :- rdf_meta(mem_event_create(r,r,r)).
 :- use_module(library('db/mongo/client')).
 
-mem_episode_start(Action) :- 
+mem_episode_start(Action) :- tripledb_drop(),forall(mng_collection(roslog,Coll),mng_drop(roslog,Coll)),
     tripledb_load('package://knowrob/owl/knowrob.owl',[graph(tbox),namespace(knowrob)]),
     tell([is_episode(Episode), is_action(Action), has_type(Task,soma:'PhysicalTask'), 
             executes_task(Action,Task),is_setting_for(Episode,Action)]),!.
@@ -14,7 +14,7 @@ mem_event_set_succeeded(Action) :- tell(action_succeeded(Action)).
 
 mem_event_add_diagnosis(Situation, Diagnosis) :- tell(satisfies(Situation, Diagnosis)).
 
-add_subaction_with_task(Action,SubAction,TaskType) :- tell([is_action(SubAction), has_type(Task,TaskType), executes_task(SubAction,Task), has_subevent(Action,SubAction)]), !.
+add_subaction_with_task(Action,SubAction,TaskType) :- tell([is_action(SubAction), has_type(Task,TaskType), executes_task(SubAction,Task), has_subevent(Action,SubAction)]),notify_synchronize(event(Event)), !.
 
 mem_event_end(Event) :- get_time(CurrentTime),ask(triple(Event,dul:'hasTimeInterval',TimeInterval)),tripledb_forget(TimeInterval, soma:'hasIntervalEnd', _),tell(holds(TimeInterval, soma:'hasIntervalEnd', CurrentTime)),!.
 
