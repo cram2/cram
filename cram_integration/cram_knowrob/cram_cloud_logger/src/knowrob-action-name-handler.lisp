@@ -7,8 +7,8 @@
        ("retracting" "Retracting")
        ("lifting" "Lifting")
        ("putting" "Lowering")
-       ("setting-gripper" "Positioning")
-       ("positioning-arm" "Positioning")
+       ("setting-gripper" "SettingGripper")
+       ("positioning-arm" "PositioningArm")
        ("opening" "Opening")
        ("opening-gripper" "Opening")
        ("closing" "Closing")
@@ -22,7 +22,7 @@
        ("going" "MovingTo")
        ("navigating" "Navigating")
        ("searching" "LookingFor")
-       ("fetching" "PickingUp")
+       ("fetching" "Fetching")
        ("delivering" "PuttingDown")
        ("transporting" "Transporting")
        ("turning-towards" "LookingFor")
@@ -36,7 +36,7 @@
 (defparameter *action-name-mapper* (init-action-name-mapper))
 
 (defun get-knowrob-action-name-uri (cram-action-name designator)
-  (concatenate 'string "'http://www.ease-crc.org/ont/EASE-ACT.owl#" (get-knowrob-action-name cram-action-name designator) "'"))
+  (concatenate 'string "'http://www.ease-crc.org/ont/SOMA.owl#" (get-knowrob-action-name cram-action-name designator) "'"))
 
 (defun get-knowrob-action-name (cram-action-name designator)
   (let* ((lower-cram-action-name (string-downcase cram-action-name))
