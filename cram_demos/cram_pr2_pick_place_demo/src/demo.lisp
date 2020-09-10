@@ -52,6 +52,9 @@
     (:cup . :top)
     (:bowl . :top)))
 
+(defparameter *object-arms*
+  '((:milk . :left)))
+
 (defun park-robot ()
   (cpl:with-failure-handling
       ((cpl:plan-failure (e)
@@ -79,13 +82,13 @@
                  (type going)
                  (target (desig:a location (pose ?pose))))))))
 
+(defun start-logging ()
+  (setf ccl::*is-logging-enabled* t)
+  (ccl::init-logging)
+  (ccl::start-episode))
+
 (defun initialize ()
   (sb-ext:gc :full t)
-
-  ;;(when ccl::*is-logging-enabled*
-  ;;    (setf ccl::*is-client-connected* nil)
-  ;;    (ccl::connect-to-cloud-logger)
-  ;;    (ccl::reset-logged-owl))
 
   ;; (setf proj-reasoning::*projection-checks-enabled* t)
 
@@ -131,10 +134,10 @@
 (defun finalize ()
   ;; (setf proj-reasoning::*projection-reasoning-enabled* nil)
 
-  ;;(when ccl::*is-logging-enabled*
-  ;;  (ccl::export-log-to-owl "ease_milestone_2018.owl")
-  ;;  (ccl::export-belief-state-to-owl "ease_milestone_2018_belief.owl"))
   (sb-ext:gc :full t))
+
+(defun stop-logging ()
+  (ccl::stop-episode))
 
 
 (cpl:def-cram-function demo-random (&optional

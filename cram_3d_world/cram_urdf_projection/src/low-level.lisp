@@ -1034,7 +1034,8 @@ collision by moving its torso and base"
                    (:z
                     (- torso-joint-upper-limit current-torso-angle)
                     (- torso-joint-lower-limit current-torso-angle)
-                    *torso-resampling-step*)))))
+                    *torso-resampling-step*
+                    :disable-resampling disable-base-resampling)))))
         (unless ik-solution-msg
           (cpl:fail 'common-fail:manipulation-low-level-failure
                     :description

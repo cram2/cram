@@ -33,7 +33,7 @@
 (defparameter *demo-object-spawning-poses*
   '((:bowl
      "sink_area_left_middle_drawer_main"
-     ((0.05 -0.0505 -0.062256) (0 0 -1 0)))
+     ((0.10 -0.0505 -0.062256) (0 0 -1 0)))
     ;; (:cup
     ;;  "sink_area_left_bottom_drawer_main"
     ;;  ((0.11 0.12 -0.0547167) (0 0 -1 0)))
@@ -89,6 +89,33 @@
     (:milk . ((-0.8495257695515951d0 1.6991498311360678d0 0.9483174006144206d0)
               (0.0 0.0 -0.9 0.7)))
     (:breakfast-cereal . ((-0.78 0.8 0.95) (0 0 0.6 0.4)))))
+
+(defparameter *delivery-poses-dining-table*
+  `((:bowl . ((-3.32 -0.12 0.7991467793782552d0)
+              (3.137296516797505d-5
+               1.0759643373603467d-5
+               0.9511423707008362d0
+               0.30875256657600403d0)))
+    (:cup . ((-3.1 -0.08 0.8d0)
+             (-0.03113226592540741d0
+              0.08310400694608688d0
+              0.8814979791641235d0
+              -0.4637735188007355d0)))
+    (:spoon . ((-3.18 -0.1 0.7552929560343424d0)
+               (-5.796735058538616d-4
+                -4.0868669748306274d-4
+                0.7079771161079407d0
+                0.7062349915504456d0)))
+    (:milk . ((-3.2d0 0.2d0 0.8359999974568685d0)
+              (0.011613382957875729d0
+               0.0015667370753362775d0
+               -0.8652299046516418d0
+               0.5012384653091431d0)))
+    (:breakfast-cereal . ((-3.36 0.16 0.85d0)
+                          (-0.00908871553838253d0
+                           -0.00283131655305624d0
+                           0.7276732921600342d0
+                           0.6858578324317932d0)))))
 
 (defparameter *cleaning-deliver-poses*
   `((:bowl . ((1.45 -0.4 1.0) (0 0 0 1)))
@@ -171,10 +198,12 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
   (dolist (?object-type object-list)
     (let* ((?deliver-pose (cram-tf:ensure-pose-in-frame
                            (btr:ensure-pose
-                            (cdr (assoc ?object-type *delivery-poses*)))
+                            (cdr (assoc ?object-type
+                                        *delivery-poses-dining-table*)))
                            cram-tf:*fixed-frame*))
            (?deliver-location (a location (pose ?deliver-pose)))
            (?color (cdr (assoc ?object-type *object-colors*)))
+           (?arm (cdr (assoc ?object-type *object-arms*)))
            (?material (cdr (assoc ?object-type *object-materials*)))
            ;; (?grasp (cdr (assoc ?object-type *object-grasps*)))
            (?object (an object
@@ -190,10 +219,11 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
            (object ?object)
            (context :table-setting)
            ;; (grasps (:back :top :front))
-           ;; (arms (left right))
+           (desig:when ?arm
+             (arms (?arm)))
            ;; (desig:when ?grasp
            ;;   (grasp ?grasp))
-           ;; (target ?deliver-location)
+           (target ?deliver-location)
            )))))
 
 (defun cleaning-demo (&optional (object-list '(:milk :breakfast-cereal

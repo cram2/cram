@@ -41,4 +41,5 @@
   ((:module "src"
     :components
     ((:file "package")
-     (:file "joint-states" :depends-on ("package"))))))
+     (:file "joint-states" :depends-on ("package"))
+     (:file "monitoring" :depends-on ("package" "joint-states"))))))
