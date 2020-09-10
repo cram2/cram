@@ -33,7 +33,7 @@
 (defparameter *demo-object-spawning-poses*
   '((:bowl
      "sink_area_left_middle_drawer_main"
-     ((0.10 -0.1505 -0.062256) (0 0 -1 0)))
+     ((0.05 -0.0505 -0.062256) (0 0 -1 0)))
     ;; (:cup
     ;;  "sink_area_left_bottom_drawer_main"
     ;;  ((0.11 0.12 -0.0547167) (0 0 -1 0)))
