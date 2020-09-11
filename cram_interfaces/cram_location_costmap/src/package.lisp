@@ -77,7 +77,7 @@
            #:on-visualize-costmap
            #:on-visualize-costmap-sample
            #:get-map-value
-           #:get-map-height
+           #:generate-height
            #:no-cost-functions-registered
            #:register-cost-function
            #:register-height-generator
