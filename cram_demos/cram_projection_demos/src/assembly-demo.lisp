@@ -103,8 +103,8 @@
     (:holder-plane-horizontal
      :holder-plane-horizontal
      ,*yellow-plastic*
-     ((,(+ 0.05 *holder-plane-horizontal-rad-x*) 0.6 ,*holder-plane-horizontal-rad-z*)
-      (0 0 0 1)))
+     ((,(+ 0.02 *holder-plane-horizontal-rad-x*) 0.6 ,*holder-plane-horizontal-rad-z*)
+      (0 0 0.7071d0 0.7071d0)))
     (:holder-window
      :holder-window
      ,*gray-plastic*
@@ -129,8 +129,7 @@
     (:rear-wing
      :rear-wing
      ,*yellow-plane*
-     ((0.079 0.599 0.056)
-      ,man-int:*rotation-around-z+90-list*))
+     ((0.121 0.528 0.055) ,man-int:*rotation-around-z+180-list*))
 
     ;; bolts are used intermediately
     (:bolt-1
@@ -158,7 +157,7 @@
     (:chassis
      :chassis
      ,*yellow-plane*
-     ((0.2 0.9 ,*chassis-rad-z*) ,man-int:*rotation-around-z-90-list*))
+     ((0.2 0.95 ,*chassis-rad-z*) ,man-int:*rotation-around-z-90-list*))
     (:bottom-wing
      :bottom-wing
      ,*cyan-plane*
@@ -192,19 +191,19 @@
     (:front-wheel-1
      :front-wheel
      ,*black-plane*
-     ((0.15 0.775 ,*front-wheel-rad-z*) (0 0 0 1)))
+      ((0.15 0.825 ,*front-wheel-rad-z*) (0 0 0 1)))
     (:front-wheel-2
      :front-wheel
      ,*black-plane*
-     ((0.215 0.775 ,*front-wheel-rad-z*) (0 0 0 1)))
+     ((0.215 0.825 ,*front-wheel-rad-z*) (0 0 0 1)))
     (:nut-1
      :nut
      ,*gray-plane*
-     ((0.15 0.725 ,*nut-rad-z*) (0 0 0 1)))
+     ((0.15 0.775 ,*nut-rad-z*) (0 0 0 1)))
     (:nut-2
      :nut
      ,*gray-plane*
-     ((0.215 0.725 ,*nut-rad-z*) (0 0 0 1)))))
+     ((0.215 0.775 ,*nut-rad-z*) (0 0 0 1)))))
 
 
 (defun spawn-assembly-objects (&optional (spawning-data *object-spawning-data*))
@@ -224,6 +223,7 @@
                       (let ((object-relative-pose
                               (cram-tf:list->pose object-pose-list)))
                         (unless (btr:object btr:*current-bullet-world* object-name)
+                          (roslisp:ros-info (assembly) "Spawning ~a" object-name)
                           (btr:add-object
                            btr:*current-bullet-world*
                            :mesh
@@ -247,7 +247,7 @@
                                 object-relative-pose))))))
                   spawning-data)))
 
-    (btr:attach-object :motor-grill :underbody)
+    (btr:attach-object :underbody :motor-grill)
 
     objects))
 
@@ -275,7 +275,10 @@
     ;;(setf cram-robosherlock::*no-robosherlock-mode* t)
     (spawn-assembly-objects)
     (let ((old-visibility btr:*visibility-threshold*))
-      (setf btr:*visibility-threshold* 0.4)
+      (setf btr:*visibility-threshold*
+            (case (rob-int:get-robot-name)
+              (:iai-donbot 0.1) ; perceiving with an object in hand is hard
+              (t 0.4)))
       (unwind-protect
            (let* ((?env-name
                     (rob-int:get-environment-name))
@@ -306,11 +309,11 @@
 
              ;; we put the underbody on the bottom-wing but by doing that
              ;; we also put it on the rear-wing.
-             ;; as there is no explicit placing action, the two will not be
-             ;; attached automatically.
+             ;; as there is no explicit placing action,
+             ;; the attachment that we get is loose,
              ;; so we have to attach them manually unfortunately.
              ;; this is required for later moving the whole plane onto another holder
-             (btr:attach-object 'underbody 'rear-wing)
+             (btr:attach-object :underbody :rear-wing)
 
              ;; 4
              (go-transport :upper-body '(:side :right) :underbody '(:range 0.3)
@@ -375,13 +378,13 @@
                         (side front))
                (desig:a location
                         (on ?wooden-plate)
-                        ?object-location-property
-                        (side front))))
+                        (side front)
+                        ?object-location-property)))
          (?other-object-location
            (desig:a location
                     (on ?wooden-plate)
-                    ?other-object-location-property
-                    (side front)))
+                    (side front)
+                    ?other-object-location-property))
          (?object
            (desig:an object
                      (type ?object-type)
