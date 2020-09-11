@@ -67,3 +67,5 @@
   '(0.0d0 0.0d0 0.7071067811865475d0 0.7071067811865476d0))
 (defparameter *rotation-around-z-90-list*
   '(0.0d0 0.0d0 -0.7071067811865475d0 0.7071067811865476d0))
+(defparameter *rotation-around-z+180-list*
+  '(0.0d0 0.0d0 1.0d0 0.0d0))
