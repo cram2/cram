@@ -84,6 +84,7 @@
                                   end-effector-link
                                   robot-tool-frame
                                   tcp-in-ee-pose
+                                  hand-links
                                   robot-joint-states)
 
   (<- (arm-joints :iai-donbot :left ("ur5_shoulder_pan_joint"
@@ -128,9 +129,11 @@
     (symbol-value *standard-to-donbot-gripper-transform* ?transform))
 
   (<- (end-effector-link :iai-donbot :left "ur5_wrist_3_link"))
+  (<- (end-effector-link :iai-donbot :right "ur5_wrist_3_link"))
 
   (<- (robot-tool-frame :iai-donbot :left "refills_tool_frame"))
-
+  (<- (robot-tool-frame :iai-donbot :right "refills_tool_frame"))
+  
   (<- (tcp-in-ee-pose :iai-donbot ?pose)
     (symbol-value *tcp-in-ee-pose* ?pose))
 
