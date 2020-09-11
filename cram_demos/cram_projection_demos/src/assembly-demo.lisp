@@ -247,7 +247,7 @@
                                 object-relative-pose))))))
                   spawning-data)))
 
-    (btr:attach-object :motor-grill :underbody)
+    (btr:attach-object :underbody :motor-grill)
 
     objects))
 
@@ -274,11 +274,11 @@
   (urdf-proj:with-projected-robot
     ;;(setf cram-robosherlock::*no-robosherlock-mode* t)
     (spawn-assembly-objects)
-    (let ((old-visibility btr:*visibility-threshold*))      
+    (let ((old-visibility btr:*visibility-threshold*))
       (setf btr:*visibility-threshold*
-            (if (eq :iai-donbot (rob-int:get-robot-name))
-                0.01 ;; perceiving with an object in hand is hard 
-                0.4))
+            (case (rob-int:get-robot-name)
+              (:iai-donbot 0.1) ; perceiving with an object in hand is hard
+              (t 0.4)))
       (unwind-protect
            (let* ((?env-name
                     (rob-int:get-environment-name))
@@ -309,11 +309,11 @@
 
              ;; we put the underbody on the bottom-wing but by doing that
              ;; we also put it on the rear-wing.
-             ;; as there is no explicit placing action, the two will not be
-             ;; attached automatically.
+             ;; as there is no explicit placing action,
+             ;; the attachment that we get is loose,
              ;; so we have to attach them manually unfortunately.
              ;; this is required for later moving the whole plane onto another holder
-             (btr:attach-object 'underbody 'rear-wing)
+             (btr:attach-object :underbody :rear-wing)
 
              ;; 4
              (go-transport :upper-body '(:side :right) :underbody '(:range 0.3)
@@ -378,13 +378,13 @@
                         (side front))
                (desig:a location
                         (on ?wooden-plate)
-                        ?object-location-property
-                        (side front))))
+                        (side front)
+                        ?object-location-property)))
          (?other-object-location
            (desig:a location
                     (on ?wooden-plate)
-                    ?other-object-location-property
-                    (side front)))
+                    (side front)
+                    ?other-object-location-property))
          (?object
            (desig:an object
                      (type ?object-type)

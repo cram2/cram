@@ -133,7 +133,7 @@
 
 (defparameter *underbody-grasp-x-offset* 0.02)
 (defparameter *underbody-grasp-y-offset* 0.0)
-(defparameter *underbody-grasp-z-offset* 0.0)
+(defparameter *underbody-grasp-z-offset* 0.005)
 
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms :underbody :left :top
@@ -271,7 +271,7 @@
   0.02)
 
 (man-int:def-object-type-in-other-object-transform :bottom-wing :chassis :wing-attachment
-  :attachment-translation `(0.0 -0.025 0.006)
+  :attachment-translation `(0.0 -0.025 0.0)
   :attachment-rot-matrix man-int:*identity-matrix*)
 
 (defmethod man-int:get-z-offset-for-placing-with-dropping ((object (eql :bottom-wing))
@@ -280,7 +280,7 @@
   0.025)
 
 (man-int:def-object-type-in-other-object-transform :underbody :bottom-wing :body-attachment
-  :attachment-translation `(0.0 -0.025 0.013)
+  :attachment-translation `(0.0 -0.025 0.015)
   :attachment-rot-matrix man-int:*rotation-around-z+90-matrix*)
 
 (man-int:def-object-type-in-other-object-transform :upper-body :underbody :body-on-body
