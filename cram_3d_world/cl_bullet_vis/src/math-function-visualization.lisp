@@ -1,20 +1,20 @@
 ;;;
 ;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
 ;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors 
-;;;       may be used to endorse or promote products derived from this software 
+;;;       Technische Universitaet Muenchen nor the names of its contributors
+;;;       may be used to endorse or promote products derived from this software
 ;;;       without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -38,7 +38,7 @@
                                                 (cl-transforms:make-3d-vector 0 0 0)
                                                 (cl-transforms:make-quaternion 0 0 0 1)))
    (fun :initarg :function :reader fun)
-   (height-fun :initarg :height-function :reader height-fun)
+   (height-fun :initarg :height-function :reader height-fun :initform (constantly 0.0))
    (alpha :initarg :alpha :reader alpha :initform 1.0)
    (color-fun :initarg :color-fun :reader color-fun :initform (constantly (list 0.0 0.0 0.6)))))
 
@@ -49,7 +49,7 @@
   (let ((value-points (make-hash-table :test 'equal))
         (heights (make-hash-table :test 'equal))
         (colors (make-hash-table :test 'equal)))
-    (flet ((get-point (x y)
+    (flet ((get-value (x y)
              (with-slots (fun) obj
                (multiple-value-bind (old-value found?)
                    (gethash (list x y) value-points)
@@ -58,7 +58,7 @@
                      (let ((new-value (funcall fun x y)))
                        (setf (gethash (list x y) value-points)
                              (when (numberp new-value)
-                               (cl-transforms:make-3d-vector x y new-value))))))))
+                               new-value)))))))
            (get-height (x y)
              (with-slots (height-fun) obj
                (multiple-value-bind (old-value found?)
@@ -69,14 +69,12 @@
                        (setf (gethash (list x y) heights)
                              (when (numberp new-value)
                                new-value)))))))
-           (get-color (vec)
-             (let ((x (cl-transforms:x vec))
-                   (y (cl-transforms:y vec)))
-               (with-slots (color-fun) obj
-                 (or (gethash (list x y) colors)
-                     (setf (gethash (list x y) colors)
-                           (append (subseq (funcall color-fun vec) 0 3)
-                                   (list (alpha obj))))))))
+           (get-color (x y value)
+             (with-slots (color-fun) obj
+               (or (gethash (list x y) colors)
+                   (setf (gethash (list x y) colors)
+                         (append (subseq (funcall color-fun value) 0 3)
+                                 (list (alpha obj)))))))
            (vertex (vec &optional normal)
              (let ((normal (cl-transforms:v*
                             normal
@@ -98,53 +96,39 @@
             (gl:mult-matrix (pose->gl-matrix pose))
             (loop for x from (- (/ width 2)) to (- (/ width 2) step-size) by step-size do
               (loop for y from (- (/ height 2)) to (- (/ height 2) step-size) by step-size do
-                (let ((middle-pt-value (get-point (+ x (/ step-size 2))
-                                                  (+ y (/ step-size 2))))
-                      (height (get-height (+ x (/ step-size 2))
-                                          (+ y (/ step-size 2)))))
-                  (when (and middle-pt-value height)
-                    (let* ((value (cl-transforms:z middle-pt-value))
-                           (pt-1-color 
-                             (cl-transforms:make-3d-vector
-                              x y value))
-                           (pt-1 
+                (let* ((pt-middle-x (+ x (/ step-size 2)))
+                       (pt-middle-y (+ y (/ step-size 2)))
+                       (value (get-value pt-middle-x pt-middle-y)))
+                  (when value
+                    (let* ((color
+                             (get-color pt-middle-x pt-middle-y value))
+                           (height
+                             (get-height pt-middle-x pt-middle-y))
+                           (pt-1
                              (cl-transforms:make-3d-vector
                               x y height))
-                           (pt-2-color 
-                             (cl-transforms:make-3d-vector
-                              (+ x step-size) y value))
-                           (pt-2 
+                           (pt-2
                              (cl-transforms:make-3d-vector
                               (+ x step-size) y height))
-                           (pt-3-color 
-                             (cl-transforms:make-3d-vector
-                              x (+ y step-size) value))
-                           (pt-3 
+                           (pt-3
                              (cl-transforms:make-3d-vector
                               x (+ y step-size) height))
-                           (pt-4-color 
-                             (cl-transforms:make-3d-vector
-                              (+ x step-size) (+ y step-size) value))
-                           (pt-4 
+                           (pt-4
                              (cl-transforms:make-3d-vector
                               (+ x step-size) (+ y step-size) height))
-                           (n-1 (cl-transforms:cross-product
-                                 (cl-transforms:v- pt-2 pt-1)
-                                 (cl-transforms:v- pt-4 pt-1)))
-                           (n-2 (cl-transforms:cross-product
-                                 (cl-transforms:v- pt-4 pt-1)
-                                 (cl-transforms:v- pt-3 pt-1))))
-
+                           (n-1
+                             (cl-transforms:cross-product
+                              (cl-transforms:v- pt-2 pt-1)
+                              (cl-transforms:v- pt-4 pt-1)))
+                           (n-2
+                             (cl-transforms:cross-product
+                              (cl-transforms:v- pt-4 pt-1)
+                              (cl-transforms:v- pt-3 pt-1))))
                       (gl:with-primitive :triangles
-                        (apply #'gl:color (get-color pt-1-color))
+                        (apply #'gl:color color)
                         (vertex pt-1 n-1)
-                        (apply #'gl:color (get-color pt-2-color))
                         (vertex pt-2 n-1)
-                        (apply #'gl:color (get-color pt-4-color))
                         (vertex pt-4 n-1)
-                        (apply #'gl:color (get-color pt-1-color))
                         (vertex pt-1 n-2)
-                        (apply #'gl:color (get-color pt-4-color))
                         (vertex pt-4 n-2)
-                        (apply #'gl:color (get-color pt-3-color))
                         (vertex pt-3 n-2)))))))))))))
