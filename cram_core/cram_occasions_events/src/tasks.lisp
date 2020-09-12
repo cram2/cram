@@ -60,9 +60,8 @@
       (bound ?task-node)
       (lisp-fun cpl:task-tree-node-path ?task-node ?path))
 
-  (<- (task-from-path ?task-path ?task-node)
+  (<- (task-from-path ?top-level-name ?task-path ?task-node)
       (bound ?task-path)
-      (top-level-name ?top-level-name)
       (coe:top-level-task ?top-level-name ?top-level-task)
       (lisp-fun cpl:task-tree-node ?task-path ?top-level-task ?task-node))
 
@@ -80,8 +79,8 @@
       (bound ?subtree-path)
       (top-level-task ?top-level-name ?top-level-task)
       (lisp-fun cpl:task-tree-node ?subtree-path ?top-level-task ?subtree-task)
-      ;; (lisp-fun cpl:flatten-task-tree ?subtree-task ?all-subtree-tasks)
-      (lisp-fun cpl:flatten-task-tree-broad ?subtree-task ?all-subtree-tasks)
+      (lisp-fun cpl:flatten-task-tree ?subtree-task ?all-subtree-tasks)
+      ;; (lisp-fun cpl:flatten-task-tree-broad ?subtree-task ?all-subtree-tasks)
       (member ?task-node ?all-subtree-tasks))
 
   ;; subtask
