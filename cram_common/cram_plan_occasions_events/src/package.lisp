@@ -74,16 +74,17 @@
 
    ;; prolog
    ;; Predicates used in searching for tasks.
-   #:task-transporting-action
-   #:task-fetching-action
-   #:task-delivering-action
-   #:task-picking-up-action
-   #:task-navigating-action
    #:task-specific-action
+   #:task-navigating-action
+   #:task-fetching-action
+   #:task-picking-up-action
+   #:task-delivering-action
+   #:task-transporting-action
+
+   #:task-next-action-sibling
    #:task-previous-action-sibling
    #:location-distance-threshold
-   #:task-location-description-equal
+   #:subtasks-of-type
    ;; #:task-nearby
    ;; #:task-targets-nearby
-   #:subtasks-of-type
    ))

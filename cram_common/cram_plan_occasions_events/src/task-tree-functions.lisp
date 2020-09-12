@@ -63,3 +63,19 @@
                        (car (cpl:code-parameters (cpl:task-tree-node-code node))))
                       desig-class)))))
     (remove-if-not filter-predicate subtasks)))
+
+(defun siblings-until-task (?task-path ?siblings-task-path-pairs)
+  "Since task siblings are sorted in inverse chronological order, the
+   chronologically last sibling is at the first position of
+   `?siblings-task-path-pairs'.
+   Returns a subsequence of the tasks in `?siblings-task-path-pairs',
+   starting after the given `?task-path', i.o.w. a list of chronologically
+   preceeding siblings w.r.t. the given path. Returns NIL if the `?task-path'
+   isn't found among the siblings, or if the task is the chonologically first.
+   Reverse the input pairs list to get all siblings later than the `?task-path'"
+  (let ((break-position (position ?task-path
+                                  (mapcar #'second ?siblings-task-path-pairs)
+                                  :test #'equal)))
+    (when break-position
+      (subseq (mapcar #'first ?siblings-task-path-pairs)
+              (1+ break-position)))))
