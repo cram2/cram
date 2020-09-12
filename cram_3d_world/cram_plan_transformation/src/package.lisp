@@ -36,7 +36,8 @@
   (:export
    ;; framework.lisp
    #:get-top-level-name
-   #:reset-task-tree
+   #:kill-task-tree
+   #:clean-task-tree
    #:register-transformation-rule
    #:disable-transformation-rule
    #:enable-transformation-rule

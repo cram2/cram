@@ -52,9 +52,16 @@
                                (length task-trees) *top-level-name*)
              *top-level-name*))))
 
-(defun reset-task-tree ()
+(defun kill-task-tree ()
   "Deletes the current task tree."
   (cpl-impl:remove-top-level-task-tree (get-top-level-name)))
+
+(defun clean-task-tree ()
+  "Purges replacements from all task tree nodes."
+  (mapcar (lambda (task)
+            (setf (cpl-impl::task-tree-node-code-replacements task) nil))
+          (cpl:flatten-task-tree (gethash (get-top-level-name)
+                                          cpl-impl:*top-level-task-trees*))))
 
 (defmacro register-transformation-rule (name predicate)
   "Registers or updates a transformation rule.
@@ -94,8 +101,8 @@
    applicable transformation on the current task tree. The applicability is
    determined by whether the predicate given in `*transformation-rules*'
    resolves successful. If more than one rule is applicable, either the rule
-   with highest priority or - if no priority is given - the most recently
-   registered rule is applied."
+   with highest priority or - if no prioritized rule is applicable -
+   the most recently registered rule is applied."
   (let ((applicable-rules '())
         raw-bindings)
     (loop for k being the hash-keys of *transformation-rules* do
@@ -118,9 +125,59 @@
                                           :key
                                           #'car)
                                     (car applicable-rules))))
-            (funcall (car rule-to-apply) (cdr rule-to-apply))))
+            (apply-transformation-rule (cdr rule-to-apply))))
         (progn (roslisp:ros-info (plt)
                         "No rule applicable. Check for enabled/disabled rules.")
                nil))))
-      
 
+(defun apply-transformation-rule (lazy-bindings
+                                  &optional (top-level-name (get-top-level-name)))
+;; `lazy-bindings' must be of the following form:
+;; (list-of-designators-and-paths list-of-paths-to-ignore)
+;; where the first list contains pairs of designators and paths.
+;; One such pair looks like this:
+;; ((desig-a desig-b desig-c ..)
+;;  path-to-inject-designators-into)
+;; The designators replace the code in the given path and are executed sequentially.
+;; Paths in the second list point to tasks, whose code will be ignored. 
+;; Following is an example of the replacement in two tasks and some eliminated code.
+;; ((((desig-a desig-b desig-c)
+;;    path-1)
+;;   ((desig-x desig-y)
+;;    path-2))
+;;  (path-a path-b path-x path-m path-n path-o))
+  (roslisp:ros-info (plt)
+                    "Applying BOTH-HANDS-TRANSPORTING-RULE to top-level-plan ~a."
+                    top-level-name)
+  (destructuring-bind
+      ((key . desig-to-path)
+       (other-key . obsolete-task-paths))
+      (cut:lazy-car lazy-bindings)
+    (declare (ignore key other-key))
+
+    ;; execute all designators on their respective path
+    ;; The LOOP macro causes weird behaviour in cpl-impl:replace-task-code
+    (let ((index 0))
+      (dolist (desig-path-pair desig-to-path)
+        (cpl-impl:replace-task-code
+         `(,(intern (format nil "BOTH-HANDS-TRANSFORM-~a" (incf index))))
+         #'(lambda (&rest desig)
+             (declare (ignore desig))
+             (mapcar #'exe:perform (first desig-path-pair)))
+         (second desig-path-pair) 
+         (cpl-impl:get-top-level-task-tree top-level-name)))
+      
+      ;; ignore those obsolete tasks
+      (flet ((ignore-desig (&rest desig)
+               (declare (ignore desig))
+               T))
+        (loop for obsolete-path in obsolete-task-paths
+              do (cpl-impl:replace-task-code
+                  `(,(intern (format nil "BOTH-HANDS-TRANSFORM-OBSOLETE-~a" (incf index))))
+                  #'ignore-desig
+                  obsolete-path
+                  (cpl-impl:get-top-level-task-tree top-level-name))))))
+  (roslisp:ros-info (plt) "BOTH-HANDS-TRANSPORTING-RULE applied."))
+
+(register-transformation-rule
+ both-hands-to-target '(task-transporting-both-hands-to-target ?transform-data ?obsolete-paths))

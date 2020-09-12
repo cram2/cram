@@ -41,5 +41,4 @@
     :components
     ((:file "package")
      (:file "framework" :depends-on ("package"))
-     (:file "predicates" :depends-on ("package"))
-     (:file "demo-transformation-rules" :depends-on ("package" "predicates"))))))
+     (:file "predicates" :depends-on ("package"))))))
