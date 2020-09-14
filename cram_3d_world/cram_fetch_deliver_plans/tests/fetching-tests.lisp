@@ -38,7 +38,7 @@
                               object-seen-on-second-search-location-fetch-test
                               navigation-pose-invalid-before-perception-fetch-test
                               perception-pose-valid-fetch-pose-invalid-fetch-test))
-                              
+
 
 (define-test object-can-be-fetched-no-errors-fetch-test
   (init-projection)
@@ -46,12 +46,12 @@
   (urdf-proj:with-simulated-robot
     (perform (an action
                  (type fetching)
-                 (location (a location 
+                 (location (a location
                               (poses (*valid-location-on-island*
                                       *valid-location-on-sink-area-surface*))))
                  (object (an object
                              (type bowl)
-                             (location (a location 
+                             (location (a location
                                           (poses (*valid-location-on-island*
                                                   *valid-location-on-sink-area-surface*))))))
                  (robot-location (a location (poses (*valid-robot-pose-towards-island*)))))))
@@ -66,12 +66,12 @@
    (urdf-proj:with-simulated-robot
      (perform (an action
                   (type fetching)
-                  (location (a location 
+                  (location (a location
                                (poses (*valid-location-on-island*
                                        *valid-location-on-sink-area-surface*))))
                   (object (an object
                               (type bowl)
-                              (location (a location 
+                              (location (a location
                                            (poses (*valid-location-on-island*
                                                    *valid-location-on-sink-area-surface*))))))
                   (robot-location (a location
@@ -89,12 +89,12 @@
    (urdf-proj:with-simulated-robot
      (perform (an action
                   (type fetching)
-                  (location (a location 
+                  (location (a location
                                (poses (*valid-location-on-island*
                                        *valid-location-on-sink-area-surface*))))
                   (object (an object
                               (type bowl)
-                              (location (a location 
+                              (location (a location
                                            (poses (*valid-location-on-island*
                                                    *valid-location-on-sink-area-surface*))))))
                   (robot-location (a location
@@ -109,12 +109,12 @@
   (urdf-proj:with-simulated-robot
     (perform (an action
                  (type fetching)
-                 (location (a location 
+                 (location (a location
                               (poses (*valid-location-on-island*
                                       *valid-location-on-sink-area-surface*))))
                  (object (an object
                              (type bowl)
-                             (location (a location 
+                             (location (a location
                                           (poses (*valid-location-on-island*
                                                   *valid-location-on-sink-area-surface*))))))
                  (robot-location (a location
@@ -132,11 +132,11 @@
     (perform (an action
                  (type fetching)
                  (arms (right left))
-                 (location (a location 
+                 (location (a location
                               (poses (*valid-location-on-sink-area-surface*))))
                  (object (an object
                              (type bowl)
-                             (location (a location 
+                             (location (a location
                                           (poses (*valid-location-on-sink-area-surface*))))))
                  (robot-location (a location
                                     (poses (*valid-robot-pose-towards-sink-area-surface*)))))))
@@ -151,17 +151,17 @@
   (assert-error
    'common-fail:fetching-failed
    (urdf-proj:with-simulated-robot
-    (perform (an action
-                 (type fetching)
-                 (arms (right))
-                 (location (a location 
-                              (poses (*valid-location-on-sink-area-surface*))))
-                 (object (an object
-                             (type bowl)
-                             (location (a location 
-                                          (poses (*valid-location-on-sink-area-surface*))))))
-                 (robot-location (a location
-                                    (poses (*valid-robot-pose-towards-sink-area-surface*))))))))
+     (perform (an action
+                  (type fetching)
+                  (arms (right))
+                  (location (a location
+                               (poses (*valid-location-on-sink-area-surface*))))
+                  (object (an object
+                              (type bowl)
+                              (location (a location
+                                           (poses (*valid-location-on-sink-area-surface*))))))
+                  (robot-location (a location
+                                     (poses (*valid-robot-pose-towards-sink-area-surface*))))))))
   (assert-equal 1 (get-error-count-for-error 'common-fail:fetching-failed))
   (assert-equal 2 (get-error-count-for-error 'common-fail:object-unreachable))
   (assert-equal 4 (get-error-count-for-error 'common-fail:manipulation-goal-in-collision)))
@@ -174,12 +174,12 @@
     (perform (an action
                  (type fetching)
                  (arms (left))
-                 (location (a location 
+                 (location (a location
                               (poses (*valid-location-on-sink-area-surface*
                                       *valid-location-on-island*))))
                  (object (an object
                              (type bowl)
-                             (location (a location 
+                             (location (a location
                                           (poses (*valid-location-on-sink-area-surface*
                                                   *valid-location-on-island*))))))
                  (robot-location (a location
@@ -198,12 +198,12 @@
      (perform (an action
                   (type fetching)
                   (arms (left))
-                  (location (a location 
+                  (location (a location
                                (poses (*valid-location-on-sink-area-surface*
                                        *valid-location-on-island*))))
                   (object (an object
                               (type bowl)
-                              (location (a location 
+                              (location (a location
                                            (poses (*valid-location-on-sink-area-surface*
                                                    *valid-location-on-island*))))))
                   (robot-location (a location
@@ -222,12 +222,12 @@
      (perform (an action
                   (type fetching)
                   (arms (left))
-                  (location (a location 
+                  (location (a location
                                (poses (*valid-location-on-sink-area-surface*
                                        *valid-location-on-island*))))
                   (object (an object
                               (type bowl)
-                              (location (a location 
+                              (location (a location
                                            (poses (*valid-location-on-sink-area-surface*
                                                    *valid-location-on-island*))))))
                   (robot-location (a location
