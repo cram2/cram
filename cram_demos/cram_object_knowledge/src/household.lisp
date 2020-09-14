@@ -95,6 +95,9 @@
     ((object-type (eql :basket)) (grasp (eql :top)))
   :carry-top-basket)
 (defmethod man-int:get-object-type-carry-config :heuristics 20
+    ((object-type (eql :tray)) grasp)
+  :carry-tray)
+(defmethod man-int:get-object-type-carry-config :heuristics 20
     ((object-type (eql :plate)) grasp)
   :carry-side-gripper-vertical)
 
