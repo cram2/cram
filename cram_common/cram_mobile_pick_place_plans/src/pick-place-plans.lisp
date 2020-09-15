@@ -127,19 +127,27 @@
                (grasp ?grasp)
                (goal ?goal))))
   (roslisp:ros-info (pick-place pick-up) "Lifting")
-  (cpl:with-failure-handling
-      ((common-fail:manipulation-low-level-failure (e)
-         (roslisp:ros-warn (pp-plans pick-up)
-                           "Manipulation messed up: ~a~%Ignoring."
-                           e)
-         (return)))
-    (let ((?goal `(cpoe:tool-frames-at ,?left-lift-poses ,?right-lift-poses)))
+  (cpl:pursue
+    (cpl:with-failure-handling
+        ((common-fail:manipulation-low-level-failure (e)
+           (roslisp:ros-warn (pp-plans pick-up)
+                             "Manipulation messed up: ~a~%Ignoring."
+                             e)
+           (return)))
+      (let ((?goal `(cpoe:tool-frames-at ,?left-lift-poses ,?right-lift-poses)))
+        (exe:perform
+         (desig:an action
+                   (type lifting)
+                   (left-poses ?left-lift-poses)
+                   (right-poses ?right-lift-poses)
+                   (goal ?goal)))))
+    (cpl:seq
       (exe:perform
        (desig:an action
-                 (type lifting)
-                 (left-poses ?left-lift-poses)
-                 (right-poses ?right-lift-poses)
-                 (goal ?goal)))))
+                 (type monitoring-joint-state)
+                 (gripper ?arm)))
+      (cpl:fail 'common-fail:gripper-closed-completely
+                :description "Object slipped")))
   (roslisp:ros-info (pick-place place) "Parking")
   (exe:perform
    (desig:an action
