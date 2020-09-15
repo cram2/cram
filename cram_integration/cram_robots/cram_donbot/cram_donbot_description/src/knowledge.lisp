@@ -80,7 +80,10 @@
 
 (def-fact-group donbot-arm-facts (arm-joints arm-links
                                   hand-links hand-link hand-finger-link
-                                  gripper-joint gripper-meter-to-joint-multiplier
+                                  gripper-joint
+                                  gripper-meter-to-joint-multiplier
+                                  gripper-minimal-position
+                                  gripper-convergence-delta
                                   standard<-particular-gripper-transform
                                   end-effector-link
                                   robot-tool-frame
@@ -124,6 +127,8 @@
   (<- (gripper-joint :iai-donbot :left "gripper_joint"))
 
   (<- (gripper-meter-to-joint-multiplier :iai-donbot 1.0))
+  (<- (gripper-minimal-position :iai-donbot ?_ 0.0))
+  (<- (gripper-convergence-delta :iai-donbot ?_ 0.001))
 
   (<- (standard<-particular-gripper-transform :iai-donbot ?transform)
     (symbol-value *standard-to-donbot-gripper-transform* ?transform))

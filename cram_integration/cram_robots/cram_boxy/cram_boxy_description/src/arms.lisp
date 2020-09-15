@@ -41,6 +41,8 @@
                                 arm-joints arm-links
                                 hand-links hand-link hand-finger-link
                                 gripper-joint gripper-meter-to-joint-multiplier
+                                gripper-minimal-position
+                                gripper-convergence-delta
                                 standard<-particular-gripper-transform
                                 end-effector-link robot-tool-frame
                                 tcp-in-ee-pose
@@ -111,6 +113,8 @@
   (<- (gripper-joint :boxy-description :right "right_gripper_joint"))
 
   (<- (gripper-meter-to-joint-multiplier :boxy-description 1.0))
+  (<- (gripper-minimal-position :boxy-description ?_ 0.0))
+  (<- (gripper-convergence-delta :boxy-description ?_ 0.001))
 
   (<- (standard<-particular-gripper-transform :boxy-description ?transform)
     (symbol-value *standard-to-boxy-gripper-transform* ?transform))
