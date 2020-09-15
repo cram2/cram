@@ -228,7 +228,8 @@ retries with different search location or robot base location."
     ;; take new `?search-location' sample if a failure happens and retry
     (cpl:with-retry-counters ((outer-search-location-retries 3))
       (cpl:with-failure-handling
-          ((common-fail:object-nowhere-to-be-found (e)
+          (((or common-fail:object-nowhere-to-be-found
+                desig:designator-error) (e)
              (common-fail:retry-with-loc-designator-solutions
                  ?search-location
                  outer-search-location-retries
