@@ -40,13 +40,14 @@
 (defparameter *base-collision-avoidance-hint-link*
   "kitchen_island" "A link name from the environment URDF.")
 (defparameter *base-max-velocity-fast-xy*
-  0.5 "In meters")
+  ;; 0.5
+  0.25 "In meters")
 (defparameter *base-max-velocity-fast-theta*
   0.2 "In rad, about 11.5 deg.")
 (defparameter *base-max-velocity-slow-xy*
-  0.1 "In meters")
+  0.05 "In meters")
 (defparameter *base-max-velocity-slow-theta*
-  0.2 "In rad, about 11.5 deg.")
+  0.1 "In rad, about 11.5 deg.")
 
 (defun make-giskard-base-action-goal (pose)
   (declare (type cl-transforms-stamped:pose-stamped pose))
