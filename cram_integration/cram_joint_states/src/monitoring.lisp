@@ -31,23 +31,13 @@
 
 (defun monitor-joint-state (&key
                               joint-name joint-angle-threshold
-                              (comparison-function '<))
+                              comparison-function)
   (declare (type string joint-name)
            (type number joint-angle-threshold)
-           (type (or symbol null) comparison-function))
-  (unless comparison-function
-    (setf comparison-function '<))
+           (type function comparison-function))
   (cpl:wait-for
    (cpl:fl-funcall (lambda (joint-state-msg-fluent)
-                     (funcall (typecase comparison-function
-                                (keyword
-                                 (symbol-function
-                                  (intern
-                                   (string-upcase
-                                    (symbol-name comparison-function))
-                                   :cl-user)))
-                                (symbol-function
-                                 comparison-function))
+                     (funcall comparison-function
                               (car (joints:joint-positions
                                     (list joint-name)
                                     joint-state-msg-fluent))

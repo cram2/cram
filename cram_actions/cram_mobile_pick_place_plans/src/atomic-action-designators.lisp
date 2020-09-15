@@ -336,4 +336,22 @@
 
   (<- (desig:action-grounding ?action-designator (detect ?action-designator))
     (spec:property ?action-designator (:type :detecting))
-    (spec:property ?action-designator (:object ?_))))
+    (spec:property ?action-designator (:object ?_)))
+
+
+
+  (<- (desig:action-grounding ?action-designator (monitor-joint-state
+                                                  ?resolved-action-designator))
+    (spec:property ?action-designator (:type :monitoring-joint-state))
+    (spec:property ?action-designator (:gripper ?left-or-right))
+    (rob-int:robot ?robot)
+    (rob-int:gripper-joint ?robot ?left-or-right ?joint-name)
+    (rob-int:gripper-minimal-position ?robot ?left-or-right ?minimum)
+    (rob-int:gripper-convergence-delta ?robot ?left-or-right ?delta)
+    (lisp-fun + ?minimum ?delta ?joint-angle-threshold)
+    (lisp-fun symbol-function < ?function)
+    (desig:designator :action ((:type :monitoring-joint-state)
+                               (:joint-name ?joint-name)
+                               (:joint-angle-threshold ?joint-angle-threshold)
+                               (:function ?function))
+                      ?resolved-action-designator)))

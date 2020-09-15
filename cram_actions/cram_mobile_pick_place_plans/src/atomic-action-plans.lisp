@@ -449,3 +449,17 @@ equate resulting designator to the original one."
                    :perception-source :whatever))
                 (desig:equate ?object-designator resulting-designator)))
           (desig:current-desig resulting-designator))))))
+
+
+(defun monitor-joint-state (&key
+                              ((:joint-name ?joint-name))
+                              ((:joint-angle-threshold ?joint-angle-threshold))
+                              ((:function ?function))
+                            &allow-other-keys)
+  (exe:perform
+   (desig:a motion
+            (type monitoring-joint-state)
+            (joint-name ?joint-name)
+            (joint-angle-threshold ?joint-angle-threshold)
+            (desig:when ?function
+              (function ?function)))))
