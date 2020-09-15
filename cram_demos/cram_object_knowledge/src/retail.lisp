@@ -129,6 +129,29 @@
                           0.0
                           ,(+ *dish-washer-tabs-grasp-z-offset*
                               *dish-washer-tabs-lift-z-other-grasp-offset*)))
+;; BACK grasp basket
+(man-int:def-object-type-to-gripper-transforms :dish-washer-tabs '(:left :right) :back
+  :location-type :basket
+  :grasp-translation `(,(- *dish-washer-tabs-grasp-x-offset*)
+                        0.0
+                        ,*dish-washer-tabs-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation-2*
+  :pregrasp-offsets `(,(- *dish-washer-tabs-pregrasp-x-offset*)
+                       0.0
+                       ,(+ *dish-washer-tabs-grasp-z-offset*
+                           *dish-washer-tabs-lift-z-other-grasp-offset*))
+  :2nd-pregrasp-offsets `(,(- *dish-washer-tabs-pregrasp-x-offset*)
+                           0.0
+                           ,(+ *dish-washer-tabs-grasp-z-offset*
+                               *dish-washer-tabs-small-lift-z-offset*))
+  :lift-translation `(0.0
+                      0.0
+                      ,(+ *dish-washer-tabs-grasp-z-offset*
+                          0.1))
+  :2nd-lift-translation `(0.0
+                          0.0
+                          ,(+ *dish-washer-tabs-grasp-z-offset*
+                              0.3)))
 
 ;; FRONT grasp robot
 (man-int:def-object-type-to-gripper-transforms :dish-washer-tabs '(:left :right) :front
@@ -152,6 +175,28 @@
                           0.0
                           ,(+ *dish-washer-tabs-grasp-z-offset*
                               *dish-washer-tabs-lift-z-other-grasp-offset*)))
+;; FRONT grasp basket
+(man-int:def-object-type-to-gripper-transforms :dish-washer-tabs '(:left :right) :front
+  :location-type :basket
+  :grasp-translation `(,*dish-washer-tabs-grasp-x-offset*
+                       0.0
+                       ,*dish-washer-tabs-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-z-grasp-rotation-2*
+  :pregrasp-offsets `(,*dish-washer-tabs-pregrasp-x-offset*
+                      0.0
+                      ,(+ *dish-washer-tabs-grasp-z-offset*
+                          *default-retail-z-offset*))
+  :2nd-pregrasp-offsets `(,*dish-washer-tabs-pregrasp-x-offset*
+                          0.0
+                          ,*dish-washer-tabs-grasp-z-offset*)
+  :lift-translation `(0.0
+                      0.0
+                      ,(+ *dish-washer-tabs-grasp-z-offset*
+                          0.1))
+  :2nd-lift-translation `(0.0
+                          0.0
+                          ,(+ *dish-washer-tabs-grasp-z-offset*
+                              0.3)))
 
 ;; BACK grasp shelf
 ;; util

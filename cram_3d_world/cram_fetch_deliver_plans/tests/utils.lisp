@@ -34,7 +34,6 @@
 (defmethod cpl:fail :before (&rest args)
   (when (and (not (null args)) (typep (first args) 'symbol))
     (add-error-count-for-error (first args))))
-  
 
 (defun init-test-env ()
   (coe:clear-belief)
@@ -52,13 +51,13 @@
   (reset-error-counter))
 
 (defun make-pose-stamped (pose-list)
-  (cl-transforms-stamped:make-pose-stamped 
+  (cl-transforms-stamped:make-pose-stamped
    "map" 0.0
    (apply #'cl-transforms:make-3d-vector (first pose-list))
    (apply #'cl-transforms:make-quaternion (second pose-list))))
 
 (defun make-pose (pose-list)
-  (cl-transforms:make-pose 
+  (cl-transforms:make-pose
    (apply #'cl-transforms:make-3d-vector (first pose-list))
    (apply #'cl-transforms:make-quaternion (second pose-list))))
 
@@ -69,7 +68,8 @@
   (btr-utils:spawn-object
    (intern (format nil "~a-1" object-type) :keyword)
    object-type
-   :pose pose)
+   :pose pose
+   :mass 0.0)
   (btr:simulate btr:*current-bullet-world* 100))
 
 (defun error-type-to-keyword (error-type)
@@ -80,7 +80,7 @@
 
 (defun get-total-error-count ()
   (unless (null *error-counter-look-up*)
-    (reduce (lambda (count1 count2) 
+    (reduce (lambda (count1 count2)
               (+ count1 count2))
             *error-counter-look-up*
             :key #'cdr)))

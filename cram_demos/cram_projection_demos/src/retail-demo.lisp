@@ -1,5 +1,6 @@
 ;;;
 ;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;;                     Jonas Dech <jdech@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -82,8 +83,10 @@
 
 (defparameter *small-shelf-poses*
   '("shelf_2_shelf_2_level_3_link"
-    (:balea-bottle . ((-0.15 -0.1 0.1) (0 0 0.5 0.5)))
-    (:dish-washer-tabs . ((0 -0.13 0.11) (0 0 0.5 0.5)))))
+    (:balea-bottle . ((-0.15 -0.14 0.1) (0 0 0.5 0.5)))
+    (:dish-washer-tabs . ((0 -0.13 0.11) (0 0 0.5 0.5)))
+    ;; (:box-item . ((-0.075 -0.135 0.1) (0 0 0 1)))
+    ))
 
 (defparameter *basket-in-pr2-wrist*
   (cl-transforms:make-transform
@@ -119,13 +122,118 @@
                 (spawn-object-n-times
                  type
                  pose
-                 (+ (random 3) 1) ; times
-                `(,(float (/ (random 10) 10)) ; color
-                  ,(float (/ (random 10) 10))
-                  ,(float (/ (random 10) 10)))
+                 (+ (random 3) 1)
+                 (list (random 1.0) (random 1.0) (random 1.0))
                 :x
                 0.13)))
             type-and-pose-list)))
+
+(defun spawn-random-box-objects-on-shelf (base-link-name
+                                          &key
+                                            list-of-level-link-names
+                                            (maximal-box-size-in-level-frame
+                                             '(0.15 0.1 0.2))
+                                            (minimal-box-size-one-dimension
+                                             0.03)
+                                            (weight
+                                             0.2)
+                                            (space-between-objects
+                                             0.05)
+                                            (start-x-offset
+                                             0.0)
+                                            (minimal-color
+                                             0.0))
+  (setf list-of-level-link-names
+        (or list-of-level-link-names
+            (mapcar #'cl-urdf:name
+                    (btr:find-levels-under-link
+                     (gethash base-link-name
+                              (cl-urdf:links
+                               (btr:urdf
+                                (btr:get-environment-object))))))))
+
+  ;; for each shelf level
+  (loop for link-name in list-of-level-link-names
+        for level-transform = (cram-tf:pose->transform-stamped
+                               cram-tf:*fixed-frame*
+                               link-name
+                               0.0
+                               (btr:link-pose
+                                (btr:get-environment-object)
+                                link-name))
+        for level-bb = (btr:calculate-bb-dims
+                        (gethash link-name
+                                 (btr:links (btr:get-environment-object))))
+        for end-x-in-link-frame = (- (/ (cl-transforms:x level-bb) 2.0)
+                                     space-between-objects)
+        for start-x-in-link-frame = (+ (- end-x-in-link-frame)
+                                       start-x-offset)
+        for start-z-in-link-frame = (/ (cl-transforms:z level-bb) 2.0)
+        ;; we assume that the face of the level is the -Y axis
+        for end-y-in-link-frame = (- (/ (cl-transforms:y level-bb) 2.0)
+                                     space-between-objects)
+        for start-y-in-link-frame = (- end-y-in-link-frame)
+        ;; for each row of items
+        do (loop for color = (list (cut:random-with-minimum 1.0 minimal-color)
+                                   (cut:random-with-minimum 1.0 minimal-color)
+                                   (cut:random-with-minimum 1.0 minimal-color))
+                 for box-size = (mapcar (lambda (dimension)
+                                          (cut:random-with-minimum
+                                           dimension
+                                           minimal-box-size-one-dimension))
+                                        maximal-box-size-in-level-frame)
+                 for box-size/2 = (mapcar (alexandria:rcurry #'/ 2.0) box-size)
+                 for z-in-link-frame = (+ start-z-in-link-frame
+                                          (third box-size/2))
+                 for x-in-link-frame = (+ start-x-in-link-frame
+                                          (first box-size/2))
+                   then (+ next-start-x-in-link-frame
+                           (first box-size/2))
+                 for next-start-x-in-link-frame = (+ x-in-link-frame
+                                                     (first box-size/2)
+                                                     space-between-objects)
+                 while (< next-start-x-in-link-frame end-x-in-link-frame)
+                 ;; go into the depth of the shelf
+                 do (loop for next-start-y-in-link-frame = start-y-in-link-frame
+                            then (+ y-in-link-frame
+                                    (second box-size/2)
+                                    space-between-objects)
+                          for y-in-link-frame = (+ next-start-y-in-link-frame
+                                                   (second box-size/2))
+                          while (< next-start-y-in-link-frame end-y-in-link-frame)
+                          do (let* ((name
+                                      (intern (format nil "BOX-~a-~a-~a"
+                                                      link-name
+                                                      x-in-link-frame
+                                                      y-in-link-frame)))
+                                    (link-frame-t-box
+                                      (cl-transforms-stamped:make-transform-stamped
+                                       link-name "box" 0.0
+                                       (cl-transforms:make-3d-vector
+                                        x-in-link-frame
+                                        y-in-link-frame
+                                        z-in-link-frame)
+                                       (cl-transforms:make-identity-rotation)))
+                                    (pose-in-fixed-frame
+                                      (cram-tf:apply-transform
+                                       level-transform
+                                       link-frame-t-box
+                                       :result-as-pose-or-transform :pose))
+                                    (btr-object
+                                      (btr:add-object
+                                       btr:*current-bullet-world*
+                                       :box-item
+                                       name
+                                       pose-in-fixed-frame
+                                       :mass weight
+                                       :size box-size/2
+                                       :color color
+                                       :item-type :retail-item)))
+                               (when (some (alexandria:rcurry #'typep 'btr:item)
+                                           (btr:find-objects-in-contact
+                                            btr:*current-bullet-world* btr-object))
+                                 (btr:remove-object
+                                  btr:*current-bullet-world* name)))))))
 
 (defun spawn-objects-on-small-shelf ()
   (sb-ext:gc :full t)
@@ -134,15 +242,33 @@
   ;; (btr-utils:kill-all-objects)
   (btr:detach-all-objects (btr:get-robot-object))
   (btr:detach-all-objects (btr:get-environment-object))
-  (mapcar (lambda (type-and-pose)
-            (destructuring-bind (type . pose) type-and-pose
-              (spawn-object-n-times type pose 1
-                                    (case type
-                                      (:dish-washer-tabs '(0 1 0))
-                                      (t '(1.0 1.0 0.9))))))
-          (make-poses-relative *small-shelf-poses*))
+  (btr-utils:move-robot '((1.0 0 0) (0 0 0 1)))
+
+  (let ((poses (make-poses-relative *small-shelf-poses*)))
+    (mapcar (lambda (type-and-pose)
+              (destructuring-bind (type . pose) type-and-pose
+                (spawn-object-n-times type pose 1
+                                      (case type
+                                        (:dish-washer-tabs '(0 1 0))
+                                        (:balea-bottle '(1 1 0))
+                                        (t '(1.0 1.0 0.9))))))
+            poses)
+    (btr:add-object btr:*current-bullet-world*
+                    :box-item
+                    :small-shelf-collision-box
+                    (cdr (find :dish-washer-tabs poses :key #'car))
+                    :mass 0.0
+                    :size '(0.15 0.2 0.1)
+                    :color '(0 0 0)
+                    :item-type :collision-thingy))
+
+  (spawn-random-box-objects-on-shelf "shelf_2_base"
+                                     :start-x-offset 0.05
+                                     :minimal-color 0.6)
+
+  (btr:remove-object btr:*current-bullet-world* :small-shelf-collision-box)
   ;; (btr:simulate btr:*current-bullet-world* 50)
-  (btr-utils:move-robot '((1.0 0 0) (0 0 0 1))))
+  )
 
 (defun spawn-basket ()
   (let* ((left-ee-frame
@@ -240,7 +366,7 @@
                       (on (desig:an object
                                     (type robot)
                                     (name ?robot-name)
-                                    (part-of ?environment-name)
+                                    (part-of ?robot-name)
                                     (owl-name "donbot_tray")
                                     (urdf-name plate)))
                       (for ?dish-washer-tabs-desig)

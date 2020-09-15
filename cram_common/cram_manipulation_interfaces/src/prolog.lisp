@@ -227,7 +227,8 @@
   ;;              (attachment object-to-other-object))
   (<- (desig:location-grounding ?location-designator ?pose-stamped)
     (desig:current-designator ?location-designator ?current-loc-desig)
-    (desig:desig-prop ?current-loc-desig (:for ?object-designator))
+    (desig:desig-prop ?current-loc-desig (:for ?some-object-designator))
+    (desig:current-designator ?some-object-designator ?object-designator)
     (once
      (or (desig:desig-prop ?current-loc-desig (:on ?other-object-designator))
          (desig:desig-prop ?current-loc-desig (:in ?other-object-designator))

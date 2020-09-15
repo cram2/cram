@@ -129,29 +129,11 @@ ref-sz/2 + ref-padding + max-padding + max-sz + max-padding + for-padding + for-
 
 ;;;;;;;;;;;;;;;;;;;; Level Calculations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun find-levels-under-link (parent-link)
-  "Finds all the child links under the parent link with the name
-board or level or shelf in them"
-  (let ((levels-found))
-    (labels ((find-levels (link)
-               (let* ((child-joints (cl-urdf:to-joints link))
-                      (child-links (mapcar #'cl-urdf:child child-joints)))
-                 (mapcar (lambda (child-link)
-                           (let ((child-name (cl-urdf:name child-link)))
-                             (if (or (search "board" child-name)
-                                     (search "level" child-name)
-                                     (search "shelf" child-name))
-                                 (push child-link levels-found)
-                                 (find-levels child-link))))
-                           child-links))))
-      (find-levels parent-link))
-    levels-found))
-
 (defun get-level-links-in-container (btr-environment container-name)
   (when (symbolp container-name)
     (setf container-name
           (roslisp-utilities:rosify-underscores-lisp-name container-name)))
-  (find-levels-under-link
+  (btr:find-levels-under-link
    (gethash container-name (cl-urdf:links (btr:urdf btr-environment)))))
 
 (defun choose-level (btr-environment level-links tag &key (invert nil))
