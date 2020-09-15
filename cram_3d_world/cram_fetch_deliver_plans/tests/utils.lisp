@@ -101,14 +101,17 @@
 ;;;;;;;;;;;; Object Poses ;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *valid-location-on-island* 
-  (make-pose-stamped '((-0.8 0.76 0.86) (0 0 0 1))))
+  (make-pose-stamped '((-0.8 0.76 0.9) (0 0 0 1))))
 
 (defparameter *valid-location-on-sink-area-surface*
-  (make-pose-stamped '((1.48 0.96 0.86) (0 0 0 1))))
+  (make-pose-stamped '((1.48 0.96 0.9) (0 0 0 1))))
 
 
 (defparameter *valid-location-on-sink-area-surface-near-oven*
-  (make-pose-stamped '((1.54 1.1 0.86) (0 0 0 1))))
+  (make-pose-stamped '((1.54 1.1 0.9) (0 0 0 1))))
+
+(defparameter *valid-location-inside-fridge*
+  (make-pose-stamped '((1.48 -1.16 0.55) (0 0 0 1))))
 
 ;;;;;;;;;;;;; Robot Poses ;;;;;;;;;;;;;;;;;;;;;;;;;
 
