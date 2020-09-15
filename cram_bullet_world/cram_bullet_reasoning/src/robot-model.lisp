@@ -152,10 +152,10 @@
                                                           :test #'equal)))))
               (mapcar #'attachment-grasp (remove-if-not
                                           (if loose
-                                             #'attachment-loose
-                                             #'identity)
-                                         (car (cdr (assoc (name object) attached-objects
-                                                          :test #'equal)))))))))
+                                              #'attachment-loose
+                                              #'identity)
+                                          (car (cdr (assoc (name object) attached-objects
+                                                           :test #'equal)))))))))
 
 (defmethod attach-object ((robot-object robot-object) (obj object)
                           &key link loose grasp &allow-other-keys)
@@ -225,14 +225,16 @@ Otherwise, the attachment is only used as information but does not affect the wo
 (defmethod detach-all-from-link ((robot-object robot-object) link)
   "Removes all objects form the given `link' of `robot-object'."
   (with-slots (attached-objects) robot-object
-       (dolist (attachment attached-objects)
-         (let* ((object-name (car attachment))
-                (object-instance (object *current-bullet-world* object-name)))
-           (if object-instance
-               (let ((attached-to-links (object-attached robot-object object-instance)))
-                 (when (find link attached-to-links :test #'equalp)
-                   (detach-object robot-object object-instance :link link)))
-               (setf attached-objects (remove object-name attached-objects :key #'car)))))))
+    (dolist (attachment attached-objects)
+      (let* ((object-name (car attachment))
+             (object-instance (object *current-bullet-world* object-name)))
+        (if object-instance
+            (let ((attached-to-links
+                    (object-attached robot-object object-instance)))
+              (when (find link attached-to-links :test #'equalp)
+                (detach-object robot-object object-instance :link link)))
+            (setf attached-objects
+                  (remove object-name attached-objects :key #'car)))))))
 
 (defmethod detach-all-objects ((robot-object robot-object))
   "Removes all objects form the list of attached objects."
@@ -240,8 +242,10 @@ Otherwise, the attachment is only used as information but does not affect the wo
     (dolist (attached-object attached-objects)
       (let ((object-name (car attached-object)))
         (if (object *current-bullet-world* object-name)
-            (detach-object robot-object (object *current-bullet-world* object-name))
-            (setf attached-objects (remove object-name attached-objects :key #'car)))))))
+            (detach-object robot-object
+                           (object *current-bullet-world* object-name))
+            (setf attached-objects
+                  (remove object-name attached-objects :key #'car)))))))
 
 (defgeneric gc-attached-objects (robot-object)
   (:documentation "Removes all attached objects with an invalid world
@@ -274,6 +278,27 @@ Otherwise, the attachment is only used as information but does not affect the wo
                 (setf (gethash obj detached-cache) t)
                 (detach-object robot-object obj))
               (attach-object robot-object obj :link link-name)))))
+
+(defun link-attached-object-names (robot-object link)
+  (declare (type robot-object robot-object)
+           (type string link))
+  (remove-if #'null
+             (mapcar (lambda (attachment)
+                       (let ((attachment-of-link
+                               (find link
+                                     (second attachment)
+                                     :key #'attachment-link
+                                     :test #'string-equal)))
+                         (when attachment-of-link
+                           (attachment-object attachment-of-link))))
+                     (attached-objects robot-object))))
+
+(defun object-name-attached-links (robot-object object-name)
+  (declare (type robot-object robot-object)
+           (type symbol object-name))
+  (mapcar #'attachment-link
+          (second
+           (find object-name (attached-objects robot-object) :key #'car))))
 
 (defmethod initialize-instance :after ((robot-object robot-object)
                                        &key color name pose
