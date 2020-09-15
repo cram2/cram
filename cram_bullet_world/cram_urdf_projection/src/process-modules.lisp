@@ -95,6 +95,10 @@
                  (third arg-2) (fourth arg-2) (fifth arg-2) (sixth arg-2)
                  (seventh arg-2))))))
 
+;;;;;;;;;;;;;;;;; NOOP ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(cpm:def-process-module urdf-proj-noop (motion-designator)
+  (declare (ignore motion-designator)))
 
 ;;;;;;;;;;;;;;;;;;;;; PREDICATES ;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -122,4 +126,7 @@
     (or (desig:desig-prop ?motion-designator (:type :moving-tcp))
         (desig:desig-prop ?motion-designator (:type :moving-arm-joints))
         (desig:desig-prop ?motion-designator (:type :pulling))
-        (desig:desig-prop ?motion-designator (:type :pushing)))))
+        (desig:desig-prop ?motion-designator (:type :pushing))))
+
+  (<- (cpm:matching-process-module ?motion-designator urdf-proj-noop)
+    (desig:desig-prop ?motion-designator (:type :monitoring-joint-state))))
