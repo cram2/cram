@@ -35,7 +35,8 @@
    ;; robot
    #:*robot-description-parameter* #:*robot-urdf*
    #:set-robot-name #:get-robot-name
-   #:robot #:robot-base-frame #:robot-odom-frame #:robot-torso-link-joint
+   #:robot #:robot-odom-frame #:robot-base-frame #:robot-base-link
+   #:robot-torso-link-joint
    #:robot-joint-states
    #:robot-pose
    #:arms #:arms-that-are-not-neck

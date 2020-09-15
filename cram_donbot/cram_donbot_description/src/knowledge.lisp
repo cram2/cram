@@ -49,9 +49,9 @@
 
 
 (def-fact-group donbot-metadata (robot-odom-frame
-                                 robot-base-frame robot-torso-link-joint
-                                 arm
-                                 neck
+                                 robot-base-frame robot-base-link
+                                 robot-torso-link-joint
+                                 arm neck
                                  camera-frame
                                  camera-minimal-height camera-maximal-height
                                  camera-horizontal-angle camera-vertical-angle)
@@ -59,6 +59,7 @@
   (<- (robot-odom-frame :iai-donbot "odom"))
 
   (<- (robot-base-frame :iai-donbot "base_footprint"))
+  (<- (robot-base-link :iai-donbot "base_link"))
   (<- (robot-torso-link-joint :iai-donbot "ur5_base_link" "arm_base_mounting_joint"))
 
   (<- (arm :iai-donbot :left))
