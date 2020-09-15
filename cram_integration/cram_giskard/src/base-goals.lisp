@@ -56,8 +56,7 @@
                   cram-tf:*odom-frame* cram-tf:*robot-base-frame* pose
                   :avoid-collisions-much t
                   :max-velocity *base-max-velocity-fast-xy*)
-                 (make-collision-avoidance-hint-constraint
-                  cram-tf:*robot-base-frame*
+                 (make-base-collision-avoidance-hint-constraint
                   *base-collision-avoidance-hint-link*
                   (cl-transforms-stamped:make-vector-stamped
                    cram-tf:*fixed-frame* 0.0
