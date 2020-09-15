@@ -46,6 +46,7 @@
    #:hand-links #:hand-link #:hand-finger-link #:gripper-joint
    #:end-effector-link #:robot-tool-frame
    #:gripper-meter-to-joint-multiplier
+   #:gripper-minimal-position #:gripper-convergence-delta
    #:standard<-particular-gripper-transform
    #:tcp-in-ee-pose
    ;; designator utils
