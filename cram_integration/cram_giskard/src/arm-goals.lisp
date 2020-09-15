@@ -91,7 +91,8 @@
                                      cram-tf:*robot-right-tool-frame*
                                      right-pose)))
      :collisions (ecase collision-mode
-                   (:avoid-all (make-avoid-all-collision))
+                   (:avoid-all nil;; (make-avoid-all-collision)
+                    )
                    (:allow-all (make-allow-all-collision))
                    (:allow-hand (list ;; (make-avoid-all-collision)
                                       (make-allow-hand-collision

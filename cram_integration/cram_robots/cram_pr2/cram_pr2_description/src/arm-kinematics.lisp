@@ -159,6 +159,8 @@
                                           hand-links hand-link hand-finger-link
                                           gripper-joint
                                           gripper-meter-to-joint-multiplier
+                                          gripper-minimal-position
+                                          gripper-convergence-delta
                                           standard<-particular-gripper-transform
                                           end-effector-link robot-tool-frame
                                           tcp-in-ee-pose
@@ -191,12 +193,16 @@
     (lisp-fun search "finger" ?link ?pos)
     (lisp-pred identity ?pos))
 
+  ;; (<- (gripper-joint :pr2 :left "l_gripper_joint"))
+  ;; (<- (gripper-joint :pr2 :right "r_gripper_joint"))
   (<- (gripper-joint :pr2 :left "l_gripper_l_finger_joint"))
   (<- (gripper-joint :pr2 :left "l_gripper_r_finger_joint"))
   (<- (gripper-joint :pr2 :right "r_gripper_l_finger_joint"))
   (<- (gripper-joint :pr2 :right "r_gripper_r_finger_joint"))
 
   (<- (gripper-meter-to-joint-multiplier :pr2 5.0))
+  (<- (gripper-minimal-position :pr2 ?_ 0.013))
+  (<- (gripper-convergence-delta :pr2 ?_ 0.005))
 
   (<- (standard<-particular-gripper-transform :pr2 ?transform)
     (symbol-value *standard-to-pr2-gripper-transform* ?transform))

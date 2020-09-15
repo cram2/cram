@@ -125,32 +125,40 @@
   ;;;;;;;;;;;;;;;;;;;;;; MANIPULATING ;;;;;;;;;;;;;;;;;;;;;;;
   (roslisp:ros-info (environment-manipulation manipulate-container)
                     "Manipulating")
-  (cpl:with-failure-handling
-      ((common-fail:manipulation-low-level-failure (e)
-         (roslisp:ros-warn (env-plans manipulate)
-                           "Manipulation messed up: ~a~%Failing."
-                           e)
-         ;; (return)
-         ))
-    (let ((?push-or-pull
-            (if (eq ?type :opening)
-                :pulling
-                :pushing))
-          (?goal
-            `(cpoe:tool-frames-at ,?left-manipulate-poses ,?right-manipulate-poses)))
+  (cpl:pursue
+    (cpl:with-failure-handling
+        ((common-fail:manipulation-low-level-failure (e)
+           (roslisp:ros-warn (env-plans manipulate)
+                             "Manipulation messed up: ~a~%Failing."
+                             e)
+           ;; (return)
+           ))
+      (let ((?push-or-pull
+              (if (eq ?type :opening)
+                  :pulling
+                  :pushing))
+            (?goal
+              `(cpoe:tool-frames-at ,?left-manipulate-poses ,?right-manipulate-poses)))
+        (exe:perform
+         (desig:an action
+                   (type ?push-or-pull)
+                   (object (desig:an object (name ?environment-name)))
+                   (container-object ?container-designator)
+                   (link ?link-name)
+                   (desig:when ?absolute-distance
+                     (distance ?absolute-distance))
+                   (desig:when (eq ?arm :left)
+                     (left-poses ?left-manipulate-poses))
+                   (desig:when (eq ?arm :right)
+                     (right-poses ?right-manipulate-poses))
+                   (goal ?goal)))))
+    (cpl:seq
       (exe:perform
        (desig:an action
-                 (type ?push-or-pull)
-                 (object (desig:an object (name ?environment-name)))
-                 (container-object ?container-designator)
-                 (link ?link-name)
-                 (desig:when ?absolute-distance
-                   (distance ?absolute-distance))
-                 (desig:when (eq ?arm :left)
-                   (left-poses ?left-manipulate-poses))
-                 (desig:when (eq ?arm :right)
-                   (right-poses ?right-manipulate-poses))
-                 (goal ?goal)))))
+                 (type monitoring-joint-state)
+                 (gripper ?arm)))
+      (cpl:fail 'common-fail:gripper-closed-completely
+                :description "Handle slipped")))
 
   (when (and joint-name)
     (cram-occasions-events:on-event
