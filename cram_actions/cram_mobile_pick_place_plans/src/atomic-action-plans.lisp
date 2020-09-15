@@ -449,22 +449,3 @@ equate resulting designator to the original one."
                    :perception-source :whatever))
                 (desig:equate ?object-designator resulting-designator)))
           (desig:current-desig resulting-designator))))))
-
-
-(defun park-arms (&key
-                    ((:left-arm ?left-arm-p))
-                    ((:right-arm ?right-arm-p))
-                  &allow-other-keys)
-  (declare (type boolean ?left-arm-p ?right-arm-p))
-  "Puts the arms into a parking configuration"
-  (let* ((left-config (when ?left-arm-p :park))
-         (right-config (when ?right-arm-p :park))
-         (?goal `(cpoe:arms-positioned-at ,left-config ,right-config)))
-    (exe:perform
-     (desig:an action
-               (type positioning-arm)
-               (desig:when ?left-arm-p
-                 (left-configuration park))
-               (desig:when ?right-arm-p
-                 (right-configuration park))
-               (goal ?goal)))))
