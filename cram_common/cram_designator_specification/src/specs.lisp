@@ -81,11 +81,11 @@
     (property-member (?number-key ?value) ?designator)
     (assert-type ?value (or keyword number) "MOTION SPEC:PROPERTY"))
 
-  (<- (%property ?designator (?symbol-key ?value))
+  (<- (%property ?designator (?key ?value))
     (lisp-pred typep ?designator desig:motion-designator)
-    (member ?symbol-key (:function))
-    (property-member (?symbol-key ?value) ?designator)
-    (assert-type ?value (or symbol null) "MOTION SPEC:PROPERTY"))
+    (member ?key (:function))
+    (property-member (?key ?value) ?designator)
+    (assert-type ?value function "MOTION SPEC:PROPERTY"))
 
   (<- (%property ?designator (?keyword-key ?value))
     (lisp-pred typep ?designator desig:motion-designator)
@@ -141,9 +141,15 @@
     (property-member (?number-key ?value) ?designator)
     (assert-type ?value number "ACTION SPEC:PROPERTY"))
 
+  (<- (%property ?designator (?key ?value))
+    (lisp-pred typep ?designator desig:action-designator)
+    (member ?key (:joint-angle-threshold))
+    (property-member (?key ?value) ?designator)
+    (assert-type ?value (or number null) "ACTION SPEC:PROPERTY"))
+
   (<- (%property ?designator (?string-key ?value))
     (lisp-pred typep ?designator desig:action-designator)
-    (member ?string-key (:frame))
+    (member ?string-key (:frame :joint-name))
     (property-member (?string-key ?value) ?designator)
     (assert-type ?value string "ACTION SPEC:PROPERTY"))
 
@@ -155,7 +161,13 @@
   (<- (%property ?designator (:for ?for-value))
     (lisp-pred typep ?designator desig:action-designator)
     (property-member (:for ?for-value) ?designator)
-    (assert-type ?for-value (or keyword desig:object-designator) "ACTION SPEC:PROPERTY")))
+    (assert-type ?for-value (or keyword desig:object-designator) "ACTION SPEC:PROPERTY"))
+
+  (<- (%property ?designator (?key ?value))
+    (lisp-pred typep ?designator desig:action-designator)
+    (member ?key (:function))
+    (property-member (?key ?value) ?designator)
+    (assert-type ?value (or function null) "ACTION SPEC:PROPERTY")))
 
 
 (def-fact-group location-designator-specs (%property)
