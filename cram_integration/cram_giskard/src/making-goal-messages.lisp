@@ -33,8 +33,10 @@
 (defparameter *prefer-base-low-cost* 0.0001)
 (defparameter *avoid-collisions-distance* 0.10 "In cm, not used atm")
 (defparameter *unmovable-joint-weight* 9001)
-(defparameter *collision-avoidance-hint-threshold* 0.3 "In cm")
+(defparameter *collision-avoidance-hint-threshold* 0.25 "In cm")
+(defparameter *collision-avoidance-hint-spring-offset* 0.05 "In m.")
 (defparameter *collision-avoidance-hint-velocity* 1.0 "In m/s")
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; UTILS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -288,11 +290,13 @@
                                                       &optional
                                                         (threshold
                                                          *collision-avoidance-hint-threshold*)
+                                                        (spring-offset
+                                                         *collision-avoidance-hint-spring-offset*)
                                                         (max-velocity
                                                          *collision-avoidance-hint-velocity*))
   (declare (type string environment-link)
            (type cl-transforms-stamped:vector-stamped vector)
-           (type number threshold max-velocity))
+           (type number threshold spring-offset max-velocity))
   (let ((base-link
           (cut:var-value
            '?link
@@ -311,6 +315,7 @@
         ("avoidance_hint" . ,(to-hash-table vector))
         ("max_threshold" . ,threshold)
         ("max_velocity" . ,max-velocity)
+        ("spring_threshold" . ,(+ threshold spring-offset))
         ("body_b" . ,(roslisp-utilities:rosify-underscores-lisp-name
                       (rob-int:get-environment-name)))
         ("link_b" . ,environment-link)
