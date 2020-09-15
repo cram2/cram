@@ -98,7 +98,14 @@
 ;;;;;;;;;;;;;;;;; NOOP ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (cpm:def-process-module urdf-proj-noop (motion-designator)
-  (declare (ignore motion-designator)))
+  (destructuring-bind (command &rest args)
+      (desig:reference motion-designator)
+    (declare (ignore args))
+    (case command
+      (cram-common-designators:monitor-joint-state
+       (loop do (cpl:sleep 1000)))
+      (t
+       nil))))
 
 ;;;;;;;;;;;;;;;;;;;;; PREDICATES ;;;;;;;;;;;;;;;;;;;;;;;;
 
