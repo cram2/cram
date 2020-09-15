@@ -42,4 +42,6 @@
    #:joint-states
    #:joint-positions
    #:joint-velocities
-   #:full-joint-states-as-hash-table))
+   #:full-joint-states-as-hash-table
+   ;; monitoring
+   #:joint-state-pm))

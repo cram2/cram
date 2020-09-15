@@ -33,8 +33,10 @@
 (defparameter *prefer-base-low-cost* 0.0001)
 (defparameter *avoid-collisions-distance* 0.10 "In cm, not used atm")
 (defparameter *unmovable-joint-weight* 9001)
-(defparameter *collision-avoidance-hint-threshold* 0.3 "In cm")
+(defparameter *collision-avoidance-hint-threshold* 0.25 "In cm")
+(defparameter *collision-avoidance-hint-spring-offset* 0.05 "In m.")
 (defparameter *collision-avoidance-hint-velocity* 1.0 "In m/s")
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; UTILS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -283,32 +285,43 @@
          (joints:joint-positions joint-names))
    (make-list (length joint-names) :initial-element weight)))
 
-(defun make-collision-avoidance-hint-constraint (robot-link environment-link
-                                                 vector
-                                                 &optional
-                                                   (threshold
-                                                    *collision-avoidance-hint-threshold*)
-                                                   (max-velocity
-                                                    *collision-avoidance-hint-velocity*))
-  (declare (type string robot-link environment-link)
+(defun make-base-collision-avoidance-hint-constraint (environment-link
+                                                      vector
+                                                      &optional
+                                                        (threshold
+                                                         *collision-avoidance-hint-threshold*)
+                                                        (spring-offset
+                                                         *collision-avoidance-hint-spring-offset*)
+                                                        (max-velocity
+                                                         *collision-avoidance-hint-velocity*))
+  (declare (type string environment-link)
            (type cl-transforms-stamped:vector-stamped vector)
-           (type number threshold max-velocity))
-  (roslisp:make-message
-   'giskard_msgs-msg:constraint
-   :type
-   "CollisionAvoidanceHint"
-   :parameter_value_pair
-   (alist->json-string
-    `(("link_name" . ,robot-link)
-      ("avoidance_hint" . ,(to-hash-table vector))
-      ("threshold" . ,threshold)
-      ("max_velocity" . ,max-velocity)
-      ("body_b" . ,(roslisp-utilities:rosify-underscores-lisp-name
-                    (rob-int:get-environment-name)))
-      ("link_b" . ,environment-link)
-      ("weight" . ,(roslisp-msg-protocol:symbol-code
-                    'giskard_msgs-msg:constraint
-                    :weight_collision_avoidance))))))
+           (type number threshold spring-offset max-velocity))
+  (let ((base-link
+          (cut:var-value
+           '?link
+           (car (prolog:prolog
+                 `(and (rob-int:robot ?robot)
+                       (rob-int:robot-base-link ?robot ?link)))))))
+    (when (cut:is-var base-link)
+      (error "[giskard] Robot base link was not defined."))
+    (roslisp:make-message
+     'giskard_msgs-msg:constraint
+     :type
+     "CollisionAvoidanceHint"
+     :parameter_value_pair
+     (alist->json-string
+      `(("link_name" . ,base-link)
+        ("avoidance_hint" . ,(to-hash-table vector))
+        ("max_threshold" . ,threshold)
+        ("max_velocity" . ,max-velocity)
+        ("spring_threshold" . ,(+ threshold spring-offset))
+        ("body_b" . ,(roslisp-utilities:rosify-underscores-lisp-name
+                      (rob-int:get-environment-name)))
+        ("link_b" . ,environment-link)
+        ("weight" . ,(roslisp-msg-protocol:symbol-code
+                      'giskard_msgs-msg:constraint
+                      :weight_collision_avoidance)))))))
 
 (defun make-base-velocity-constraint (max-linear-velocity max-angular-velocity)
   (declare (type number max-linear-velocity max-angular-velocity))
