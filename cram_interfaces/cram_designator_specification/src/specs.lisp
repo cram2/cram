@@ -122,9 +122,11 @@
 
   (<- (%property ?designator (?keyword-or-list-key ?value))
     (lisp-pred typep ?designator desig:action-designator)
-    (member ?keyword-or-list-key (:gripper :arm :direction :grasp :camera :type
+    (member ?keyword-or-list-key (:gripper
+                                  :arm :direction :grasp :camera :type
                                   :context :link :configuration
-                                  :left-configuration :right-configuration))
+                                  :left-configuration :right-configuration
+                                  :collision-mode))
     (property-member (?keyword-or-list-key ?value) ?designator)
     (assert-type ?value (or keyword list) "ACTION SPEC:PROPERTY"))
 
