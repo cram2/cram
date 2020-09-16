@@ -34,5 +34,5 @@
   (:export
    ;; motions
    #:move-base #:move-torso #:move-head #:detect #:inspect #:move-gripper-joint
-   #:move-tcp #:move-arm-push #:move-arm-pull #:move-joints #:move-with-constraints
-   #:world-state-detect))
+   #:move-tcp #:move-arm-push #:move-arm-pull #:move-joints
+   #:world-state-detect #:monitor-joint-state))

@@ -35,4 +35,3 @@ ros_logger_stop :-     ros_logger_pid(PID),
         [stdin(pipe(In)), detached(true), process(TLPID)]), 
     writeln(In,'y'),flush_output(In), process_wait(TLPID, _),
     print_message(informational,'Topic Logger stopped').
-

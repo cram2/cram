@@ -185,6 +185,17 @@
              (property ?object-designator (:name ?_)))
         (property ?object-designator (:name ?_)))))
 
+(def-fact-group sensor-monitoring (motion-grounding)
+
+  (<- (motion-grounding ?designator (monitor-joint-state ?joint-name
+                                                         ?joint-angle-threshold
+                                                         ?comparison-function))
+    (property ?designator (:type :monitoring-joint-state))
+    (property ?designator (:joint-name ?joint-name))
+    (property ?designator (:joint-angle-threshold ?joint-angle-threshold))
+    (once (or (property ?designator (:function ?comparison-function))
+              (equal ?comparison-function nil)))))
+
 
 
 #+wiggling-stuff

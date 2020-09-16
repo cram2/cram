@@ -30,10 +30,11 @@
 (in-package :boxy-descr)
 
 (def-fact-group boxy-metadata (robot-odom-frame
-                               robot-base-frame
+                               robot-base-frame robot-base-link
                                robot-torso-link-joint)
   (<- (robot-odom-frame :boxy-description "odom"))
   (<- (robot-base-frame :boxy-description "base_footprint"))
+  (<- (robot-base-link :boxy-description "base_link"))
   (<- (robot-torso-link-joint :boxy-description
                               "triangle_base_link" "triangle_base_joint")))
 

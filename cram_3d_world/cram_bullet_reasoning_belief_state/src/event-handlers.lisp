@@ -92,6 +92,30 @@ and renames POSE into OLD-POSE."
 
 
 (defmethod cram-occasions-events:on-event btr-belief ((event cpoe:object-location-changed))
+  ;; Remove loose attachment between robot and object,
+  ;; if the object was placed somewhere else, e. g.:
+  ;; the robot has been placing an object on itself
+  ;; and now picked up and placed the object on the table.
+  (when (btr:attached-objects (btr:get-robot-object))
+    (let* ((object-desig (cpoe:event-object-designator event))
+           (object-name (desig:desig-prop-value object-desig :name))
+           (btr-object (btr:object btr:*current-bullet-world* object-name))
+           (target-desig (cpoe:event-location-designator event))
+           (target-on-desig (or (desig:desig-prop-value target-desig :on)
+                                (desig:desig-prop-value target-desig :in)))
+           (urdf-name (desig:desig-prop-value target-on-desig :urdf-name)))
+      ;; If the object is loosely attached to some robot links and the
+      ;; target location is not one of these robot links, the
+      ;; loose attachment between the robot and the object will be removed.
+      (multiple-value-bind (object-loose-attached-at-robot-links grasps)
+          (btr:object-attached (btr:get-robot-object) btr-object :loose T)
+        (when (and object-loose-attached-at-robot-links
+                   (not (find (roslisp-utilities:rosify-underscores-lisp-name
+                               urdf-name)
+                              object-loose-attached-at-robot-links
+                              :test #'equalp)))
+          (btr:detach-object (btr:get-robot-object) btr-object)))))
+
   ;; update the designator to get the new location
   (update-object-designator-location
    (cpoe:event-object-designator event)
@@ -188,7 +212,8 @@ If there is no other method with 1 as qualifier, this method will be executed al
                        (cpoe:event-link event)
                        (error "[BTR-BELIEF OBJECT-DETACHED] either link or arm ~
                                in object-attached-robot even had to be given...")))))
-    (when (cut:is-var link) (error "[BTR-BELIEF OBJECT-DETACHED] Couldn't find robot's EE link."))
+    (when (cut:is-var link)
+      (error "[BTR-BELIEF OBJECT-DETACHED] Couldn't find robot's EE link."))
     (if btr-object-name
         ;; if btr-object-name was given, detach it from the robot link
         (let ((btr-object (btr:object btr:*current-bullet-world* btr-object-name)))
@@ -214,18 +239,26 @@ If there is no other method with 1 as qualifier, this method will be executed al
                   (contacting-items
                     (remove-if-not
                      (lambda (c) (typep c 'btr:item))
-                     (btr:find-objects-in-contact btr:*current-bullet-world* btr-object))))
-              ;; If a link contacting btr-object was found, btr-object
-              ;; will be attached to it
-              ;; also, if btr-object is in contact with an item,
+                     (btr:find-objects-in-contact
+                      btr:*current-bullet-world* btr-object))))
+              ;; If btr-object is in contact with an item,
               ;; it will be attached loose.
-              (mapcar (lambda (link-name)
-                        (btr:attach-object environment-object btr-object :link link-name))
-                      contacting-links)
-              (mapcar (lambda (item-object)
-                        (when item-object
-                          (btr:attach-object item-object btr-object :loose T)))
-                      contacting-items))))
+              ;; Otherwise, if a link contacting btr-object was found,
+              ;; btr-object will be attached to it.
+              (or (mapcar (lambda (item-object)
+                            (when item-object
+                              (btr:attach-object item-object btr-object :loose T)))
+                          contacting-items)
+                  (mapcar (lambda (link-name)
+                            (btr:attach-object
+                             environment-object btr-object :link link-name))
+                          contacting-links)
+                  (roslisp:ros-warn (btr-belief btr-detach-object)
+                                    "Object ~a was detached from robot,
+                                     but after falling down it
+                                     is in no contact with the
+                                     environment or another object."
+                                    btr-object-name)))))
         ;; if btr-object-name was not given, detach all objects from the robot link
         (progn
           (btr:detach-all-from-link robot-object link)

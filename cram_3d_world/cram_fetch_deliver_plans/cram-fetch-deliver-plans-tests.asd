@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2019, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2020, Amar Fayaz <amar@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,27 +27,48 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-donbot-process-modules
-  :author "Gayane Kazhoyan"
-  :maintainer "Gayane Kazhoyan"
+(defsystem cram-fetch-deliver-plans-tests
+  :author "Amar Fayaz"
   :license "BSD"
 
-  :depends-on (cram-process-modules
+  :depends-on (roslisp
+               lisp-unit
+
+               cram-language
+               cram-executive
                cram-designators
                cram-prolog
+               cram-projection
+               cram-occasions-events
 
-               cram-tf
-               cram-common-designators
+               cram-common-failures
+               cram-mobile-pick-place-plans
+               cram-object-knowledge
 
-               cram-donbot-low-level
+               cram-physics-utils     ; for reading "package://" paths
+               cl-bullet ; for handling BOUNDING-BOX datastructures
+               cram-bullet-reasoning
+               cram-bullet-reasoning-belief-state
+               cram-bullet-reasoning-utilities
 
-               cram-bullet-reasoning-belief-state ; for WORLD-STATE-DETECTING
-               cram-robosherlock ; for WITH-REAL-ROBOT
-               cram-giskard
-               cram-joint-states)
+               cram-location-costmap
+               cram-btr-visibility-costmap
+               cram-btr-spatial-relations-costmap
+               cram-robot-pose-gaussian-costmap
+               cram-occupancy-grid-costmap
+
+               cram-urdf-projection      ; for with-simulated-robot
+               cram-urdf-projection-reasoning ; to set projection reasoning to T
+               cram-fetch-deliver-plans
+               cram-urdf-environment-manipulation
+
+               cram-pr2-description)
+
   :components
-  ((:module "src"
+  ((:module "tests"
     :components
     ((:file "package")
-     (:file "definitions" :depends-on ("package"))
-     (:file "interface" :depends-on ("package" "definitions"))))))
+     (:file "utils" :depends-on ("package"))
+     (:file "searching-tests" :depends-on ("package" "utils"))
+     (:file "fetching-tests" :depends-on ("package" "utils"))
+     (:file "delivering-tests" :depends-on ("package" "utils"))))))
