@@ -2,218 +2,187 @@
 
 Maintainer: Arthur Niedzwiecki (aniedz@cs.uni-bremen.de)
 
-Provides a library and examples for the transformation of CRAM plans. The execution of any CRAM plan constructs a task tree, a hierarchical data-set containing all plans, designators, motions, locations etc. that from the executed plan. With cram-prolog predicates this task tree can be traversed and analysed. See the thesis on this at https://drive.google.com/open?id=1nxjGeYHg9PsO-lZoIX6bRRWpNbE_eTiK
+Provides a framework and examples for the transformation of CRAM plans. See the full thesis on this at https://drive.google.com/open?id=1nxjGeYHg9PsO-lZoIX6bRRWpNbE_eTiK
 
-All the functionality is based on the task tree, resulting from an executed CRAM plan. A task tree represents an execution trace, the tree of plans and subplans that were involved in the scenario, with all the designators used within a plan. Every node in the tree stands for one plan in the complete scenario, where the node's children stand for its subplans. 
+Plan transformation is based on CRAM's task tree. When a CRAM plan is run, each action designator generates a node in the task tree, starting from the root (top-level). If an action designator consists of other actions (which they usually do), those actions generate nodes as well and appear as child-nodes in the node they were called in. This hierarchy of actions within actions within actions spans a task tree, whose leafs end in atomic motions. It is called 'task tree', because every node contains a task, which holds a lot of information about the corresponding designator.
 
-The tree and its nodes are lisp datastructures, and the task-tree-node has a slot called `code-replacement`, which is `nil` by default. But if this slot contains anything else than the initial `nil`, this code will be executed in place of the original code of the node's corresponding plan. 
+A task tree is automatically generated whenever a plan is run. If a different plan is run, the current task tree is overwritten with the new plan's structure. But if the same plan is run repeatedly with the same structure of actions within actions, the task tree structure also stays the same. While repeated executions of a plan only update the designator results in their corresponding nodes, it is also possible to change the course of actions without touching their original implementation.
 
-So the procedure goes as follows: 
+Each node has a unique path, from the root down along its children of children, leading to a specific node and its task. The task is a lisp object and contains a field named `code-replacement`, which is `nil` by default. When it comes to executing the action corresponding to that task, whose `code-replacement` is not `nil`, but filled a completely different action instead, this code replacement is executed **instead** of the original action.
 
-1. execute a plan
-2. find patterns, nodes, designators
-3. inject code into the `code-replacement` slot of specific nodes
-4. execute plan again
+**Example 1**: With the path to a task, whose action should be ignored in the next plan execution, its `code-replacement` can be addressed to a function that does nothing. The field `code-replacement` must contain a function of the form `(function (&rest desig) &body)` while the input `desig` is a list, whose first value is the originally executed action of the corresponding task. A function that does nothing then looks like this:
 
-By injecting code into specific nodes of the task tree it is possible to change the behaviour of the original plan and transform it, without changing the plan's code itself. Point 2, the search fro patterns, is done by cram-prolog predicates, and 3, the injection of code-replacements is implemented in lisp functions. 
+```commonlisp
+(defun ignore-desig (&rest desig)
+   (declare (ignore desig))
+   T)
+```
+
+To remove the execution of an obsolete action, which is contained in a task whose path is known (`obsolete-task-path`), the following function sets the `code-replacement` to `ignore-desig`:
+
+```commonlisp
+(cpl-impl:replace-task-code
+   "OBSOLETE-TASK-1" ;; the task name, never used in any context
+   #'ignore-desig ;; the function to replace the original code with
+   obsolete-task-path ;; the path to the affected node
+   :top-level) ;; the name of the task tree, default is :top-level
+```
+
+**Example 2**: If a couple of action designators (`actions-list`) need to be executed instead of an other action, their execution can be injected into a task with the path `modified-task-path` like this:
+
+```commonlisp
+(cpl-impl:replace-task-code
+   "MODIFIED-TASK-1"
+   #'(lambda (&rest desig)
+        (declare (ignore desig))
+        (mapcar #'exe:perform actions-list))
+   modified-task-path 
+   :top-level)
+```
+
+## Usage
+
+### Example and Explanation
+
+The two examples above - deleting and injecting code - are the bread and butter for transforming a task tree. Each transformation consists of a code-injection and a code-deletion part. Among the currently implemented predicates there is one transformation rule, that lets the robot transport two objects to the same location simultaneously, instead of one by one. This is done by postponing the delivery of the first object.
+
+|               | Original Plan                         | Transformed Plan                                       |
+| ------------- | ------------------------------------- | ------------------------------------------------------ |
+| 1st Transport | 1st search & access goal location     | 1st search & access goal location                      |
+|               | 1st search & access fetching location | 1st search & access fetching location                  |
+|               | 1st search & fetch object             | 1st search & fetch object                              |
+|               | 1st deliver object                    | **(ignore (1st deliver object))**                      |
+|               | 1st seal fetching location            | 1st seal fetching location                             |
+|               | 1st seal goal location                | 1st seal goal location                                 |
+| 2nd Transport | 2nd search & access goal location     | 2nd search & access goal location                      |
+|               | 2nd search & access fetching location | 2nd search & access fetching location                  |
+|               | 2nd search & fetch object             | 2nd search & fetch object                              |
+|               | 2nd deliver object                    | **(inject (1st deliver object) (2nd deliver object))** |
+|               | 2nd seal fetching location            | 2nd seal fetching location                             |
+|               | 2nd seal goal location                | 2nd seal goal location                                 |
+
+After this transformation the robot holds the first object in one gripper and uses the second one for all following tasks, until the first object is finally delivered. For this specific transformation, the following parameters need to be acquired:
+
+* path to 1st deliver object - ignore the designator
+* path to 2nd deliver object - inject actions here
+  * designator:  1st deliver object  - inject this action here
+  * designator: 2nd deliver object - inject this action here
+
+A good question would be, why the *2nd deliver object* action designator is needed when the code is injected into its exact path anyway. The answer is, it's more generic. Any transformation-parameter can be generalized into two lists: 
+
+1. a list of designator-path pairs, where each element is a list of actions and a path where the actions are injected into
+2. a list of paths to ignore
+
+For example, this is the first part of the transformation-parameter for the transformation above:
+
+```
+(  
+   ((1st-deliver-designator
+     2nd-deliver-designator)
+    2nd-deliver-path)
+)
+```
+
+It contains only one element: the injection of both delivery tasks into the second delivery node. There can be multiple such action-path pairs, each injecting a list of actions into one path, e.g. can two actions be switched in places by injecting one into another, and the other one into the first.
+
+Since the first delivery is injected into the second delivery it would now be executed two times, first at its original time, and later at the injected time, therefore the first execution must be ignored. For this purpose the second part of the transformation-parameter contains a list of paths, whose actions should be ignored.
+
+The final transformation-parameter for this example transformation is the concatenation of the first and second part:
+
+```
+(
+   (((1st-deliver-designator
+      2st-deliver-designator)
+     2st-deliver-path))
+   (1nd-deliver-path)
+)
+```
+
+More generic, the transformation-parameter for any transformation has the following structure:
+
+```
+(
+   (((designator-a
+      designator-b
+      designator-c)
+     injected-path-1)
+    ((designator-x
+      designator-y)
+     injected-path-2)
+    ...)
+   (ignored-path-k 
+    ignored-path-l
+    ignored-path-m
+    ...)
+)
+```
+
+### Plan Transformation Framework
+
+In `framework.lisp` a function is defined, takes the transformation-parameter as input and applies the code replacements onto the task tree. The function loops through the first part of the transformation-parameter, injects the actions into their respective target nodes, and ignores the tasks defined in the second part of the transformation-parameter. 
+
+The most difficult part is finding the right values for the transformation-parameter. This search is done with predicates written in cram-prolog. Each such predicate can be viewed as a transformation rule, because it first searches the task tree for a suitable, transformable pattern, then extracts the needed actions and paths, and provides them in the above explained structure of a transformation-parameter.
+
+To get an idea on how to construct such predicates, the transformation rule above is already implemented in `predicates.lisp` and is called `task-transporting-both-hands-to-target`. Like every transformation-rule predicate, both parameters of this predicate are passed unbound and will be filled  with the transformation-parameter. A transformation-rule predicate only passes, if the rule is applicable onto the current task tree, and evaluates to NIL if it is not applicable.
+
+A transformation-rule can then be registered  as possible transformation with the `register-transformation-rule` macro:
+
+```
+(register-transformation-rule
+ both-hands-to-target '(task-transporting-both-hands-to-target ?transform-data ?obsolete-paths))
+```
+
+Registering a transformation rule enables the framework to see and use the constructed rule. With the function `apply-rules` all registered transformation rules are run through the cram-prolog interpreter, and if they are applicable, are applied onto the task tree. Each execution of `apply-rules` only applies one transformation rule at a time. If called multiple times, the registered transformation rules are checked for applicability and applied again, if any applicable rule is found. 
+
+#### Constructing Transformation Rule Predicates
+
+It is imperative to write transformation rules that terminate. Cram-prolog has not the healthiest way of allocating memory, so the predicates must be constructed thoughtfully and precise. Even if it seems superfluous, constraining predicates can help the performance a lot. As an example of seemingly superfluous code, the first lines of the predicate `task-transporting-from-similar-origin`  are shown:
+
+```commonlisp
+;; improvable example
+(<- (task-transporting-from-similar-origin ?first-task ?second-task
+                                           ?fetch-task-1 ?fetch-task-2
+                                           ?origin-location)
+    (bound ?first-task)
+    (bound ?second-task)
+    (top-level-name ?top-level-name)
+    (coe:task-full-path ?first-task-1 ?first-path-1)
+    (cpoe:task-fetching-action ?top-level-name
+                               ?first-path-1 ;; path of the parent
+                               ?fetch-task-1 ;; unspecfied task
+                               ?fetch-desig-1)
+    ...)
+
+;; current implementation
+(<- (task-transporting-from-similar-origin ?first-task ?second-task
+                                           ?fetch-task-1 ?fetch-task-2
+                                           ?origin-location)
+    (bound ?first-task)
+    (bound ?second-task)
+    (top-level-name ?top-level-name)
+    (coe:subtask ?first-task ?fetch-task-1) ;; specifying as subtask
+    (coe:task-full-path ?fetch-task-1 ?fetch-path-1)
+    (cpoe:task-fetching-action ?top-level-name
+                               ?fetch-path-1 ;; path of the searched task
+                               ?fetch-task-1 ;; specified task
+                               ?fetch-desig-1)
+    ...)
+```
+
+The predicate `bound` tells, that `?first-task` and `?second-task` need to be provided with a value, `top-level-name` gives the name of the task tree, `cue:task-full-path` returns the path to a given task, `coe:subtask` returns each subtask of a given root-task, the predicate `cpoe:task-fetching-action` searches depth-first for an action of type :fetching, in all nodes and child-nodes of the given path. 
+
+In the upper, improvable example the fetching task is found by using the path of its parent `?first-task`. The search for the fetching action starts from the path of `?first-task`, checks if the `?first-task` is a fetching action, then goes down the child-nodes of `?first-task` and continues searching depth-first. Since transporting actions have a lot going on besides fetching and delivery, it takes quite the search to finally reach the fetching action.
+
+Instead, when specifically declaring the searched `?fetch-task-1` to be a direct subtask of `?first-task-1` with the predicate `coe:subtask`, the search focuses only on those subtasks, while ignoring the depths below. Prior knowledge of the task tree's structure can help building predicates a lot.
 
 ## Tests
 
-To execute the tests for this package, load the `cram-plan-transformation-tests` system from cram_plan_transformation. Afterwards, choose your robot description and load it, or comment-in the corresponding dependency in the `cram-plan-transformation-tests.asd` system file. Don't forget to run the `sandbox.launch` from either the pick-place-demo (pr2) or the assembly-demo (boxy). After loading the test package and robot description you can now execute this:
+Use any projection demo including two transporting actions to the same target to test the both-hands rule. The transporting actions must be achievable with either gripper. The current implementation of `cram-plan-transformation-tests` loads and uses the household-demo in `cram_projection_demos`. First execute the demo until it is successful, then call `plt:apply-rules` and execute the demo again.
+
+If the `cram-plan-transformation-tests` package is used, simply load the package and call
 
 ```commonlisp
 (lisp-unit:run-tests :all :plt-tests)
 ```
 
-If you don't want the debug window to pop up, go into 
-
-```bash
-roscd cram_plan_transformation/tests/
-vim transformation-tests.lisp
-```
-
-and set the `*spawn-debug-window*` parameter to `nil`.
-
-## Usage
-
-#### Plan Transformation framework
-
-There are a couple of function that are quite useful for managing transformations.
-
-`apply-rules` applies one transformation rule on the task tree. Depending on the `*rule-priority*` and the `*disabled-rules*` certain rules are preferred over others. Executing `apply-rules` will execute the cram-prolog predicate associated to a transformation rule, and if the predicate yields a successful match the corresponding transformation rule is executed (using the response of the predicate).
-
-`register-transformation-rule` is a macro that registers a transformation in the framework. It takes two arguments: the name of the transformation-function and the corresponding predicate.
-
-```commonlisp
-(register-transformation-rule both-hands-rule
-                              '(task-transporting-siblings ?first-transport 
-                              					 		   ?second-transport))
-```
-
-`disable-transformation-rule` excludes transformations that have been registered from `apply-rules`.
-
-`enable-transformation-rule` does the opposite.
-
-`prioritize-rule` takes two arguments: the name of the superior rule, and the inferior one. The predicate of a superior rule is always evaluated before an inferior rule when executing `apply-rules`.
-
-#### Creating the task tree
-
-To create a task tree from a plan, the tracing mechanism must be enabled. This is an example of creating a task tree for the pick and place demo:
-
-```commonlisp
-(urdf-proj:with-projected-robot
-      (cet:enable-fluent-tracing)
-      (demo::demo-random nil '(:bowl :cup))
-      (cet:disable-fluent-tracing))
-```
-
-After execution the tracing must be disabled to prevent accidental overwriting of the task tree.
-
-With the task tree it is now possible to analyse the executed demo. The task tree object can be found in `cpl-impl::*top-level-task-trees*`, a hash table, where `:top-level` is the key to the task tree. Executing a plan within the `urdf-proj:with-projected-robot` macro always sets the name of the task tree to `:top-level`.
-
-#### Analysis with Predicates
-
-All the most important predicates for analysing the task tree are already defined in the `:coe` and `:cpoe` packages, some additional predicates for pattern search and utilities are defined in `./src/predicates.lisp`. Predicates resolve into meaningful data when all their components can be evaluated positively, e.g. when there are two transporting actions in the task tree and the predicate searches for three, it fails, but the predicate that searches for two transports will be successful and can respond with data that can be used for plan transformations. 
-
-To find a transporting task and the corresponding designator, this predicate can be used:
-
-```lisp
-(prolog `(and (top-level-name ?tl-name)
-              (top-level-path ?tl-path)
-              (cpoe:task-transporting-action ?tl-name ?tl-path ?task ?designator)))
-```
-
-To find two transporting actions, a bigger predicate is needed. The predicate will be build up in a few steps, beginning with the header. This predicate is necessary for modifying the tasks tree in a way, such that the robot will use both of the grippers for transporting two objects from the same place; also called `both-hands-rule`.
-
-```
-(<- (task-transporting-siblings (?first-path ?first-fetching-desig)
-                                (?second-path ?first-delivering-desig))
-```
-
-The predicate does not need any bound variables, meaning, it can be called with four arbitrary variable names. After the predicate was successful, we will have 4 return values, holding the data we need for transforming the plan. This example works with the data from the demo-random with :bowl and :cup.
-
-* `?first-path`: address to the bowl **transport** 
-
-* `?first-fetching-desig`: designator of the bowl *fetch* 
-
-* `?second-path`: address to the cup *delivery*
-
-* `?first-delivering-desig`: designator of the bowl *delivery*
-
-It can be called like this: 
-
-`(prolog '(task-transporting-siblings ?part-a ?part-b))` or like this 
-
-`(prolog '(task-transporting-siblings (?part-a-1 ?part-a-2) (?part-b-1 ?part-b-2)))`
-
-Later, when the data is applied on the task tree, the following will happen: The addresses are pointing to the nodes in the task tree, that are going to be manipulated. The bowl **transport** node will be changed to only contain the bowl *fetch*, and the cup *delivery* will be extended to also contain the bowl *delivery*. This way, the order of *fetch, deliver, fetch, deliver* is changed to *fetch, fetch, deliver, deliver*.
-
-From the header ongoing the predicate will find two transporting actions.
-
-```commonlisp
-(<- (task-transporting-siblings (?first-path ?first-fetching-desig)
-                                (?second-path ?first-delivering-desig))
-    (top-level-name ?top-level-name)
-    (top-level-path ?path)
-    (cpoe:task-transporting-action ?top-level-name ?path ?second-task ?_)
-    (cpoe:task-transporting-action ?top-level-name ?path ?first-task ?_)
-```
-
-For security purposes it is not allowed to transform any node that has been involved in a transformation already. Transformed nodes contain a piece of code in their `code-replacement` slot, that will be executed in place of their original code reference. Checking for this slot will reveal and exclude nodes, that are already 'tainted'.
-
-```commonlisp
-(<- (task-transporting-siblings (?first-path ?first-fetching-desig)
-                                (?second-path ?first-delivering-desig))
-    (top-level-name ?top-level-name)
-    (top-level-path ?path)
-    (cpoe:task-transporting-action ?top-level-name ?path ?second-task ?_)
-    (cpoe:task-transporting-action ?top-level-name ?path ?first-task ?_)
-    (without-replacement ?first-task)
-    (without-replacement ?second-task)
-```
-
-To further specify the validity of the transporting action, the tasks must not be the same, but the origin of the transports are approximately equal.
-
-```
-(<- (task-transporting-siblings (?first-path ?first-fetching-desig)
-                                (?second-path ?first-delivering-desig))
-    (top-level-name ?top-level-name)
-    (top-level-path ?path)
-    (cpoe:task-transporting-action ?top-level-name ?path ?second-task ?_)
-    (cpoe:task-transporting-action ?top-level-name ?path ?first-task ?_)
-    (without-replacement ?first-task)
-    (without-replacement ?second-task)
-    (not (== ?first-task ?second-task))
-    (task-location-description-equal ?first-task ?second-task)
-```
-
-The rest of the predicates retrieves the addresses and designators:
-
-```
-(<- (task-transporting-siblings (?first-path ?first-fetching-desig)
-                                (?second-path ?first-delivering-desig))
-    (top-level-name ?top-level-name)
-    (top-level-path ?path)
-    (cpoe:task-transporting-action ?top-level-name ?path ?second-task ?_)
-    (cpoe:task-transporting-action ?top-level-name ?path ?first-task ?_)
-    (without-replacement ?first-task)
-    (without-replacement ?second-task)
-    (not (== ?first-task ?second-task))
-    (task-location-description-equal ?first-task ?second-task)
-  ;; Bind the ?first-path variable to the bowl transport address
-    (coe:task-full-path ?first-task ?first-path)
-  ;; Extract the path of the cup transport
-    (coe:task-full-path ?second-task ?second-transporting-path)
-  ;; Bind the ?first-fetching-desig to the bowl fetch
-    (cpoe:task-fetching-action ?top-level-name ?first-path ?_ ?first-fetching-desig)
-  ;; Bind the ?first-delivering-desig to the bowl delivery
-    (cpoe:task-delivering-action ?top-level-name ?first-path ?_ ?first-delivering-desig)
-  ;; Extract the cup delivery task
-    (cpoe:task-delivering-action ?top-level-name ?second-transporting-path ?second-delivering-task ?_)
-  ;; Bind the ?second-path to the cup delivery address
-    (coe:task-full-path ?second-delivering-task ?second-path))
-```
-
-#### Transformation Functions
-
-In `./src/demo-transformation-rules.lisp` there are a few transformation functions. The `both-hands-rule` has already been mentioned in the analysis section, and this is how the data from the predicate is used on the task tree.
-
-The result of a predicate is a lazy list, consisting of key-value bindings. Those bindings are passed to the transformation functions as input parameters. The transformation function uses the data in the bindings (node addresses and designators) to inject code-replacement into nodes in the task tree. Every transformation function contains this piece of code:
-
-```commonlisp
-(cpl-impl:replace-task-code '(NAME-OF-THE-TRANSFORMATION)
-                                #'(lambda (&rest desig)
-                                	;; ignore the original designator if you want
-                                    (declare (ignore desig))
-                                    ;; or execute it
-                                    (exe:perform (car desig))
-                                    ;; here comes
-                                    (your-injected-code))
-                                path-to-the-node-to-inject-the-code-in
-                                (cpl-impl::get-top-level-task-tree top-level-name))
-```
-
-This function call injects a function of signature `(lambda (&rest desig) do-something)` into the code-replacement slot of the node at the `path-to-the-node-to-inject-the-code-in`. The `NAME-OF-THE-TRANSFORMATION` can be chosen by the developer, it will be used as part of the new address of the manipulated node. The last parameter of the function is the manipulated task tree.
-
-Following is the transformation function for the `both-hands-rule`:
-```commonlisp
-(defun both-hands-rule (lazy-bindings)
-  (destructuring-bind
-      ((key transport-path 1st-fetch-action)
-       (other-key 2nd-deliver-path 1st-deliver-action))
-      (cut:lazy-car lazy-bindings)
-    (declare (ignore key other-key))
-    (cpl-impl:replace-task-code '(BOTH-HANDS-TRANSFORM-1)
-                                 #'(lambda (&rest desig)
-                                     (declare (ignore desig))
-                                     (exe:perform 1st-fetch-action))
-                                 transport-path
-                                 (cpl-impl::get-top-level-task-tree top-level-name))
-    (cpl-impl:replace-task-code '(BOTH-HANDS-TRANSFORM-2)
-                                 #'(lambda (&rest desig)
-                                     (exe:perform 1st-deliver-action)
-                                     (exe:perform (car desig)))
-                                 2nd-deliver-path
-                                 (cpl-impl::get-top-level-task-tree top-level-name))))
-```
-
+The projection window will not open until the test fails. Optionally, go into `tests.lisp` and toggle `btr-belief:*spawn-debug-window*` to make the window spawn when the test is executed. On a failed test, check the error message and try again, demos sometimes fail non-deterministically.
