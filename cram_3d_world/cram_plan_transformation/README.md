@@ -8,7 +8,7 @@ Plan transformation is based on CRAM's task tree. When a CRAM plan is run, each 
 
 A task tree is automatically generated whenever a plan is run. If a different plan is run, the current task tree is overwritten with the new plan's structure. But if the same plan is run repeatedly with the same structure of actions within actions, the task tree structure also stays the same. While repeated executions of a plan only update the designator results in their corresponding nodes, it is also possible to change the course of actions without touching their original implementation.
 
-Each node has a unique path, from the root down along its children of children, leading to a specific node and its task. The task is a lisp object and contains a field named `code-replacement`, which is `nil` by default. When it comes to executing the action corresponding to that task, whose `code-replacement` is not `nil`, but filled a completely different action instead, this code replacement is executed **instead** of the original action.
+Each node has a unique path, from the root down along its children of children, leading to a specific node and its task. A task is a lisp object and contains a field named `code-replacement`, which is `nil` by default. When it comes to executing the action corresponding to that task, and the `code-replacement` field is not `nil` but filled with a completely different action instead, this code replacement is executed **instead** of the original action.
 
 **Example 1**: With the path to a task, whose action should be ignored in the next plan execution, its `code-replacement` can be addressed to a function that does nothing. The field `code-replacement` must contain a function of the form `(function (&rest desig) &body)` while the input `desig` is a list, whose first value is the originally executed action of the corresponding task. A function that does nothing then looks like this:
 
@@ -61,7 +61,7 @@ The two examples above - deleting and injecting code - are the bread and butter 
 |               | 2nd seal fetching location            | 2nd seal fetching location                             |
 |               | 2nd seal goal location                | 2nd seal goal location                                 |
 
-After this transformation the robot holds the first object in one gripper and uses the second one for all following tasks, until the first object is finally delivered. For this specific transformation, the following parameters need to be acquired:
+After this transformation the robot fetches the first object and holds it there while using the other gripper for all following tasks, until the first object can be delivered at the target location. For this specific transformation, the following parameters need to be acquired:
 
 * path to 1st deliver object - ignore the designator
 * path to 2nd deliver object - inject actions here
@@ -119,11 +119,11 @@ More generic, the transformation-parameter for any transformation has the follow
 
 ### Plan Transformation Framework
 
-In `framework.lisp` a function is defined, takes the transformation-parameter as input and applies the code replacements onto the task tree. The function loops through the first part of the transformation-parameter, injects the actions into their respective target nodes, and ignores the tasks defined in the second part of the transformation-parameter. 
+In `framework.lisp` a function is defined, that takes the transformation-parameter as input and applies the code replacements onto the task tree. The function loops through the first part of the transformation-parameter, injects the actions into their respective target nodes, and ignores the tasks defined in the second part of the transformation-parameter. 
 
-The most difficult part is finding the right values for the transformation-parameter. This search is done with predicates written in cram-prolog. Each such predicate can be viewed as a transformation rule, because it first searches the task tree for a suitable, transformable pattern, then extracts the needed actions and paths, and provides them in the above explained structure of a transformation-parameter.
+The most difficult part is finding the right values for the transformation-parameter. This search is done with predicates written in cram-prolog. Each such predicate can be viewed as a transformation rule, because it first searches the task tree for a suitable, transformable pattern, then extracts the needed actions and paths and provides them in the structure of a transformation-parameter as explained above.
 
-To get an idea on how to construct such predicates, the transformation rule above is already implemented in `predicates.lisp` and is called `task-transporting-both-hands-to-target`. Like every transformation-rule predicate, both parameters of this predicate are passed unbound and will be filled  with the transformation-parameter. A transformation-rule predicate only passes, if the rule is applicable onto the current task tree, and evaluates to NIL if it is not applicable.
+To get an idea on how to construct such predicates, the transformation rule in the example is already implemented in `predicates.lisp` and is called `task-transporting-both-hands-to-target`. Like every transformation-rule predicate, both parameters of this predicate are passed unbound and will be filled  with the transformation-parameter. A transformation-rule predicate only passes, if the rule is applicable onto the current task tree, and evaluates to NIL if it is not applicable.
 
 A transformation-rule can then be registered  as possible transformation with the `register-transformation-rule` macro:
 
@@ -146,9 +146,9 @@ It is imperative to write transformation rules that terminate. Cram-prolog has n
     (bound ?first-task)
     (bound ?second-task)
     (top-level-name ?top-level-name)
-    (coe:task-full-path ?first-task-1 ?first-path-1)
+    (coe:task-full-path ?first-task-1 ?first-path)
     (cpoe:task-fetching-action ?top-level-name
-                               ?first-path-1 ;; path of the parent
+                               ?first-path   ;; path of the parent
                                ?fetch-task-1 ;; unspecfied task
                                ?fetch-desig-1)
     ...)
@@ -169,20 +169,20 @@ It is imperative to write transformation rules that terminate. Cram-prolog has n
     ...)
 ```
 
-The predicate `bound` tells, that `?first-task` and `?second-task` need to be provided with a value, `top-level-name` gives the name of the task tree, `cue:task-full-path` returns the path to a given task, `coe:subtask` returns each subtask of a given root-task, the predicate `cpoe:task-fetching-action` searches depth-first for an action of type :fetching, in all nodes and child-nodes of the given path. 
+The predicate `bound` tells, that `?first-task` and `?second-task` need to be provided with a value, `top-level-name` gives the name of the task tree, `coe:task-full-path` returns the path to a given task, `coe:subtask` returns each subtask of a given root-task, the predicate `cpoe:task-fetching-action` searches depth-first for an action of type :fetching, in all nodes and child-nodes of the given path. 
 
-In the upper, improvable example the fetching task is found by using the path of its parent `?first-task`. The search for the fetching action starts from the path of `?first-task`, checks if the `?first-task` is a fetching action, then goes down the child-nodes of `?first-task` and continues searching depth-first. Since transporting actions have a lot going on besides fetching and delivery, it takes quite the search to finally reach the fetching action.
+In the upper, improvable example, the fetching task is found by using the path of its parent `?first-path`. The search for the fetching action starts from the  `?first-task`, checks if the `?first-task` is a fetching action, then goes down its child-nodes and continues searching depth-first. Since transporting actions have a lot going on besides fetching and delivering and the predicates go depth-first, the search takes quite a while to finally reach the fetching action.
 
-Instead, when specifically declaring the searched `?fetch-task-1` to be a direct subtask of `?first-task-1` with the predicate `coe:subtask`, the search focuses only on those subtasks, while ignoring the depths below. Prior knowledge of the task tree's structure can help building predicates a lot.
+Instead, when specifically declaring the searched `?fetch-task-1` to be a direct subtask of `?first-task` through the predicate `coe:subtask`, the search focuses on direct subtasks of `?first-task`, while ignoring the depths below. Prior knowledge of the task tree's structure can help building predicates a lot.
 
 ## Tests
 
-Use any projection demo including two transporting actions to the same target to test the both-hands rule. The transporting actions must be achievable with either gripper. The current implementation of `cram-plan-transformation-tests` loads and uses the household-demo in `cram_projection_demos`. First execute the demo until it is successful, then call `plt:apply-rules` and execute the demo again.
+To test the plan transformation by hand, use any projection demo including two transporting actions to the same target. The transporting actions must be achievable with either gripper. First execute the demo until it is successful, then call `plt:apply-rules` and execute the demo again. 
 
-If the `cram-plan-transformation-tests` package is used, simply load the package and call
+An autonomous test can be found in the `cram-plan-transformation-tests` package. Simply load the package and call
 
 ```commonlisp
 (lisp-unit:run-tests :all :plt-tests)
 ```
 
-The projection window will not open until the test fails. Optionally, go into `tests.lisp` and toggle `btr-belief:*spawn-debug-window*` to make the window spawn when the test is executed. On a failed test, check the error message and try again, demos sometimes fail non-deterministically.
+Currently, the implementation of `cram-plan-transformation-tests` loads and uses the household-demo in `cram_projection_demos`, transporting bowl and breakfast cereal. The projection window will not open unless the test fails. Optionally, go into `tests.lisp` and toggle `btr-belief:*spawn-debug-window*` to make the window spawn when the test is executed. Upon a failed test, check the error message and try again, demos sometimes fail non-deterministically.
