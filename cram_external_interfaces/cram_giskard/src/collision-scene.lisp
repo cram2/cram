@@ -259,16 +259,16 @@
         ;; giskard is publishing the tf frame
         ;; giskard only publishes TF for attached objects,
         ;; not the other objects in the collision scene
-        (handler-case
-            (setf ee-to-object-pose
-                  (cram-tf:strip-transform-stamped
-                   (cl-transforms-stamped:lookup-transform
-                    cram-tf:*transformer*
-                    link
-                    object-name-string
-                    :timeout cram-tf:*tf-default-timeout*
-                    :time (roslisp:ros-time))))
-          (cl-transforms-stamped:transform-stamped-error ()))
+        ;; (handler-case
+        ;;     (setf ee-to-object-pose
+        ;;           (cram-tf:strip-transform-stamped
+        ;;            (cl-transforms-stamped:lookup-transform
+        ;;             cram-tf:*transformer*
+        ;;             link
+        ;;             object-name-string
+        ;;             :timeout cram-tf:*tf-default-timeout*
+        ;;             :time (roslisp:ros-time))))
+        ;;   (cl-transforms-stamped:transform-stamped-error ()))
 
         ;; remove the object first, maybe it was already attached to something
         (call-giskard-environment-service
