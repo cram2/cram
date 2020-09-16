@@ -17,8 +17,8 @@ mem_event_end(Event) :- get_time(CurrentTime),ask(triple(Event,dul:'hasTimeInter
 
 mem_event_begin(Event) :- get_time(CurrentTime),tell(occurs(Event) since CurrentTime),!.
 
-belief_perceived_at(ObjectType, Frame, Object) :- get_time(CurrentTime),tell([has_type(Object,ObjectType),is_at(Object,Frame) since CurrentTime]).
-%belief_perceived_at(ObjectType, Frame, Object) :- tell(has_type(Object,ObjectType)).
+%belief_perceived_at(ObjectType, Frame, Object) :- get_time(CurrentTime),tell([has_type(Object,ObjectType),is_at(Object,Frame) since CurrentTime]).
+belief_perceived_at(ObjectType, Frame, Object) :- tell([has_type(Object,ObjectType)]).
 add_participant_with_role(Action, ObjectId, RoleType) :- tell([has_participant(Action,ObjectId), has_type(Role, RoleType), has_role(ObjectId,Role) during [0.0,0.0]]).
 add_parameter(Task,ParameterType,RegionType) :- tell([has_type(Parameter, ParameterType), has_type(Region,RegionType),has_assignment(Parameter,Region) during [0.0,0.1], has_parameter(Task, Parameter)]).
 
