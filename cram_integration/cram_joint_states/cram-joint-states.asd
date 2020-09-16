@@ -35,7 +35,11 @@
                roslisp-utilities
                cl-transforms
                cram-language ; for fluents
+               cram-prolog ; for monitoring
+               cram-process-modules ; for monitoring
+               cram-designators ; for monitoring
                cram-tf
+               cram-common-designators
                sensor_msgs-msg)
   :components
   ((:module "src"
