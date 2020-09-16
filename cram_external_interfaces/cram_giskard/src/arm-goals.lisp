@@ -100,6 +100,12 @@
                                        collision-object-b-link)
                                       (make-allow-hand-collision
                                        arms (rob-int:get-environment-name))))
+                   (:allow-fingers (list ;; (make-avoid-all-collision)
+                                    (make-allow-fingers-collision
+                                     arms collision-object-b
+                                     collision-object-b-link)
+                                    (make-allow-fingers-collision
+                                     arms (rob-int:get-environment-name))))
                    (:allow-arm (list ;; (make-avoid-all-collision)
                                      (make-allow-arm-collision
                                       arms collision-object-b

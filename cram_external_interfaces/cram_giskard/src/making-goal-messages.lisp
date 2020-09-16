@@ -467,11 +467,12 @@
                       (prolog:prolog
                        `(and (rob-int:robot ?robot)
                              (rob-int:hand-links ?robot ,arm ?hand-links)
-                             (setof ?finger-link
-                                    (and (member ?finger-link ?hand-links)
-                                         (rob-int:hand-finger-link
-                                          ?robot ,arm ?finger-link))
-                                    ?finger-links))))))
+                             (prolog:setof
+                              ?finger-link
+                              (and (member ?finger-link ?hand-links)
+                                   (rob-int:hand-finger-link
+                                    ?robot ,arm ?finger-link))
+                              ?finger-links))))))
                   arms)))
     (make-allow-robot-links-collision finger-links body-b body-b-link)))
 
