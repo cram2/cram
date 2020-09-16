@@ -96,7 +96,7 @@
 
 
 (defun create-reasoning-url (predicate-name)
-  (concatenate 'string "'http://www.ease-crc.org/ont/EASE-ACT.owl#" predicate-name "'"))
+  (concatenate 'string "'http://www.ease-crc.org/ont/SOMA.owl#" predicate-name "'"))
 
 ;;(defun log-reasoning-task (predicate-name parameter reasoning-result)
 ;;  (let
