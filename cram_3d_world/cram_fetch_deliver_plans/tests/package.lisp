@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2020, Amar Fayaz <amar@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -10,10 +10,10 @@
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
-;;;     * Neither the name of the Institute for Artificial Intelligence/
-;;;       Universitaet Bremen nor the names of its contributors may be used to
-;;;       endorse or promote products derived from this software without
-;;;       specific prior written permission.
+;;;     * Neither the name of the Intelligent Autonomous Systems Group/
+;;;       Technische Universitaet Muenchen nor the names of its contributors 
+;;;       may be used to endorse or promote products derived from this software 
+;;;       without specific prior written permission.
 ;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,16 +27,12 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :boxy-pm)
+(in-package :cl-user)
 
-;;;;;;;;;;;;;;;;;;;; GRIPPERS ;;;;;;;;;;;;;;;;;;;;;;;;
-
-(cpm:def-process-module grippers-pm (motion-designator)
-  (destructuring-bind (command action-type-or-position which-gripper &optional effort)
-      (desig:reference motion-designator)
-    (ecase command
-      (cram-common-designators:move-gripper-joint
-       (boxy-ll:move-gripper-joint
-        :action-type-or-position action-type-or-position
-        :left-or-right which-gripper
-        :effort effort)))))
+(defpackage cram-fetch-deliver-plans-tests
+  (:nicknames #:fd-plans-tests)
+  (:use #:common-lisp
+        #:lisp-unit
+        #:cram-prolog
+        #:desig #:exe)
+  (:export))

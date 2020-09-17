@@ -35,7 +35,7 @@
     ))
 
 (defparameter *object-colors*
-  '(;; (:spoon . "Black")
+  '((:spoon . "Black")
     ;; (:spoon . "Blue")
     ;; (:breakfast-cereal . "Yellow")
     ;; (:milk . "Blue")
@@ -43,7 +43,8 @@
     (:cup . "Red")))
 
 (defparameter *object-materials*
-  '((:spoon . "Steel")))
+  '(;; (:spoon . "Steel")
+    ))
 
 (defparameter *object-grasps*
   '((:spoon . :top)
@@ -51,6 +52,9 @@
     (:milk . :front)
     (:cup . :top)
     (:bowl . :top)))
+
+(defparameter *object-arms*
+  '((:milk . :left)))
 
 (defun park-robot ()
   (cpl:with-failure-handling
@@ -79,13 +83,14 @@
                  (type going)
                  (target (desig:a location (pose ?pose))))))))
 
+(defun start-logging ()
+  (ccl::start-episode))
+
+(defun stop-logging ()
+  (ccl::stop-episode))
+
 (defun initialize ()
   (sb-ext:gc :full t)
-
-  ;;(when ccl::*is-logging-enabled*
-  ;;    (setf ccl::*is-client-connected* nil)
-  ;;    (ccl::connect-to-cloud-logger)
-  ;;    (ccl::reset-logged-owl))
 
   ;; (setf proj-reasoning::*projection-checks-enabled* t)
 
@@ -131,9 +136,6 @@
 (defun finalize ()
   ;; (setf proj-reasoning::*projection-reasoning-enabled* nil)
 
-  ;;(when ccl::*is-logging-enabled*
-  ;;  (ccl::export-log-to-owl "ease_milestone_2018.owl")
-  ;;  (ccl::export-belief-state-to-owl "ease_milestone_2018_belief.owl"))
   (sb-ext:gc :full t))
 
 

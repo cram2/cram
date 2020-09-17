@@ -214,6 +214,9 @@ if yes, relocate and retry, if no collisions, open or close container."
 If the object is not there or navigation location is unreachable,
 retries with different search location or robot base location."
 
+  (desig:reset ?search-location)
+  (desig:reset ?robot-location)
+
   (cpl:with-failure-handling
       ((desig:designator-error (e)
          (roslisp:ros-warn (fd-plans search-for-object)
@@ -225,7 +228,8 @@ retries with different search location or robot base location."
     ;; take new `?search-location' sample if a failure happens and retry
     (cpl:with-retry-counters ((outer-search-location-retries 3))
       (cpl:with-failure-handling
-          ((common-fail:object-nowhere-to-be-found (e)
+          (((or common-fail:object-nowhere-to-be-found
+                desig:designator-error) (e)
              (common-fail:retry-with-loc-designator-solutions
                  ?search-location
                  outer-search-location-retries
@@ -321,6 +325,9 @@ retries with different search location or robot base location."
 one of arms in the `?arms' lazy list (if not NIL) and one of grasps in `?grasps' if not NIL,
 while standing at `?pick-up-robot-location'
 and using the grasp and arm specified in `pick-up-action' (if not NIL)."
+
+  (desig:reset ?look-location)
+  (desig:reset ?pick-up-robot-location)
 
   (cpl:with-failure-handling
       ((desig:designator-error (e)
@@ -497,6 +504,9 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
   "Delivers `?object-designator' to `?target-location', where object is held in `?arm'
 and the robot should stand at `?target-robot-location' when placing the object.
 If a failure happens, try a different `?target-location' or `?target-robot-location'."
+
+  (desig:reset ?target-location)
+  (desig:reset ?target-robot-location)
 
   ;; Reference the `?target-location' to see if that works at all
   ;; If not, delivering is impossible so throw a OBJECT-UNDERLIVERABLE failure

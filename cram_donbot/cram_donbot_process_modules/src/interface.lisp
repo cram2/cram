@@ -37,7 +37,7 @@
         (desig:desig-prop ?motion-designator (:type :closing-gripper))
         (desig:desig-prop ?motion-designator (:type :moving-gripper-joint))))
 
-  (<- (cpm:matching-process-module ?motion-designator giskard-pm)
+  (<- (cpm:matching-process-module ?motion-designator giskard:giskard-pm)
     (or (desig:desig-prop ?motion-designator (:type :moving-tcp))
         (desig:desig-prop ?motion-designator (:type :moving-arm-joints))
         (desig:desig-prop ?motion-designator (:type :pulling))
@@ -47,7 +47,7 @@
         (desig:desig-prop ?motion-designator (:type :looking))))
 
   (<- (cpm:available-process-module ?pm)
-    (member ?pm (grippers-pm giskard-pm))
+    (member ?pm (grippers-pm giskard:giskard-pm))
     (not (cpm:projection-running ?_)))
 
   (<- (cpm:available-process-module btr-belief:world-state-detecting-pm)))
@@ -56,7 +56,7 @@
 (defmacro with-real-robot (&body body)
   `(cram-process-modules:with-process-modules-running
        (donbot-pm:grippers-pm
-        rs:robosherlock-perception-pm giskard:giskard-pm
+        rs:robosherlock-perception-pm giskard:giskard-pm joints:joint-state-pm
         btr-belief:world-state-detecting-pm)
      (cpl-impl::named-top-level (:name :top-level)
        ,@body)))

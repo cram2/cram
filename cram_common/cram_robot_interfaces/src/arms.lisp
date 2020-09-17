@@ -36,6 +36,7 @@
                       hand-links hand-link hand-finger-link gripper-joint
                       end-effector-link robot-tool-frame
                       gripper-meter-to-joint-multiplier
+                      gripper-minimal-position gripper-convergence-delta
                       standard<-particular-gripper-transform
                       tcp-in-ee-pose)
 
@@ -82,6 +83,15 @@
   ;; To keep the interfaces consistent, we assume CM and each robot defines
   ;; how to convert CM opening distance for the gripper into its own unit.
   (<- (gripper-meter-to-joint-multiplier ?robot ?multiplier)
+    (fail))
+
+  ;; Sometimes the gripper joint doesn't converge all the way to 0.0
+  ;; but rather some other small value such as 0.0015
+  (<- (gripper-minimal-position ?robot ?arm ?position)
+    (fail))
+
+  ;; The delta at which to say that the gripper converged to the min position
+  (<- (gripper-convergence-delta ?robot ?arm ?delta)
     (fail))
 
   ;; Standard gripper has the Z pointing towards the object
