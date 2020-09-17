@@ -31,9 +31,11 @@
 (defparameter *forward-looking-position-in-base-frame*
   (cl-transforms:make-3d-vector 10.0 0.0 1.5))
 
-(def-fact-group pr2-metadata (robot-base-frame robot-torso-link-joint
-                              robot-odom-frame
-                              camera-frame camera-minimal-height camera-maximal-height
+(def-fact-group pr2-metadata (robot-odom-frame
+                              robot-base-frame robot-base-link
+                              robot-torso-link-joint
+                              camera-frame
+                              camera-minimal-height camera-maximal-height
                               camera-horizontal-angle camera-vertical-angle
                               robot-neck-links robot-neck-joints
                               robot-joint-states robot-pose)
@@ -41,6 +43,7 @@
   (<- (robot-odom-frame :pr2 "odom_combined"))
 
   (<- (robot-base-frame :pr2 "base_footprint"))
+  (<- (robot-base-link :pr2 "base_link"))
   (<- (robot-torso-link-joint :pr2 "torso_lift_link" "torso_lift_joint"))
 
   (<- (camera-frame :pr2 "head_mount_kinect_rgb_optical_frame"))

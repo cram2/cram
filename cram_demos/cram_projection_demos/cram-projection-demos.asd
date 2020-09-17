@@ -45,7 +45,7 @@
                cram-executive ; for the plan
                ;; cram-language
                ;; cram-projection
-               ;; cram-utilities
+               cram-utilities ;  for RANDOM-WITH-MINIMUM
 
                ;; cram_common
                cram-tf ; to set the default timeout to a small number, tf utils

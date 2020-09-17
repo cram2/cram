@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2020, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,16 +27,43 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :boxy-pm)
+(in-package :joints)
 
-;;;;;;;;;;;;;;;;;;;; GRIPPERS ;;;;;;;;;;;;;;;;;;;;;;;;
+(defun monitor-joint-state (&key
+                              joint-name joint-angle-threshold
+                              comparison-function)
+  (declare (type string joint-name)
+           (type number joint-angle-threshold)
+           (type function comparison-function))
+  (cpl:wait-for
+   (cpl:fl-funcall (lambda (joint-state-msg-fluent)
+                     (funcall comparison-function
+                              (car (joints:joint-positions
+                                    (list joint-name)
+                                    joint-state-msg-fluent))
+                              joint-angle-threshold))
+                   *robot-joint-states-msg*))
+  (roslisp:ros-info (joints monitor)
+                    "Joint ~a reached threshold ~a."
+                    joint-name joint-angle-threshold))
 
-(cpm:def-process-module grippers-pm (motion-designator)
-  (destructuring-bind (command action-type-or-position which-gripper &optional effort)
+
+(cpm:def-process-module joint-state-pm (motion-designator)
+  (destructuring-bind (command argument-1 argument-2 argument-3)
       (desig:reference motion-designator)
     (ecase command
-      (cram-common-designators:move-gripper-joint
-       (boxy-ll:move-gripper-joint
-        :action-type-or-position action-type-or-position
-        :left-or-right which-gripper
-        :effort effort)))))
+      (cram-common-designators:monitor-joint-state
+       (monitor-joint-state
+        :joint-name argument-1
+        :joint-angle-threshold argument-2
+        :comparison-function argument-3)))))
+
+
+(prolog:def-fact-group joint-state-pm-facts (cpm:matching-process-module
+                                             cpm:available-process-module)
+
+  (prolog:<- (cpm:matching-process-module ?motion-designator joint-state-pm)
+    (or (desig:desig-prop ?motion-designator (:type :monitoring-joint-state))))
+
+  (prolog:<- (cpm:available-process-module joint-state-pm)
+    (prolog:not (cpm:projection-running ?_))))

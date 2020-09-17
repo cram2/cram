@@ -95,6 +95,9 @@
     ((object-type (eql :basket)) (grasp (eql :top)))
   :carry-top-basket)
 (defmethod man-int:get-object-type-carry-config :heuristics 20
+    ((object-type (eql :tray)) grasp)
+  :carry-tray)
+(defmethod man-int:get-object-type-carry-config :heuristics 20
     ((object-type (eql :plate)) grasp)
   :carry-side-gripper-vertical)
 
@@ -160,6 +163,17 @@
   :lift-translation *lift-offset*
   :2nd-lift-translation *lift-offset*)
 
+(man-int:def-object-type-to-gripper-transforms '(:tray) :right :right-side
+  :grasp-translation `(0.0 ,(- *plate-grasp-y-offset*) ,*plate-grasp-z-offset*)
+  :grasp-rot-matrix
+  `((0 -1 0)
+    (,(- (sin *plate-grasp-roll-offset*)) 0 ,(cos *plate-grasp-roll-offset*))
+    (,(- (cos *plate-grasp-roll-offset*)) 0 ,(- (sin *plate-grasp-roll-offset*))))
+  :pregrasp-offsets `(0.0 ,(- *plate-pregrasp-y-offset*) ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 ,(- *plate-pregrasp-y-offset*) ,*plate-2nd-pregrasp-z-offset*)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
 (man-int:def-object-type-to-gripper-transforms :plate :right :right-side
   :grasp-translation `(0.0 ,(- *plate-grasp-y-offset*) ,*plate-grasp-z-offset*)
   :grasp-rot-matrix
@@ -217,10 +231,13 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;; cup ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *cup-pregrasp-xy-offset* 0.15 "in meters")
+;; (defparameter *cup-eco-orange-grasp-xy-offset* 0.02 "in meters")
 (defparameter *cup-grasp-xy-offset* 0.02 "in meters")
+;; (defparameter *cup-eco-orange-grasp-z-offset* 0.01 "in meters")
 (defparameter *cup-grasp-z-offset* 0.01 "in meters")
 (defparameter *cup-top-grasp-x-offset* 0.03 "in meters")
-(defparameter *cup-top-grasp-z-offset* 0.02 "in meters")
+;; (defparameter *cup-eco-orange-top-grasp-z-offset* 0.02 "in meters")
+(defparameter *cup-top-grasp-z-offset* 0.04 "in meters")
 
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms :cup '(:left :right) :top
@@ -374,8 +391,10 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;; bowl ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter *bowl-grasp-x-offset* 0.07 "in meters")
-(defparameter *bowl-grasp-z-offset* 0.0 "in meters")
+;; (defparameter *edeka-red-bowl-grasp-x-offset* 0.07 "in meters")
+(defparameter *bowl-grasp-x-offset* 0.08 "in meters")
+;; (defparameter *edeka-red-bowl-grasp-z-offset* 0.0 "in meters")
+(defparameter *bowl-grasp-z-offset* 0.02 "in meters")
 (defparameter *bowl-pregrasp-z-offset* 0.20 "in meters")
 
 ;; TOP grasp
