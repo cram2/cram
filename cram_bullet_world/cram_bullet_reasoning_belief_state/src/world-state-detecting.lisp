@@ -97,7 +97,7 @@ the old object-designator description is enough to create a new one."
   (let* ((map-T-base
            (cram-tf:pose->transform-stamped
             cram-tf:*fixed-frame* cram-tf:*robot-base-frame* 0.0
-            (cram-tf:robot-current-pose)))
+            (btr:pose (btr:get-robot-object))))
          (base-T-map
            (cram-tf:transform-stamped-inv map-T-base))
          (base-T-obj

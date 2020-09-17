@@ -30,57 +30,62 @@
 
 (in-package :cram-bullet-reasoning-belief-state)
 
-(defparameter *perception-instability-threshold* 0.1
-  "The distance threshold in meters,
-in which the simulation is expected to safely correct the perceived object pose.
-Anything beyond this distance will cause a correction method to be triggered
-to try and correct the unstable object")
-
 (defparameter *artificial-perception-noise-factor* 0.0
   "Gives the maximum distance in meters of simulated perception noise.
 Eg. A value 0.1 means the perceived object can be moved around up to 0.1 meters
 when simulated perception noise is applied. 0 means no artificial noise.")
 
-(defparameter *perception-noise-correction-offset* 0.04
-  "Distance in meters, with which the unstable perceived object will be
+(defparameter *perception-instability-threshold* 0.07
+  "The distance threshold in meters,
+in which the simulation is expected to safely correct the perceived object pose.
+Anything beyond this distance will cause a correction method to be triggered
+to try and correct the unstable object.
+If this threshold is NIL, no correction will happen.")
+
+(defparameter *perception-noise-correction-offset* 0.01
+  "First distance in meters, with which the unstable perceived object will be
 counter-moved when it falls down upon simulation.")
+
+(defparameter *perception-noise-correction-iterations* 3
+  "Number of distances to try the correction approach with. In times.")
+
+(defparameter *perception-noise-correction-step* 0.01
+  "The step in meters that each iteration of the correction approach differs
+from the correction offset.")
+
+(defparameter *perception-noise-simulation-timeout* 3
+  "In secs. How many seconds to simulate to compare initial vs simulated pose.")
+
 
 (defun add-artificial-perception-noise (object-name object-pose)
   "Randomly moves around the object to simulate the errors in perception.
 The range at which the object is moved is determined by
 *artificial-perception-noise-factor* and setting it to zero will disable noise."
-  (when (> *simulated-perception-noise-factor* 0.0)
+  (when (> *artificial-perception-noise-factor* 0.0)
     (let* ((offset-direction (nth (random 3) '(:x :y :z)))
-           (offset-distance (- (random (* 2 *simulated-perception-noise-factor*))
-                               *simulated-perception-noise-factor*))
+           (offset-distance (- (random (* 2 *artificial-perception-noise-factor*))
+                               *artificial-perception-noise-factor*))
            (new-pose (cram-tf:translate-pose object-pose offset-direction offset-distance)))
       (setf (btr:pose (btr:object btr:*current-bullet-world* object-name))
             new-pose))))
 
-(defun correct-perception-pose-noise (initial-pose final-pose)
-  "Returns a corrected pose to counteract the movement of the object due
-to perception noise.
+(defun calculate-perception-pose-correction (initial-pose simulated-pose)
+  "Returns correction info to counteract the perception noise.
 The correction only happens if the distance between the poses is larger than
 *perception-instability-threshold*.
-The correction is only applied to the axis with the maximum
-absolute deviation from the original pose and the offsets for the other axes are
-set to zero. The correction distance is determined by
-*perception-noise-correction-offset*.
-Returns the new corrected pose."
-  (let* ((dist (cl-transforms:v- (cl-transforms:origin final-pose)
-                                 (cl-transforms:origin initial-pose)))
-         (dist-list (cram-tf:3d-vector->list dist))
-         (max-dist (apply #'max dist-list))
-         (max-dist-norm (abs max-dist)))
-    (when (> max-dist-norm *perception-instability-threshold*)
-      (let* ((max-sign (/ max-dist max-dist-norm))
-             (max-index (position max-dist dist-list))
-             (correction-axis (nth max-index '(:x :y :z))))
-        (cram-tf:translate-pose initial-pose correction-axis
-                                (* max-sign *perception-noise-correction-offset*))))))
+Returns a list of ((:axis-1 sign-1) (:axis-2 sign-2)...)."
+  (loop with dist = (cl-transforms:v- (cl-transforms:origin initial-pose)
+                                      (cl-transforms:origin simulated-pose))
+        with dist-list = (cram-tf:3d-vector->list dist)
+        with correction
+        for distance in dist-list
+        for axis in '(:x :y :z)
+        do (when (> (abs distance) *perception-instability-threshold*)
+             (push (/ distance (abs distance)) correction)
+             (push axis correction))
+        finally (return correction)))
 
-
-(defun correct-bullet-object-pose (btr-world object-name object-new-pose)
+(defun apply-bullet-object-pose (btr-world object-name object-new-pose)
   "Moves the object to the new pose and erases old velocity."
   ;; apply new pose
   (setf (btr:pose (btr:object btr-world object-name))
@@ -90,30 +95,41 @@ Returns the new corrected pose."
             (setf (cl-bullet:linear-velocity body)
                   (cl-transforms:make-identity-vector)
                   (cl-bullet:angular-velocity body)
-                  (cl-transforms:make-identity-vector)))
+                  (cl-transforms:make-identity-vector))
+            (cl-bullet:clear-forces body))
           (btr:rigid-bodies (btr:object btr-world object-name))))
 
 (defun stabilize-perceived-object-pose (btr-world object-name object-pose)
-  (btr:simulate btr-world 1)
-  (let* ((object-simulated-pose
-           (btr:pose (btr:object btr-world object-name)))
-         (object-corrected-pose
-           (correct-perception-pose-noise object-pose object-simulated-pose)))
-    (when object-corrected-pose
-      ;; Retry by spawning the object a corrected distance from the original pose
-      (correct-bullet-object-pose btr-world object-name object-corrected-pose)
-      (btr:simulate btr-world 10)
-      (let ((object-second-simulated-pose
-              (btr:pose (btr:object btr-world object-name))))
-        (unless (< (cl-transforms:v-dist
-                    (cl-transforms:origin object-pose)
-                    (cl-transforms:origin object-second-simulated-pose))
-                   *perception-instability-threshold*)
-          ;; if the correction did not make the object stable,
-          ;; reset the pose back and throw a warning
-          (roslisp:ros-warn (btr-belief consistency)
-                            "Perceived pose of ~a is unstable..." object-name)
-          (correct-bullet-object-pose btr-world object-name object-pose))))))
+  (when *perception-instability-threshold*
+    (apply-bullet-object-pose btr-world object-name object-pose)
+    (btr:simulate btr-world *perception-noise-simulation-timeout*)
+    (let* ((object-simulated-pose
+             (btr:pose (btr:object btr-world object-name)))
+           (object-pose-correction
+             (calculate-perception-pose-correction object-pose object-simulated-pose)))
+      (when object-pose-correction
+        (loop for offset = *perception-noise-correction-offset*
+                then (+ offset *perception-noise-correction-step*)
+              for iteration from 1 to *perception-noise-correction-iterations*
+              do (let* ((scaled-correction
+                          (mapcar (lambda (x) (if (numberp x) (* x offset) x))
+                                  object-pose-correction))
+                        (object-corrected-pose
+                          (apply #'cram-tf:translate-pose object-pose scaled-correction)))
+                   (apply-bullet-object-pose btr-world object-name object-corrected-pose)
+                   (btr:simulate btr-world 10)
+                   (let ((object-second-simulated-pose
+                           (btr:pose (btr:object btr-world object-name))))
+                     (if (> (cl-transforms:v-dist
+                             (cl-transforms:origin object-corrected-pose)
+                             (cl-transforms:origin object-second-simulated-pose))
+                            *perception-instability-threshold*)
+                         ;; if the correction did not make the object stable,
+                         ;; reset the pose back and continue with the loop
+                         (apply-bullet-object-pose btr-world object-name object-pose)
+                         ;; if the correction helped, exit the loop
+                         (return)))))))))
+
 
 
 
