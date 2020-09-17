@@ -46,4 +46,11 @@
    #:setup-world-database
    #:vary-kitchen-urdf
    ;; world-state-detecting
-   #:world-state-detecting-pm))
+   #:world-state-detecting-pm
+   ;; consistency-checking
+   #:*artificial-perception-noise-factor*
+   #:*perception-instability-threshold*
+   #:*perception-noise-correction-offset*
+   #:*perception-noise-correction-iterations*
+   #:*perception-noise-correction-step*
+   #:*perception-noise-simulation-timeout*))
