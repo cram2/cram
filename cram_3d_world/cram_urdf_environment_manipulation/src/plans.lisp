@@ -157,6 +157,9 @@
        (desig:an action
                  (type monitoring-joint-state)
                  (gripper ?arm)))
+      ;; sleep for half a second,
+      ;; maybe the action is nearly finished, so there is no need to fail
+      (cpl:sleep 0.5)
       (cpl:fail 'common-fail:gripper-closed-completely
                 :description "Handle slipped")))
 
