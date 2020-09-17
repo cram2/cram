@@ -87,8 +87,10 @@ and renames POSE into OLD-POSE."
          :type (desig:desig-prop-value (cpoe:event-object-designator event) :type)))
     ;; after having spawned the object,
     ;; correct noise through world state consistency reasoning
-    ;; and update the designator to get the new simulated pose
     (stabilize-perceived-object-pose btr:*current-bullet-world* object-name object-pose)
+     ;; simulate world
+    (btr:simulate btr:*current-bullet-world* 100)
+    ;; update the designator to get the new simulated pose
     (desig:equate
      (cpoe:event-object-designator event)
      (detect-new-object-pose-from-btr (cpoe:event-object-designator event)))))
@@ -223,7 +225,7 @@ If there is no other method with 1 as qualifier, this method will be executed al
         (let ((btr-object (btr:object btr:*current-bullet-world* btr-object-name)))
           (when btr-object
             (btr:detach-object robot-object btr-object :link link)
-            (btr:simulate btr:*current-bullet-world* 10)
+            (btr:simulate btr:*current-bullet-world* 100)
             ;; find the links and items that support the object
             ;; and attach the object to them.
             ;; links get proper attachments and items loose attachments
@@ -266,7 +268,7 @@ If there is no other method with 1 as qualifier, this method will be executed al
         ;; if btr-object-name was not given, detach all objects from the robot link
         (progn
           (btr:detach-all-from-link robot-object link)
-          (btr:simulate btr:*current-bullet-world* 10)))))
+          (btr:simulate btr:*current-bullet-world* 100)))))
 
 (defmethod cram-occasions-events:on-event btr-attach-two-objs ((event cpoe:object-attached-object))
   (let* ((btr-object-name (cpoe:event-object-name event))
