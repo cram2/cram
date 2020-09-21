@@ -80,7 +80,7 @@
                                            costmap:visibility-costmap-size)
   (<- (costmap:costmap-padding :pr2 0.3))
   (<- (costmap:costmap-manipulation-padding :pr2 0.4))
-  (<- (costmap:costmap-in-reach-distance :pr2 1.0))
+  (<- (costmap:costmap-in-reach-distance :pr2 1.05))
   (<- (costmap:costmap-reach-minimal-distance :pr2 0.2))
   (<- (costmap:orientation-samples :pr2 1))
   (<- (costmap:orientation-sample-step :pr2 0.3))
