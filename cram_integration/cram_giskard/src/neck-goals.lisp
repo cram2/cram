@@ -170,5 +170,6 @@
     (call-action
      :action-goal (make-neck-joint-action-goal joint-state)
      :action-timeout action-timeout
-     :check-goal-function (lambda ()
+     :check-goal-function (lambda (result status)
+                            (declare (ignore result status))
                             (ensure-neck-joint-goal-reached goal-configuration)))))

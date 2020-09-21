@@ -73,7 +73,8 @@
                                   e)
                 (cpl:do-retry torso-retries
                   (roslisp:ros-warn (pick-and-place move-torso) "Retrying...")
-                  (cpl:retry))))
+                  (cpl:retry))
+                (return)))
            (exe:perform
             (desig:a motion (type moving-torso) (joint-angle ?joint-angle)))))
     (cram-occasions-events:on-event
