@@ -151,13 +151,13 @@
     (:breakfast-cereal . ((1.15 -0.5 0.8) (0 0 1 0)))))
 
 
-(defun attach-object-to-the-world (object-type)
-  (when *demo-object-spawning-poses*
+(defun attach-object-to-the-world (object-type spawning-poses-relative)
+  (when spawning-poses-relative
     (btr:attach-object (btr:get-environment-object)
                        (btr:object btr:*current-bullet-world*
                                    (intern (format nil "~a-1" object-type) :keyword))
                        :link (second (find object-type
-                                           *demo-object-spawning-poses*
+                                           spawning-poses-relative
                                            :key #'car)))))
 
 (defun make-poses-list-relative (spawning-poses-list)
@@ -205,7 +205,8 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
     ;; (btr:simulate btr:*current-bullet-world* 100)
     objects)
 
-  (mapcar #'attach-object-to-the-world object-types))
+  (mapcar (alexandria:rcurry #'attach-object-to-the-world spawning-poses-relative)
+          object-types))
 
 
 
@@ -258,7 +259,9 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
 `object-list' "
   ;; (setup-for-demo object-list)
   (initialize)
-  (when cram-projection:*projection-environment*
+  (when (or cram-projection:*projection-environment*
+            ;; dont want to add dependency on sim PMs, thus this stupid hack
+            (roslisp:get-param "/base_simulator/sim_frequency" nil))
     (spawn-objects-on-fixed-spots
      :object-types object-list
      :spawning-poses-relative *delivery-poses-dining-table-relative*))
