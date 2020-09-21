@@ -303,8 +303,10 @@ environment, in which it can be found, respectively."
                  (vCP (cl-transforms:v-
                        (cl-transforms:make-3d-vector x y 0)
                        (cl-bullet:bounding-box-center aabb))))
-             (if (and (<= (abs (cl-tf:x vCP)) (+ (/ (cl-tf:x dims) 2) padding))
-                      (<= (abs (cl-tf:y vCP)) (+ (/ (cl-tf:y dims) 2) padding)))
+             (if (and (<= (abs (cl-transforms:x vCP))
+                          (+ (/ (cl-transforms:x dims) 2) padding))
+                      (<= (abs (cl-transforms:y vCP))
+                          (+ (/ (cl-transforms:y dims) 2) padding)))
                  0
                  1))))
     (let ((aabbs (get-aabbs-at-joint-states container-name btr-environment)))
