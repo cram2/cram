@@ -49,8 +49,9 @@
 (defparameter *base-max-velocity-slow-theta*
   0.1 "In rad, about 11.5 deg.")
 
-(defun make-giskard-base-action-goal (pose)
-  (declare (type cl-transforms-stamped:pose-stamped pose))
+(defun make-giskard-base-action-goal (pose base-velocity)
+  (declare (type cl-transforms-stamped:pose-stamped pose)
+           (type (or keyword number null) base-velocity))
   (make-giskard-goal
    :constraints (list
                  (make-cartesian-constraint
@@ -62,8 +63,11 @@
                   (cl-transforms-stamped:make-vector-stamped
                    cram-tf:*fixed-frame* 0.0
                    *base-collision-avoidance-hint-vector*))
-                 (make-base-velocity-constraint
-                  *base-max-velocity-fast-xy* *base-max-velocity-fast-theta*))
+                 (if (eq base-velocity :slow)
+                     (make-base-velocity-constraint
+                      *base-max-velocity-slow-xy* *base-max-velocity-slow-theta*)
+                     (make-base-velocity-constraint
+                      *base-max-velocity-fast-xy* *base-max-velocity-fast-theta*)))
    :joint-constraints (make-current-joint-state-constraint '(:left :right))
    :collisions (make-avoid-all-collision *base-collision-avoidance-distance*)))
 
@@ -82,8 +86,9 @@
                            *base-convergence-delta-xy*
                            *base-convergence-delta-theta*))))
 
-(defun call-base-action (&key action-timeout goal-pose)
+(defun call-base-action (&key action-timeout goal-pose base-velocity)
   (declare (type cl-transforms-stamped:pose-stamped goal-pose)
+           (type (or keyword number null) base-velocity)
            (type (or null number) action-timeout))
 
   (setf goal-pose (ensure-base-goal-input goal-pose))
@@ -91,6 +96,6 @@
   (cram-tf:visualize-marker goal-pose :r-g-b-list '(0 1 0))
 
   (call-action
-   :action-goal (make-giskard-base-action-goal goal-pose)
+   :action-goal (make-giskard-base-action-goal goal-pose base-velocity)
    :action-timeout action-timeout
    :check-goal-function (lambda () (ensure-base-goal-reached goal-pose))))

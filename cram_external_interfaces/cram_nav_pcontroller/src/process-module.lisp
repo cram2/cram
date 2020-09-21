@@ -30,8 +30,9 @@
 (in-package :navp)
 
 (cpm:def-process-module navp-pm (motion-designator)
-  (destructuring-bind (command destination-pose)
+  (destructuring-bind (command destination-pose velocity)
       (desig:reference motion-designator)
+    (declare (ignore velocity))
     (ecase command
       (cram-common-designators:move-base
        (call-nav-pcontroller-action destination-pose :visualize t)))))

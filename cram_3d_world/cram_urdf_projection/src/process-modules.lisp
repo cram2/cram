@@ -32,8 +32,9 @@
 ;;;;;;;;;;;;;;;;; NAVIGATION ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (cpm:def-process-module urdf-proj-navigation (motion-designator)
-  (destructuring-bind (command argument)
+  (destructuring-bind (command argument &rest args)
       (desig:reference motion-designator)
+    (declare (ignore args))
     (ecase command
       (cram-common-designators:move-base
        (drive argument)))))
