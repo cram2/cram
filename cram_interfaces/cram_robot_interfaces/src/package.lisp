@@ -35,7 +35,8 @@
    ;; robot
    #:*robot-description-parameter* #:*robot-urdf*
    #:set-robot-name #:get-robot-name
-   #:robot #:robot-base-frame #:robot-odom-frame #:robot-torso-link-joint
+   #:robot #:robot-odom-frame #:robot-base-frame #:robot-base-link
+   #:robot-torso-link-joint
    #:robot-joint-states
    #:robot-pose
    #:arms #:arms-that-are-not-neck
@@ -45,6 +46,7 @@
    #:hand-links #:hand-link #:hand-finger-link #:gripper-joint
    #:end-effector-link #:robot-tool-frame
    #:gripper-meter-to-joint-multiplier
+   #:gripper-minimal-position #:gripper-convergence-delta
    #:standard<-particular-gripper-transform
    #:tcp-in-ee-pose
    ;; designator utils

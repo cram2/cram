@@ -35,7 +35,7 @@
     ))
 
 (defparameter *object-colors*
-  '(;; (:spoon . "Black")
+  '((:spoon . "Black")
     ;; (:spoon . "Blue")
     ;; (:breakfast-cereal . "Yellow")
     ;; (:milk . "Blue")
@@ -43,7 +43,8 @@
     (:cup . "Red")))
 
 (defparameter *object-materials*
-  '((:spoon . "Steel")))
+  '(;; (:spoon . "Steel")
+    ))
 
 (defparameter *object-grasps*
   '((:spoon . :top)
@@ -83,9 +84,10 @@
                  (target (desig:a location (pose ?pose))))))))
 
 (defun start-logging ()
-  (setf ccl::*is-logging-enabled* t)
-  (ccl::init-logging)
   (ccl::start-episode))
+
+(defun stop-logging ()
+  (ccl::stop-episode))
 
 (defun initialize ()
   (sb-ext:gc :full t)
@@ -135,9 +137,6 @@
   ;; (setf proj-reasoning::*projection-reasoning-enabled* nil)
 
   (sb-ext:gc :full t))
-
-(defun stop-logging ()
-  (ccl::stop-episode))
 
 
 (cpl:def-cram-function demo-random (&optional

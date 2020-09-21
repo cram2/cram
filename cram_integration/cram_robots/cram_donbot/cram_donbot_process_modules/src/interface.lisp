@@ -56,7 +56,7 @@
 (defmacro with-real-robot (&body body)
   `(cram-process-modules:with-process-modules-running
        (donbot-pm:grippers-pm
-        rs:robosherlock-perception-pm giskard:giskard-pm
+        rs:robosherlock-perception-pm giskard:giskard-pm joints:joint-state-pm
         btr-belief:world-state-detecting-pm)
      (cpl-impl::named-top-level (:name :top-level)
        ,@body)))

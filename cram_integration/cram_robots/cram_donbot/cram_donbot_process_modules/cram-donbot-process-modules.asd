@@ -43,7 +43,8 @@
 
                cram-bullet-reasoning-belief-state ; for WORLD-STATE-DETECTING
                cram-robosherlock ; for WITH-REAL-ROBOT
-               cram-giskard)
+               cram-giskard
+               cram-joint-states)
   :components
   ((:module "src"
     :components

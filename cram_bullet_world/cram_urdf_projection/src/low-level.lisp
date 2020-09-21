@@ -697,6 +697,7 @@ with the given offsets (the offsets are specified in the torso frame).
                 (make-instance 'common-fail:manipulation-goal-not-reached
                   :description "Robot is in collision with environment.")))
              ((or :allow-hand
+                  :allow-fingers
                   :allow-arm)
               ;; allow hand allows collisions between the hand and anything
               ;; but not the rest of the robot
@@ -729,7 +730,7 @@ with the given offsets (the offsets are specified in the torso frame).
                             `(and
                               (rob-int:robot ?robot)
                               ,(ecase collision-mode
-                                 (:allow-hand
+                                 ((or :allow-hand :allow-fingers)
                                   '(rob-int:hand-links ?robot :left ?links))
                                  (:allow-arm
                                   '(rob-int:arm-links ?robot :left ?links))))))))
@@ -741,7 +742,7 @@ with the given offsets (the offsets are specified in the torso frame).
                             `(and
                               (rob-int:robot ?robot)
                               ,(ecase collision-mode
-                                 (:allow-hand
+                                 ((or :allow-hand :allow-fingers)
                                   '(rob-int:hand-links ?robot :right ?links))
                                  (:allow-arm
                                   '(rob-int:arm-links ?robot :right ?links)))))))))
