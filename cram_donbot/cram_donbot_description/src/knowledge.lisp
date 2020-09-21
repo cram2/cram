@@ -105,7 +105,9 @@
                                      "gripper_finger_left_link"
                                      "gripper_finger_right_link"
                                      "gripper_gripper_left_link"
-                                     "gripper_gripper_right_link")))
+                                     "gripper_gripper_right_link"
+                                     "marco_left_finger_link"
+                                     "marco_right_finger_link")))
 
   (<- (hand-link :iai-donbot :left ?link)
     (bound ?link)
@@ -239,7 +241,7 @@
                                            costmap:visibility-costmap-size)
   (<- (costmap:costmap-padding :iai-donbot 0.5))
   (<- (costmap:costmap-manipulation-padding :iai-donbot 0.5))
-  (<- (costmap:costmap-in-reach-distance :iai-donbot 1.1))
+  (<- (costmap:costmap-in-reach-distance :iai-donbot 1.125))
   (<- (costmap:costmap-reach-minimal-distance :iai-donbot 0.1))
   (<- (costmap:orientation-samples :iai-donbot 1))
   (<- (costmap:orientation-sample-step :iai-donbot 0.3))
