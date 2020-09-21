@@ -235,7 +235,7 @@
 (defparameter *cup-grasp-xy-offset* 0.02 "in meters")
 ;; (defparameter *cup-eco-orange-grasp-z-offset* 0.01 "in meters")
 (defparameter *cup-grasp-z-offset* 0.01 "in meters")
-(defparameter *cup-top-grasp-x-offset* 0.03 "in meters")
+(defparameter *cup-top-grasp-x-offset* 0.05 "in meters")
 ;; (defparameter *cup-eco-orange-top-grasp-z-offset* 0.02 "in meters")
 (defparameter *cup-top-grasp-z-offset* 0.04 "in meters")
 
@@ -519,6 +519,27 @@
            (side right)
            (range 0.2)
            (for (desig:an object (type ?object-type)))))
+
+;;;;;;;; dishwasher
+
+(defun make-location-in-dishwasher-drawer (?object-type ?environment-name)
+  (let ((?location-in-dishwasher
+          (desig:a location
+                   (in (desig:an object
+                                 (type dishwasher)
+                                 (urdf-name sink-area-dish-washer-main)
+                                 (part-of ?environment-name))))))
+    (desig:a location
+             (above (desig:an object
+                              (type drawer)
+                              (urdf-name sink-area-dish-washer-tray-handle-front-side)
+                              (part-of ?environment-name)
+                              (location ?location-in-dishwasher)))
+             (for (desig:an object
+                            (type ?object-type)
+                            (name some-name)))
+             (attachments (bowl-dish-washer-drawer-front-1
+                           bowl-dish-washer-drawer-front-2)))))
 
 ;;;;;;;; vertical drawer
 
@@ -889,7 +910,16 @@
                environment human
                (context (eql :table-cleaning)))
             (make-location-in-sink object-type environment)))
-        '(:bowl :cup :spoon :plate :mug :cutlery))
+        '(:cup :spoon :plate :mug :cutlery))
+
+(mapcar (lambda (type)
+          (defmethod man-int:get-object-destination :heuristics 20
+              ((object-type (eql type))
+               environment human
+               (context (eql :table-cleaning)))
+            (make-location-in-dishwasher-drawer object-type environment)))
+        '(:bowl))
+
 
 (mapcar (lambda (type)
           (defmethod man-int:get-object-destination :heuristics 20
