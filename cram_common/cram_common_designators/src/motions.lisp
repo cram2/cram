@@ -31,9 +31,11 @@
 
 (def-fact-group navigation-motions (motion-grounding)
 
-  (<- (motion-grounding ?designator (move-base ?pose-stamped))
+  (<- (motion-grounding ?designator (move-base ?pose-stamped ?speed))
     (property ?designator (:type :going))
-    (property ?designator (:pose ?pose-stamped))))
+    (property ?designator (:pose ?pose-stamped))
+    (once (or (property ?designator (:speed ?speed))
+              (equal ?speed nil)))))
 
 
 (def-fact-group torso-motions (motion-grounding)
