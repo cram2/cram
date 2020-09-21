@@ -41,13 +41,13 @@
   "kitchen_island" "A link name from the environment URDF.")
 (defparameter *base-max-velocity-fast-xy*
   ;; 0.5
-  0.25 "In meters")
+  0.25 "In meters/s")
 (defparameter *base-max-velocity-fast-theta*
-  0.2 "In rad, about 11.5 deg.")
+  0.4 "In rad/s, about 23 deg/s.")
 (defparameter *base-max-velocity-slow-xy*
-  0.05 "In meters")
+  0.05 "In meters/s")
 (defparameter *base-max-velocity-slow-theta*
-  0.1 "In rad, about 11.5 deg.")
+  0.1 "In rad/s, about 11.5 deg.")
 
 (defun make-giskard-base-action-goal (pose base-velocity)
   (declare (type cl-transforms-stamped:pose-stamped pose)
@@ -98,4 +98,6 @@
   (call-action
    :action-goal (make-giskard-base-action-goal goal-pose base-velocity)
    :action-timeout action-timeout
-   :check-goal-function (lambda () (ensure-base-goal-reached goal-pose))))
+   :check-goal-function (lambda (result status)
+                          (declare (ignore result status))
+                          (ensure-base-goal-reached goal-pose))))

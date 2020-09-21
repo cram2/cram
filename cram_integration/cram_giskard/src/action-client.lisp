@@ -45,7 +45,7 @@
 
   ;; check if the goal has already been reached
   (when (and check-goal-function
-             (not (funcall check-goal-function)))
+             (not (funcall check-goal-function nil nil)))
     (roslisp:ros-warn (giskard action-client)
                       "Giskard action goal already reached.")
     (return-from call-action))
@@ -71,7 +71,7 @@
 
     ;; check if the goal was reached, if not, throw a failure
     (when check-goal-function
-      (let ((failure (funcall check-goal-function)))
+      (let ((failure (funcall check-goal-function result status)))
         (when failure
           (roslisp:ros-warn (giskard action-client)
                             "Giskard action goal was not reached.")
