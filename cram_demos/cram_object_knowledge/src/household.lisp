@@ -553,6 +553,7 @@
                          (part-of ?environment-name)
                          (level topmost)))
            (side front)
+           (orientation axis-aligned)
            (for (desig:an object (type ?object-type)))))
 
 ;;;;;;;; fridge
@@ -643,7 +644,8 @@
                          (type counter-top)
                          (urdf-name dining-area-jokkmokk-table-main)
                          (part-of ?environment-name)))
-           (side right)))
+           (side right)
+           (side front)))
 
 (defun make-location-in-center-of-dining-table (?object-type ?environment-name)
   (desig:a location
