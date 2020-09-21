@@ -18,5 +18,7 @@
   <depend>cram_boxy_low_level</depend>
   <depend>cram_tf</depend>
   <depend>cram_robosherlock</depend>
+  <depend>cram_giskard</depend>
+  <depend>cram_joint_states</depend>
   <depend>cram_nav_pcontroller</depend>
 </package>

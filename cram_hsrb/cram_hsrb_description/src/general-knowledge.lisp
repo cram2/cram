@@ -34,7 +34,8 @@
   (cl-transforms:make-3d-vector 10.0 0.0 1.5))
 
 (def-fact-group hsrb-metadata (robot-odom-frame
-                               robot-base-frame robot-torso-link-joint
+                               robot-base-frame robot-base-link
+                               robot-torso-link-joint
                                arm
                                camera-frame
                                camera-horizontal-angle camera-vertical-angle
@@ -43,6 +44,7 @@
 
   (<- (robot-odom-frame :hsrb "odom"))
   (<- (robot-base-frame :hsrb "base_footprint"))
+  (<- (robot-base-link :hsrb "base_link"))
   (<- (robot-torso-link-joint :hsrb "arm_lift_link" "arm_lift_joint"))
 
   (<- (camera-frame :hsrb "head_center_camera_frame"))

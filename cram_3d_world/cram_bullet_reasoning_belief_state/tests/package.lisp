@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Amar Fayaz <amar@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,10 +27,6 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :pr2-sim-pms)
-
-(defmacro with-real-robot (&body body)
-  `(cram-process-modules:with-process-modules-running
-       (giskard:giskard-pm bullet-perception-pm joints:joint-state-pm)
-     (cpl-impl::named-top-level (:name :top-level)
-       ,@body)))
+(defpackage :cram-bullet-reasoning-belief-state-tests
+  (:nicknames :btr-belief-tests)
+  (:use :common-lisp :lisp-unit))
