@@ -45,7 +45,7 @@
                   *base-max-velocity-slow-xy* *base-max-velocity-slow-theta*)
                  (make-avoid-joint-limits-constraint))
    :collisions (make-constraints-vector
-                (make-avoid-all-collision)
+                ;; (make-avoid-all-collision)
                 (ecase open-or-close
                   (:open (make-allow-hand-collision
                           (list arm) (rob-int:get-environment-name) handle-link))
@@ -65,7 +65,14 @@
   (call-action
    :action-goal (make-environment-manipulation-goal
                  open-or-close arm handle-link joint-angle prefer-base)
-   :action-timeout action-timeout))
+   :action-timeout action-timeout
+   :check-goal-function (lambda (result status)
+                          (declare (ignore result))
+                          (break)
+                          (when (or (not status)
+                                    (member status '(:preempted :aborted :timeout)))
+                            (make-instance 'common-fail:manipulation-low-level-failure
+                              :description "Giskard action failed.")))))
 
 
 #+the-plan

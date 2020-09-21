@@ -224,13 +224,13 @@
     ;; return list of BTR objects
     objects))
 
-(defun attach-object-to-the-world (object-type)
-  (when *demo-object-spawning-poses*
+(defun attach-object-to-the-world (object-type spawning-poses-relative)
+  (when spawning-poses-relative
     (btr:attach-object (btr:get-environment-object)
                        (btr:object btr:*current-bullet-world*
                                    (intern (format nil "~a-1" object-type) :keyword))
                        :link (second (find object-type
-                                           *demo-object-spawning-poses*
+                                           spawning-poses-relative
                                            :key #'car)))))
 
 
@@ -259,7 +259,8 @@
     ;; (btr:simulate btr:*current-bullet-world* 100)
     objects)
 
-  (mapcar #'attach-object-to-the-world object-types))
+  (mapcar (alexandria:rcurry #'attach-object-to-the-world spawning-poses-relative)
+          object-types))
 
 
 

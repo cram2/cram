@@ -95,10 +95,6 @@
                    (left-poses ?left-reach-poses)
                    (right-poses ?right-reach-poses)
                    (goal ?goal))))))
-
-  ;;;;;;;;;;;;;;;;;;;; GRIPPING ;;;;;;;;;;;;;;;;;;;;;;;;
-  (roslisp:ros-info (environment-manipulation manipulate-container)
-                    "Gripping")
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
          (roslisp:ros-warn (env-plans manipulate)
@@ -116,6 +112,9 @@
                  (right-poses ?right-grasp-poses)
                  (goal ?goal)))))
 
+  ;;;;;;;;;;;;;;;;;;;; GRIPPING ;;;;;;;;;;;;;;;;;;;;;;;;
+  (roslisp:ros-info (environment-manipulation manipulate-container)
+                    "Gripping")
   (when (eq ?type :opening)
     (exe:perform
      (desig:an action
