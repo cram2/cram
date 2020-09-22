@@ -3,8 +3,10 @@
 
 mem_episode_start(Action) :- tripledb_drop(),forall(mng_collection(roslog,Coll),mng_drop(roslog,Coll)),
     tripledb_load('package://knowrob/owl/knowrob.owl',[graph(tbox),namespace(knowrob)]),
+    %%tripledb_load('/home/koralewski/catkin_ws/ros_cram/src/iai_maps/iai_kitchen/owl/iai-kitchen-knowledge.owl'),
+    %%urdf_load('http://knowrob.org/kb/PR2.owl#PR2_0', '/home/koralewski/catkin_ws/ros_cram/src/knowrob/urdf/pr2_for_unit_tests.urdf', [load_rdf]),
     tell([is_episode(Episode), is_action(Action), has_type(Task,soma:'PhysicalTask'), 
-            executes_task(Action,Task),is_setting_for(Episode,Action)]),!.
+            executes_task(Action,Task),is_setting_for(Episode,Action)]),notify_synchronize(event(Action)),!.
 
 mem_episode_stop(NeemPath) :- get_time(CurrentTime), atom_concat(NeemPath,'/',X1), atom_concat(X1,CurrentTime,X2), memorize(X2),tripledb_drop(),forall(mng_collection(roslog,Coll),mng_drop(roslog,Coll)).
 mem_event_set_failed(Action) :- tell(action_failed(Action)).
