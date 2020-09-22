@@ -41,7 +41,7 @@
              (print "Start")
              (ccl::start-episode)
              ;;(urdf-proj:with-simulated-robot (demo::demo-random nil ))
-             (urdf-proj:with-simulated-robot (demo::setting-demo '(:bowl)))
+             (urdf-proj:with-simulated-robot (demo::setting-demo))
              (ccl::stop-episode)
              (print "End")))
   (ccl::finish-logging))

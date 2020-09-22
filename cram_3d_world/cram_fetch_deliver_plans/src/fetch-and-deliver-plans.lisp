@@ -327,7 +327,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
 
   (desig:reset ?look-location)
   (desig:reset ?pick-up-robot-location)
-
+  (break)
   (cpl:with-failure-handling
       ((desig:designator-error (e)
          (roslisp:ros-warn (fd-plans fetch) "~a~%Propagating up." e)

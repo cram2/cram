@@ -29,6 +29,7 @@
 (in-package :gaussian-costmap)
 
 (defmethod costmap-generator-name->score ((name (eql 'pose-distribution))) 5)
+(defmethod costmap-generator-name->score ((name (eql 'learned-pose-distribution))) 3)
 (defmethod costmap-generator-name->score ((name (eql 'reachable-from-space))) 5)
 (defmethod costmap-generator-name->score ((name (eql 'reachable-from-weighted))) 4)
 
@@ -39,6 +40,14 @@
 (defmethod costmap-generator-name->score
     ((name pose-distribution-range-include-generator))
   3)
+
+(defun calculate-learned-mean-and-covariance (object)
+  ;;(list
+  ;; (cl-transforms:make-3d-vector 0.33898583 -1.11702143443 0.0)
+  ;; #2a((0.01462787 0.01591156) (0.01591156 0.02189835))))
+  (list
+  (cl-transforms:make-3d-vector  1.1 -0.9 0.0)
+   #2a((1 0) (0 10))))
 
 (defmethod costmap-generator-name->score
     ((name pose-distribution-range-exclude-generator))
@@ -107,13 +116,24 @@
                    ;; have to take one pose from all possibilities
                    ;; as later we have a FORCE-LL on ?TO-REACH-POSES
                    ;; and that can be an infinitely long list
-                   (member ?to-reach-pose ?location-poses))))
+                   (member ?to-reach-pose ?location-poses)))) 
     (lisp-fun list ?to-reach-pose ?to-reach-poses)
     (lisp-fun cut:force-ll ?to-reach-poses ?poses-list)
     (lisp-fun costmap:2d-pose-covariance ?to-reach-poses 0.5 (?mean ?covariance))
     (costmap:costmap-in-reach-distance ?robot-name ?distance)
     (costmap:costmap-reach-minimal-distance ?robot-name ?minimal-distance)
     (costmap:costmap ?cm)
+        (-> (bound ?object) 
+        (and (desig:desig-prop ?object (:type ?object-type)) 
+             (format "OBJECT TYPE: ~a~%" ?object-type)
+            (lisp-fun calculate-learned-mean-and-covariance ?object-type 
+                      (?learned-mean ?learned-covariance))
+            (format "RESULT: ~a~%" ?learned-mean)
+            (costmap:costmap-add-function 
+             learned-pose-distribution 
+             (costmap:make-gauss-cost-function ?learned-mean ?learned-covariance) 
+            ?cm)) 
+        (true))
     (forall (member ?pose ?to-reach-poses)
             (and (instance-of pose-distribution-range-include-generator
                               ?include-generator-id)
