@@ -46,6 +46,10 @@
     (:milk (list
             (cl-transforms:make-3d-vector 0.33898583 -1.11702143443 0.0)
             #2a((0.01462787 0.01591156) (0.01591156 0.02189835))))
+    (:breakfast-cereal (list
+            (cl-transforms:make-3d-vector 0.75288949 0.75126507 0.0)
+            #2a((0.00334272 -0.00167905) (-0.00167905 0.01173699))))
+
     (otherwise '(nil nil))))
 
 (defmethod costmap-generator-name->score
