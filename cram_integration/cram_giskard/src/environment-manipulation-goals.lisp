@@ -68,7 +68,6 @@
    :action-timeout action-timeout
    :check-goal-function (lambda (result status)
                           (declare (ignore result))
-                          (break)
                           (when (or (not status)
                                     (member status '(:preempted :aborted :timeout)))
                             (make-instance 'common-fail:manipulation-low-level-failure
