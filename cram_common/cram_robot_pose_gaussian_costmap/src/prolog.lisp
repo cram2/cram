@@ -41,13 +41,12 @@
     ((name pose-distribution-range-include-generator))
   3)
 
-(defun calculate-learned-mean-and-covariance (object)
-  ;;(list
-  ;; (cl-transforms:make-3d-vector 0.33898583 -1.11702143443 0.0)
-  ;; #2a((0.01462787 0.01591156) (0.01591156 0.02189835))))
-  (list
-  (cl-transforms:make-3d-vector  1.1 -0.9 0.0)
-   #2a((1 0) (0 10))))
+(defun calculate-learned-mean-and-covariance (object-type)
+  (case object-type
+    (:milk (list
+            (cl-transforms:make-3d-vector 0.33898583 -1.11702143443 0.0)
+            #2a((0.01462787 0.01591156) (0.01591156 0.02189835))))
+    (otherwise '(nil nil))))
 
 (defmethod costmap-generator-name->score
     ((name pose-distribution-range-exclude-generator))
@@ -124,15 +123,16 @@
     (costmap:costmap-reach-minimal-distance ?robot-name ?minimal-distance)
     (costmap:costmap ?cm)
         (-> (bound ?object) 
-        (and (desig:desig-prop ?object (:type ?object-type)) 
-             (format "OBJECT TYPE: ~a~%" ?object-type)
-            (lisp-fun calculate-learned-mean-and-covariance ?object-type 
-                      (?learned-mean ?learned-covariance))
-            (format "RESULT: ~a~%" ?learned-mean)
-            (costmap:costmap-add-function 
-             learned-pose-distribution 
-             (costmap:make-gauss-cost-function ?learned-mean ?learned-covariance) 
-            ?cm)) 
+            (and (desig:desig-prop ?object (:type ?object-type))    
+                 (lisp-fun calculate-learned-mean-and-covariance ?object-type 
+                           (?learned-mean ?learned-covariance))
+                 (-> (lisp-pred identity ?learned-mean) 
+                     (costmap:costmap-add-function 
+                      learned-pose-distribution 
+                      (costmap:make-gauss-cost-function
+                       ?learned-mean ?learned-covariance) 
+                      ?cm)
+                     (true))) 
         (true))
     (forall (member ?pose ?to-reach-poses)
             (and (instance-of pose-distribution-range-include-generator
