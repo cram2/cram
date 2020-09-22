@@ -31,12 +31,15 @@
 
 (defun go-to-target (&key
                        ((:pose ?pose-stamped))
+                       ((:speed ?speed))
+                       ((:slow-speed ?slow-speed))
                      &allow-other-keys)
-  (declare (type cl-transforms-stamped:pose-stamped ?pose-stamped))
-  "Go to `?pose-stamped', if a failure happens propagate it up, robot-state-changed event."
+  (declare (type cl-transforms-stamped:pose-stamped ?pose-stamped)
+           (type (or keyword number null) ?speed ?slow-speed))
+  "Go to `?pose-stamped', if a failure happens retry, with a slower speed."
 
   (unwind-protect
-       (cpl:with-retry-counters ((nav-retries 0))
+       (cpl:with-retry-counters ((nav-retries 1))
          (cpl:with-failure-handling
              ((common-fail:navigation-low-level-failure (e)
                 (roslisp:ros-warn (pick-and-place go)
@@ -44,9 +47,14 @@
                                   e)
                 (cpl:do-retry nav-retries
                   (roslisp:ros-warn (pick-and-place go) "Retrying...")
+                  (setf ?speed ?slow-speed)
                   (cpl:retry))))
            (exe:perform
-            (desig:a motion (type going) (pose ?pose-stamped)))))
+            (desig:a motion
+                     (type going)
+                     (pose ?pose-stamped)
+                     (desig:when ?speed
+                       (speed ?speed))))))
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
@@ -65,7 +73,8 @@
                                   e)
                 (cpl:do-retry torso-retries
                   (roslisp:ros-warn (pick-and-place move-torso) "Retrying...")
-                  (cpl:retry))))
+                  (cpl:retry))
+                (return)))
            (exe:perform
             (desig:a motion (type moving-torso) (joint-angle ?joint-angle)))))
     (cram-occasions-events:on-event

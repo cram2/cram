@@ -39,13 +39,13 @@ environment, in which it can be found, respectively."
             container-name
             btr-environment))
          (neutral-handle-pose
-           (get-manipulated-pose
+           (get-manipulated-pose-by-setting-joint
             (cl-urdf:name handle-link)
             0
             btr-environment
             :relative T))
          (manipulated-handle-pose
-           (get-manipulated-pose
+           (get-manipulated-pose-by-setting-joint
             (cl-urdf:name handle-link)
             1
             btr-environment
@@ -176,53 +176,55 @@ ARM has to be either :left or :right."
                 1.0
                 0.0))))))
 
-(defun make-opened-door-cost-function (container-name btr-environment
-                                       &optional (padding 0.2))
-  "Resolve the relation according to the pose of the door hinge joint and the
-handles neutral and manipulated poses. Diregard any samples inside the door's
-opening arc.
-CONTAINER-NAME and BTR-ENVIRONMENT are the names of the container and the
-environment, in which it can be found, respectively."
-  (let* ((handle-link
-           (get-handle-link container-name btr-environment))
-         (manipulated-handle-pose
-           (get-manipulated-pose
-            (cl-urdf:name handle-link)
-            1
-            btr-environment
-            :relative T))
-         (man-handle-pos-2d
-           (cl-transforms:make-3d-vector
-            (cl-transforms:x
-             (cl-transforms:origin manipulated-handle-pose))
-            (cl-transforms:y
-             (cl-transforms:origin manipulated-handle-pose))
-            0))
-         (joint-name
-           (cl-urdf:name
-            (cl-urdf:child (get-connecting-joint handle-link))))
-         (joint-pose
-           (get-urdf-link-pose joint-name btr-environment))
-         (joint-pos-2d
-           (cl-transforms:make-3d-vector
-            (cl-transforms:x
-             (cl-transforms:origin joint-pose))
-            (cl-transforms:y
-             (cl-transforms:origin joint-pose))
-            0))
-         (v2
-           (cl-transforms:v- man-handle-pos-2d joint-pos-2d))
-         (v2-length
-           (sqrt (cl-transforms:dot-product v2 v2))))
+;; (defun make-opened-door-cost-function (container-name btr-environment
+;;                                        &optional (padding 0.2))
+;;   "Resolve the relation according to the pose of the door hinge joint and the
+;; handles neutral and manipulated poses. Diregard any samples inside the door's
+;; opening arc.
+;; CONTAINER-NAME and BTR-ENVIRONMENT are the names of the container and the
+;; environment, in which it can be found, respectively."
+;;   (let* ((handle-link
+;;            (get-handle-link container-name btr-environment))
+;;          (manipulated-handle-pose
+;;            (get-manipulated-pose
+;;             (cl-urdf:name handle-link)
+;;             1
+;;             btr-environment
+;;             :relative T))
+;;          (man-handle-pos-2d
+;;            (cl-transforms:make-3d-vector
+;;             (cl-transforms:x
+;;              (cl-transforms:origin manipulated-handle-pose))
+;;             (cl-transforms:y
+;;              (cl-transforms:origin manipulated-handle-pose))
+;;             0))
+;;          (joint-name
+;;            (cl-urdf:name
+;;             (cl-urdf:child (get-connecting-joint handle-link))))
+;;          (joint-pose
+;;            (get-urdf-link-pose joint-name btr-environment))
+;;          (joint-pos-2d
+;;            (cl-transforms:make-3d-vector
+;;             (cl-transforms:x
+;;              (cl-transforms:origin joint-pose))
+;;             (cl-transforms:y
+;;              (cl-transforms:origin joint-pose))
+;;             0))
+;;          (v2
+;;            (cl-transforms:v- man-handle-pos-2d joint-pos-2d))
+;;          (v2-length
+;;            ;;(sqrt (cl-transforms:dot-product v2 v2))
+;;            (cl-transforms:v-norm v2)))
 
-    (lambda (x y)
-      (let* ((vP (cl-transforms:v- (cl-transforms:make-3d-vector x y 0)
-                                   joint-pos-2d))
-             (vP-length (sqrt (cl-transforms:dot-product vP vP))))
-        (if (and (< vP-length (+ v2-length padding))
-                 T)
-            0
-            1)))))
+;;     (lambda (x y)
+;;       (let* ((vP (cl-transforms:v- (cl-transforms:make-3d-vector x y 0)
+;;                                    joint-pos-2d))
+;;              ;;(vP-length (sqrt (cl-transforms:dot-product vP vP)))
+;;              (vP-length (cl-transforms:v-norm vP)))
+;;         (if (and (< vP-length (+ v2-length padding))
+;;                  T)
+;;             0
+;;             1)))))
 
 (defun make-opened-door-for-opposite-arm-cost-function (container-name
                                                         btr-environment
@@ -294,6 +296,25 @@ environment, in which it can be found, respectively."
              (< angle-to-v2 angle-full))
             0
             1)))))
+
+(defun make-opened-door-cost-function (container-name btr-environment &optional (padding 0.2))
+  (flet ((check-aabb (aabb x y)
+           (let ((dims (cl-bullet:bounding-box-dimensions aabb))
+                 (vCP (cl-transforms:v-
+                       (cl-transforms:make-3d-vector x y 0)
+                       (cl-bullet:bounding-box-center aabb))))
+             (if (and (<= (abs (cl-transforms:x vCP))
+                          (+ (/ (cl-transforms:x dims) 2) padding))
+                      (<= (abs (cl-transforms:y vCP))
+                          (+ (/ (cl-transforms:y dims) 2) padding)))
+                 0
+                 1))))
+    (let ((aabbs (get-aabbs-at-joint-states container-name btr-environment)))
+      (lambda (x y)
+        (reduce 'logand
+                (mapcar
+                 (lambda (aabb) (check-aabb aabb x y))
+                 aabbs))))))
 
 (defun point-to-point-direction (x y pos1 pos2)
   "Takes an X and Y coordinate, but ignores them, and returns a quaternion
@@ -371,7 +392,6 @@ Disregarding the orientation (using the pose2's)."
 
 (defmethod costmap:costmap-generator-name->score
     ((name (eql 'opened-door-for-opposite-arm-cost-function))) 10)
-
 
 (def-fact-group environment-manipulation-costmap (costmap:desig-costmap)
   (<- (costmap:desig-costmap ?designator ?costmap)
@@ -466,20 +486,23 @@ Disregarding the orientation (using the pose2's)."
                   ?exclude-generator-id
                   (costmap:make-range-cost-function
                    ?pose ?minimal-distance :invert t)
-                  ?costmap)))
+                  ?costmap)
+                 ))
+
+    (costmap:costmap-manipulation-padding ?robot-name ?padding)
 
     ;; cutting out door costmap
-    (costmap:costmap-manipulation-padding ?robot-name ?padding)
     (costmap:costmap-add-function
      opened-door-cost-function
      (make-opened-door-cost-function ?container-name ?btr-environment ?padding)
      ?costmap)
 
+    ;; Commented out for now, since this doesn't work with non-vertical doors
     ;; cutting out for specific arm
-    (costmap:costmap-add-function
-     opened-door-for-opposite-arm-cost-function
-     (make-opened-door-for-opposite-arm-cost-function ?container-name ?btr-environment ?arm)
-     ?costmap)
+    ;; (costmap:costmap-add-function
+    ;;  opened-door-for-opposite-arm-cost-function
+    ;;  (make-opened-door-for-opposite-arm-cost-function ?container-name ?btr-environment ?arm)
+    ;;  ?costmap)
 
     ;; orientate towards the door
     (lisp-fun get-container-link ?container-name ?btr-environment ?link)

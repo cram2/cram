@@ -77,7 +77,7 @@
 
   (<- (%property ?designator (?number-key ?value))
     (lisp-pred typep ?designator desig:motion-designator)
-    (member ?number-key (:effort :joint-angle :joint-angle-threshold))
+    (member ?number-key (:effort :joint-angle :joint-angle-threshold :speed))
     (property-member (?number-key ?value) ?designator)
     (assert-type ?value (or keyword number) "MOTION SPEC:PROPERTY"))
 
@@ -122,9 +122,11 @@
 
   (<- (%property ?designator (?keyword-or-list-key ?value))
     (lisp-pred typep ?designator desig:action-designator)
-    (member ?keyword-or-list-key (:gripper :arm :direction :grasp :camera :type
+    (member ?keyword-or-list-key (:gripper
+                                  :arm :direction :grasp :camera :type
                                   :context :link :configuration
-                                  :left-configuration :right-configuration))
+                                  :left-configuration :right-configuration
+                                  :collision-mode))
     (property-member (?keyword-or-list-key ?value) ?designator)
     (assert-type ?value (or keyword list) "ACTION SPEC:PROPERTY"))
 
@@ -153,9 +155,10 @@
     (property-member (?string-key ?value) ?designator)
     (assert-type ?value string "ACTION SPEC:PROPERTY"))
 
-  (<- (%property ?designator (:joint-angle ?value))
+  (<- (%property ?designator (?key ?value))
     (lisp-pred typep ?designator desig:action-designator)
-    (property-member (:joint-angle ?value) ?designator)
+    (member ?key (:joint-angle :speed))
+    (property-member (?key ?value) ?designator)
     (assert-type ?value (or keyword number) "ACTION SPEC:PROPERTY"))
 
   (<- (%property ?designator (:for ?for-value))

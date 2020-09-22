@@ -235,7 +235,7 @@ retries with different search location or robot base location."
                  outer-search-location-retries
                  (:error-object-or-string e
                   :warning-namespace (fd-plans search-for-object)
-                  :reset-designators (list ?robot-location)
+                  :reset-designators (list ?robot-location ?search-location)
                   :rethrow-failure 'common-fail:searching-failed
                   :distance-threshold 0.1)
                (roslisp:ros-warn (fd-plans search-for-object)
@@ -328,7 +328,6 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
 
   (desig:reset ?look-location)
   (desig:reset ?pick-up-robot-location)
-
   (cpl:with-failure-handling
       ((desig:designator-error (e)
          (roslisp:ros-warn (fd-plans fetch) "~a~%Propagating up." e)

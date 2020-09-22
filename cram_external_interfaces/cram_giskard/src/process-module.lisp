@@ -74,7 +74,8 @@
           :goal-configuration (car rest-args))))
       (cram-common-designators:move-base
        (giskard:call-base-action
-        :goal-pose argument-1))
+        :goal-pose argument-1
+        :base-velocity (first rest-args)))
       (cram-common-designators:move-torso
        (giskard:call-torso-action
         :goal-joint-state argument-1))

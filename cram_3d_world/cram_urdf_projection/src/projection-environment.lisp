@@ -42,7 +42,7 @@
    ;; For that first change tf2_ros/TransformListener to accept custom topic names
    (cram-tf:*broadcaster*
     (cram-tf:make-tf-broadcaster
-     "tf_projection"
+     "tf"
      cram-tf:*tf-broadcasting-interval*))
    ;; (*current-bullet-world* (cl-bullet:copy-world btr:*current-bullet-world*))
    (cram-bullet-reasoning:*current-timeline*
