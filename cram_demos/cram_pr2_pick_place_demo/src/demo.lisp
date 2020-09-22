@@ -35,7 +35,7 @@
     ))
 
 (defparameter *object-colors*
-  '(;; (:spoon . "Black")
+  '((:spoon . "Black")
     ;; (:spoon . "Blue")
     ;; (:breakfast-cereal . "Yellow")
     ;; (:milk . "Blue")
@@ -43,7 +43,8 @@
     (:cup . "Red")))
 
 (defparameter *object-materials*
-  '((:spoon . "Steel")))
+  '(;; (:spoon . "Steel")
+    ))
 
 (defparameter *object-grasps*
   '((:spoon . :top)

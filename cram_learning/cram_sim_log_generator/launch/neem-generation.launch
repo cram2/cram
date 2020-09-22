@@ -4,5 +4,4 @@
             output="screen" respawn="true" >
         <param name="objects" value="$(arg objects)" />
       </node>
-
 </launch>

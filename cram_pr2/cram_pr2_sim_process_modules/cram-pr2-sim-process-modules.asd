@@ -39,6 +39,7 @@
                cram-common-designators
                cram-language ; for with-real-robot
                cram-giskard
+               cram-joint-states
                cram-urdf-projection)
 
   :components

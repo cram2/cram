@@ -18,4 +18,5 @@
   <depend>cram_donbot_low_level</depend>
   <depend>cram_robosherlock</depend>
   <depend>cram_giskard</depend>
+  <depend>cram_joint_states</depend>
 </package>
