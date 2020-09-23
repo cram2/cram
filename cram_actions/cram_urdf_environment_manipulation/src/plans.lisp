@@ -82,35 +82,39 @@
                  (gripper ?arm)
                  (position ?gripper-opening)
                  (goal ?goal))))
+    (cpl:with-retry-counters ((reach-retries 2))
+      (cpl:with-failure-handling
+          ((common-fail:manipulation-low-level-failure (e)
+             (roslisp:ros-warn (env-plans manipulate)
+                               "Manipulation messed up: ~a~%Failing."
+                               e)
+             (cpl:do-retry reach-retries
+               (cpl:retry))))
+        (let ((?goal `(cpoe:tool-frames-at ,?left-reach-poses ,?right-reach-poses)))
+          (exe:perform
+           (desig:an action
+                     (type reaching)
+                     (left-poses ?left-reach-poses)
+                     (right-poses ?right-reach-poses)
+                     (goal ?goal)))))))
+  (cpl:with-retry-counters ((grasp-retries 2))
     (cpl:with-failure-handling
         ((common-fail:manipulation-low-level-failure (e)
            (roslisp:ros-warn (env-plans manipulate)
-                             "Manipulation messed up: ~a~%Ignoring."
+                             "Manipulation messed up: ~a~%Failing."
                              e)
-           (return)))
-      (let ((?goal `(cpoe:tool-frames-at ,?left-reach-poses ,?right-reach-poses)))
+           (cpl:do-retry grasp-retries
+             (cpl:retry))))
+      (let ((?goal `(cpoe:tool-frames-at ,?left-grasp-poses ,?right-grasp-poses)))
         (exe:perform
          (desig:an action
-                   (type reaching)
-                   (left-poses ?left-reach-poses)
-                   (right-poses ?right-reach-poses)
+                   (type grasping)
+                   (object (desig:an object
+                                     (name ?environment-name)))
+                   (link ?link-name)
+                   (left-poses ?left-grasp-poses)
+                   (right-poses ?right-grasp-poses)
                    (goal ?goal))))))
-  (cpl:with-failure-handling
-      ((common-fail:manipulation-low-level-failure (e)
-         (roslisp:ros-warn (env-plans manipulate)
-                           "Manipulation messed up: ~a~%Failing."
-                           e)
-         (return)))
-    (let ((?goal `(cpoe:tool-frames-at ,?left-grasp-poses ,?right-grasp-poses)))
-      (exe:perform
-       (desig:an action
-                 (type grasping)
-                 (object (desig:an object
-                                   (name ?environment-name)))
-                 (link ?link-name)
-                 (left-poses ?left-grasp-poses)
-                 (right-poses ?right-grasp-poses)
-                 (goal ?goal)))))
 
   ;;;;;;;;;;;;;;;;;;;; GRIPPING ;;;;;;;;;;;;;;;;;;;;;;;;
   (roslisp:ros-info (environment-manipulation manipulate-container)
