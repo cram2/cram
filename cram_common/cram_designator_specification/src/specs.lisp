@@ -107,7 +107,9 @@
 
   (<- (%property ?designator (?key ?value))
     (lisp-pred typep ?designator desig:motion-designator)
-    (member ?key (:avoid-collisions-not-much))
+    (member ?key (:avoid-collisions-not-much
+                  :align-planes-left
+                  :align-planes-right))
     (property-member (?key ?value) ?designator)
     (assert-type ?value boolean "MOTION SPEC:PROPERTY")))
 
