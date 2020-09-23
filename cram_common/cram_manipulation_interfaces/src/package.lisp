@@ -46,6 +46,7 @@
    #:object-rotationally-symmetric
    #:orientation-matters
    #:unidirectional-attachment
+   #:object-tf-prefix
    #:location-always-reachable
    #:object-is-a-robot
    #:object-is-a-container
