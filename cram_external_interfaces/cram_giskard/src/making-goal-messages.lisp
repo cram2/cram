@@ -132,7 +132,8 @@
                       ("odom_y_joint" . ,base-weight)
                       ("odom_z_joint" . ,base-weight)))))))))))))
 
-(defun make-align-planes-constraint (root-frame tip-frame root-vector tip-vector)
+(defun make-align-planes-constraint (root-frame tip-frame root-vector tip-vector
+                                     &key avoid-collisions-not-much)
   (declare (type string root-frame tip-frame)
            (type cl-transforms-stamped:vector-stamped root-vector tip-vector))
   (roslisp:make-message
@@ -144,9 +145,14 @@
     `(("root" . ,root-frame)
       ("tip" . ,tip-frame)
       ("root_normal" . ,(to-hash-table root-vector))
-      ("tip_normal" . ,(to-hash-table tip-vector))))))
+      ("tip_normal" . ,(to-hash-table tip-vector))
+      ,@(when avoid-collisions-not-much
+          `(("weight" . ,(roslisp-msg-protocol:symbol-code
+                          'giskard_msgs-msg:constraint
+                          :weight_above_ca))))))))
 
-(defun make-align-planes-tool-frame-constraint (arm root-vector tip-vector)
+(defun make-align-planes-tool-frame-constraint (arm root-vector tip-vector
+                                                &key avoid-collisions-not-much)
   (declare (type keyword arm)
            (type cl-transforms-stamped:vector-stamped root-vector tip-vector))
   (let ((tool-frame
@@ -158,7 +164,8 @@
     (when (cut:is-var tool-frame)
       (error "[giskard] Tool frame was not defined."))
     (make-align-planes-constraint
-     cram-tf:*odom-frame* tool-frame root-vector tip-vector)))
+     cram-tf:*odom-frame* tool-frame root-vector tip-vector
+     :avoid-collisions-not-much avoid-collisions-not-much)))
 
 (defun make-pointing-constraint (root-frame tip-frame goal-pose
                                  &optional pointing-vector)
@@ -178,6 +185,25 @@
                          goal-pose)))
       ,@(when pointing-vector
           `(("pointing_axis" . ,(to-hash-table pointing-vector))))))))
+
+(defun make-head-pointing-at-hand-constraint (arm)
+  (declare (type keyword arm))
+  (let* ((bindings
+           (car (prolog:prolog
+                 `(and (rob-int:robot ?robot)
+                       (rob-int:robot-tool-frame ?robot ,arm ?frame)
+                       (rob-int:camera-frame ?robot ?camera-frame)))))
+         (tool-frame
+           (cut:var-value '?frame bindings))
+         (camera-frame
+           (cut:var-value '?camera-frame bindings)))
+    (when (or (cut:is-var tool-frame) (cut:is-var camera-frame))
+      (error "[giskard] Tool frame or camera frame was not defined."))
+    (make-pointing-constraint
+     tool-frame camera-frame
+     (cl-transforms-stamped:pose->pose-stamped
+      tool-frame 0.0
+      (cl-transforms:make-identity-pose)))))
 
 (defun make-open-or-close-constraint (open-or-close arm handle-link goal-joint-state)
   (declare (type keyword open-or-close arm)
@@ -258,7 +284,8 @@
                           :weight_below_ca))))))))
 
 (defun make-joint-constraint (joint-state weights)
-  (declare (type list joint-state weights))
+  (declare (type list joint-state)
+           (type (or list number keyword) weights))
   "`joint-state' is a list of two elements: (joint-names joint-positions).
 `weights' is a list of the same length as `joint-names' and `joint-positions'."
   (mapcar (lambda (joint-name joint-position weight)
@@ -273,7 +300,18 @@
                 ("weight" . ,weight)))))
           (first joint-state)
           (second joint-state)
-          weights))
+          (etypecase weights
+            (list
+             weights)
+            ((or number keyword)
+             (make-list (length (first joint-state))
+                        :initial-element (case weights
+                                           (:avoid-collisions-not-much
+                                            (roslisp-msg-protocol:symbol-code
+                                             'giskard_msgs-msg:constraint
+                                             :weight_above_ca))
+                                           (t
+                                            weights)))))))
 
 (defun make-unmovable-joints-constraint (joint-names
                                          &optional (weight
@@ -283,7 +321,7 @@
   (make-joint-constraint
    (list joint-names
          (joints:joint-positions joint-names))
-   (make-list (length joint-names) :initial-element weight)))
+   weight))
 
 (defun make-base-collision-avoidance-hint-constraint (environment-link
                                                       vector
@@ -335,6 +373,30 @@
       ("tip_link" . ,cram-tf:*robot-base-frame*)
       ("max_linear_velocity" . ,max-linear-velocity)
       ("max_angular_velocity" . ,max-angular-velocity)))))
+
+(defun make-ee-velocity-constraint (arm
+                                    max-linear-velocity max-angular-velocity)
+  (declare (type number max-linear-velocity max-angular-velocity)
+           (type keyword arm))
+  (let ((link
+          (cut:var-value
+           '?link
+           (car (prolog:prolog
+                 `(and (rob-int:robot ?robot)
+                       (rob-int:end-effector-link ?robot ,arm ?link)))))))
+    (when (cut:is-var link)
+      (error "[giskard] Robot ee link was not defined."))
+    (roslisp:make-message
+     'giskard_msgs-msg:constraint
+     :type
+     "CartesianVelocityLimit"
+     :parameter_value_pair
+     (alist->json-string
+      `(("root_link" . ,cram-tf:*odom-frame*)
+        ("tip_link" . ,link)
+        ("max_linear_velocity" . ,max-linear-velocity)
+        ("max_angular_velocity" . ,max-angular-velocity)
+        ("hard" . 0))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; NON-JSON CONSTRAINTS ;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -495,3 +557,18 @@
              (if environment-link
                  (roslisp-utilities:rosify-underscores-lisp-name environment-link)
                  (roslisp:symbol-code 'giskard_msgs-msg:collisionentry :all)))))
+
+(defun make-allow-collision-with-environment-attachments ()
+  (mapcar (lambda (attachment-info)
+            (roslisp:make-message
+              'giskard_msgs-msg:collisionentry
+              :type (roslisp:symbol-code
+                     'giskard_msgs-msg:collisionentry
+                     :allow_collision)
+              :robot_links (vector
+                            (roslisp:symbol-code 'giskard_msgs-msg:collisionentry :all))
+              :body_b (roslisp-utilities:rosify-underscores-lisp-name
+                       (car attachment-info))
+              :link_bs (vector
+                        (roslisp:symbol-code 'giskard_msgs-msg:collisionentry :all))))
+          (btr:attached-objects (btr:get-environment-object))))

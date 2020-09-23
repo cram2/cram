@@ -334,7 +334,7 @@
 (defparameter *cereal-pregrasp-xy-offset* 0.15 "in meters")
 (defparameter *cereal-postgrasp-xy-offset* 0.40 "in meters")
 (defparameter *cereal-lift-z-offset* 0.1 "in meters")
-(defparameter *cereal-small-lift-z-offset* 0.07 "in meters")
+(defparameter *cereal-small-lift-z-offset* 0.09 "in meters")
 
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms
@@ -529,17 +529,29 @@
                                  (type dishwasher)
                                  (urdf-name sink-area-dish-washer-main)
                                  (part-of ?environment-name))))))
-    (desig:a location
-             (above (desig:an object
-                              (type drawer)
-                              (urdf-name sink-area-dish-washer-tray-handle-front-side)
-                              (part-of ?environment-name)
-                              (location ?location-in-dishwasher)))
-             (for (desig:an object
-                            (type ?object-type)
-                            (name some-name)))
-             (attachments (bowl-dish-washer-drawer-front-1
-                           bowl-dish-washer-drawer-front-2)))))
+    (if (eq ?object-type :bowl)
+        (desig:a location
+                 (above (desig:an object
+                                  (type drawer)
+                                  (urdf-name sink-area-dish-washer-tray-handle-front-side)
+                                  (part-of ?environment-name)
+                                  (location ?location-in-dishwasher)))
+                 (for (desig:an object
+                                (type ?object-type)
+                                (name some-name)))
+                 (attachments (bowl-dish-washer-drawer-front-1
+                               bowl-dish-washer-drawer-front-2)))
+        (desig:a location
+                 (above (desig:an object
+                                  (type drawer)
+                                  (urdf-name sink-area-dish-washer-tray-handle-front-side)
+                                  (part-of ?environment-name)
+                                  (location ?location-in-dishwasher)))
+                 (for (desig:an object
+                                (type ?object-type)
+                                (name some-name)))
+                 (attachments (cup-dish-washer-drawer-around-x
+                               cup-dish-washer-drawer-around-y))))))
 
 ;;;;;;;; vertical drawer
 
@@ -912,7 +924,7 @@
                environment human
                (context (eql :table-cleaning)))
             (make-location-in-sink object-type environment)))
-        '(:cup :spoon :plate :mug :cutlery))
+        '(:spoon :plate :mug :cutlery))
 
 (mapcar (lambda (type)
           (defmethod man-int:get-object-destination :heuristics 20
@@ -920,7 +932,7 @@
                environment human
                (context (eql :table-cleaning)))
             (make-location-in-dishwasher-drawer object-type environment)))
-        '(:bowl))
+        '(:bowl :cup))
 
 
 (mapcar (lambda (type)
@@ -937,13 +949,19 @@
 (man-int:def-object-type-in-other-object-transform :bowl :drawer
   :bowl-dish-washer-drawer-front-1
   :attachment-translation `(-0.115 -0.15 0.22)
-  :attachment-rot-matrix '((1 0 0)
-                           (0 1 0)
-                           (0 0 1)))
+  :attachment-rot-matrix man-int:*identity-matrix*)
 
 (man-int:def-object-type-in-other-object-transform :bowl :drawer
   :bowl-dish-washer-drawer-front-2
   :attachment-translation `(-0.115 0.15 0.22)
-  :attachment-rot-matrix '((1 0 0)
-                           (0 1 0)
-                           (0 0 1)))
+  :attachment-rot-matrix man-int:*identity-matrix*)
+
+(man-int:def-object-type-in-other-object-transform :cup :drawer
+  :cup-dish-washer-drawer-around-x
+  :attachment-translation `(-0.115 -0.17 0.14)
+  :attachment-rot-matrix man-int:*rotation-around-x-180-matrix*)
+
+(man-int:def-object-type-in-other-object-transform :cup :drawer
+  :cup-dish-washer-drawer-around-y
+  :attachment-translation `(-0.115 -0.17 0.14)
+  :attachment-rot-matrix man-int:*rotation-around-y-180-matrix*)

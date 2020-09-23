@@ -30,7 +30,7 @@
 
 (in-package :demo)
 
-(setf cram-tf:*tf-broadcasting-enabled* t)
+;; (setf cram-tf:*tf-broadcasting-enabled* t)
 
 (defparameter *demo-object-spawning-poses*
   '((:bowl
@@ -267,8 +267,12 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
      :spawning-poses-relative *delivery-poses-dining-table-relative*))
 
   (dolist (?object-type object-list)
-    (exe:perform
-     (desig:an action
-               (type transporting)
-               (object (desig:an object (type ?object-type)))
-               (context table-cleaning)))))
+    (let ((?grasps (when (eq ?object-type :cup)
+                   '(:front :back :left-side :right-side))))
+     (exe:perform
+      (desig:an action
+                (type transporting)
+                (object (desig:an object (type ?object-type)))
+                (context table-cleaning)
+                (desig:when ?grasps
+                  (grasps ?grasps)))))))

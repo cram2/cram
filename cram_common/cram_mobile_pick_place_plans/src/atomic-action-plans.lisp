@@ -243,38 +243,48 @@ With a continuous motion planner one could have fluent arch trajectories etc.
                                        ((:right-joint-states ?right-joint-states))
                                        ((:align-planes-left ?align-planes-left))
                                        ((:align-planes-right ?align-planes-right))
+                                       ((:avoid-collisions-not-much ?collisions))
                                      &allow-other-keys)
-  (declare (type list ?left-joint-states ?right-joint-states))
+  (declare (type list ?left-joint-states ?right-joint-states)
+           (type boolean ?collisions))
   "Calls moving-arm-joints motion, while ignoring failures, and robot-state-changed event."
 
   (unwind-protect
-       (cpl:with-failure-handling
-           ((common-fail:manipulation-low-level-failure (e)
-              (roslisp:ros-warn (mobile-pp-plans move-arms-into-configuration)
-                                "A low-level manipulation failure happened: ~a~%Ignoring." e)
-              (return)))
+       (cpl:with-retry-counters ((retries 1))
+         (cpl:with-failure-handling
+             ((common-fail:manipulation-low-level-failure (e)
+                (roslisp:ros-warn (mobile-pp-plans move-arms-into-configuration)
+                                  "Manipulation failure happened: ~a."
+                                  e)
+                (cpl:do-retry retries
+                  (roslisp:ros-warn (pick-and-place arms-config) "Retrying...")
+                  (setf ?collisions t)
+                  (cpl:retry))
+                (return)))
 
-         (exe:perform
-          (desig:a motion
-                   (type moving-arm-joints)
-                   (desig:when ?left-joint-states
-                     (left-joint-states ?left-joint-states))
-                   (desig:when ?right-joint-states
-                     (right-joint-states ?right-joint-states))
-                   (desig:when ?align-planes-left
-                     (align-planes-left ?align-planes-left))
-                   (desig:when ?align-planes-right
-                     (align-planes-right ?align-planes-right))))
-         ;; (cpl:seq
-         ;;   (exe:perform
-         ;;    (desig:a motion
-         ;;             (type moving-arm-joints)
-         ;;             (right-joint-states ?right-configuration)))
-         ;;   (exe:perform
-         ;;    (desig:a motion
-         ;;             (type moving-arm-joints)
-         ;;             (left-joint-states ?left-configuration))))
-         )
+           (exe:perform
+            (desig:a motion
+                     (type moving-arm-joints)
+                     (desig:when ?left-joint-states
+                       (left-joint-states ?left-joint-states))
+                     (desig:when ?right-joint-states
+                       (right-joint-states ?right-joint-states))
+                     (desig:when ?align-planes-left
+                       (align-planes-left ?align-planes-left))
+                     (desig:when ?align-planes-right
+                       (align-planes-right ?align-planes-right))
+                     (desig:when ?collisions
+                       (avoid-collisions-not-much ?collisions))))
+           ;; (cpl:seq
+           ;;   (exe:perform
+           ;;    (desig:a motion
+           ;;             (type moving-arm-joints)
+           ;;             (right-joint-states ?right-configuration)))
+           ;;   (exe:perform
+           ;;    (desig:a motion
+           ;;             (type moving-arm-joints)
+           ;;             (left-joint-states ?left-configuration))))
+           ))
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
