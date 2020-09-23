@@ -43,12 +43,18 @@
 
 (defun calculate-learned-mean-and-covariance (object-type)
   (case object-type
-    (:milk (list
-            (cl-transforms:make-3d-vector 0.33898583 -1.11702143443 0.0)
-            #2a((0.01462787 0.01591156) (0.01591156 0.02189835))))
+    ;;(:milk (list
+    ;;        (cl-transforms:make-3d-vector 0.2746613  -1.17508002 0.0)
+    ;;        #2a((0.00212829 0.00287789) (0.00287789 0.00556828))))
+    (:iai-fridge (list
+            (cl-transforms:make-3d-vector 0.39157908 -0.65701128 0.0)
+            #2a((0.02198436 0.01780009) (0.01780009 0.031634))))
     (:breakfast-cereal (list
             (cl-transforms:make-3d-vector 0.75288949 0.75126507 0.0)
             #2a((0.00334272 -0.00167905) (-0.00167905 0.01173699))))
+    (:oven-area-area-right-drawer-main (list
+            (cl-transforms:make-3d-vector 0.52883482 2.06610992 0.0)
+            #2a((0.01591575 0.01717804) (0.01717804 0.02525052))))
 
     (otherwise '(nil nil))))
 
@@ -57,7 +63,26 @@
   4)
 
 (def-fact-group robot-pose-gaussian-costmap (desig-costmap)
-
+  (<- (desig-costmap ?designator ?costmap)
+    (costmap:costmap ?cm)
+    (rob-int:reachability-designator ?designator)
+    (spec:property ?designator (:object ?container-designator))
+    (spec:property ?container-designator (:type ?container-type))
+    (man-int:object-type-subtype :container ?container-type)
+    (spec:property ?container-designator (:urdf-name ?container-name))
+    (spec:property ?container-designator (:part-of ?btr-environment))
+    (spec:property ?designator (:arm ?arm))
+    (costmap:costmap ?costmap)
+    (lisp-fun calculate-learned-mean-and-covariance ?container-name
+              (?learned-mean ?learned-covariance))
+    (-> (lisp-pred identity ?learned-mean)
+        (costmap:costmap-add-function
+         learned-pose-distribution
+         (costmap:make-gauss-cost-function
+          ?learned-mean ?learned-covariance)
+         ?cm)
+        (true)))
+  
   (<- (desig-costmap ?desig ?cm)
     (rob-int:visibility-designator ?desig)
     ;; (bagof ?pose (desig-location-prop ?desig ?pose) ?poses)
@@ -99,7 +124,7 @@
     (costmap:costmap-add-height-generator
      (costmap:make-constant-height-function 0.0)
      ?cm))
-
+  
   (<- (desig-costmap ?desig ?cm)
     (rob-int:reachability-designator ?desig)
     ;; (bagof ?pose (cram-robot-interfaces:designator-reach-pose ?desig ?pose ?_) ?poses)

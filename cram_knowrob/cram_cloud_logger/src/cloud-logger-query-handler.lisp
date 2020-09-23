@@ -65,18 +65,24 @@
   (send-query-1-without-result "mem_event_add_diagnosis" event-prolog-url diagnosis-url))
 
 (defun start-episode ()
+  (setf ccl::*is-logging-enabled* t)
+  (ccl::init-logging)
   (when *episode-name*
     (progn
       (print "Previous episode recording is still running. Stopping the recording ...")
       (stop-episode)))
-  (setf ccl::*is-logging-enabled* t)
-  (ccl::init-logging)
+  (let ((cram-episode-name (ccl::get-url-from-send-query-1 "Name" "is_recording_episode" "Name")))
+             (when (string-not-equal "'NoName'"cram-episode-name)
+               (progn
+                 (setf ccl::*episode-name* cram-episode-name)
+                 (stop-episode))))
   (ccl::clear-detected-objects)
   (setf ccl::*episode-name* (get-url-from-send-query-1 "RootAction" "mem_episode_start" "RootAction"))
   (ccl::start-situation *episode-name*))
 
 (defun stop-episode ()
   (ccl::stop-situation *episode-name*)
+  (send-query-1-without-result "delete_episode_name" *episode-name*)
   (send-query-1-without-result "mem_episode_stop" (concatenate 'string "'" (uiop:getenv "KNOWROB_MEMORY_DIR") "'"))
   (setf ccl::*episode-name* nil)
   (setf ccl::*is-logging-enabled* nil))
