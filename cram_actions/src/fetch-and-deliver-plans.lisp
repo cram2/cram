@@ -214,8 +214,8 @@ if yes, relocate and retry, if no collisions, open or close container."
 If the object is not there or navigation location is unreachable,
 retries with different search location or robot base location."
 
-  (desig:reset ?search-location)
-  (desig:reset ?robot-location)
+  (setf ?search-location (desig:reset ?search-location))
+  (setf ?robot-location (desig:reset ?robot-location))
 
   (cpl:with-failure-handling
       ((desig:designator-error (e)
@@ -326,8 +326,8 @@ one of arms in the `?arms' lazy list (if not NIL) and one of grasps in `?grasps'
 while standing at `?pick-up-robot-location'
 and using the grasp and arm specified in `pick-up-action' (if not NIL)."
 
-  (desig:reset ?look-location)
-  (desig:reset ?pick-up-robot-location)
+  (setf ?look-location (desig:reset ?look-location))
+  (setf ?pick-up-robot-location (desig:reset ?pick-up-robot-location))
 
   (cpl:with-failure-handling
       ((desig:designator-error (e)
@@ -343,7 +343,11 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                 common-fail:looking-high-level-failure
                 common-fail:perception-low-level-failure
                 common-fail:object-unreachable
-                common-fail:manipulation-low-level-failure) (e)
+                common-fail:manipulation-low-level-failure
+                desig:designator-error) (e)
+             (setf ?pick-up-robot-location
+                   (desig:reset ?pick-up-robot-location))
+             (desig:reference ?pick-up-robot-location)
              (common-fail:retry-with-loc-designator-solutions
                  ?pick-up-robot-location
                  relocation-for-ik-retries
