@@ -105,6 +105,23 @@
                      :type (roslisp:symbol-code 'shape_msgs-msg:solidprimitive :box)
                      :dimensions (map 'vector #'identity dimensions)))
       :pose (cl-transforms-stamped:to-msg pose)))
+    (:alter
+     (roslisp:make-request
+      'giskard_msgs-srv:updateworld
+      :operation (roslisp:symbol-code
+                  'giskard_msgs-srv:updateworld-request
+                  :alter)
+      :body (roslisp:make-msg
+             'giskard_msgs-msg:worldbody
+             :type (roslisp:symbol-code
+                    'giskard_msgs-msg:worldbody
+                    :primitive_body)
+             :name name
+             :shape (roslisp:make-msg
+                     'shape_msgs-msg:solidprimitive
+                     :type (roslisp:symbol-code 'shape_msgs-msg:solidprimitive :box)
+                     :dimensions (map 'vector #'identity dimensions)))
+      :pose (cl-transforms-stamped:to-msg pose)))
     (:add-environment
      (roslisp:make-request
       'giskard_msgs-srv:updateworld
@@ -322,6 +339,25 @@
                        (btr:link-attached-object-names
                         (btr:get-robot-object)
                         link)))))))))
+
+(defmethod coe:on-event giskard-detach-object-after 3
+    ((event cpoe:object-detached-robot))
+  (unless cram-projection:*projection-environment*
+    (let ((object-name
+            (cpoe:event-object-name event)))
+      (when object-name
+        (let* ((object-name-string
+                 (roslisp-utilities:rosify-underscores-lisp-name object-name))
+               (btr-object
+                 (btr:object btr:*current-bullet-world* object-name)))
+          (call-giskard-environment-service
+           :alter
+           :name object-name-string
+           :pose (cl-transforms-stamped:pose->pose-stamped
+                  cram-tf:*fixed-frame* 0.0 (btr:pose btr-object))
+           :dimensions (with-slots (cl-transforms:x cl-transforms:y cl-transforms:z)
+                           (btr:calculate-bb-dims btr-object)
+                         (list cl-transforms:x cl-transforms:y cl-transforms:z))))))))
 
 (defmethod coe:on-event giskard-perceived ((event cpoe:object-perceived-event))
   (unless cram-projection:*projection-environment*

@@ -35,6 +35,10 @@
   "in radiants, about 30 degrees")
 (defparameter *arm-convergence-delta-joint* 0.17
   "in radiants, about 10 degrees")
+(defparameter *arm-max-velocity-slow-xy* 0.1
+  "in m/s")
+(defparameter *arm-max-velocity-slow-theta* 0.5
+  "in rad/s")
 
 (defun make-arm-cartesian-action-goal (left-pose right-pose
                                        pose-base-frame collision-mode
@@ -118,36 +122,61 @@
                                            collision-object-b-link)))))))
 
 (defun make-arm-joint-action-goal (joint-state-left joint-state-right
-                                   align-planes-left align-planes-right)
+                                   align-planes-left align-planes-right
+                                   &key try-harder)
   (declare (type list joint-state-left joint-state-right)
            (type boolean align-planes-left align-planes-right))
   (make-giskard-goal
    :constraints (list
+                 (make-ee-velocity-constraint
+                  :left
+                  (if try-harder
+                      (/ *arm-max-velocity-slow-xy* 2.0)
+                      *arm-max-velocity-slow-xy*)
+                  (if try-harder
+                      (/ *arm-max-velocity-slow-theta* 2.0)
+                      *arm-max-velocity-slow-theta*))
+                 (make-ee-velocity-constraint
+                  :right
+                  (if try-harder
+                      (/ *arm-max-velocity-slow-xy* 2.0)
+                      *arm-max-velocity-slow-xy*)
+                  (if try-harder
+                      (/ *arm-max-velocity-slow-theta* 2.0)
+                      *arm-max-velocity-slow-theta*))
+                 (make-cartesian-constraint
+                  cram-tf:*odom-frame* cram-tf:*robot-base-frame*
+                  (cl-transforms-stamped:pose->pose-stamped
+                   cram-tf:*robot-base-frame* 0.0
+                   (cl-transforms:make-identity-pose))
+                  :max-velocity *base-max-velocity-slow-xy*
+                  :avoid-collisions-much t)
+                 ;; (make-base-velocity-constraint
+                 ;;  *base-max-velocity-slow-xy*
+                 ;;  *base-max-velocity-slow-theta*)
                  ;; (make-avoid-joint-limits-constraint)
-                 ;; (when align-planes-left
-                 ;;   (make-align-planes-constraint
-                 ;;    cram-tf:*odom-frame*
-                 ;;    "refills_finger"
-                 ;;    (cl-transforms-stamped:make-vector-stamped
-                 ;;     cram-tf:*robot-base-frame* 0.0
-                 ;;     (cl-transforms:make-3d-vector 0 0 1))
-                 ;;    (cl-transforms-stamped:make-vector-stamped
-                 ;;     cram-tf:*robot-base-frame* 0.0
-                 ;;     (cl-transforms:make-3d-vector 0 0 1))))
-                 ;; (when align-planes-right
-                 ;;   (make-align-planes-constraint
-                 ;;    cram-tf:*odom-frame*
-                 ;;    "refills_finger"
-                 ;;    (cl-transforms-stamped:make-vector-stamped
-                 ;;     cram-tf:*robot-base-frame* 0.0
-                 ;;     (cl-transforms:make-3d-vector 0 0 1))
-                 ;;    (cl-transforms-stamped:make-vector-stamped
-                 ;;     cram-tf:*robot-base-frame* 0.0
-                 ;;     (cl-transforms:make-3d-vector 0 0 1))))
-                 )
+                 (when align-planes-left
+                   (make-align-planes-tool-frame-constraint
+                    :left
+                    (cl-transforms-stamped:make-vector-stamped
+                     cram-tf:*robot-base-frame* 0.0
+                     (cl-transforms:make-3d-vector 0 0 1))
+                    (cl-transforms-stamped:make-vector-stamped
+                     cram-tf:*robot-base-frame* 0.0
+                     (cl-transforms:make-3d-vector 0 0 1))))
+                 (when align-planes-right
+                   (make-align-planes-tool-frame-constraint
+                    :right
+                    (cl-transforms-stamped:make-vector-stamped
+                     cram-tf:*robot-base-frame* 0.0
+                     (cl-transforms:make-3d-vector 0 0 1))
+                    (cl-transforms-stamped:make-vector-stamped
+                     cram-tf:*robot-base-frame* 0.0
+                     (cl-transforms:make-3d-vector 0 0 1)))))
    :joint-constraints (list (make-simple-joint-constraint joint-state-left)
                             (make-simple-joint-constraint joint-state-right))
-   :collisions (make-avoid-all-collision)))
+   :collisions (list ;; (make-avoid-all-collision)
+                     )))
 
 
 
@@ -260,9 +289,11 @@
 (defun call-arm-joint-action (&key
                                 action-timeout
                                 goal-configuration-left goal-configuration-right
-                                align-planes-left align-planes-right)
+                                align-planes-left align-planes-right
+                                avoid-collisions-not-much)
   (declare (type (or list null) goal-configuration-left goal-configuration-right)
-           (type (or number null) action-timeout))
+           (type (or number null) action-timeout)
+           (type boolean avoid-collisions-not-much))
 
   (let ((joint-state-left
           (ensure-arm-joint-goal-input goal-configuration-left :left))
@@ -272,7 +303,8 @@
     (call-action
      :action-goal (make-arm-joint-action-goal
                    joint-state-left joint-state-right
-                   align-planes-left align-planes-right)
+                   align-planes-left align-planes-right
+                   :try-harder avoid-collisions-not-much)
      :action-timeout action-timeout
      :check-goal-function (lambda (result status)
                             (declare (ignore result status))

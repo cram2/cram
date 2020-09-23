@@ -66,20 +66,20 @@
   (cram-tf:visualize-marker (man-int:get-object-pose ?object-designator)
                             :r-g-b-list '(1 1 0) :id 300)
 
+  (roslisp:ros-info (pick-place pick-up) "Looking")
+  (cpl:with-failure-handling
+      ((common-fail:ptu-low-level-failure (e)
+         (roslisp:ros-warn (pp-plans pick-up)
+                           "Looking-at had a problem: ~a~%Ignoring."
+                           e)
+         (return)))
+    (exe:perform
+     (desig:an action
+               (type looking)
+               (target (desig:a location
+                                (pose ?look-pose))))))
   (cpl:par
-    (roslisp:ros-info (pick-place pick-up)
-                      "Looking, opening gripper and reaching")
-    (cpl:with-failure-handling
-        ((common-fail:ptu-low-level-failure (e)
-           (roslisp:ros-warn (pp-plans pick-up)
-                             "Looking-at had a problem: ~a~%Ignoring."
-                             e)
-           (return)))
-      (exe:perform
-       (desig:an action
-                 (type looking)
-                 (target (desig:a location
-                                  (pose ?look-pose))))))
+    (roslisp:ros-info (pick-place pick-up) "Opening gripper and reaching")
     (let ((?goal `(cpoe:gripper-joint-at ,?arm ,?gripper-opening)))
       (exe:perform
        (desig:an action
