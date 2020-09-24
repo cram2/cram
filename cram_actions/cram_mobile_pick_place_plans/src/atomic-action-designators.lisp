@@ -127,7 +127,7 @@
     (once (or (spec:property ?action-designator (:right-poses ?right-poses))
               (equal ?right-poses nil)))
     (once (or (spec:property ?action-designator (:collision-mode ?collision))
-              (equal ?collision :allow-fingers)))
+              (equal ?collision :allow-hand)))
     (infer-motion-flags ?action-designator
                         ?_ ?move-base ?align-planes-left ?align-planes-right)
     (desig:designator :action ((:type ?action-type)
