@@ -47,8 +47,10 @@
           (apply #'vector (alexandria:flatten entries))
           (apply #'vector (remove NIL entries)))))
 
-(defun make-giskard-goal (&key constraints joint-constraints cartesian-constraints
-                            collisions (goal-type :plan_and_execute))
+(defun make-giskard-goal (&key
+                            constraints joint-constraints cartesian-constraints
+                            collisions
+                            (goal-type :plan_and_execute_and_cut_off_shaking))
   (roslisp:make-message
    'giskard_msgs-msg:MoveGoal
    :type (roslisp:symbol-code 'giskard_msgs-msg:MoveGoal goal-type)
@@ -186,21 +188,33 @@
       ,@(when pointing-vector
           `(("pointing_axis" . ,(to-hash-table pointing-vector))))))))
 
+(defun make-head-pointing-constraint (goal-pose)
+  (declare (type cl-transforms-stamped:pose-stamped goal-pose))
+  (let ((camera-frame
+          (cut:var-value
+           '?camera-frame
+           (car (prolog:prolog
+                 `(and (rob-int:robot ?robot)
+                       (rob-int:camera-frame ?robot ?camera-frame)))))))
+    (when (cut:is-var camera-frame)
+      (error "[giskard] Camera frame was not defined."))
+    (make-pointing-constraint
+     (cl-transforms-stamped:frame-id goal-pose)
+     camera-frame
+     goal-pose)))
+
 (defun make-head-pointing-at-hand-constraint (arm)
   (declare (type keyword arm))
-  (let* ((bindings
+  (let ((tool-frame
+          (cut:var-value
+           '?frame
            (car (prolog:prolog
                  `(and (rob-int:robot ?robot)
                        (rob-int:robot-tool-frame ?robot ,arm ?frame)
-                       (rob-int:camera-frame ?robot ?camera-frame)))))
-         (tool-frame
-           (cut:var-value '?frame bindings))
-         (camera-frame
-           (cut:var-value '?camera-frame bindings)))
-    (when (or (cut:is-var tool-frame) (cut:is-var camera-frame))
-      (error "[giskard] Tool frame or camera frame was not defined."))
-    (make-pointing-constraint
-     tool-frame camera-frame
+                       (rob-int:camera-frame ?robot ?camera-frame)))))))
+    (when (cut:is-var tool-frame)
+      (error "[giskard] Tool frame was not defined."))
+    (make-head-pointing-constraint
      (cl-transforms-stamped:pose->pose-stamped
       tool-frame 0.0
       (cl-transforms:make-identity-pose)))))
