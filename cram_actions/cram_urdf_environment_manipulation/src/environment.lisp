@@ -398,8 +398,10 @@ Using a default (1 0 0)."
       (:closing
        (- (- distance state))))))
 
+;; Important note: This assumes a relative distance, because the trajectory calculations
+;; were implemented in a relative manner.
 (defun clip-distance (container-name btr-environment distance action-type)
-  "Return a distance that stays inside the joint's limits."
+  "Return a relative distance that stays inside the joint's limits."
   (declare (type (or string symbol) container-name)
            (type keyword btr-environment)
            (type number distance)
