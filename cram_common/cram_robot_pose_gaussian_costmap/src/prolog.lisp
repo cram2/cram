@@ -1,19 +1,19 @@
 ;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
 ;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors 
-;;;       may be used to endorse or promote products derived from this software 
+;;;       Technische Universitaet Muenchen nor the names of its contributors
+;;;       may be used to endorse or promote products derived from this software
 ;;;       without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -28,6 +28,32 @@
 
 (in-package :gaussian-costmap)
 
+(defun calculate-learned-mean-and-covariance (object-type
+                                              reference-location-name)
+  (if reference-location-name
+      (case object-type
+        (:breakfast-cereal
+         (case reference-location-name
+           (:oven-area-area-right-drawer-main
+            (list
+             (cl-transforms:make-3d-vector 0.75288949 0.75126507 0.0)
+             #2a((0.00334272 -0.00167905) (-0.00167905 0.01173699))))
+           (t
+            '(nil nil))))
+        (t
+         '(nil nil)))
+      (case object-type
+        (:iai-fridge-door
+         (list
+          (cl-transforms:make-3d-vector 0.39157908 -0.65701128 0.0)
+          #2a((0.02198436 0.01780009) (0.01780009 0.031634))))
+        (:oven-area-area-right-drawer-main
+         (list
+          (cl-transforms:make-3d-vector 0.52883482 2.06610992 0.0)
+          #2a((0.01591575 0.01717804) (0.01717804 0.02525052))))
+        (t
+         '(nil nil)))))
+  
 (defmethod costmap-generator-name->score ((name (eql 'pose-distribution))) 5)
 (defmethod costmap-generator-name->score ((name (eql 'learned-pose-distribution))) 3)
 (defmethod costmap-generator-name->score ((name (eql 'reachable-from-space))) 5)
@@ -41,48 +67,12 @@
     ((name pose-distribution-range-include-generator))
   3)
 
-(defun calculate-learned-mean-and-covariance (object-type)
-  (case object-type
-    ;;(:milk (list
-    ;;        (cl-transforms:make-3d-vector 0.2746613  -1.17508002 0.0)
-    ;;        #2a((0.00212829 0.00287789) (0.00287789 0.00556828))))
-    (:iai-fridge (list
-            (cl-transforms:make-3d-vector 0.39157908 -0.65701128 0.0)
-            #2a((0.02198436 0.01780009) (0.01780009 0.031634))))
-    (:breakfast-cereal (list
-            (cl-transforms:make-3d-vector 0.75288949 0.75126507 0.0)
-            #2a((0.00334272 -0.00167905) (-0.00167905 0.01173699))))
-    (:oven-area-area-right-drawer-main (list
-            (cl-transforms:make-3d-vector 0.52883482 2.06610992 0.0)
-            #2a((0.01591575 0.01717804) (0.01717804 0.02525052))))
-
-    (otherwise '(nil nil))))
-
 (defmethod costmap-generator-name->score
     ((name pose-distribution-range-exclude-generator))
   4)
 
 (def-fact-group robot-pose-gaussian-costmap (desig-costmap)
-  (<- (desig-costmap ?designator ?costmap)
-    (costmap:costmap ?cm)
-    (rob-int:reachability-designator ?designator)
-    (spec:property ?designator (:object ?container-designator))
-    (spec:property ?container-designator (:type ?container-type))
-    (man-int:object-type-subtype :container ?container-type)
-    (spec:property ?container-designator (:urdf-name ?container-name))
-    (spec:property ?container-designator (:part-of ?btr-environment))
-    (spec:property ?designator (:arm ?arm))
-    (costmap:costmap ?costmap)
-    (lisp-fun calculate-learned-mean-and-covariance ?container-name
-              (?learned-mean ?learned-covariance))
-    (-> (lisp-pred identity ?learned-mean)
-        (costmap:costmap-add-function
-         learned-pose-distribution
-         (costmap:make-gauss-cost-function
-          ?learned-mean ?learned-covariance)
-         ?cm)
-        (true)))
-  
+
   (<- (desig-costmap ?desig ?cm)
     (rob-int:visibility-designator ?desig)
     ;; (bagof ?pose (desig-location-prop ?desig ?pose) ?poses)
@@ -124,7 +114,49 @@
     (costmap:costmap-add-height-generator
      (costmap:make-constant-height-function 0.0)
      ?cm))
-  
+
+
+  ;;;; RALF
+  (<- (desig-costmap ?designator ?costmap)
+    (rob-int:reachability-designator ?designator)
+    (costmap:costmap ?costmap)
+    (spec:property ?designator (:object ?some-object-designator))
+    (desig:current-designator ?some-object-designator ?object-designator)
+    (spec:property ?object-designator (:type ?object-type))
+    (-> (man-int:object-type-subtype :container ?object-type)
+        ;; opening/closing doors/drawers
+        (and (spec:property ?object-designator (:urdf-name ?container-name))
+             ;; (spec:property ?object-designator (:part-of ?btr-environment))
+             ;; (spec:property ?designator (:arm ?arm))
+             (lisp-fun calculate-learned-mean-and-covariance
+                       ?container-name nil
+                       (?learned-mean ?learned-covariance))
+             (lisp-pred identity ?learned-mean)
+             (costmap:costmap-add-function
+              learned-pose-distribution
+              (costmap:make-gauss-cost-function
+               ?learned-mean ?learned-covariance)
+              ?costmap))
+        ;; fetching or placing items
+        (and (spec:property ?object-designator (:pose ?container-type))
+             (spec:property ?object-designator (:location ?some-obj-loc))
+             (desig:current-designator ?some-obj-loc ?object-location)
+             (once
+              (or (spec:property ?object-location (:on ?obj-loc-object))
+                  (spec:property ?object-location (:in ?obj-loc-object))))
+             (desig:current-designator ?obj-loc-object ?object-location-object)
+             (spec:property ?object-location-object (:urdf-name ?ref-loc-name))
+             (lisp-fun calculate-learned-mean-and-covariance
+                       ?object-type ?ref-loc-name
+                       (?learned-mean ?learned-covariance))
+             (lisp-pred identity ?learned-mean)
+             (costmap:costmap-add-function
+              learned-pose-distribution
+              (costmap:make-gauss-cost-function
+               ?learned-mean ?learned-covariance)
+              ?costmap))))
+
+
   (<- (desig-costmap ?desig ?cm)
     (rob-int:reachability-designator ?desig)
     ;; (bagof ?pose (cram-robot-interfaces:designator-reach-pose ?desig ?pose ?_) ?poses)
@@ -144,25 +176,13 @@
                    ;; have to take one pose from all possibilities
                    ;; as later we have a FORCE-LL on ?TO-REACH-POSES
                    ;; and that can be an infinitely long list
-                   (member ?to-reach-pose ?location-poses)))) 
+                   (member ?to-reach-pose ?location-poses))))
     (lisp-fun list ?to-reach-pose ?to-reach-poses)
     (lisp-fun cut:force-ll ?to-reach-poses ?poses-list)
     (lisp-fun costmap:2d-pose-covariance ?to-reach-poses 0.5 (?mean ?covariance))
     (costmap:costmap-in-reach-distance ?robot-name ?distance)
     (costmap:costmap-reach-minimal-distance ?robot-name ?minimal-distance)
     (costmap:costmap ?cm)
-        (-> (bound ?object) 
-            (and (desig:desig-prop ?object (:type ?object-type))    
-                 (lisp-fun calculate-learned-mean-and-covariance ?object-type 
-                           (?learned-mean ?learned-covariance))
-                 (-> (lisp-pred identity ?learned-mean) 
-                     (costmap:costmap-add-function 
-                      learned-pose-distribution 
-                      (costmap:make-gauss-cost-function
-                       ?learned-mean ?learned-covariance) 
-                      ?cm)
-                     (true))) 
-        (true))
     (forall (member ?pose ?to-reach-poses)
             (and (instance-of pose-distribution-range-include-generator
                               ?include-generator-id)
