@@ -29,9 +29,9 @@
 
 (in-package :env-man)
 
-(defparameter *drawer-handle-grasp-x-offset* -0.005 "in meters")
-(defparameter *drawer-handle-pregrasp-x-offset* 0.10 "in meters")
-(defparameter *drawer-handle-retract-offset* 0.10 "in meters")
+(defparameter *drawer-handle-grasp-x-offset* -0.01 "in meters")
+(defparameter *drawer-handle-pregrasp-x-offset* 0.05 "in meters")
+(defparameter *drawer-handle-retract-offset* 0.05 "in meters")
 (defparameter *door-handle-retract-offset* 0.05 "in meters")
 
 (defmethod man-int:get-action-trajectory :heuristics 20 ((action-type (eql :opening))
