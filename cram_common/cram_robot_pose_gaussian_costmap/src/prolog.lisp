@@ -40,9 +40,25 @@
              #2a((0.00334272 -0.00167905) (-0.00167905 0.01173699))))
            (t
             '(nil nil))))
+        (:bowl
+         (case reference-location-name
+           (:sink-area-left-middle-drawer-main
+            (list
+             (cl-transforms:make-3d-vector 0.48262422 0.60007345 0.0)
+             #2a((0.01696884 -0.02503274) (-0.02503274 0.18154158))))
+           (:dining-area-jokkmokk-table-main
+            (list
+             (cl-transforms:make-3d-vector -2.58749167 -0.17260023 0.0)
+             #2a((0.0004593 0.00107521) (0.00107521 0.01146658))))
+           (t
+            '(nil nil))))
         (t
          '(nil nil)))
       (case object-type
+        (:sink-area-left-middle-drawer-main
+         (list
+          (cl-transforms:make-3d-vector 0.3703701 1.28296277 0.0)
+          #2a((0.02345756 0.03769117) (0.03769117 0.0812215))))
         (:iai-fridge-door
          (list
           (cl-transforms:make-3d-vector 0.39157908 -0.65701128 0.0)
