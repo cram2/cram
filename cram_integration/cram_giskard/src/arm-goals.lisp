@@ -131,18 +131,18 @@
                  (make-ee-velocity-constraint
                   :left
                   (if try-harder
-                      (/ *arm-max-velocity-slow-xy* 2.0)
+                      (/ *arm-max-velocity-slow-xy* 3.0)
                       *arm-max-velocity-slow-xy*)
                   (if try-harder
-                      (/ *arm-max-velocity-slow-theta* 2.0)
+                      (/ *arm-max-velocity-slow-theta* 3.0)
                       *arm-max-velocity-slow-theta*))
                  (make-ee-velocity-constraint
                   :right
                   (if try-harder
-                      (/ *arm-max-velocity-slow-xy* 2.0)
+                      (/ *arm-max-velocity-slow-xy* 3.0)
                       *arm-max-velocity-slow-xy*)
                   (if try-harder
-                      (/ *arm-max-velocity-slow-theta* 2.0)
+                      (/ *arm-max-velocity-slow-theta* 3.0)
                       *arm-max-velocity-slow-theta*))
                  (make-cartesian-constraint
                   cram-tf:*odom-frame* cram-tf:*robot-base-frame*
@@ -194,20 +194,19 @@
                                goal-configuration)
              (get-arm-joint-names-and-positions-list arm))))
 
-
-
 (defun ensure-arm-cartesian-goal-reached (goal-pose goal-frame)
   (when goal-pose
-    (unless (cram-tf:tf-frame-converged
-             goal-frame goal-pose
-             *arm-convergence-delta-xy* *arm-convergence-delta-theta*)
-      (make-instance 'common-fail:manipulation-goal-not-reached
-        :description (format nil "Giskard did not converge to goal:~%~
-                                  ~a should have been at ~a ~
-                                  with delta-xy of ~a and delta-angle of ~a."
-                             goal-frame goal-pose
-                             *arm-convergence-delta-xy*
-                             *arm-convergence-delta-theta*)))))
+    (multiple-value-bind (converged delta-xy delta-theta)
+        (cram-tf:tf-frame-converged
+         goal-frame goal-pose
+         *arm-convergence-delta-xy* *arm-convergence-delta-theta*)
+     (unless converged
+       (make-instance 'common-fail:manipulation-goal-not-reached
+         :description (format nil "Giskard did not converge to goal:~%~
+                                   ~a should have been at ~a.~%
+                                   Delta-xy: ~a, delta-theta: ~a."
+                              goal-frame goal-pose
+                              delta-xy delta-theta))))))
 
 (defun ensure-arm-joint-goal-reached (goal-configuration arm)
   (when goal-configuration
