@@ -256,7 +256,7 @@ around `axis' by `angle-max' in steps of 0.1 rad."
 `object-name' is the name of a container in the `btr-environment'.
 `arm' denotes which arm's gripper should be used (eg. :left or :right).
 `handle-axis' is the axis on which the handle lies when looked at from the front in form of a vector.
-So normally (1 0 0) or (0 0 1).
+So normally (0 1 0) or (0 0 1).
 `btr-environment' is the name of the environment in which the container is located (eg. :KITCHEN)."
   (declare (type (or string symbol) object-name)
            (type keyword arm)
@@ -320,17 +320,12 @@ So normally (1 0 0) or (0 0 1).
         0))))))
 
 (defun get-revolute-axis (object-name)
-  (let ((name-exception
-          (alexandria:switch ((roslisp-utilities:rosify-underscores-lisp-name
-                               object-name)
-                              :test 'equal)
-            ("oven_area_oven_main"
-             (cl-transforms:make-3d-vector 0 1 0))
-            ("sink_area_dish_washer_main"
-             (cl-transforms:make-3d-vector 0 1 0)))))
-    (if name-exception
-        name-exception
-        (cl-transforms:make-3d-vector 0 0 1))))
+  (cl-tf:rotate
+   (cl-tf:rotation
+    (cl-urdf:origin
+     (cl-urdf:from-joint
+      (get-handle-link object-name :iai-kitchen))))
+   (cl-tf:make-3d-vector 0 0 1)))
 
 (defun get-revolute-invert (object-name)
   (let ((name-exception
