@@ -542,7 +542,7 @@
     (desig:a location
              (above (desig:an object
                               (type drawer)
-                              (urdf-name sink-area-dish-washer-tray-handle-front-side)
+                              (urdf-name sink-area-dish-washer-tray-bottom)
                               (part-of ?environment-name)
                               (location ?location-in-dishwasher)))
              (for (desig:an object
@@ -945,25 +945,25 @@
 
 (man-int:def-object-type-in-other-object-transform :bowl :drawer
   :dish-washer-drawer-left
-  :attachment-translation `(-0.14 -0.16 0.12)
+  :attachment-translation `(0.05 -0.15 0.2)
   :attachment-rot-matrix man-int:*identity-matrix*)
 
 (man-int:def-object-type-in-other-object-transform :bowl :drawer
   :dish-washer-drawer-right
-  :attachment-translation `(-0.14 0.16 0.12)
+  :attachment-translation `(0.03 0.15 0.2)
   :attachment-rot-matrix man-int:*identity-matrix*)
 
 (man-int:def-object-type-in-other-object-transform :cup :drawer
   :dish-washer-drawer-left-flipped-around-x
-  :attachment-translation `(-0.13 -0.17 0.14)
+  :attachment-translation `(0.03 -0.19 0.22)
   :attachment-rot-matrix man-int:*rotation-around-x-180-matrix*)
 
 (man-int:def-object-type-in-other-object-transform :cup :drawer
   :dish-washer-drawer-left-flipped-around-y
-  :attachment-translation `(-0.13 -0.17 0.14)
+  :attachment-translation `(0.05 -0.19 0.22)
   :attachment-rot-matrix man-int:*rotation-around-y-180-matrix*)
 
 (man-int:def-object-type-in-other-object-transform :spoon :drawer
   :dish-washer-drawer-center
-  :attachment-translation `(-0.18 0 -0.05)
+  :attachment-translation `(0.03 0.0 0.03)
   :attachment-rot-matrix man-int:*identity-matrix*)
