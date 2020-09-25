@@ -126,15 +126,16 @@
   (:method ((solution-1 array) (solution-2 array))
     (equalp solution-1 solution-2)))
 
-(defun reset (desig)
-  "Resets the designator by deleting all associated solutions.
-Used for recalculating a designator when its dependent designator got updated.
-The actual implementation creates a copy of the designator, such that only
-the description is preserved. The returned designator is equated to the input one,
-in case one would want to get back to the old one through the equated designator chain."
-  (let ((desig-copy (copy-designator desig)))
-    (equate desig desig-copy)
-    (setf desig desig-copy)))
+(defgeneric reset (desig)
+  (:documentation "Resets the designator by deleting all associated solutions.
+  Used for recalculating a designator when its dependent designator got updated.
+  The actual implementation creates a copy of the designator, such that only
+  the description is preserved. The returned designator is equated to the input one,
+  in case one would want to get back to the old one through the equated designator chain.")
+  (:method (desig)
+    (let ((desig-copy (copy-designator desig)))
+      (equate desig desig-copy)
+      (setf desig desig-copy))))
 
 (defvar *designator-pprint-description* t
   "If set to T, DESIGNATOR objects will be pretty printed with their description.")
