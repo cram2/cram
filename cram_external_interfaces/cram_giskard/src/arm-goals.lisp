@@ -29,7 +29,7 @@
 
 (in-package :giskard)
 
-(defparameter *arm-convergence-delta-xy* 0.03 ;; 0.005
+(defparameter *arm-convergence-delta-xy* 0.025 ;; 0.005
   "in meters")
 (defparameter *arm-convergence-delta-theta* 0.5 ;; 0.1
   "in radiants, about 30 degrees")
@@ -83,7 +83,11 @@
                    (when unmovable-joints
                      (make-unmovable-joints-constraint unmovable-joints))
                    (make-base-velocity-constraint
-                    *base-max-velocity-slow-xy* *base-max-velocity-slow-theta*))
+                    *base-max-velocity-slow-xy* *base-max-velocity-slow-theta*)
+                   (make-head-pointing-at-hand-constraint
+                    (if left-pose
+                        :left
+                        :right)))
      :cartesian-constraints (list (when left-pose
                                     (make-simple-cartesian-constraint
                                      pose-base-frame
