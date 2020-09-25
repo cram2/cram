@@ -62,6 +62,28 @@
               :joint_constraints (make-constraints-vector joint-constraints)
               :collisions (make-constraints-vector collisions)))))
 
+(defun make-giskard-goal-multiple (&key
+                                     all-constraints
+                                     joint-constraints
+                                     cartesian-constraints
+                                     collisions
+                                     (goal-type
+                                      :plan_and_execute_and_cut_off_shaking))
+  (roslisp:make-message
+   'giskard_msgs-msg:MoveGoal
+   :type (roslisp:symbol-code 'giskard_msgs-msg:MoveGoal goal-type)
+   :cmd_seq (map
+             'vector
+             (lambda (constraints)
+               (roslisp:make-message
+                'giskard_msgs-msg:movecmd
+                :constraints (make-constraints-vector constraints)
+                :cartesian_constraints (make-constraints-vector
+                                        cartesian-constraints)
+                :joint_constraints (make-constraints-vector joint-constraints)
+                :collisions (make-constraints-vector collisions)))
+             all-constraints)))
+
 (defun cram-name-list->ros-frame-vector (cram-names-list)
   "@artnie used this function but actually other CRAM users probably don't need it..."
   (if cram-names-list
