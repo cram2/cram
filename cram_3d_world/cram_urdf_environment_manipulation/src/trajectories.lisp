@@ -29,8 +29,9 @@
 
 (in-package :env-man)
 
-(defparameter *drawer-handle-grasp-x-offset* -0.01 "in meters")
-(defparameter *drawer-handle-pregrasp-x-offset* 0.05 "in meters")
+(defparameter *drawer-handle-grasp-x-offset* -0.005 "in meters")
+(defparameter *drawer-handle-pregrasp-x-offset-open* 0.05 "in meters")
+(defparameter *drawer-handle-pregrasp-x-offset-close* -0.03 "in meters")
 (defparameter *drawer-handle-retract-offset* 0.05 "in meters")
 (defparameter *door-handle-retract-offset* 0.05 "in meters")
 
@@ -139,23 +140,39 @@ frame of the robot's end effector as the child (eg. `cram-tf:*robot-left-tool-fr
            (type keyword action-type)
            (type cl-transforms-stamped:transform-stamped grasp-pose)
            (type number opening-distance))
+
   (mapcar
-   (lambda (label transform)
+   (lambda (label transforms)
      (man-int:make-traj-segment
       :label label
-      :poses (list (man-int:calculate-gripper-pose-in-map object-transform arm transform))))
+      :poses (mapcar (alexandria:curry #'man-int:calculate-gripper-pose-in-map
+                                       object-transform arm)
+                     transforms)))
    `(:reaching
      :grasping
      ,action-type
      :retracting)
    (list
-    (cram-tf:translate-transform-stamped
-     grasp-pose :x-offset *drawer-handle-pregrasp-x-offset*)
-    grasp-pose
-    (cram-tf:translate-transform-stamped
-     grasp-pose :x-offset opening-distance)
-    (cram-tf:translate-transform-stamped
-     grasp-pose :x-offset (+ opening-distance *drawer-handle-retract-offset*)))))
+    (if (eq action-type :closing)
+        (list (cram-tf:translate-transform-stamped
+               grasp-pose :x-offset *drawer-handle-pregrasp-x-offset-open*))
+        (list (cram-tf:translate-transform-stamped
+               grasp-pose :x-offset *drawer-handle-pregrasp-x-offset-open*)
+              (cram-tf:translate-transform-stamped
+               grasp-pose :x-offset *drawer-handle-pregrasp-x-offset-close*)))
+    (list grasp-pose)
+    (list (cram-tf:translate-transform-stamped
+           grasp-pose :x-offset opening-distance))
+    (if (eq action-type :closing)
+        (list (cram-tf:translate-transform-stamped
+               grasp-pose :x-offset (+ opening-distance
+                                       *drawer-handle-pregrasp-x-offset-close*))
+              (cram-tf:translate-transform-stamped
+               grasp-pose :x-offset (+ opening-distance
+                                       *drawer-handle-retract-offset*)))
+        (list (cram-tf:translate-transform-stamped
+               grasp-pose :x-offset (+ opening-distance
+                                       *drawer-handle-retract-offset*)))))))
 
 (defun make-revolute-trajectory (object-transform arm action-type
                                  grasp-pose opening-angle
@@ -189,19 +206,44 @@ frame of the robot's end effector as the child (eg. `cram-tf:*robot-left-tool-fr
        ,action-type
        :retracting)
      (list
-      (list (cram-tf:translate-transform-stamped
-             grasp-pose :x-offset *drawer-handle-pregrasp-x-offset*))
+      (if (eq action-type :closing)
+          (list (cram-tf:translate-transform-stamped
+                 grasp-pose :x-offset *drawer-handle-pregrasp-x-offset-open*))
+          (list (cram-tf:translate-transform-stamped
+                 grasp-pose :x-offset *drawer-handle-pregrasp-x-offset-open*)
+                (cram-tf:translate-transform-stamped
+                 grasp-pose :x-offset *drawer-handle-pregrasp-x-offset-close*)))
       (list grasp-pose)
       traj-poses
       (when last-traj-pose
-        (list (cram-tf:apply-transform
-               last-traj-pose
-               (cl-transforms-stamped:make-transform-stamped
-                (cl-transforms-stamped:child-frame-id last-traj-pose)
-                (cl-transforms-stamped:child-frame-id last-traj-pose)
-                (cl-transforms-stamped:stamp last-traj-pose)
-                (cl-transforms:make-3d-vector 0 0 -0.1)
-                (cl-transforms:make-identity-rotation)))))))))
+        (if (eq action-type :closing)
+            (list (cram-tf:apply-transform
+                   last-traj-pose
+                   (cl-transforms-stamped:make-transform-stamped
+                    (cl-transforms-stamped:child-frame-id last-traj-pose)
+                    (cl-transforms-stamped:child-frame-id last-traj-pose)
+                    (cl-transforms-stamped:stamp last-traj-pose)
+                    (cl-transforms:make-3d-vector
+                     0 0 *drawer-handle-pregrasp-x-offset-open*)
+                    (cl-transforms:make-identity-rotation)))
+                  (cram-tf:apply-transform
+                   last-traj-pose
+                   (cl-transforms-stamped:make-transform-stamped
+                    (cl-transforms-stamped:child-frame-id last-traj-pose)
+                    (cl-transforms-stamped:child-frame-id last-traj-pose)
+                    (cl-transforms-stamped:stamp last-traj-pose)
+                    (cl-transforms:make-3d-vector
+                     0 0 (- *door-handle-retract-offset*))
+                    (cl-transforms:make-identity-rotation))))
+            (list (cram-tf:apply-transform
+                   last-traj-pose
+                   (cl-transforms-stamped:make-transform-stamped
+                    (cl-transforms-stamped:child-frame-id last-traj-pose)
+                    (cl-transforms-stamped:child-frame-id last-traj-pose)
+                    (cl-transforms-stamped:stamp last-traj-pose)
+                    (cl-transforms:make-3d-vector
+                     0 0 (- *door-handle-retract-offset*))
+                    (cl-transforms:make-identity-rotation))))))))))
 
 
 (defun 3d-vector->keyparam-list (v)
