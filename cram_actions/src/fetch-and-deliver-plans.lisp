@@ -235,7 +235,7 @@ retries with different search location or robot base location."
                  outer-search-location-retries
                  (:error-object-or-string e
                   :warning-namespace (fd-plans search-for-object)
-                  :reset-designators (list ?robot-location ?search-location)
+                  :reset-designators (list ?robot-location)
                   :rethrow-failure 'common-fail:searching-failed
                   :distance-threshold 0.1)
                (roslisp:ros-warn (fd-plans search-for-object)
