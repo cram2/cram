@@ -151,6 +151,12 @@
 (defparameter *valid-location-on-sink-area-surface-near-oven*
   (make-pose-stamped '((1.54 1.1 0.9) (0 0 0 1))))
 
+(defparameter *valid-location-inside-fridge*
+  (make-pose-stamped '((1.48 -1.16 0.55) (0 0 0 1))))
+
+(defparameter *invalid-location-outside-map*
+  (make-pose-stamped '((2.8 0.71 0.9) (0 0 0 1))))
+
 ;;;;;;;;;;;;; Robot Poses ;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *valid-robot-pose-towards-island*

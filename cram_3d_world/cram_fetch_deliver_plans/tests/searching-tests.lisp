@@ -132,3 +132,15 @@
   (assert-equal 1 (get-error-count-for-error 'common-fail:navigation-pose-unreachable)))
 
 
+(define-test object-can-be-found-after-visibility-designator-error-search-test
+  (init-projection)
+  (spawn-object *valid-location-on-island* :bowl)
+  (urdf-proj:with-simulated-robot
+    (perform (an action
+                 (type searching)
+                 (object (an object
+                             (type bowl)
+                             (location (a location
+                                          (poses (*valid-location-inside-fridge*
+                                                  *valid-location-on-island*)))))))))
+  (assert-equal 1 (get-error-count-for-error 'common-fail:navigation-goal-in-collision)))
