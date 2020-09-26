@@ -118,8 +118,8 @@ The parameters are analog to the ones of `get-action-trajectory'."
        (make-prismatic-trajectory object-transform arm action-type grasp-pose opening-distance))
       (:container-revolute
        (make-revolute-trajectory object-transform arm action-type grasp-pose opening-distance
-                                 (get-revolute-axis object-name)
-                                 (get-revolute-invert object-name)))
+                                 (get-revolute-axis object-name object-environment)
+                                 (get-revolute-invert object-name object-environment)))
       (T (error "Unsupported container-type: ~a." object-type)))))
 
 
@@ -319,15 +319,15 @@ So normally (0 1 0) or (0 0 1).
         0
         0))))))
 
-(defun get-revolute-axis (object-name)
+(defun get-revolute-axis (object-name object-environment)
   (cl-tf:rotate
    (cl-tf:rotation
     (cl-urdf:origin
      (cl-urdf:from-joint
-      (get-handle-link object-name :iai-kitchen))))
+      (get-handle-link object-name object-environment))))
    (cl-tf:make-3d-vector 0 0 1)))
 
-(defun get-revolute-invert (object-name)
+(defun get-revolute-invert (object-name object-environment)
   (let ((name-exception
           (alexandria:switch ((roslisp-utilities:rosify-underscores-lisp-name
                                object-name)
