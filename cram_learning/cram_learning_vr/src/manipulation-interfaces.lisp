@@ -30,11 +30,23 @@
 
 (in-package :learning-vr)
 
+(defvar *learning-vr-on* T)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; GET-SYMBOLIC-LOCATION ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Helper function
+
 (defun location-on-p (urdf-name)
   (or (equal urdf-name :kitchen-island-surface)
       (equal urdf-name :kitchen-island)
       (equal urdf-name :sink-area)
       (equal urdf-name :oven-area-area)))
+
+
+;; Translates the OWL Names of the environment objects returned from
+;; service GetSymbolicLocation into its URDF names.
 
 (let ((owl->urdf-table (make-hash-table :test 'equalp)))
   (setf (gethash "SinkDrawerLeftTop" owl->urdf-table)
@@ -56,6 +68,8 @@
         
   (defun owl->urdf (owl-name)
     (gethash owl-name owl->urdf-table)))
+
+;; Translates the OWL types of the bullet items into its CRAM types.
 
 (let ((owl->type-table (make-hash-table :test 'equalp)))
   (setf (gethash "SpoonSoup" owl->type-table)
@@ -87,15 +101,85 @@
         (gethash "Tray" owl->type-table)
         :tray)
   
- (defun owl->type (owl-name)
-   (gethash owl-name owl->type-table)))
+  (defun owl->type (owl-name)
+    (gethash owl-name owl->type-table)))
 
-(defun get-every-object ()
+(defmethod costmap:costmap-generator-name->score ((name (eql 'vr-learned-grid)))
+  10)
+
+
+;; Designators returning the storage and destination locations from
+;; the VR experiments encoded in location designators, which are later
+;; resolved and inputted in `get-location-poses'.
+
+(defmethod man-int:get-object-likely-location :vr-owl 30 (?object-type ?kitchen-name ?human-name ?context)
+  "Returns a location designator representing the storage location of an object
+with the given `?object-type' in the environment called `?kitchen-name' by using
+the `GetSymbolicLocation' service with the given `?human-name' and `?context'.
+
+The priority of this function should be lower than the priority of the
+:heuristics functions, unless the objects are storaged like in the
+VR experiment."
+  (let* ((?vr-owl (get-object-storage-location ?object-type
+                                               ?context
+                                               ?human-name
+                                               ?kitchen-name
+                                               *table-id*))
+         (?pseudo-urdf (owl->urdf ?vr-owl)))
+    (if (location-on-p ?pseudo-urdf)
+        (desig:a location
+                 (on (desig:an object
+                               (urdf-name ?pseudo-urdf)
+                               (owl-name ?vr-owl)
+                               (part-of ?kitchen-name))))
+        (desig:a location
+                 (in (desig:an object
+                               (urdf-name ?pseudo-urdf)
+                               (owl-name ?vr-owl)
+                               (part-of ?kitchen-name)))))))
+
+(defmethod man-int:get-object-destination :vr-owl 10 (?object-type ?kitchen-name ?human-name ?context)
+"Returns a location designator representing the destination location of an object
+with the given `?object-type' in the environment called `?kitchen-name' by using
+the `GetSymbolicLocation' service the given `?human-name' and `?context'. 
+
+The priority of this function should be higher than the priority of
+The :heuristics functions, if the destination location from the VR
+experiments should be used."
+  (let* ((?vr-owl (get-object-destination-location ?object-type
+                                                   ?context
+                                                   ?human-name
+                                                   ?kitchen-name
+                                                   *table-id*))
+         (?pseudo-urdf (owl->urdf ?vr-owl)))
+    (if (location-on-p ?pseudo-urdf)
+        (desig:a location
+                 (on (desig:an object
+                               (urdf-name ?pseudo-urdf)
+                               (owl-name ?vr-owl)
+                               (part-of ?kitchen-name)))
+                 (context ?context)
+                 (for (desig:an object (type ?object-type))))
+        (desig:a location
+                 (in (desig:an object
+                               (urdf-name ?pseudo-urdf)
+                               (owl-name ?vr-owl)
+                               (part-of ?kitchen-name)))
+                 (context ?context)
+                 (for (desig:an object (type ?object-type)))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; GET-COSTMAP-LOCATION ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Helper function
+
+(defun get-already-placed-object ()
+"Returns every bullet object placed on the kitchen island table."
   (remove-if-not (lambda (obj)
                    (and (typep obj 'btr:item)
                         (equalp
-                         "kitchen_island"  ;; TODO CHECK IF OBJ IS ON
-                         ;; ITS DESTINATION LOCATION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
+                         "kitchen_island"
                          (cdr (find (btr:name obj)
                                     ;; get all links contacting items
                                     ;; in the environment
@@ -107,16 +191,18 @@
                  (btr:objects btr:*current-bullet-world*)))
 
 (defmethod man-int:get-location-poses :learning 10 (location-designator)
-  (print "get-location-poses w/ vr-learning called")
-  (print location-designator)
-  (if T ;;(and *learning-framework-on* (rob-int:reachability-designator-p location-designator))
+"Samples from the costmaps returned by the service `GetCostmap'."
+  (if *learning-vr-on*
       (let (object-type kitchen-name context urdf-name on-p)
+        ;; If the location designator contains a :for and :on/:in
+        ;; property and a :context is specifed too...
         (if (and (desig:desig-prop-value location-designator :for) ;; (for (desig:an object (type ...)))
                  (or (desig:desig-prop-value location-designator :on)
                      (desig:desig-prop-value location-designator :in));; (on (desig:an object (part-of kitchen ...)))
                  (desig:desig-prop-value location-designator :context)
                  (not (desig:desig-prop-value location-designator :reachable-for)))
-            
+
+            ;; ... we get the object-designator and the environment designator.
             (let* ((object-designator
                      (desig:current-desig
                       (desig:desig-prop-value location-designator :for)))
@@ -128,36 +214,46 @@
                          (desig:current-desig
                           (desig:desig-prop-value location-designator :in)))))
 
+              ;; From these designators we get the needed values like...
+              ;; ... object type of the object designator
               (when (desig:desig-prop-value object-designator :type)
                 (setf object-type
                       (desig:desig-prop-value object-designator :type)))
+              ;; ... name of the whole environment
               (when (desig:desig-prop-value kitchen-object-designator :part-of)
                 (setf kitchen-name
                       (desig:desig-prop-value kitchen-object-designator :part-of)))
-              (setf context
-                    (desig:desig-prop-value location-designator :context))
-              (setf urdf-name
-                    (desig:desig-prop-value kitchen-object-designator :urdf-name))
+              ;; ... context of the location designator
+              (when (desig:desig-prop-value location-designator :context)
+                (setf context
+                      (desig:desig-prop-value location-designator :context)))
+              ;; ... urdf name of the environment designator
+              (when (desig:desig-prop-value kitchen-object-designator :urdf-name)
+                (setf urdf-name
+                      (desig:desig-prop-value kitchen-object-designator :urdf-name)))
+              ;; ... and if the object should be placed on or in the
+              ;; given environment object (encoded with environment designator).
               (setf on-p
                     (member :on (desig:properties location-designator)
                             :key #'first
-                            :test #'equal))
-              (print object-type)
-              (print kitchen-name)
-              (print context))
+                            :test #'equal)))
+
+            ;; Otherwise, we use the defined heuristics.
             (progn
-              ;;(when (desig:desig-prop-value location-designator :location)
-              ;; any other location designator
-              (print "nvm - use heuristics")
+              (roslisp:ros-debug (cvr costmap) "Using heuristics for the costmap.")
               (return-from man-int:get-location-poses
                 (desig:resolve-location-designator-through-generators-and-validators
                  location-designator))))
+
+        ;; After that we get the already placed objects and its
+        ;; coordinates and call the the function `get-costmap-for' to
+        ;; sample from the returned costmap.
         (let* ((placed-object-positions
                  (mapcar 
                   (alexandria:compose 
                    #'cl-transforms:origin
                    #'btr:pose)
-                   (get-every-object)))
+                   (get-already-placed-object)))
                (x-placed-object-positions 
                  (mapcar 
                   #'cl-transforms:x
@@ -170,7 +266,7 @@
                  (mapcar 
                   (lambda (obj)
                     (first (btr:item-types obj)))
-                  (get-every-object)))
+                  (get-already-placed-object)))
                (learned-costmap
                  (get-costmap-for
                   object-type 
@@ -185,81 +281,7 @@
                (merged-costmap
                  (apply #'costmap:merge-costmaps (cons learned-costmap
                                                        heuristics-costmaps))))
-          (print "test")
-          ;; TODO: check for invalid-probability-distribution
-          (let ((samples (costmap:costmap-samples learned-costmap)))
-            (print samples)
-            (print (mapcar (lambda (c)
-                             (funcall c
-                                      (cl-transforms:x
-                                       (cl-transforms:origin (cut:lazy-car samples)))
-                                      (cl-transforms:y 
-                                       (cl-transforms:origin
-                                        (cut:lazy-car samples)))
-                                      nil))
-                           (location-costmap::orientation-generators
-                learned-costmap)))
-            (roslisp:ros-info (cvr costmap) "Visualizing learned costmap.")
-            (cpl:sleep 1.0)
-            (costmap:costmap-samples learned-costmap))))
 
-        ;;(desig:resolve-location-designator-through-generators-and-validators
-        ;;location-designator)
-      ))
-
-(defmethod costmap:costmap-generator-name->score ((name (eql 'vr-learned-grid)))
-  10)
-
-(defmethod man-int:get-object-likely-location :vr-owl 30 (?kitchen-name ?human-name ?context ?object-type)
-  "Returns a designator representing the location of given object in
-the vr-data. For more information see the defgeneric. The priority of
-  this function should be lower than the priority of the :heuristics functions."
-  (let* ((?vr-owl (get-object-storage-location ?object-type
-                                               ?context
-                                               ?human-name
-                                               ?kitchen-name
-                                               *table-id*))
-         (?pseudo-urdf (owl->urdf ?vr-owl)))
-    (if (location-on-p ?pseudo-urdf)
-        (desig:a location
-                 (on (desig:an object
-                               ;; (type ?pseudo-type)
-                               (urdf-name ?pseudo-urdf)
-                               (owl-name ?vr-owl)
-                               (part-of ?kitchen-name))))
-        (desig:a location
-                 (in (desig:an object
-                               ;; (type ?pseudo-type)
-                               (urdf-name ?pseudo-urdf)
-                               (owl-name ?vr-owl)
-                               (part-of ?kitchen-name)))))))
-
-(defmethod man-int:get-object-destination :vr-owl 10 (?kitchen-name ?human-name ?context ?object-type)
-  "Returns a designator representing the location of given object in
-vr-data. For more information see the defgeneric. The priority of
-  this function should be higher than the priority of the :heuristics functions."
-  (let* ((?vr-owl (get-object-destination-location ?object-type
-                                                   ?context
-                                                   ?human-name
-                                                   ?kitchen-name
-                                                   *table-id*))
-         (?pseudo-urdf (owl->urdf ?vr-owl))
-         ;;(?pseudo-btr-type (owl->type ?object-type)
-         )
-    (if (location-on-p ?pseudo-urdf)
-        (desig:a location
-                 (on (desig:an object
-                               ;; (type counter-top)
-                               (urdf-name ?pseudo-urdf)
-                               (owl-name ?vr-owl)
-                               (part-of ?kitchen-name)))
-                 (context ?context)
-                 (for (desig:an object (type ?object-type))))
-        (desig:a location
-                 (in (desig:an object
-                               ;; (type counter-top)
-                               (urdf-name ?pseudo-urdf)
-                               (owl-name ?vr-owl)
-                               (part-of ?kitchen-name)))
-                 (context ?context)
-                 (for (desig:an object (type ?object-type)))))))
+          (roslisp:ros-info (cvr costmap) "Visualizing learned costmap.")
+          (cpl:sleep 1.0)
+          (costmap:costmap-samples merged-costmap)))))

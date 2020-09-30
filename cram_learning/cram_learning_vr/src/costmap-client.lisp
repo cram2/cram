@@ -32,14 +32,38 @@
 
 (defvar *human-name* :Thomas)
 (defvar *table-id* "rectangular_table")
+(defvar *x-offset* 0.15)
+(defvar *y-offset* 0.05)
+
+;; Helper Functions
           
-(defun get-row (vec elem_i end)
-  (when (< elem_i end)
-    (cons (/ (float (aref vec elem_i)) 2) (get-row vec (1+ elem_i) end))))
+(defun get-row (vec elem-i end)
+  (when (< elem-i end)
+    (cons (/ (float (aref vec elem-i)) 2) (get-row vec (1+ elem-i) end))))
 
 (defun keyword-to-string (kw)
   (unless (stringp kw)
     (remove ":" (write-to-string kw) :test #'string=)))
+
+(defun box-mueller-transform (mean std)
+  (+ (* (box-mueller-transform-value) std) mean))
+
+(defun box-mueller-transform-value ()
+  (let ((u1 (random 1.0d0))
+        (u2 (random 1.0d0)))
+    (* (sqrt (* -2 (log u1))) (cos (* 2 pi u2)))))
+
+(defun 1d-gauss (std mean)
+  (declare (type double-float std mean))
+  (lambda (x)
+    (* (/ 1 (* std (sqrt (* 2 pi))))
+       (exp (* -0.5 (expt (/ (- x mean)
+                             std)
+                          2))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; GET-SYMBOLIC-LOCATION ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun get-object-location (object-type context name kitchen table-id storage-location-p)
   (if (not (eql roslisp::*node-status* :running))
@@ -74,181 +98,272 @@
 (defun get-object-destination-location (object-type context name kitchen table-id)
   (get-object-location object-type context name kitchen table-id NIL))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; GET-COSTMAP-LOCATION ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;; Wrappers for the GetCostmap query and response
+
+(defun wrap-get-costmap-query (object-type x-placed-object-positions
+                               y-placed-object-positions placed-object-types
+                               context name kitchen table-id)
+  (values
+   ;; object-type
+   (keyword-to-string
+    object-type) ;; e.g. :bowl
+   ;; :placed_x_object_positions
+   (if x-placed-object-positions
+       (make-array
+        (length x-placed-object-positions)
+        :element-type
+        'cl:float
+        :initial-contents
+        (mapcar
+         (alexandria:rcurry
+          #'coerce
+          'cl:float)
+         (mapcar 
+          (lambda (v)
+            (+ v *x-offset*)) 
+          x-placed-object-positions)))
+       (cl:vector))
+   ;; :placed_y_object_positions
+   (if y-placed-object-positions
+       (make-array
+        (length y-placed-object-positions)
+        :element-type
+        'cl:float
+        :initial-contents
+        (mapcar
+         (alexandria:rcurry
+          #'coerce
+          'cl:float)
+         (mapcar
+          (lambda (v) 
+            (+ v *y-offset*)) 
+          y-placed-object-positions)))
+       (cl:vector))
+   ;; :placed_object_types
+   (if placed-object-types
+       (make-array
+        (length placed-object-types)
+        :initial-contents
+        (mapcar
+         #'keyword-to-string
+         placed-object-types))
+       (cl:vector))
+   ;; :context 
+   (keyword-to-string
+    context) ;; e.g. :breakfast
+   ;; :name 
+   (keyword-to-string
+    name) ;; e.g. :thomas
+   ;; :kitchen 
+   (keyword-to-string
+    kitchen) ;; e.g. 'kitchen
+   ;; :table_id 
+   table-id ;; e.g. "rectangular_table"
+   ))
+
+(defun unwrap-get-costmap-response (response)
+  (roslisp:with-fields (bottem_lefts
+                        resolution
+                        widths heights
+                        x_y_vecs 
+                        global_width
+                        global_height
+                        angles) response
+    ;; Get values of the matrix in m and save the
+    ;; coordinates of the bottom left point.
+    (let* ((m '())
+           (bottem_left (reduce (lambda (p other-p) 
+                                  (make-instance
+                                   'geometry_msgs-msg::Point 
+                                   :x 
+                                   (if (<
+                                        (geometry_msgs-msg:x other-p)
+                                        (geometry_msgs-msg:x p))
+                                       (geometry_msgs-msg:x other-p)
+                                       (geometry_msgs-msg:x p))
+                                   :y
+                                   (if (<
+                                        (geometry_msgs-msg:y other-p)
+                                        (geometry_msgs-msg:y p))
+                                       (geometry_msgs-msg:y other-p)
+                                       (geometry_msgs-msg:y p))
+                                   :z 0.0))
+                                bottem_lefts))
+           (rows (truncate (/ global_height resolution)))
+           (columns (truncate (/ global_width resolution))))
+      (dotimes (row-i (truncate (/ global_height resolution)))
+        (push (get-row x_y_vecs
+                       (* row-i columns)
+                       (+ (* row-i columns)
+                          columns))
+              m))
+      (values bottem_left
+              bottem_lefts
+              resolution
+              rows columns
+              widths heights
+              angles
+              m))))  
+
+;; Actual service call
+
 (defun get-costmap-for (object-type
                         x-placed-object-positions y-placed-object-positions placed-object-types
                         context name kitchen table-id urdf-name on-p)
+"Calls the service `get_costmap', gets its response and samples from a
+`costmap:location-costmap' object created by `create-vr-costmap'."
   (format t "called get-costmap-for for object-type ~a" object-type)
-  (when T ;;(every #'identity (mapcar #'keywordp (list object-type context
-          ;;                                         name kitchen table-id)))
-    (if (not (eql roslisp::*node-status* :running))
-        (roslisp:ros-info (cvr costmap) "Please start a ros node.")
-        (if (not (roslisp:wait-for-service "get_costmap" 10))
-            (roslisp:ros-warn (cvr costmap) "Timed out waiting for service get_costmap")
+  (if (not (eql roslisp::*node-status* :running))
+      (roslisp:ros-info (cvr costmap) "Please start a ros node.")
+      (if (not (roslisp:wait-for-service "get_costmap" 10))
+          (roslisp:ros-warn (cvr costmap) "Timed out waiting for service get_costmap")
+          ;; Wrap the arguments of the query
+          (multiple-value-bind (object-type-wrapped
+                                x-placed-object-positions-wrapped
+                                y-placed-object-positions-wrapped
+                                placed-object-types-wrapped
+                                context-wrapped name-wrapped
+                                kitchen-wrapped table-id-wrapped)
+              (wrap-get-costmap-query object-type
+                                  x-placed-object-positions
+                                  y-placed-object-positions
+                                  placed-object-types context name
+                                  kitchen table-id)
+            ;; Get response
             (let ((response (roslisp:call-service "get_costmap" 'costmap_learning-srv::GetCostmap
                                                   :object_type
-                                                  (keyword-to-string
-                                                   object-type) ;; e.g. :bowl
+                                                  object-type-wrapped
                                                   :placed_x_object_positions
-                                                  (if x-placed-object-positions
-                                                      (make-array
-                                                       (length x-placed-object-positions)
-                                                       :element-type
-                                                       'cl:float
-                                                       :initial-contents
-                                                       (mapcar
-                                                        (alexandria:rcurry
-                                                         #'coerce
-                                                         'cl:float)
-                                                        (mapcar 
-                                                         (lambda (v)
-                                                           (+ v 0.15)) 
-                                                         x-placed-object-positions)))
-                                                      (cl:vector))
+                                                  x-placed-object-positions-wrapped
                                                   :placed_y_object_positions
-                                                  (if y-placed-object-positions
-                                                      (make-array
-                                                       (length y-placed-object-positions)
-                                                       :element-type
-                                                       'cl:float
-                                                       :initial-contents
-                                                       (mapcar
-                                                        (alexandria:rcurry
-                                                         #'coerce
-                                                         'cl:float)
-                                                        (mapcar
-                                                         (lambda (v) 
-                                                           (+ v 0.05)) 
-                                                         y-placed-object-positions)))
-                                                      (cl:vector))
+                                                  y-placed-object-positions-wrapped
                                                   :placed_object_types
-                                                  (if placed-object-types
-                                                      (make-array
-                                                       (length placed-object-types)
-                                                       ;; :element-type
-                                                       ;; #'string
-                                                       :initial-contents
-                                                       (mapcar
-                                                        #'keyword-to-string
-                                                        placed-object-types))
-                                                      (cl:vector))
+                                                  placed-object-types-wrapped
                                                   :context 
-                                                  (keyword-to-string
-                                                   context) ;; e.g. :breakfast
+                                                  context-wrapped ;; e.g. :breakfast
                                                   :name 
-                                                  (keyword-to-string
-                                                   name) ;; e.g. :thomas
+                                                  name-wrapped ;; e.g. :thomas
                                                   :kitchen 
-                                                  (keyword-to-string
-                                                   kitchen) ;; e.g. 'kitchen
+                                                  kitchen-wrapped ;; e.g. 'kitchen
                                                   :table_id 
-                                                  table-id ;; e.g. "rectangular_table"
+                                                  table-id-wrapped ;; e.g. "rectangular_table"
                                                   )))
-              (roslisp:with-fields (bottem_lefts
-                                    resolution
-                                    widths heights
-                                    x_y_vecs 
-                                    global_width
-                                    global_height
-                                    angles) response
-                (let* ((m '())
-                       (bottem_left (reduce (lambda (p other-p) 
-                                              (make-instance
-                                               'geometry_msgs-msg::Point 
-                                               :x 
-                                               (if (<
-                                                    (geometry_msgs-msg:x other-p)
-                                                    (geometry_msgs-msg:x p))
-                                                   (geometry_msgs-msg:x other-p)
-                                                   (geometry_msgs-msg:x p))
-                                               :y
-                                               (if (<
-                                                    (geometry_msgs-msg:y other-p)
-                                                    (geometry_msgs-msg:y p))
-                                                   (geometry_msgs-msg:y other-p)
-                                                   (geometry_msgs-msg:y p))
-                                               :z 0.0))
-                                            bottem_lefts))
-                       (rows (truncate (/ global_height resolution)))
-                       (columns (truncate (/ global_width resolution))))
-                  (print bottem_lefts)
-                  (print bottem_left)
-                  (print angles)
-                  ;;(break)
-                  (dotimes (row-i (truncate (/ global_height resolution)))
-                    (push (get-row x_y_vecs
-                                   (* row-i columns)
-                                   (+ (* row-i columns)
-                                      columns))
-                          m))
-                  (let ((array (make-array (list rows columns)
-                                           :element-type 'double-float
-                                           :initial-contents m))
-                        (costmap
-                          (apply #'make-instance 'costmap:location-costmap (costmap:costmap-metadata))))
-                    (costmap:register-cost-function
-                     costmap
-                     (costmap:make-matrix-cost-function
-                      (- (geometry_msgs-msg:x bottem_left) 0.15)
-                      (- (geometry_msgs-msg:y bottem_left) 0.05)
-                      resolution array
-                      ;; Sebastian's X axis looks to the right,
-                      ;; after transposing, which happened above, see the comment,
-                      ;; his axis now looks to the left.
-                      ;; Our X axis looks up, so we need to rotate the transposed array with 90 degrees
-                      ;;(- (calculate-rotation-angle object-transform-in-map) (/ pi 2)))
-                      )
-                     'vr-learned-grid)
-                    (flet ((get-urdfs-rigid-body (urdf-name)
-                             (when (keywordp urdf-name)
-                               (cdr (find (write-to-string urdf-name)
-                                          (alexandria:hash-table-alist
-                                           (btr:links (btr:get-environment-object)))
-                                          :key (lambda (name-and-rigid-body)
-                                                 (substitute #\- #\_
-                                                             (concatenate 'string
-                                                                          ":"
-                                                                          (car name-and-rigid-body))))
-                                          :test #'equalp))))
-                           (get-obj-instance-from-type (obj-type)
-                             (find obj-type 
-                                   (btr:objects btr::*current-bullet-world*)
-                                   :key (lambda (obj)
-                                          (when (typep obj 'cram-bullet-reasoning:item)
-                                            (first (btr:item-types obj))))
-                                   :test #'equal)))
-                      (costmap:register-height-generator
-                       costmap
-                       (btr-spatial-cm::make-object-on/in-object-bb-height-generator
-                        (get-urdfs-rigid-body urdf-name)
-                        (get-obj-instance-from-type object-type)
-                        (if on-p :on :in))))
-                    (dotimes (i (length widths))
-                      (print i)
-                      (let* ((bottem-left (aref bottem_lefts i))
-                             (width (aref widths i))
-                             (height (aref heights i))
-                             (mean (aref angles (* 2 i)))
-                             (std (aref angles (+ (* 2 i) 1)))
-                             (gauss (1d-gauss std mean)))
-                        (print "mean")
-                        (print mean)
-                        (print "std")
-                        (print std)
-                        (costmap:register-orientation-generator 
-                         costmap
-                         (make-vr-orientation-generator bottem-left
-                                                        width height
-                                                        mean std)
-                         ;; do not
-                          ;; use own fun gen with ret lambda (x y prev_orient)
-                          ;; angle -> quaternion (fixme); return more
-                          ;; samples in (lazy) list 
-                          )))
-                    (costmap:costmap-samples costmap)
-                    (sleep 3)
-                    costmap))))))))
+              ;; Unwrap the arguments from the response
+              (multiple-value-bind  (bottem-left
+                                     bottem-lefts
+                                     resolution
+                                     rows columns
+                                     widths heights
+                                     angles
+                                     m)
+                  (unwrap-get-costmap-response response)
+                ;; Create Costmap
+                (let* ((array (make-array (list rows columns)
+                                          :element-type 'double-float
+                                          :initial-contents m))
+                       (costmap (create-vr-costmap object-type
+                                                   on-p
+                                                   urdf-name
+                                                   bottem-left
+                                                   bottem-lefts
+                                                   resolution
+                                                   widths heights
+                                                   angles
+                                                   array)))
+                  (costmap:costmap-samples costmap)
+                  (sleep 3)
+                  costmap)))))))
 
-(defun make-vr-orientation-generator (bottem_left width height mean std)
+;; Creating the Costmap object from the unwrapped response
+
+(defun create-vr-costmap (object-type on-p urdf-name
+                          bottem-left bottem-lefts
+                          resolution
+                          widths heights
+                          angles array)
+  "Creates a `costmap:location-costmap' object and registers for it
+cost, height and orientation functions. To register these functions
+correct, all the given parameters are needed.
+
+To register the cost function the bottem left point `bottem-left' of the
+merged matrix `array' is needed, aswell its `resolution' The merged
+matrix `array' contains all discretized values of each gaussian distribution.
+
+To register the height function the environment object with the name
+`urdf-name' and the object instance with the `object-type'
+are needed. Moreover, it should be clear if the object should be
+placed on or in the environment object with `on-p'.
+
+To register the orientation function for each gaussian distribution
+each mean and standard deviation in `angles' is needed. Moreover, it
+should be clear at which coordinate an orientation function should be
+applied on by encoding the boundries of each gaussian distribution
+(see `make-vr-orientation-generator').
+Therefore, the bottem left points `bottem-lefts'
+and the `widths' and `heights' are needed."
+  (let ((costmap
+          (apply #'make-instance
+                 'costmap:location-costmap
+                 (costmap:costmap-metadata))))
+    ;; Register Cost Function of costmap
+    (costmap:register-cost-function
+     costmap
+     (costmap:make-matrix-cost-function
+      (- (geometry_msgs-msg:x bottem-left) *x-offset*)
+      (- (geometry_msgs-msg:y bottem-left) *y-offset*)
+      resolution array)
+     'vr-learned-grid)
+    ;; Register Height Funtion of costmap
+    (flet ((get-urdfs-rigid-body (urdf-name)
+             (when (keywordp urdf-name)
+               (cdr (find (write-to-string urdf-name)
+                          (alexandria:hash-table-alist
+                           (btr:links (btr:get-environment-object)))
+                          :key (lambda (name-and-rigid-body)
+                                 (substitute #\- #\_
+                                             (concatenate 'string
+                                                          ":"
+                                                          (car name-and-rigid-body))))
+                          :test #'equalp))))
+           (get-obj-instance-from-type (obj-type)
+             (find obj-type 
+                   (btr:objects btr::*current-bullet-world*)
+                   :key (lambda (obj)
+                          (when (typep obj 'cram-bullet-reasoning:item)
+                            (first (btr:item-types obj))))
+                   :test #'equal)))
+      (costmap:register-height-generator
+       costmap
+       (btr-spatial-cm::make-object-on/in-object-bb-height-generator
+        (get-urdfs-rigid-body urdf-name)
+        (get-obj-instance-from-type object-type)
+        (if on-p :on :in))))
+    ;; Register Orientation Functions of costmap
+    (dotimes (i (length widths))
+      (let* ((bottem-left (aref bottem-lefts i))
+             (width (aref widths i))
+             (height (aref heights i))
+             (mean (aref angles (* 2 i)))
+             (std (aref angles (+ (* 2 i) 1))))
+        (costmap:register-orientation-generator 
+         costmap
+         (make-vr-orientation-generator bottem-left
+                                        width height
+                                        mean std))))
+    ;; Return the costmap
+    costmap))
+
+
+(defun make-vr-orientation-generator (bottem-left width height mean
+                                      std &optional (visualize-samples NIL))
+"Creates a orientation generator which samples with the `mean' and
+standard deviation `std' from the area specified by the point
+`bottem-left' and the `width' and `height'."
   (lambda (x y prev-orient)
     (if (and prev-orient
              (not (cl-transforms:q=
@@ -256,35 +371,36 @@
                    (cl-transforms:make-identity-rotation))))
         prev-orient
         (if (and (< (- (geometry_msgs-msg:x
-                        bottem_left) 0.15)
+                        bottem-left) *x-offset*)
                     x
                     (+ (- (geometry_msgs-msg:x
-                           bottem_left) 0.15)
+                           bottem-left) *x-offset*)
                        height))
                  (< (- (geometry_msgs-msg:y
-                        bottem_left) 0.05)
+                        bottem-left) *y-offset*)
                     y
                     (+ (- (geometry_msgs-msg:y
-                           bottem_left) 0.05)
+                           bottem-left) *y-offset*)
                        width)))
-            (progn 
-              (let ((q (cl-transforms:euler->quaternion
-                        :ax 0.0 
-                        :ay 0.0 
-                        :az (+ pi
-                               (box-mueller-transform mean
-                                                      std)))))
-                (sleep 0.1)
-                (btr-utils:spawn-object (write-to-string
-                                         (random 1000000))
-                                        :arrow
-                                        :mass 1.0
-                                        :color '(1 0 1)
-                                        :pose `((,x ,y 1)
-                                                (,(cl-tf::x q)
-                                                 ,(cl-tf::y q)
-                                                 ,(cl-tf::z q)
-                                                 ,(cl-tf::w q)))))
+            (progn
+              (when visualize-samples
+                (let ((q (cl-transforms:euler->quaternion
+                          :ax 0.0 
+                          :ay 0.0 
+                          :az (+ pi
+                                 (box-mueller-transform mean
+                                                        std)))))
+                  (sleep 0.1)
+                  (btr-utils:spawn-object (write-to-string
+                                           (random 1000000))
+                                          :arrow
+                                          :mass 1.0
+                                          :color '(1 0 1)
+                                          :pose `((,x ,y 1)
+                                                  (,(cl-tf::x q)
+                                                   ,(cl-tf::y q)
+                                                   ,(cl-tf::z q)
+                                                   ,(cl-tf::w q))))))
               (cut:lazy-list ()
                 (loop for i from 0 to 20
                       collecting
@@ -296,70 +412,5 @@
             (cut:lazy-list ()
               (list
                (cl-transforms:make-identity-rotation)))))))
-  
-
-(defun box-mueller-transform (mean std)
-  (+ (* (box-mueller-transform-value) std) mean))
-
-(defun box-mueller-transform-value () ;; <- broken
-  (let ((u1 (random 1.0d0))
-        (u2 (random 1.0d0)))
-    (* (sqrt (* -2 (log u1))) (cos (* 2 pi u2)))))
-
-(defun 1d-gauss (std mean)
-  (declare (type double-float std mean))
-  (lambda (x)
-    (* (/ 1 (* std (sqrt (* 2 pi))))
-       (exp (* -0.5 (expt (/ (- x mean)
-                             std)
-                          2))))))
-  
-  
-  ;; (let* ((bindings
-  ;;          (car (json-prolog-simple-ralf
-  ;;                (format nil
-  ;;                        "designator_costmap(~(~a, ~a, ~a, ~a, ~a~), ~
-  ;;                                            MATRIX, ~
-  ;;                                            BOTTOM_RIGHT_CORNER_X, BOTTOM_RIGHT_CORNER_Y, ~
-  ;;                                            RESOLUTION)."
-  ;;                        location-type (or object-type #\_) (or object-name #\_)
-  ;;                        (serialize-transform object-transform-in-base)
-  ;;                        (serialize-transform object-transform-in-map))
-  ;;                :package :learning)))
-  ;;        (matrix-list
-  ;;          (cut:var-value '?matrix bindings))
-  ;;        (?resolution
-  ;;          0.01)
-  ;;        (height
-  ;;          (length matrix-list))
-  ;;        (width
-  ;;          (length (first matrix-list)))
-  ;;        (array
-  ;;          ;; Sebastian's arrays have their origin in top left corner.
-  ;;          ;; Our costmap matrices have their origin in bottom right corner,
-  ;;          ;; when looking from up-down.
-  ;;          (cma:double-matrix-transpose
-  ;;           (make-array (list width height)
-  ;;                       :element-type 'double-float
-  ;;                       :initial-contents matrix-list)))
-  ;;        (bottom-right-corner-x
-  ;;          (- (cl-transforms:x (cl-transforms:translation object-transform-in-map))
-  ;;             (* height 1/2 ?resolution)))
-  ;;        (bottom-right-corner-y
-  ;;          (- (cl-transforms:y (cl-transforms:translation object-transform-in-map))
-  ;;             (* width 1/2 ?resolution)))
-  ;;        (costmap
-  ;;          (apply #'make-instance 'costmap:location-costmap (costmap:costmap-metadata))))
-  ;;   (costmap:register-cost-function
-  ;;    costmap
-  ;;    (costmap:make-matrix-cost-function
-  ;;     bottom-right-corner-x bottom-right-corner-y ?resolution array
-  ;;     ;; Sebastian's X axis looks to the right,
-  ;;     ;; after transposing, which happened above, see the comment,
-  ;;     ;; his axis now looks to the left.
-  ;;     ;; Our X axis looks up, so we need to rotate the transposed array with 90 degrees
-  ;;     (- (calculate-rotation-angle object-transform-in-map) (/ pi 2)))
-  ;;    'learned-grid)
-  ;;   costmap))
           
                
