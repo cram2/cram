@@ -66,20 +66,20 @@
   (cram-tf:visualize-marker (man-int:get-object-pose ?object-designator)
                             :r-g-b-list '(1 1 0) :id 300)
 
+  (roslisp:ros-info (pick-place pick-up) "Looking")
+  (cpl:with-failure-handling
+      ((common-fail:ptu-low-level-failure (e)
+         (roslisp:ros-warn (pp-plans pick-up)
+                           "Looking-at had a problem: ~a~%Ignoring."
+                           e)
+         (return)))
+    (exe:perform
+     (desig:an action
+               (type looking)
+               (target (desig:a location
+                                (pose ?look-pose))))))
   (cpl:par
-    (roslisp:ros-info (pick-place pick-up)
-                      "Looking, opening gripper and reaching")
-    (cpl:with-failure-handling
-        ((common-fail:ptu-low-level-failure (e)
-           (roslisp:ros-warn (pp-plans pick-up)
-                             "Looking-at had a problem: ~a~%Ignoring."
-                             e)
-           (return)))
-      (exe:perform
-       (desig:an action
-                 (type looking)
-                 (target (desig:a location
-                                  (pose ?look-pose))))))
+    (roslisp:ros-info (pick-place pick-up) "Opening gripper and reaching")
     (let ((?goal `(cpoe:gripper-joint-at ,?arm ,?gripper-opening)))
       (exe:perform
        (desig:an action
@@ -127,19 +127,27 @@
                (grasp ?grasp)
                (goal ?goal))))
   (roslisp:ros-info (pick-place pick-up) "Lifting")
-  (cpl:with-failure-handling
-      ((common-fail:manipulation-low-level-failure (e)
-         (roslisp:ros-warn (pp-plans pick-up)
-                           "Manipulation messed up: ~a~%Ignoring."
-                           e)
-         (return)))
-    (let ((?goal `(cpoe:tool-frames-at ,?left-lift-poses ,?right-lift-poses)))
+  (cpl:pursue
+    (cpl:with-failure-handling
+        ((common-fail:manipulation-low-level-failure (e)
+           (roslisp:ros-warn (pp-plans pick-up)
+                             "Manipulation messed up: ~a~%Ignoring."
+                             e)
+           (return)))
+      (let ((?goal `(cpoe:tool-frames-at ,?left-lift-poses ,?right-lift-poses)))
+        (exe:perform
+         (desig:an action
+                   (type lifting)
+                   (left-poses ?left-lift-poses)
+                   (right-poses ?right-lift-poses)
+                   (goal ?goal)))))
+    (cpl:seq
       (exe:perform
        (desig:an action
-                 (type lifting)
-                 (left-poses ?left-lift-poses)
-                 (right-poses ?right-lift-poses)
-                 (goal ?goal)))))
+                 (type monitoring-joint-state)
+                 (gripper ?arm)))
+      (cpl:fail 'common-fail:gripper-closed-completely
+                :description "Object slipped")))
   (roslisp:ros-info (pick-place place) "Parking")
   (exe:perform
    (desig:an action
@@ -279,6 +287,25 @@
    (desig:an action
              (type parking-arms)
              (arms (?arm)))))
+
+
+(defun park-arms (&key
+                    ((:left-arm ?left-arm-p))
+                    ((:right-arm ?right-arm-p))
+                  &allow-other-keys)
+  (declare (type boolean ?left-arm-p ?right-arm-p))
+  "Puts the arms into a parking configuration"
+  (let* ((left-config (when ?left-arm-p :park))
+         (right-config (when ?right-arm-p :park))
+         (?goal `(cpoe:arms-positioned-at ,left-config ,right-config)))
+    (exe:perform
+     (desig:an action
+               (type positioning-arm)
+               (desig:when ?left-arm-p
+                 (left-configuration park))
+               (desig:when ?right-arm-p
+                 (right-configuration park))
+               (goal ?goal)))))
 
 
 (defun perceive (&key

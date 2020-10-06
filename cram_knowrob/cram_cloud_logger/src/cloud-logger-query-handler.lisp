@@ -69,21 +69,28 @@
     (progn
       (print "Previous episode recording is still running. Stopping the recording ...")
       (stop-episode)))
+  (setf ccl::*is-logging-enabled* t)
+  (ccl::init-logging)
   (ccl::clear-detected-objects)
-  (setf ccl::*episode-name* (get-url-from-send-query-1 "RootAction" "mem_episode_start" "RootAction")))
+  (setf ccl::*episode-name* (get-url-from-send-query-1 "RootAction" "mem_episode_start" "RootAction"))
+  (ccl::start-situation *episode-name*))
 
 (defun stop-episode ()
+  (ccl::stop-situation *episode-name*)
   (send-query-1-without-result "mem_episode_stop" (concatenate 'string "'" (uiop:getenv "KNOWROB_MEMORY_DIR") "'"))
-  (setf ccl::*episode-name* nil))
+  (setf ccl::*episode-name* nil)
+  (setf ccl::*is-logging-enabled* nil))
 
 (defun send-query-1-without-result (query-name &rest query-parameters)
-  (let ((query (create-query query-name query-parameters)))
-    (send-query-1 query)
+  (let* ((query (create-query query-name query-parameters))
+         (result (send-query-1 query)))
+    (when (not result)
+      (break))
     (print "DONE REASONING")))
 
 (defun send-query-1 (query)
   (print query)
-  (json-prolog:prolog-simple-1 query))
+  (print (json-prolog:prolog-simple-1 query)))
 
 (defun get-url-from-send-query-1 (url-parameter query-name &rest query-parameters)
   (let* ((query (create-query query-name query-parameters))

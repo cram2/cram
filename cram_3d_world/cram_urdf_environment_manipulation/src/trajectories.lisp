@@ -29,7 +29,7 @@
 
 (in-package :env-man)
 
-(defparameter *drawer-handle-grasp-x-offset* -0.015 "in meters")
+(defparameter *drawer-handle-grasp-x-offset* -0.005 "in meters")
 (defparameter *drawer-handle-pregrasp-x-offset* 0.10 "in meters")
 (defparameter *drawer-handle-retract-offset* 0.10 "in meters")
 (defparameter *door-handle-retract-offset* 0.05 "in meters")
@@ -117,7 +117,9 @@ The parameters are analog to the ones of `get-action-trajectory'."
       (:container-prismatic
        (make-prismatic-trajectory object-transform arm action-type grasp-pose opening-distance))
       (:container-revolute
-       (make-revolute-trajectory object-transform arm action-type grasp-pose opening-distance))
+       (make-revolute-trajectory object-transform arm action-type grasp-pose opening-distance
+                                 (get-revolute-axis object-name)
+                                 (get-revolute-invert object-name)))
       (T (error "Unsupported container-type: ~a." object-type)))))
 
 
@@ -156,7 +158,8 @@ frame of the robot's end effector as the child (eg. `cram-tf:*robot-left-tool-fr
      grasp-pose :x-offset (+ opening-distance *drawer-handle-retract-offset*)))))
 
 (defun make-revolute-trajectory (object-transform arm action-type
-                                 grasp-pose opening-angle)
+                                 grasp-pose opening-angle
+                                 axis invert)
   "Return a list of `man-int::traj-segment' representing a trajectory to open a
 container with revolute joints.
 `object-transform' should have `cram-tf:*robot-base-frame*'
@@ -171,7 +174,8 @@ frame of the robot's end effector as the child (eg. `cram-tf:*robot-left-tool-fr
            (type keyword action-type)
            (type cl-transforms-stamped:transform-stamped grasp-pose)
            (type number opening-angle))
-  (let* ((traj-poses (get-revolute-traj-poses grasp-pose :angle-max opening-angle))
+  (let* ((traj-poses (get-revolute-traj-poses grasp-pose :angle-max opening-angle
+                                                         :axis axis :invert invert))
          (last-traj-pose (car (last traj-poses))))
     (mapcar
      (lambda (label transforms)
@@ -212,7 +216,8 @@ frame of the robot's end effector as the child (eg. `cram-tf:*robot-left-tool-fr
 (defun get-revolute-traj-poses (joint-to-gripper
                                 &key
                                   (axis (cl-transforms:make-3d-vector 0 0 1))
-                                  angle-max)
+                                  angle-max
+                                  (invert nil))
   "Return a list of stamped transforms from of the gripper-frame in the joint-frame rotated
 around `axis' by `angle-max' in steps of 0.1 rad."
   (declare (type cl-transforms-stamped:transform-stamped joint-to-gripper)
@@ -239,8 +244,9 @@ around `axis' by `angle-max' in steps of 0.1 rad."
                               (cl-transforms:rotation joint-to-gripper) :just-values t))
                       (cl-transforms:v*
                        axis
-                       angle)))))))))
-
+                       (if invert
+                           (- angle)
+                           angle))))))))))
 
 (defun get-container-to-gripper-transform (object-name
                                            arm
@@ -312,3 +318,29 @@ So normally (1 0 0) or (0 0 1).
         -1
         0
         0))))))
+
+(defun get-revolute-axis (object-name)
+  (let ((name-exception
+          (alexandria:switch ((roslisp-utilities:rosify-underscores-lisp-name
+                               object-name)
+                              :test 'equal)
+            ("oven_area_oven_main"
+             (cl-transforms:make-3d-vector 0 1 0))
+            ("sink_area_dish_washer_main"
+             (cl-transforms:make-3d-vector 0 1 0)))))
+    (if name-exception
+        name-exception
+        (cl-transforms:make-3d-vector 0 0 1))))
+
+(defun get-revolute-invert (object-name)
+  (let ((name-exception
+          (alexandria:switch ((roslisp-utilities:rosify-underscores-lisp-name
+                               object-name)
+                              :test 'equal)
+            ("oven_area_oven_main"
+             T)
+            ("sink_area_dish_washer_main"
+             T))))
+    (if name-exception
+        name-exception
+        NIL)))

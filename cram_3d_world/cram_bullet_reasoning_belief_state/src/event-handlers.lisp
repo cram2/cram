@@ -12,8 +12,8 @@
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
 ;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors 
-;;;       may be used to endorse or promote products derived from this software 
+;;;       Technische Universitaet Muenchen nor the names of its contributors
+;;;       may be used to endorse or promote products derived from this software
 ;;;       without specific prior written permission.
 ;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -69,29 +69,65 @@ and renames POSE into OLD-POSE."
 
 
 (defmethod cram-occasions-events:on-event object-perceived 2 ((event cpoe:object-perceived-event))
-  (if cram-projection:*projection-environment*
-      ;; if in projection, only add the object name to perceived designators list
-      (let ((object-data (desig:reference (cpoe:event-object-designator event))))
-        (or
-         (gethash (desig:object-identifier object-data)
-                  *object-identifier-to-instance-mappings*)
-         (setf (gethash (desig:object-identifier object-data)
-                        *object-identifier-to-instance-mappings*)
-               (desig:object-identifier object-data))))
-      ;; otherwise, spawn a new object in the bullet world
-      (progn
+  (let* ((object-data (desig:reference (cpoe:event-object-designator event)))
+         (object-name (desig:object-identifier object-data))
+         (object-pose (desig:object-pose object-data)))
+    (if cram-projection:*projection-environment*
+        ;; if in projection, add noise and add the object name to perceived designators list
+        (progn
+          (add-artificial-perception-noise object-name object-pose)
+          (or (gethash (desig:object-identifier object-data)
+                       *object-identifier-to-instance-mappings*)
+              (setf (gethash (desig:object-identifier object-data)
+                             *object-identifier-to-instance-mappings*)
+                    (desig:object-identifier object-data))))
+        ;; otherwise, spawn a new object in the bullet world
         (register-object-designator-data
-         (desig:reference (cpoe:event-object-designator event))
-         :type (desig:desig-prop-value (cpoe:event-object-designator event) :type))
-        ;; after having spawned the object, update the designator to get the
-        ;; new simulated pose
-        (desig:equate
-         (cpoe:event-object-designator event)
-         (detect-new-object-pose-from-btr (cpoe:event-object-designator event))))))
+         object-data
+         :type (desig:desig-prop-value (cpoe:event-object-designator event) :type)))
+    ;; after having spawned the object,
+    ;; correct noise through world state consistency reasoning
+    (stabilize-perceived-object-pose btr:*current-bullet-world* object-name object-pose)
+     ;; simulate world
+    (btr:simulate btr:*current-bullet-world* 100)
+    ;; update the designator to get the new simulated pose
+    (desig:equate
+     (cpoe:event-object-designator event)
+     (detect-new-object-pose-from-btr (cpoe:event-object-designator event)))))
 
 
 
 (defmethod cram-occasions-events:on-event btr-belief ((event cpoe:object-location-changed))
+  ;; Remove loose attachment between robot and object,
+  ;; if the object was placed somewhere else, e. g.:
+  ;; the robot has been placing an object on itself
+  ;; and now picked up and placed the object on the table.
+  (when (btr:attached-objects (btr:get-robot-object))
+    (let* ((object-desig
+             (cpoe:event-object-designator event))
+           (object-name
+             (desig:desig-prop-value object-desig :name))
+           (btr-object
+             (btr:object btr:*current-bullet-world* object-name))
+           (target-desig
+             (cpoe:event-location-designator event))
+           (target-on-desig
+             (or (desig:desig-prop-value target-desig :on)
+                 (desig:desig-prop-value target-desig :in)))
+           (urdf-name
+             (desig:desig-prop-value target-on-desig :urdf-name))
+           (object-loose-attached-at-robot-links
+             (btr:object-attached (btr:get-robot-object) btr-object :loose T)))
+      ;; If the object is loosely attached to some robot links and the
+      ;; target location is not one of these robot links, the
+      ;; loose attachment between the robot and the object will be removed.
+      (when (and object-loose-attached-at-robot-links
+                 (not (find (roslisp-utilities:rosify-underscores-lisp-name
+                             urdf-name)
+                            object-loose-attached-at-robot-links
+                            :test #'equalp)))
+        (btr:detach-object (btr:get-robot-object) btr-object))))
+
   ;; update the designator to get the new location
   (update-object-designator-location
    (cpoe:event-object-designator event)
@@ -188,13 +224,14 @@ If there is no other method with 1 as qualifier, this method will be executed al
                        (cpoe:event-link event)
                        (error "[BTR-BELIEF OBJECT-DETACHED] either link or arm ~
                                in object-attached-robot even had to be given...")))))
-    (when (cut:is-var link) (error "[BTR-BELIEF OBJECT-DETACHED] Couldn't find robot's EE link."))
+    (when (cut:is-var link)
+      (error "[BTR-BELIEF OBJECT-DETACHED] Couldn't find robot's EE link."))
     (if btr-object-name
         ;; if btr-object-name was given, detach it from the robot link
         (let ((btr-object (btr:object btr:*current-bullet-world* btr-object-name)))
           (when btr-object
             (btr:detach-object robot-object btr-object :link link)
-            (btr:simulate btr:*current-bullet-world* 10)
+            (btr:simulate btr:*current-bullet-world* 100)
             ;; find the links and items that support the object
             ;; and attach the object to them.
             ;; links get proper attachments and items loose attachments
@@ -214,22 +251,30 @@ If there is no other method with 1 as qualifier, this method will be executed al
                   (contacting-items
                     (remove-if-not
                      (lambda (c) (typep c 'btr:item))
-                     (btr:find-objects-in-contact btr:*current-bullet-world* btr-object))))
-              ;; If a link contacting btr-object was found, btr-object
-              ;; will be attached to it
-              ;; also, if btr-object is in contact with an item,
+                     (btr:find-objects-in-contact
+                      btr:*current-bullet-world* btr-object))))
+              ;; If btr-object is in contact with an item,
               ;; it will be attached loose.
-              (mapcar (lambda (link-name)
-                        (btr:attach-object environment-object btr-object :link link-name))
-                      contacting-links)
-              (mapcar (lambda (item-object)
-                        (when item-object
-                          (btr:attach-object item-object btr-object :loose T)))
-                      contacting-items))))
+              ;; Otherwise, if a link contacting btr-object was found,
+              ;; btr-object will be attached to it.
+              (or (mapcar (lambda (item-object)
+                            (when item-object
+                              (btr:attach-object item-object btr-object :loose T)))
+                          contacting-items)
+                  (mapcar (lambda (link-name)
+                            (btr:attach-object
+                             environment-object btr-object :link link-name))
+                          contacting-links)
+                  (roslisp:ros-warn (btr-belief btr-detach-object)
+                                    "Object ~a was detached from robot,
+                                     but after falling down it
+                                     is in no contact with the
+                                     environment or another object."
+                                    btr-object-name)))))
         ;; if btr-object-name was not given, detach all objects from the robot link
         (progn
           (btr:detach-all-from-link robot-object link)
-          (btr:simulate btr:*current-bullet-world* 10)))))
+          (btr:simulate btr:*current-bullet-world* 100)))))
 
 (defmethod cram-occasions-events:on-event btr-attach-two-objs ((event cpoe:object-attached-object))
   (let* ((btr-object-name (cpoe:event-object-name event))

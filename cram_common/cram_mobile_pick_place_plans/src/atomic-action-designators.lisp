@@ -34,11 +34,15 @@
   (<- (desig:action-grounding ?action-designator (go-to-target ?resolved-action-designator))
     (spec:property ?action-designator (:type :going))
     (spec:property ?action-designator (:target ?some-location-designator))
+    (once (or (spec:property ?action-designator (:speed ?speed))
+              (equal ?speed nil)))
     (desig:current-designator ?some-location-designator ?location-designator)
     (desig:designator-groundings ?location-designator ?poses)
     (member ?pose-stamped ?poses)
     (desig:designator :action ((:type :going)
-                               (:pose ?pose-stamped))
+                               (:pose ?pose-stamped)
+                               (:speed ?speed)
+                               (:slow-speed :slow))
                       ?resolved-action-designator))
 
 
@@ -95,19 +99,41 @@
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
                                                   ?resolved-action-designator))
     (or (spec:property ?action-designator (:type :reaching))
-        (spec:property ?action-designator (:type :retracting))
         (spec:property ?action-designator (:type :lifting)))
     (spec:property ?action-designator (:type ?action-type))
     (once (or (spec:property ?action-designator (:left-poses ?left-poses))
               (equal ?left-poses nil)))
     (once (or (spec:property ?action-designator (:right-poses ?right-poses))
               (equal ?right-poses nil)))
+    (once (or (spec:property ?action-designator (:collision-mode ?collision))
+              (equal ?collision :avoid-all)))
     (infer-motion-flags ?action-designator
                         ?_ ?move-base ?align-planes-left ?align-planes-right)
     (desig:designator :action ((:type ?action-type)
                                (:left-poses ?left-poses)
                                (:right-poses ?right-poses)
-                               (:collision-mode :avoid-all)
+                               (:collision-mode ?collision)
+                               (:move-base ?move-base)
+                               (:align-planes-left ?align-planes-left)
+                               (:align-planes-right ?align-planes-right))
+                      ?resolved-action-designator))
+
+  (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
+                                                  ?resolved-action-designator))
+    (or (spec:property ?action-designator (:type :retracting)))
+    (spec:property ?action-designator (:type ?action-type))
+    (once (or (spec:property ?action-designator (:left-poses ?left-poses))
+              (equal ?left-poses nil)))
+    (once (or (spec:property ?action-designator (:right-poses ?right-poses))
+              (equal ?right-poses nil)))
+    (once (or (spec:property ?action-designator (:collision-mode ?collision))
+              (equal ?collision :allow-fingers)))
+    (infer-motion-flags ?action-designator
+                        ?_ ?move-base ?align-planes-left ?align-planes-right)
+    (desig:designator :action ((:type ?action-type)
+                               (:left-poses ?left-poses)
+                               (:right-poses ?right-poses)
+                               (:collision-mode ?collision)
                                (:move-base ?move-base)
                                (:align-planes-left ?align-planes-left)
                                (:align-planes-right ?align-planes-right))
@@ -132,7 +158,8 @@
              (equal ?collision-object-b ?robot)
              (equal ?object-link ?object-name))
         (and (equal ?collision-object-b ?object-name)
-             (equal ?object-link nil)))
+             (once (or (spec:property ?action-designator (:link ?object-link))
+                       (equal ?object-link nil)))))
     (desig:designator :action ((:type ?action-type)
                                (:left-poses ?left-poses)
                                (:right-poses ?right-poses)
@@ -230,30 +257,6 @@
                                (:align-planes-left ?align-planes-left)
                                (:align-planes-right ?align-planes-right))
                       ?resolved-action-designator))
-
-  (<- (desig:action-grounding ?action-designator (park-arms ?resolved-action-desig))
-    (spec:property ?action-designator (:type :parking-arms))
-    ;; get the arms list from the designator or infer it
-    (once (or (spec:property ?action-designator (:arms ?arms-list))
-              (-> (spec:property ?action-designator (:not-neck T))
-                  (and (rob-int:robot ?robot-name)
-                       (rob-int:arms-that-are-not-neck ?robot-name ?arms-list))
-                  (and (rob-int:robot ?robot-name)
-                       (rob-int:arms ?robot-name ?arms-list)))))
-    ;; see if left arm and right arm are present
-    ;; this is super non-general but has to be like this
-    ;; because positioning-arm is so non-general
-    (-> (member :left ?arms-list)
-        (equal ?left-arm-p T)
-        (equal ?left-arm-p NIL))
-    (-> (member :right ?arms-list)
-        (equal ?right-arm-p T)
-        (equal ?right-arm-p NIL))
-    (desig:designator :action ((:type :parking-arms)
-                               (:left-arm ?left-arm-p)
-                               (:right-arm ?right-arm-p))
-                      ?resolved-action-desig))
-
 
 
   (<- (desig:action-grounding ?action-designator (release ?action-designator))
@@ -360,4 +363,22 @@
 
   (<- (desig:action-grounding ?action-designator (detect ?action-designator))
     (spec:property ?action-designator (:type :detecting))
-    (spec:property ?action-designator (:object ?_))))
+    (spec:property ?action-designator (:object ?_)))
+
+
+
+  (<- (desig:action-grounding ?action-designator (monitor-joint-state
+                                                  ?resolved-action-designator))
+    (spec:property ?action-designator (:type :monitoring-joint-state))
+    (spec:property ?action-designator (:gripper ?left-or-right))
+    (rob-int:robot ?robot)
+    (rob-int:gripper-joint ?robot ?left-or-right ?joint-name)
+    (rob-int:gripper-minimal-position ?robot ?left-or-right ?minimum)
+    (rob-int:gripper-convergence-delta ?robot ?left-or-right ?delta)
+    (lisp-fun + ?minimum ?delta ?joint-angle-threshold)
+    (lisp-fun symbol-function < ?function)
+    (desig:designator :action ((:type :monitoring-joint-state)
+                               (:joint-name ?joint-name)
+                               (:joint-angle-threshold ?joint-angle-threshold)
+                               (:function ?function))
+                      ?resolved-action-designator)))

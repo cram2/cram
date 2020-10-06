@@ -42,6 +42,7 @@
                ;; cram-knowrob-world-state
                cram-robosherlock
                cram-giskard
+               cram-joint-states ; for joint state monitoring pm
                ;; cram-nav-pcontroller
                )
 

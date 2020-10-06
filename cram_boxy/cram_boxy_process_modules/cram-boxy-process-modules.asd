@@ -41,6 +41,8 @@
                cram-tf
 
                cram-robosherlock ; for WITH-REAL-ROBOT
+               cram-giskard
+               cram-joint-states
                cram-nav-pcontroller)
   :components
   ((:module "src"

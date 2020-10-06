@@ -71,6 +71,8 @@
      (:file "object-perceptions" :depends-on ("package"))
      (:file "occasions" :depends-on ("package" "object-perceptions"))
      (:file "world-state-detecting" :depends-on ("package"))
+     (:file "consistency-checking" :depends-on ("package"))
      (:file "event-handlers" :depends-on ("package"
                                           "object-perceptions"
+                                          "consistency-checking"
                                           "world-state-detecting"))))))

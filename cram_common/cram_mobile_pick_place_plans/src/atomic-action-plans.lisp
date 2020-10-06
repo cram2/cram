@@ -31,12 +31,15 @@
 
 (defun go-to-target (&key
                        ((:pose ?pose-stamped))
+                       ((:speed ?speed))
+                       ((:slow-speed ?slow-speed))
                      &allow-other-keys)
-  (declare (type cl-transforms-stamped:pose-stamped ?pose-stamped))
-  "Go to `?pose-stamped', if a failure happens propagate it up, robot-state-changed event."
+  (declare (type cl-transforms-stamped:pose-stamped ?pose-stamped)
+           (type (or keyword number null) ?speed ?slow-speed))
+  "Go to `?pose-stamped', if a failure happens retry, with a slower speed."
 
   (unwind-protect
-       (cpl:with-retry-counters ((nav-retries 0))
+       (cpl:with-retry-counters ((nav-retries 1))
          (cpl:with-failure-handling
              ((common-fail:navigation-low-level-failure (e)
                 (roslisp:ros-warn (pick-and-place go)
@@ -44,9 +47,14 @@
                                   e)
                 (cpl:do-retry nav-retries
                   (roslisp:ros-warn (pick-and-place go) "Retrying...")
+                  (setf ?speed ?slow-speed)
                   (cpl:retry))))
            (exe:perform
-            (desig:a motion (type going) (pose ?pose-stamped)))))
+            (desig:a motion
+                     (type going)
+                     (pose ?pose-stamped)
+                     (desig:when ?speed
+                       (speed ?speed))))))
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
@@ -65,7 +73,8 @@
                                   e)
                 (cpl:do-retry torso-retries
                   (roslisp:ros-warn (pick-and-place move-torso) "Retrying...")
-                  (cpl:retry))))
+                  (cpl:retry))
+                (return)))
            (exe:perform
             (desig:a motion (type moving-torso) (joint-angle ?joint-angle)))))
     (cram-occasions-events:on-event
@@ -234,38 +243,48 @@ With a continuous motion planner one could have fluent arch trajectories etc.
                                        ((:right-joint-states ?right-joint-states))
                                        ((:align-planes-left ?align-planes-left))
                                        ((:align-planes-right ?align-planes-right))
+                                       ((:avoid-collisions-not-much ?collisions))
                                      &allow-other-keys)
-  (declare (type list ?left-joint-states ?right-joint-states))
+  (declare (type list ?left-joint-states ?right-joint-states)
+           (type boolean ?collisions))
   "Calls moving-arm-joints motion, while ignoring failures, and robot-state-changed event."
 
   (unwind-protect
-       (cpl:with-failure-handling
-           ((common-fail:manipulation-low-level-failure (e)
-              (roslisp:ros-warn (mobile-pp-plans move-arms-into-configuration)
-                                "A low-level manipulation failure happened: ~a~%Ignoring." e)
-              (return)))
+       (cpl:with-retry-counters ((retries 1))
+         (cpl:with-failure-handling
+             ((common-fail:manipulation-low-level-failure (e)
+                (roslisp:ros-warn (mobile-pp-plans move-arms-into-configuration)
+                                  "Manipulation failure happened: ~a."
+                                  e)
+                (cpl:do-retry retries
+                  (roslisp:ros-warn (pick-and-place arms-config) "Retrying...")
+                  (setf ?collisions t)
+                  (cpl:retry))
+                (return)))
 
-         (exe:perform
-          (desig:a motion
-                   (type moving-arm-joints)
-                   (desig:when ?left-joint-states
-                     (left-joint-states ?left-joint-states))
-                   (desig:when ?right-joint-states
-                     (right-joint-states ?right-joint-states))
-                   (desig:when ?align-planes-left
-                     (align-planes-left ?align-planes-left))
-                   (desig:when ?align-planes-right
-                     (align-planes-right ?align-planes-right))))
-         ;; (cpl:seq
-         ;;   (exe:perform
-         ;;    (desig:a motion
-         ;;             (type moving-arm-joints)
-         ;;             (right-joint-states ?right-configuration)))
-         ;;   (exe:perform
-         ;;    (desig:a motion
-         ;;             (type moving-arm-joints)
-         ;;             (left-joint-states ?left-configuration))))
-         )
+           (exe:perform
+            (desig:a motion
+                     (type moving-arm-joints)
+                     (desig:when ?left-joint-states
+                       (left-joint-states ?left-joint-states))
+                     (desig:when ?right-joint-states
+                       (right-joint-states ?right-joint-states))
+                     (desig:when ?align-planes-left
+                       (align-planes-left ?align-planes-left))
+                     (desig:when ?align-planes-right
+                       (align-planes-right ?align-planes-right))
+                     (desig:when ?collisions
+                       (avoid-collisions-not-much ?collisions))))
+           ;; (cpl:seq
+           ;;   (exe:perform
+           ;;    (desig:a motion
+           ;;             (type moving-arm-joints)
+           ;;             (right-joint-states ?right-configuration)))
+           ;;   (exe:perform
+           ;;    (desig:a motion
+           ;;             (type moving-arm-joints)
+           ;;             (left-joint-states ?left-configuration))))
+           ))
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
@@ -451,20 +470,15 @@ equate resulting designator to the original one."
           (desig:current-desig resulting-designator))))))
 
 
-(defun park-arms (&key
-                    ((:left-arm ?left-arm-p))
-                    ((:right-arm ?right-arm-p))
-                  &allow-other-keys)
-  (declare (type boolean ?left-arm-p ?right-arm-p))
-  "Puts the arms into a parking configuration"
-  (let* ((left-config (when ?left-arm-p :park))
-         (right-config (when ?right-arm-p :park))
-         (?goal `(cpoe:arms-positioned-at ,left-config ,right-config)))
-    (exe:perform
-     (desig:an action
-               (type positioning-arm)
-               (desig:when ?left-arm-p
-                 (left-configuration park))
-               (desig:when ?right-arm-p
-                 (right-configuration park))
-               (goal ?goal)))))
+(defun monitor-joint-state (&key
+                              ((:joint-name ?joint-name))
+                              ((:joint-angle-threshold ?joint-angle-threshold))
+                              ((:function ?function))
+                            &allow-other-keys)
+  (exe:perform
+   (desig:a motion
+            (type monitoring-joint-state)
+            (joint-name ?joint-name)
+            (joint-angle-threshold ?joint-angle-threshold)
+            (desig:when ?function
+              (function ?function)))))

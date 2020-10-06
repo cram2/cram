@@ -48,13 +48,18 @@
                               (make-identity-rotation))
      :target-frame (or parent-frame *fixed-frame*))))
 
-(defun frame-to-transform-in-fixed-frame (frame-name &optional parent-frame)
+(defun frame-to-transform-in-frame (frame-name parent-frame &key no-error)
   (when *transformer*
-    (cl-transforms-stamped:lookup-transform
-     *transformer*
-     parent-frame frame-name
-     :timeout *tf-default-timeout*
-     :time 0.0)))
+    (handler-case
+        (cl-transforms-stamped:lookup-transform
+         *transformer*
+         parent-frame frame-name
+         :timeout *tf-default-timeout*
+         :time 0.0)
+      (cl-transforms-stamped:transform-stamped-error (e)
+        (if no-error
+            nil
+            (error e))))))
 
 (defun 3d-vector->list (3d-vector)
   (let ((x (cl-transforms:x 3d-vector))

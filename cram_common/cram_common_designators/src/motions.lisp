@@ -31,9 +31,11 @@
 
 (def-fact-group navigation-motions (motion-grounding)
 
-  (<- (motion-grounding ?designator (move-base ?pose-stamped))
+  (<- (motion-grounding ?designator (move-base ?pose-stamped ?speed))
     (property ?designator (:type :going))
-    (property ?designator (:pose ?pose-stamped))))
+    (property ?designator (:pose ?pose-stamped))
+    (once (or (property ?designator (:speed ?speed))
+              (equal ?speed nil)))))
 
 
 (def-fact-group torso-motions (motion-grounding)
@@ -161,7 +163,8 @@
   (<- (motion-grounding ?designator (move-joints ?left-config ?right-config
                                                  ?collision-mode
                                                  ?align-planes-left
-                                                 ?align-planes-right))
+                                                 ?align-planes-right
+                                                 ?collisions))
     (property ?designator (:type :moving-arm-joints))
     (once (or (property ?designator (:left-joint-states ?left-config))
               (equal ?left-config nil)))
@@ -172,7 +175,9 @@
     (once (or (property ?designator (:align-planes-left ?align-planes-left))
               (equal ?align-planes-left nil)))
     (once (or (property ?designator (:align-planes-right ?align-planes-right))
-              (equal ?align-planes-right nil)))))
+              (equal ?align-planes-right nil)))
+    (once (or (property ?designator (:avoid-collisions-not-much ?collisions))
+              (equal ?collisions nil)))))
 
 (def-fact-group world-state-detecting (motion-grounding)
 
@@ -184,6 +189,17 @@
              (property ?object-designator (:type ?_))
              (property ?object-designator (:name ?_)))
         (property ?object-designator (:name ?_)))))
+
+(def-fact-group sensor-monitoring (motion-grounding)
+
+  (<- (motion-grounding ?designator (monitor-joint-state ?joint-name
+                                                         ?joint-angle-threshold
+                                                         ?comparison-function))
+    (property ?designator (:type :monitoring-joint-state))
+    (property ?designator (:joint-name ?joint-name))
+    (property ?designator (:joint-angle-threshold ?joint-angle-threshold))
+    (once (or (property ?designator (:function ?comparison-function))
+              (equal ?comparison-function nil)))))
 
 
 
