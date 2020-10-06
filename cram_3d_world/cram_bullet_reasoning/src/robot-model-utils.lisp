@@ -30,6 +30,8 @@
 
 (in-package :btr)
 
+(defparameter *thinking-objects-list* '())
+
 (defun set-robot-state-from-tf (tf-buffer robot
                                 &key (reference-frame *fixed-frame*)
                                   timestamp
@@ -282,7 +284,7 @@ or other objects to which current object is attached."
    The newly spawned meshes are scaled by a factor of 1.3. The object has the name :thinking"
   (let* ((urdf (btr:urdf robot-object))
          (links (cl-urdf:links urdf))
-         (mesh-list '())
+         (object-list '())
          (counter 0))
 
     (loop for link being the hash-values of links
@@ -293,16 +295,24 @@ or other objects to which current object is attached."
                       (pose (btr:pose rigid-body))
                       (mesh-file-name (cl-urdf:filename (cl-urdf:geometry (cl-urdf:collision link))))
                       (mesh-size (cl-urdf:size (cl-urdf:geometry (cl-urdf:collision link))))
-                      (mesh-name (concatenate 'string "Thinking-" (write-to-string counter))))
-
-                 (setf mesh-list (append mesh-list (list (btr::make-instance 'btr::rigid-body 
-                                                        :name mesh-name :mass 2 :pose pose
-                                                        :collision-shape
-                                                        (btr::make-collision-shape-from-mesh mesh-file-name
-                                                                                             :color '(0.2 0.2 0.2 0.6) :scale 1.3
-                                                                                             :size mesh-size :compound nil)))))
+                      (object-name (intern (concatenate 'string "Thinking-" (write-to-string counter))))
+                      (new-object (make-object *current-bullet-world* object-name
+                                               (list (make-instance 'btr::rigid-body 
+                                                                         :name 'body :mass 2 :pose pose
+                                                                         :collision-shape
+                                                                         (btr::make-collision-shape-from-mesh mesh-file-name
+                                                                                                              :color '(0.2 0.2 0.2 0.6) :scale 1.3
+                                                                                                              :size mesh-size :compound nil))))))
+                 (setf object-list (append object-list (list new-object)))
+                 ;;(print (attached-objects new-object))
+                 (attach-object robot-object new-object :link (cl-urdf:name link))
                  (incf counter)))))
 
-    (btr:make-object btr:*current-bullet-world* :thinking mesh-list)))
-    
+    (setf *thinking-objects-list* object-list)))
+
+
+(defun unvisualize-thinking ()
+  (loop for object in *thinking-objects-list*
+        do (remove-object *current-bullet-world* (name object)))
+  )
   
