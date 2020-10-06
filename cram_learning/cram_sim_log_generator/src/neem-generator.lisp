@@ -1,7 +1,7 @@
 (in-package :cslg)
 
 (defun generate-neem (&optional objects-to-fetch-deliever)
-  (setf cram-tf:*tf-broadcasting-enabled* t)
+  ;; (setf cram-tf:*tf-broadcasting-enabled* t)
   (roslisp-utilities:startup-ros :name "cram" :anonymous nil)
 
   (let ((objects-str (roslisp:get-param "/neem_generator/objects"))
@@ -16,7 +16,7 @@
 
     (let ((experiment-id (format nil "~d" (truncate (* 1000000 (cram-utilities:current-timestamp))))))
       (format t "Starting experiment ~a~%" experiment-id)
-    
+
       (unwind-protect
            (if objects
                (urdf-proj::with-simulated-robot (demo::demo-random nil objects))

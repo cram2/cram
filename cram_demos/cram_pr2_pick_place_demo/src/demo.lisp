@@ -54,7 +54,7 @@
     (:bowl . :top)))
 
 (defparameter *object-arms*
-  '((:milk . :left)))
+  '((:milk . :right)))
 
 (defun park-robot ()
   (cpl:with-failure-handling

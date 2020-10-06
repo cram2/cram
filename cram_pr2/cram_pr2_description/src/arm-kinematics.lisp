@@ -201,8 +201,10 @@
   (<- (gripper-joint :pr2 :right "r_gripper_r_finger_joint"))
 
   (<- (gripper-meter-to-joint-multiplier :pr2 5.0))
-  (<- (gripper-minimal-position :pr2 ?_ 0.013))
-  (<- (gripper-convergence-delta :pr2 ?_ 0.005))
+  ;; (<- (gripper-minimal-position :pr2 ?_ 0.013))
+  ;; (<- (gripper-convergence-delta :pr2 ?_ 0.005))
+  (<- (gripper-minimal-position :pr2 ?_ 0.000))
+  (<- (gripper-convergence-delta :pr2 ?_ 0.001))
 
   (<- (standard<-particular-gripper-transform :pr2 ?transform)
     (symbol-value *standard-to-pr2-gripper-transform* ?transform))
@@ -336,4 +338,3 @@
                            ("r_forearm_roll_joint" -27.72481374424779d0)
                            ("r_wrist_flex_joint" -0.10621948550701799d0)
                            ("r_wrist_roll_joint" 7.662671673625887d0)))))
-

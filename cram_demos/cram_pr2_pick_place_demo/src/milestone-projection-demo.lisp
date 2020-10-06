@@ -195,13 +195,14 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
     (spawn-objects-on-fixed-spots
      :object-types object-list
      :spawning-poses-relative *demo-object-spawning-poses*))
-  ;; (park-robot)
+  (park-robot)
 
   (dolist (?object-type object-list)
     (let* ((?deliver-pose (cram-tf:ensure-pose-in-frame
                            (btr:ensure-pose
                             (cdr (assoc ?object-type
-                                        *delivery-poses-dining-table*)))
+                                        ;; *delivery-poses-dining-table*)))
+                                        *delivery-poses*)))
                            cram-tf:*fixed-frame*))
            (?deliver-location (a location (pose ?deliver-pose)))
            (?color (cdr (assoc ?object-type *object-colors*)))
