@@ -193,7 +193,7 @@ experiments should be used."
 (defmethod man-int:get-location-poses :learning 10 (location-designator)
 "Samples from the costmaps returned by the service `GetCostmap'."
   (if *learning-vr-on*
-      (let (object-type kitchen-name context urdf-name on-p)
+      (let (object-type kitchen-name context urdf-name owl-name on-p)
         ;; If the location designator contains a :for and :on/:in
         ;; property and a :context is specifed too...
         (if (and (desig:desig-prop-value location-designator :for) ;; (for (desig:an object (type ...)))
@@ -230,7 +230,12 @@ experiments should be used."
               ;; ... urdf name of the environment designator
               (when (desig:desig-prop-value kitchen-object-designator :urdf-name)
                 (setf urdf-name
-                      (desig:desig-prop-value kitchen-object-designator :urdf-name)))
+                      (desig:desig-prop-value
+                       kitchen-object-designator :urdf-name)))
+              ;; ... owl name of the environment designator
+              (when (desig:desig-prop-value kitchen-object-designator :owl-name)
+                (setf owl-name
+                      (desig:desig-prop-value kitchen-object-designator :owl-name)))
               ;; ... and if the object should be placed on or in the
               ;; given environment object (encoded with environment designator).
               (setf on-p
@@ -271,7 +276,8 @@ experiments should be used."
                  (get-costmap-for
                   object-type 
                   x-placed-object-positions y-placed-object-positions placed-object-types
-                  context *human-name* kitchen-name *table-id* urdf-name on-p))
+                  context *human-name* kitchen-name *table-id*
+                  urdf-name owl-name on-p))
                (heuristics-costmaps
                  (mapcar (lambda (bindings)
                            (cut:var-value '?cm bindings))

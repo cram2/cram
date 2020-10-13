@@ -66,6 +66,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun get-object-location (object-type context name kitchen table-id storage-location-p)
+  (roslisp:ros-info (cvr costmap) "Calling GetSymbolicLocation service for object-type ~a" object-type)
   (if (not (eql roslisp::*node-status* :running))
       (roslisp:ros-info (cvr costmap) "Please start a ros node.")
       (if (not (roslisp:wait-for-service "get_symbolic_location" 10))
@@ -107,7 +108,7 @@
 
 (defun wrap-get-costmap-query (object-type x-placed-object-positions
                                y-placed-object-positions placed-object-types
-                               context name kitchen table-id)
+                               context name kitchen table-id owl-name)
   (values
    ;; object-type
    (keyword-to-string
@@ -164,60 +165,74 @@
     kitchen) ;; e.g. 'kitchen
    ;; :table_id 
    table-id ;; e.g. "rectangular_table"
+   (keyword-to-string
+    owl-name)
    ))
 
-(defun unwrap-get-costmap-response (response)
-  (roslisp:with-fields (bottem_lefts
-                        resolution
+(defun apply-offsets (list)
+  (when (eq 2 (length (first list)))
+    (loop for v in list do
+      (setf (first v)
+            (- (first v) *x-offset*))
+      (setf (second v)
+            (- (second v) *y-offset*)))
+    list))
+          
+(defun unwrap (response)
+  (roslisp:with-fields (;; for the positions saved with
+                        ;; gauss multivariate distributions 
+                        means
+                        covs
+                        weights
+                        ;; for the orientation of the
+                        ;; gauss position distributions
+                        bottem_lefts
                         widths heights
-                        x_y_vecs 
-                        global_width
-                        global_height
-                        angles) response
-    ;; Get values of the matrix in m and save the
-    ;; coordinates of the bottom left point.
-    (let* ((m '())
-           (bottem_left (reduce (lambda (p other-p) 
-                                  (make-instance
-                                   'geometry_msgs-msg::Point 
-                                   :x 
-                                   (if (<
-                                        (geometry_msgs-msg:x other-p)
-                                        (geometry_msgs-msg:x p))
-                                       (geometry_msgs-msg:x other-p)
-                                       (geometry_msgs-msg:x p))
-                                   :y
-                                   (if (<
-                                        (geometry_msgs-msg:y other-p)
-                                        (geometry_msgs-msg:y p))
-                                       (geometry_msgs-msg:y other-p)
-                                       (geometry_msgs-msg:y p))
-                                   :z 0.0))
-                                bottem_lefts))
-           (rows (truncate (/ global_height resolution)))
-           (columns (truncate (/ global_width resolution))))
-      (dotimes (row-i (truncate (/ global_height resolution)))
-        (push (get-row x_y_vecs
-                       (* row-i columns)
-                       (+ (* row-i columns)
-                          columns))
-              m))
-      (values bottem_left
+                        angles) response    
+    (let* ((k (array-dimension angles 0))
+           (dim (truncate k (length weights)))
+           (list-of-mean-lists
+             (apply-offsets
+              (loop for i from 0 to (1- (/ k dim))
+                    collecting
+                    (let ((mean '()))
+                      (dotimes (j dim)
+                        (setf mean
+                              (append mean
+                                      (list (aref means (+ (* i dim) j))))))
+                      mean))))
+           (list-of-cov-lists
+             (loop for i from 0 to (1- (/ k dim))
+                   collecting
+                   (let ((cov (loop for i from 0 to (1- dim)
+                                    collecting '())))
+                     (dotimes (r dim)
+                       (dotimes (c dim)
+                         (setf (nth r cov)
+                               (append (nth r cov)
+                                       (list (aref covs (+ (* i (* dim dim))
+                                                           (* dim r)
+                                                           c)))))))
+                     cov)))
+           (list-of-weights 
+             (map 'list #'identity weights))
+           (gmm (cram-location-costmap::make-gauss-mixture-models
+                 list-of-mean-lists list-of-cov-lists list-of-weights
+                 (/ k dim) dim)))
+      (values gmm
               bottem_lefts
-              resolution
-              rows columns
               widths heights
-              angles
-              m))))  
+              angles))))
 
 ;; Actual service call
 
 (defun get-costmap-for (object-type
                         x-placed-object-positions y-placed-object-positions placed-object-types
-                        context name kitchen table-id urdf-name on-p)
+                        context name kitchen table-id
+                        urdf-name owl-name on-p)
 "Calls the service `get_costmap', gets its response and samples from a
 `costmap:location-costmap' object created by `create-vr-costmap'."
-  (format t "called get-costmap-for for object-type ~a" object-type)
+  (roslisp:ros-info (cvr costmap) "Calling GetCostmap service for object-type ~a" object-type)
   (if (not (eql roslisp::*node-status* :running))
       (roslisp:ros-info (cvr costmap) "Please start a ros node.")
       (if (not (roslisp:wait-for-service "get_costmap" 10))
@@ -228,12 +243,13 @@
                                 y-placed-object-positions-wrapped
                                 placed-object-types-wrapped
                                 context-wrapped name-wrapped
-                                kitchen-wrapped table-id-wrapped)
+                                kitchen-wrapped table-id-wrapped
+                                owl-name-wrapped)
               (wrap-get-costmap-query object-type
                                   x-placed-object-positions
                                   y-placed-object-positions
                                   placed-object-types context name
-                                  kitchen table-id)
+                                  kitchen table-id owl-name)
             ;; Get response
             (let ((response (roslisp:call-service "get_costmap" 'costmap_learning-srv::GetCostmap
                                                   :object_type
@@ -252,40 +268,39 @@
                                                   kitchen-wrapped ;; e.g. 'kitchen
                                                   :table_id 
                                                   table-id-wrapped ;; e.g. "rectangular_table"
+                                                  :location
+                                                  owl-name-wrapped ;; e.g. "IslandArea"
                                                   )))
               ;; Unwrap the arguments from the response
-              (multiple-value-bind  (bottem-left
-                                     bottem-lefts
-                                     resolution
-                                     rows columns
-                                     widths heights
-                                     angles
-                                     m)
-                  (unwrap-get-costmap-response response)
+              (multiple-value-bind (;; for the positions saved with
+                                    ;; gauss multivariate distributions 
+                                    gmm
+                                    ;; for the orientation of the
+                                    ;; gauss position distributions
+                                    bottem_lefts
+                                    widths heights
+                                    angles) (unwrap response)
                 ;; Create Costmap
-                (let* ((array (make-array (list rows columns)
-                                          :element-type 'double-float
-                                          :initial-contents m))
-                       (costmap (create-vr-costmap object-type
+                (let* ((costmap (create-vr-costmap object-type
                                                    on-p
                                                    urdf-name
-                                                   bottem-left
-                                                   bottem-lefts
-                                                   resolution
+                                                   bottem_lefts
                                                    widths heights
                                                    angles
-                                                   array)))
+                                                   gmm)))
                   (costmap:costmap-samples costmap)
                   (sleep 3)
                   costmap)))))))
 
 ;; Creating the Costmap object from the unwrapped response
 
-(defun create-vr-costmap (object-type on-p urdf-name
-                          bottem-left bottem-lefts
-                          resolution
+(defun create-vr-costmap (object-type
+                          on-p
+                          urdf-name
+                          bottem-lefts
                           widths heights
-                          angles array)
+                          angles
+                          gmm)
   "Creates a `costmap:location-costmap' object and registers for it
 cost, height and orientation functions. To register these functions
 correct, all the given parameters are needed.
@@ -313,10 +328,11 @@ and the `widths' and `heights' are needed."
     ;; Register Cost Function of costmap
     (costmap:register-cost-function
      costmap
-     (costmap:make-matrix-cost-function
-      (- (geometry_msgs-msg:x bottem-left) *x-offset*)
-      (- (geometry_msgs-msg:y bottem-left) *y-offset*)
-      resolution array)
+     (lambda (x y)
+       (cram-location-costmap::get-value gmm
+           (cram-math:make-double-vector 2
+                                         :initial-contents
+                                         (list x y))))
      'vr-learned-grid)
     ;; Register Height Funtion of costmap
     (flet ((get-urdfs-rigid-body (urdf-name)
@@ -355,6 +371,7 @@ and the `widths' and `heights' are needed."
          (make-vr-orientation-generator bottem-left
                                         width height
                                         mean std))))
+    (sleep 1.0)
     ;; Return the costmap
     costmap))
 
@@ -383,6 +400,10 @@ standard deviation `std' from the area specified by the point
                            bottem-left) *y-offset*)
                        width)))
             (progn
+              ;;(print mean)
+              ;;(print std)
+              ;;(print (+ pi
+              ;;(box-mueller-transform mean std)))
               (when visualize-samples
                 (let ((q (cl-transforms:euler->quaternion
                           :ax 0.0 
@@ -401,6 +422,15 @@ standard deviation `std' from the area specified by the point
                                                    ,(cl-tf::y q)
                                                    ,(cl-tf::z q)
                                                    ,(cl-tf::w q))))))
+              ;;(print (cut:lazy-list ()
+              ;;(loop for i from 0 to 20
+              ;;collecting
+              ;;               (cl-transforms:euler->quaternion
+              ;;                :ax 0.0 
+              ;;                :ay 0.0 
+              ;;               :az (+ pi
+              ;;                       (box-mueller-transform mean std)
+              ;;                       )))))
               (cut:lazy-list ()
                 (loop for i from 0 to 20
                       collecting
