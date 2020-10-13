@@ -10,7 +10,7 @@
                      handling, and other utilities used by other cram
                      components."
   :depends-on (sb-concurrency
-               synchronization-tools
+               ;; synchronization-tools
                alexandria)
   :components
   ((:module "src"
