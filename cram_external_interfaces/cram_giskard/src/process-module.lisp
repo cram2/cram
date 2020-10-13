@@ -49,8 +49,9 @@
        (giskard:call-arm-joint-action
         :goal-configuration-left argument-1
         :goal-configuration-right (first rest-args)
-        :align-planes-left (second rest-args)
-        :align-planes-right (third rest-args)))
+        :align-planes-left (third rest-args)
+        :align-planes-right (fourth rest-args)
+        :avoid-collisions-not-much (fifth rest-args)))
       (cram-common-designators:move-arm-pull
        (giskard:call-environment-manipulation-action
         :open-or-close :open
@@ -74,7 +75,8 @@
           :goal-configuration (car rest-args))))
       (cram-common-designators:move-base
        (giskard:call-base-action
-        :goal-pose argument-1))
+        :goal-pose argument-1
+        :base-velocity (first rest-args)))
       (cram-common-designators:move-torso
        (giskard:call-torso-action
         :goal-joint-state argument-1))

@@ -161,7 +161,7 @@
       #:make-synchronized-hash-table
       #:with-hash-table-locked
       ;; utils
-      #:minimum #:maximum #:compare
+      #:minimum #:maximum #:random-with-minimum #:compare
       #:execute-string #:replace-all
       ;; semaphores, reexported from sb-thread
       ,@+semaphore-symbols+

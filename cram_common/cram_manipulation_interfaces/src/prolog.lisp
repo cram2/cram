@@ -74,6 +74,14 @@
     (fail)))
 
 
+(def-fact-group environment-knowledge (object-tf-prefix)
+
+  ;; If the object is a URDF and has a TF prefix, its link poses will
+  ;; need to have the prefix added to do a TF lookup
+  (<- (object-tf-prefix ?object-name ?prefix)
+    (fail)))
+
+
 (def-fact-group manipulation-knowledge ()
   ;; most symbolic locations have a reference object
   ;; this predicate finds the reference object of the given location desig
@@ -227,7 +235,8 @@
   ;;              (attachment object-to-other-object))
   (<- (desig:location-grounding ?location-designator ?pose-stamped)
     (desig:current-designator ?location-designator ?current-loc-desig)
-    (desig:desig-prop ?current-loc-desig (:for ?object-designator))
+    (desig:desig-prop ?current-loc-desig (:for ?some-object-designator))
+    (desig:current-designator ?some-object-designator ?object-designator)
     (once
      (or (desig:desig-prop ?current-loc-desig (:on ?other-object-designator))
          (desig:desig-prop ?current-loc-desig (:in ?other-object-designator))
@@ -242,19 +251,30 @@
     (spec:property ?current-other-obj-desig (:type ?other-object-type))
     ;;
     (-> (spec:property ?current-other-obj-desig (:urdf-name ?other-object-name))
-        (and (lisp-fun roslisp-utilities:rosify-underscores-lisp-name
+        (and (spec:property ?current-other-obj-desig (:part-of ?part-of-name))
+             (once (or (object-tf-prefix ?part-of-name ?tf-prefix)
+                       (equal ?tf-prefix "")))
+             (lisp-fun roslisp-utilities:rosify-underscores-lisp-name
                        ?other-object-name ?link-name)
+             (string-concat ?tf-prefix ?link-name ?prefixed-link-name)
              (symbol-value cram-tf:*fixed-frame* ?parent-frame)
-             (lisp-fun cram-tf:frame-to-transform-in-fixed-frame
-                       ?link-name ?parent-frame
-                       ?other-object-transform))
+             (once (or (and (lisp-fun cram-tf:frame-to-transform-in-frame
+                                      ?prefixed-link-name ?parent-frame
+                                      :no-error T
+                                      ?other-object-transform)
+                            (lisp-pred identity ?other-object-transform))
+                       (and (lisp-fun cram-tf:frame-to-transform-in-frame
+                                      ?link-name ?parent-frame
+                                      :no-error T
+                                      ?other-object-transform)
+                            (lisp-pred identity ?other-object-transform)))))
         (and (spec:property ?current-other-obj-desig (:name ?other-object-name))
              (-> (cpoe:object-in-hand ?current-other-obj-desig ?hand ?grasp ?link)
                  (and (rob-int:robot ?robot)
                       (-> (rob-int:end-effector-link ?robot ?arm ?link)
                           (and (rob-int:robot-tool-frame ?robot ?arm ?tool-frame)
                                (symbol-value cram-tf:*fixed-frame* ?parent-frame)
-                               (lisp-fun cram-tf:frame-to-transform-in-fixed-frame
+                               (lisp-fun cram-tf:frame-to-transform-in-frame
                                          ?tool-frame ?parent-frame
                                          ?map-t-gripper)
                                (lisp-fun get-object-type-to-gripper-transform

@@ -41,6 +41,8 @@
                                 arm-joints arm-links
                                 hand-links hand-link hand-finger-link
                                 gripper-joint gripper-meter-to-joint-multiplier
+                                gripper-minimal-position
+                                gripper-convergence-delta
                                 standard<-particular-gripper-transform
                                 end-effector-link robot-tool-frame
                                 tcp-in-ee-pose
@@ -111,6 +113,8 @@
   (<- (gripper-joint :boxy-description :right "right_gripper_joint"))
 
   (<- (gripper-meter-to-joint-multiplier :boxy-description 1.0))
+  (<- (gripper-minimal-position :boxy-description ?_ 0.0))
+  (<- (gripper-convergence-delta :boxy-description ?_ 0.001))
 
   (<- (standard<-particular-gripper-transform :boxy-description ?transform)
     (symbol-value *standard-to-boxy-gripper-transform* ?transform))
@@ -142,8 +146,14 @@
   (<- (robot-joint-states :boxy-description :arm :left :carry-top-basket
                           ?joint-states)
     (robot-joint-states :boxy-description :arm :left :carry ?joint-states))
-  (<- (robot-joint-states :boxy-description :arm :left :hand-over ?joint-states)
-    (robot-joint-states :boxy-description :arm :left :carry ?joint-states))
+  (<- (robot-joint-states :boxy-description :arm :left :hand-over
+                          (("left_arm_0_joint" -0.32)
+                           ("left_arm_1_joint" 1.8)
+                           ("left_arm_2_joint" -0.74)
+                           ("left_arm_3_joint" -1.49)
+                           ("left_arm_4_joint" 2.29)
+                           ("left_arm_5_joint" 1.68)
+                           ("left_arm_6_joint" 0.2))))
 
   (<- (robot-joint-states :boxy-description :arm :right :carry
                           (("right_arm_0_joint" 1.858d0)

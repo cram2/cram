@@ -49,9 +49,9 @@
 
 
 (def-fact-group donbot-metadata (robot-odom-frame
-                                 robot-base-frame robot-torso-link-joint
-                                 arm
-                                 neck
+                                 robot-base-frame robot-base-link
+                                 robot-torso-link-joint
+                                 arm neck
                                  camera-frame
                                  camera-minimal-height camera-maximal-height
                                  camera-horizontal-angle camera-vertical-angle)
@@ -59,6 +59,7 @@
   (<- (robot-odom-frame :iai-donbot "odom"))
 
   (<- (robot-base-frame :iai-donbot "base_footprint"))
+  (<- (robot-base-link :iai-donbot "base_link"))
   (<- (robot-torso-link-joint :iai-donbot "ur5_base_link" "arm_base_mounting_joint"))
 
   (<- (arm :iai-donbot :left))
@@ -79,7 +80,10 @@
 
 (def-fact-group donbot-arm-facts (arm-joints arm-links
                                   hand-links hand-link hand-finger-link
-                                  gripper-joint gripper-meter-to-joint-multiplier
+                                  gripper-joint
+                                  gripper-meter-to-joint-multiplier
+                                  gripper-minimal-position
+                                  gripper-convergence-delta
                                   standard<-particular-gripper-transform
                                   end-effector-link
                                   robot-tool-frame
@@ -105,7 +109,9 @@
                                      "gripper_finger_left_link"
                                      "gripper_finger_right_link"
                                      "gripper_gripper_left_link"
-                                     "gripper_gripper_right_link")))
+                                     "gripper_gripper_right_link"
+                                     "marco_left_finger_link"
+                                     "marco_right_finger_link")))
 
   (<- (hand-link :iai-donbot :left ?link)
     (bound ?link)
@@ -123,6 +129,8 @@
   (<- (gripper-joint :iai-donbot :left "gripper_joint"))
 
   (<- (gripper-meter-to-joint-multiplier :iai-donbot 1.0))
+  (<- (gripper-minimal-position :iai-donbot ?_ 0.0))
+  (<- (gripper-convergence-delta :iai-donbot ?_ 0.001))
 
   (<- (standard<-particular-gripper-transform :iai-donbot ?transform)
     (symbol-value *standard-to-donbot-gripper-transform* ?transform))
@@ -239,7 +247,7 @@
                                            costmap:visibility-costmap-size)
   (<- (costmap:costmap-padding :iai-donbot 0.5))
   (<- (costmap:costmap-manipulation-padding :iai-donbot 0.5))
-  (<- (costmap:costmap-in-reach-distance :iai-donbot 1.1))
+  (<- (costmap:costmap-in-reach-distance :iai-donbot 1.125))
   (<- (costmap:costmap-reach-minimal-distance :iai-donbot 0.1))
   (<- (costmap:orientation-samples :iai-donbot 1))
   (<- (costmap:orientation-sample-step :iai-donbot 0.3))

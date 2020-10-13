@@ -32,8 +32,9 @@
 ;;;;;;;;;;;;;;;;; NAVIGATION ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (cpm:def-process-module urdf-proj-navigation (motion-designator)
-  (destructuring-bind (command argument)
+  (destructuring-bind (command argument &rest args)
       (desig:reference motion-designator)
+    (declare (ignore args))
     (ecase command
       (cram-common-designators:move-base
        (drive argument)))))
@@ -95,6 +96,17 @@
                  (third arg-2) (fourth arg-2) (fifth arg-2) (sixth arg-2)
                  (seventh arg-2))))))
 
+;;;;;;;;;;;;;;;;; NOOP ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(cpm:def-process-module urdf-proj-noop (motion-designator)
+  (destructuring-bind (command &rest args)
+      (desig:reference motion-designator)
+    (declare (ignore args))
+    (case command
+      (cram-common-designators:monitor-joint-state
+       (loop do (cpl:sleep 1000)))
+      (t
+       nil))))
 
 ;;;;;;;;;;;;;;;;;;;;; PREDICATES ;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -122,4 +134,7 @@
     (or (desig:desig-prop ?motion-designator (:type :moving-tcp))
         (desig:desig-prop ?motion-designator (:type :moving-arm-joints))
         (desig:desig-prop ?motion-designator (:type :pulling))
-        (desig:desig-prop ?motion-designator (:type :pushing)))))
+        (desig:desig-prop ?motion-designator (:type :pushing))))
+
+  (<- (cpm:matching-process-module ?motion-designator urdf-proj-noop)
+    (desig:desig-prop ?motion-designator (:type :monitoring-joint-state))))

@@ -18,5 +18,6 @@
   <depend>cram_common_designators</depend>
   <depend>cram_language</depend>
   <depend>cram_giskard</depend>
+  <depend>cram_joint_states</depend>
   <depend>cram_urdf_projection</depend>
 </package>

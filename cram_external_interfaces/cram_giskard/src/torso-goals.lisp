@@ -93,4 +93,6 @@
   (call-action
    :action-goal (make-torso-action-goal goal-joint-state)
    :action-timeout action-timeout
-   :check-goal-function (lambda () (ensure-torso-goal-reached goal-joint-state))))
+   :check-goal-function (lambda (result status)
+                          (declare (ignore result status))
+                          (ensure-torso-goal-reached goal-joint-state))))

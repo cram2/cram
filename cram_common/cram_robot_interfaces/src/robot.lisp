@@ -47,7 +47,7 @@ so the robot whose brain this is.")
                            ROS parameter server?")))
 
 (def-fact-group robot (robot
-                       robot-base-frame robot-odom-frame
+                       robot-odom-frame robot-base-frame robot-base-link
                        robot-torso-link-joint
                        robot-joint-states robot-pose)
   (<- (robot ?robot-name)
@@ -57,10 +57,14 @@ so the robot whose brain this is.")
                                 Have you initialized it from a URDF on the ~
                                 ROS parameter server?"))))
 
+  (<- (robot-odom-frame ?robot-name ?odom-frame)
+    (fail))
+
   (<- (robot-base-frame ?robot-name ?base-frame)
     (fail))
 
-  (<- (robot-odom-frame ?robot-name ?odom-frame)
+  ;; robot-base-frame can be a virtual link, this one should be a physical link
+  (<- (robot-base-link ?robot-name ?base-link)
     (fail))
 
   (<- (robot-torso-link-joint ?robot-name ?torso-link ?torso-joint)

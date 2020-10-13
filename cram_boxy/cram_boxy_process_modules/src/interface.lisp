@@ -54,6 +54,7 @@
 
 (defmacro with-real-robot (&body body)
   `(cram-process-modules:with-process-modules-running
-       (rs:robosherlock-perception-pm grippers-pm giskard:giskard-pm)
+       (rs:robosherlock-perception-pm giskard:giskard-pm joints:joint-state-pm
+        grippers-pm)
      (cpl-impl::named-top-level (:name :top-level)
        ,@body)))

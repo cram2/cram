@@ -207,7 +207,8 @@ the `look-pose-stamped'."
                                            ;; have to add the visibility
                                            ;; constraint as he reperceives
                                            ;; each time before grasping
-                                           (:visible-for ?robot))
+                                           ;; (:visible-for ?robot)
+                                           )
                                 ?robot-location-designator)))
     ;; if the object is in the hand or its reference object is in the hand
     ;; we need to bring the hand closer to the other hand, e.g., bring to front

@@ -105,6 +105,23 @@
                      :type (roslisp:symbol-code 'shape_msgs-msg:solidprimitive :box)
                      :dimensions (map 'vector #'identity dimensions)))
       :pose (cl-transforms-stamped:to-msg pose)))
+    (:alter
+     (roslisp:make-request
+      'giskard_msgs-srv:updateworld
+      :operation (roslisp:symbol-code
+                  'giskard_msgs-srv:updateworld-request
+                  :alter)
+      :body (roslisp:make-msg
+             'giskard_msgs-msg:worldbody
+             :type (roslisp:symbol-code
+                    'giskard_msgs-msg:worldbody
+                    :primitive_body)
+             :name name
+             :shape (roslisp:make-msg
+                     'shape_msgs-msg:solidprimitive
+                     :type (roslisp:symbol-code 'shape_msgs-msg:solidprimitive :box)
+                     :dimensions (map 'vector #'identity dimensions)))
+      :pose (cl-transforms-stamped:to-msg pose)))
     (:add-environment
      (roslisp:make-request
       'giskard_msgs-srv:updateworld
@@ -259,16 +276,16 @@
         ;; giskard is publishing the tf frame
         ;; giskard only publishes TF for attached objects,
         ;; not the other objects in the collision scene
-        (handler-case
-            (setf ee-to-object-pose
-                  (cram-tf:strip-transform-stamped
-                   (cl-transforms-stamped:lookup-transform
-                    cram-tf:*transformer*
-                    link
-                    object-name-string
-                    :timeout cram-tf:*tf-default-timeout*
-                    :time (roslisp:ros-time))))
-          (cl-transforms-stamped:transform-stamped-error ()))
+        ;; (handler-case
+        ;;     (setf ee-to-object-pose
+        ;;           (cram-tf:strip-transform-stamped
+        ;;            (cl-transforms-stamped:lookup-transform
+        ;;             cram-tf:*transformer*
+        ;;             link
+        ;;             object-name-string
+        ;;             :timeout cram-tf:*tf-default-timeout*
+        ;;             :time (roslisp:ros-time))))
+        ;;   (cl-transforms-stamped:transform-stamped-error ()))
 
         ;; remove the object first, maybe it was already attached to something
         (call-giskard-environment-service
@@ -282,21 +299,65 @@
                          (btr:calculate-bb-dims btr-object)
                        (list cl-transforms:x cl-transforms:y cl-transforms:z)))))))
 
-(defmethod coe:on-event giskard-detach-object ((event cpoe:object-detached-robot))
+(defmethod coe:on-event giskard-detach-object 1 ((event cpoe:object-detached-robot))
+  (flet ((detach-object-name (object-name)
+           (let* ((object-name-string
+                    (roslisp-utilities:rosify-underscores-lisp-name
+                     object-name))
+                  (btr-object
+                    (btr:object btr:*current-bullet-world* object-name)))
+             (when btr-object
+               (let ((attached-to-another-link-as-well?
+                       (> (length
+                           (btr:object-name-attached-links
+                            (btr:get-robot-object)
+                            object-name))
+                          1)))
+                 (unless attached-to-another-link-as-well?
+                   (call-giskard-environment-service
+                    :detach
+                    :name object-name-string)))))))
+   (unless cram-projection:*projection-environment*
+     (let ((object-name (cpoe:event-object-name event)))
+       (if object-name
+           ;; if object-name is given, detach given object
+           (detach-object-name object-name)
+           ;; otherwise detach all objects from the given arm
+           (let* ((arm
+                    (cpoe:event-arm event))
+                  (link
+                    (if arm
+                        (cut:var-value
+                         '?link
+                         (car
+                          (prolog:prolog
+                           `(and (rob-int:robot ?rob)
+                                 (rob-int:end-effector-link ?rob ,arm ?link)))))
+                        (cpoe:event-link event))))
+             (unless (cut:is-var link)
+               (mapcar #'detach-object-name
+                       (btr:link-attached-object-names
+                        (btr:get-robot-object)
+                        link)))))))))
+
+(defmethod coe:on-event giskard-detach-object-after 3
+    ((event cpoe:object-detached-robot))
   (unless cram-projection:*projection-environment*
-    (let* ((object-name
-             (cpoe:event-object-name event))
-           (object-name-string
-             (roslisp-utilities:rosify-underscores-lisp-name object-name))
-           (btr-object
-             (btr:object btr:*current-bullet-world* object-name)))
-      (when btr-object
-        (let ((attached-to-another-link-as-well?
-                (btr:object-attached (btr:get-robot-object) btr-object)))
-          (unless attached-to-another-link-as-well?
-            (call-giskard-environment-service
-             :detach
-             :name object-name-string)))))))
+    (let ((object-name
+            (cpoe:event-object-name event)))
+      (when object-name
+        (let* ((object-name-string
+                 (roslisp-utilities:rosify-underscores-lisp-name object-name))
+               (btr-object
+                 (btr:object btr:*current-bullet-world* object-name)))
+          (call-giskard-environment-service
+           :alter
+           :name object-name-string
+           :pose (cl-transforms-stamped:pose->pose-stamped
+                  cram-tf:*fixed-frame* 0.0 (btr:pose btr-object))
+           :dimensions (with-slots (cl-transforms:x cl-transforms:y cl-transforms:z)
+                           (btr:calculate-bb-dims btr-object)
+                         (list cl-transforms:x cl-transforms:y cl-transforms:z))))))))
 
 (defmethod coe:on-event giskard-perceived ((event cpoe:object-perceived-event))
   (unless cram-projection:*projection-environment*
