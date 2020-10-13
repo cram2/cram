@@ -29,26 +29,10 @@
 
 (asdf:defsystem cram-learning-vr
 	:depends-on (roslisp
-               cram-language
-               ;;cram-json-prolog
-               ;;std_msgs-msg
                cl-transforms
-               ;;cl-transforms-stamped
-               ;;cl-tf
-               ;;cram-object-knowledge
                cram-manipulation-interfaces
-               ;;cram-semantic-map
-               cram-bullet-reasoning
-               ;;cram-bullet-reasoning-utilities
-               ;;cram-bullet-reasoning-belief-state
-               cram-executive
-               cram-designators
-               ;;cram-prolog
-               ;;cram-common-failures
-               ;;cram-urdf-projection
-               cram-pr2-description
-               cram-robot-interfaces
-               ;;cram-fetch-deliver-plans
+               cram-bullet-reasoning-utilities
+               cram-btr-spatial-relations-costmap
                costmap_learning-srv)
 	:components
 	((:module "src"
