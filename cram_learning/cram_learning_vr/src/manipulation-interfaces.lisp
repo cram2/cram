@@ -128,11 +128,13 @@ VR experiment."
          (?pseudo-urdf (owl->urdf ?vr-owl)))
     (if (location-on-p ?pseudo-urdf)
         (desig:a location
+                 (orientation :learned)
                  (on (desig:an object
                                (urdf-name ?pseudo-urdf)
                                (owl-name ?vr-owl)
                                (part-of ?kitchen-name))))
         (desig:a location
+                 (orientation :learned)
                  (in (desig:an object
                                (urdf-name ?pseudo-urdf)
                                (owl-name ?vr-owl)
@@ -159,6 +161,7 @@ experiments should be used."
                                (owl-name ?vr-owl)
                                (part-of ?kitchen-name)))
                  (context ?context)
+                 (orientation :learned)
                  (for (desig:an object (type ?object-type))))
         (desig:a location
                  (in (desig:an object
@@ -166,6 +169,7 @@ experiments should be used."
                                (owl-name ?vr-owl)
                                (part-of ?kitchen-name)))
                  (context ?context)
+                 (orientation :learned)
                  (for (desig:an object (type ?object-type)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -200,6 +204,8 @@ experiments should be used."
                  (or (desig:desig-prop-value location-designator :on)
                      (desig:desig-prop-value location-designator :in));; (on (desig:an object (part-of kitchen ...)))
                  (desig:desig-prop-value location-designator :context)
+                 (equal :learned
+                        (desig:desig-prop-value location-designator :orientation))
                  (not (desig:desig-prop-value location-designator :reachable-for)))
 
             ;; ... we get the object-designator and the environment designator.
