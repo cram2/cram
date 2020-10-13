@@ -62,5 +62,6 @@
              (:file "ros-occupancy-grid" :depends-on ("package"))
              (:file "visualization"
               :depends-on ("package" "occupancy-grid" "location-costmap"))
+             (:file "gmm" :depends-on ("package"))
              ;; implemented for optimizing costmaps but not integrated yet
              (:file "quadtree" :depends-on ("package"))))))
