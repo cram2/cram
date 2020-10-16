@@ -314,8 +314,10 @@ description will be dominant in this relation."
 (defun merge-desig-descriptions (designator new-description)
   "Returns the merge of the description of `designator' with `new-description'.
  The new description will be dominant in this relation."
-  (reduce (rcurry (flip #'adjoin) :key #'car)
-          (description designator) :initial-value new-description))
+  (append (reduce (alexandria:rcurry (cut:flip #'remove) :key #'car)
+                  (mapcar #'car new-description)
+                  :initial-value (description designator))
+          new-description))
 
 (defun extend-designator-properties (designator property-extension)
   "Extends (without merging) the properties of `designator'
