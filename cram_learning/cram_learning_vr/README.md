@@ -12,9 +12,7 @@ First install the ROS python package costmap_learning and run it with roslaunch.
 ### CRAM Interface: manipulation-interfaces.lisp
 
 In [manipulation-interfaces.lisp](./src/manipulation-interfaces.lisp) the methods `man-int:get-object-destination` and `man-int:get-object-likely-location`
-are implemented, which get the symbolic location of the given object type and context from the package costmap_learning. The result is a valid location
-designator, which can be used for the target navigation to the symbolic location. This designator will then be later dereferenced in the implemented
-`man-int:get-location-poses` method, which returns a `cram:location-costmap` object saving the learned object placements from costmap_learning.
+are implemented, which get the symbolic location of the given object type and context from the package costmap_learning via a `GetSymbolicLocation` request. The result is a valid location designator, which can be used for the target navigation to the symbolic location. This designator will then be later dereferenced in the implemented `man-int:get-location-poses` method, which returns a `cram:location-costmap` object saving the learned object placements returned from a `GetCostmap` request.
 
 ### ROS Interface: costmap_client.lisp
 
