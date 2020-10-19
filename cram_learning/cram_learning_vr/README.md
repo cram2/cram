@@ -1,7 +1,7 @@
 # ROS Interface for cram/costmap_learning
 
-This CRAM package connects learned object placements from the ROS python package [costmap_learning](../../../../../costmap_learning) and the referencing 
-of location designators by implementing methods from the CRAM package cram_manipulation_interfaces. This package depends on the current used 
+This CRAM package connects learned object placements from the ROS python package [costmap_learning](https://github.com/cram2/costmap_learning) and the referencing 
+of location designators by implementing methods from the CRAM package [cram_manipulation_interfaces](../cram_common/cram_manipulation_interfaces). This package depends on the current used 
 CRAM kitchen, since the learned object placements were recorded in the global map frame.
 
 ## Using
