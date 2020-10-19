@@ -34,6 +34,11 @@
         #:cl-transforms-stamped)
   (:shadowing-import-from :alexandria rotate)
   (:export #:make-gauss-cost-function
+           ;; gmm.lisp
+           #:make-gauss-mixture-models
+           #:get-value
+           #:gmm
+           ;;
            #:make-location-cost-function
            #:make-range-cost-function
            #:make-occupancy-grid-cost-function

@@ -32,29 +32,65 @@
 
 
 (defclass gauss-mixture-models ()
-  ((means :initarg :means)
-   (covs :initarg :covs)
-   (gauss-dists :initform nil :reader gauss-dists)
-   (weights :initarg :weights :initform nil)))
+  ((dimensions
+    :initform -1
+    :initarg :dimensions
+    :reader gmm-dimensions
+    :documentation "Saves the dimension of the space.")
+   (components
+    :initform -1
+    :initarg :components
+    :reader gmm-components
+    :documentation "Saves the number of components.")
+   (means
+    :initarg :means
+    :reader gmm-means
+    :documentation "Contains cram-math:double-matrix object
+                    where each row is |dimensions| long and
+                    has the height of |components|. Each row
+                    saves the means of one component.")
+   (covs
+    :initarg :covs
+    :reader gmm-covariance
+    :documentation "Contains array of cram-math:double-matrix
+                    objects, where each cram-math:double-matrix
+                    contains the covariance matrix of one GMM
+                    component. Therefore, this array contains
+                    |components| many cram-math:double-matrix
+                    objects, which are each |dimensions| times
+                    |dimensions| big.")
+   (gauss-dists
+    :initform nil
+    :reader gmm-distributions
+    :documentation "Contains a list with |components| elements
+                    each representing one component with a
+                    multivariate gauss distribution (see
+                    `cram-math:gauss' for more information).")
+   (weights
+    :initform nil
+    :reader gmm-weights
+    :initarg :weights
+    :documentation "List of floats giving each component/gauss
+                    distribution a weight.")))
 
 (defmethod make-gauss-mixture-models ((means list)
                                       (covs list)
                                       (weights list)
                                       k &optional (dimensions 2))
-  (let ((mean-vec-length (length (first means)))
-        (cov-height (length covs))
-        (cov-width (length (first covs))))
-    (make-gauss-mixture-models
-     (cram-math:make-double-matrix dimensions k
-                                   :initial-contents
-                                   means)
-     (make-array (list k dimensions dimensions)
-                 :initial-contents
-                 covs)
-     (cram-math:make-double-vector k
-                                   :initial-contents
-                                   weights)
-     k dimensions)))
+  (make-gauss-mixture-models
+   (cram-math:make-double-matrix
+    dimensions k
+    :initial-contents
+    means)
+   (make-array
+    (list k dimensions dimensions)
+    :initial-contents
+    covs)
+   (cram-math:make-double-vector
+    k
+    :initial-contents
+    weights)
+   k dimensions))
   
 (defmethod make-gauss-mixture-models ((means simple-array)
                                       (covs simple-array)
@@ -63,14 +99,16 @@
   (when (and means covs weights)
     (let* ((gmm (make-instance ;; save means, covs and weights in gmm object
                  'cram-location-costmap::gauss-mixture-models 
+                 :dimensions dimensions
+                 :components k
                  :means means
                  :covs covs
                  :weights weights)))
       ;; create multivariate gauss distributions and save these in the
-      ;; gmm object 
-      (unless (gauss-dists gmm)
-        (setf (slot-value gmm 'gauss-dists)
-              (with-slots (means covs) gmm
+      ;; gmm object
+      (with-slots (gauss-dists means covs) gmm
+        (unless gauss-dists
+          (setf (slot-value gmm 'gauss-dists)
                 (when (and means covs)
                   (loop for i from 0 to (1- k)
                         collecting
@@ -90,12 +128,12 @@
       gmm)))
 
 (defmethod get-value ((gmm gauss-mixture-models) (x list))
-  (with-slots (means) gmm
-    (let ((size (cram-math:double-vector-size (first means))))
-      (get-value gmm
-                 (cram-math:make-double-vector size
-                                               :initial-contents
-                                               x)))))
+  (with-slots (dimensions) gmm
+    (get-value
+     gmm
+     (cram-math:make-double-vector dimensions
+                                   :initial-contents
+                                   x))))
 
 (defmethod get-value ((gmm gauss-mixture-models) (x simple-array))
   (check-type x cram-math::double-matrix)
@@ -103,10 +141,10 @@
   
 (defmethod gmm ((gmm gauss-mixture-models))
   (lambda (x)
-    (with-slots (gauss-dists weights) gmm
+    (with-slots (gauss-dists weights components) gmm
       (apply #'+
              (loop for gauss-dist in gauss-dists
-                   for i from 0 to (1- (array-dimension weights 0))
+                   for i from 0 to (1- components)
                    collecting                          
                    (* (aref weights i 0)
                       (funcall gauss-dist x)))))))
