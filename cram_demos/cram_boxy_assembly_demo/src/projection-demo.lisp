@@ -195,6 +195,7 @@
                   spawning-data)))
 
     (btr:attach-object 'motor-grill 'underbody)
+    (btr:attach-object 'holder-top-wing 'top-wing :loose T)
 
     objects))
 
