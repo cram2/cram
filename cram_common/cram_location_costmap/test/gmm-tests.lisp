@@ -108,7 +108,7 @@
         :initial-contents
         weights-l))))))
 
-(define-test gmm-test
+(define-test gmm-2d-test
   (let* ((means-l (list '(1.0d0 2.0d0)
                         '(1.0d0 4.0d0)))
          (means-a (cram-math:make-double-matrix
@@ -131,7 +131,7 @@
          (gmm (make-gauss-mixture-models
                means-a covs-a weights-a 2))
          (gauss-dists (costmap::gmm-distributions gmm))
-         (sample-l (list '(2.3d0 1.0d0)))
+         (sample-l (list '(1.3d0 0.5d0)))
          (sample-a (cram-math:make-double-vector
                     2
                     :initial-contents
@@ -172,7 +172,7 @@
          (gmm (make-gauss-mixture-models
                means-a covs-a weights-a 2))
          (gauss-dists (costmap::gmm-distributions gmm))
-         (sample-l (list '(2.3d0 1.0d0)))
+         (sample-l (list '(2.3d0 1.3d0)))
          (sample-a (cram-math:make-double-vector
                     2
                     :initial-contents
@@ -208,7 +208,7 @@
          (gmm (make-gauss-mixture-models
                means-a covs-a weights-a 2))
          (gauss-dists (costmap::gmm-distributions gmm))
-         (sample-l (list '(2.3d0 1.0d0)))
+         (sample-l (list '(3.3d0 1.0d0)))
          (sample-a (cram-math:make-double-vector
                     2
                     :initial-contents
