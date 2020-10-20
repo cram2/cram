@@ -273,8 +273,19 @@ or other objects to which current object is attached."
                                           (find this-object-name
                                                 (btr:attached-objects object)
                                                 :key #'car)))
-                                      colliding-objects-without-robot)))
-                    colliding-objects-without-robot-and-attached-objects))
+                                      colliding-objects-without-robot))
+                         ;; remove all items which are indirectly
+                         ;; attached between each other
+                         (colliding-objects-without-robot-and-indirect-attached-objects
+                           (remove-if 
+                            (lambda (object)
+                              (some (lambda (attachment)
+                                      (btr:object-attached
+                                       (btr:object btr:*current-bullet-world* (car attachment))
+                                       object))
+                                    (btr:attached-objects object)))
+                            colliding-objects-without-robot-and-attached-objects)))
+                    colliding-objects-without-robot-and-indirect-attached-objects))
                 (attached-objects (get-robot-object)))))
 
 
