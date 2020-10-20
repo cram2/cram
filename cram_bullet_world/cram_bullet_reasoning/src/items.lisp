@@ -258,6 +258,52 @@ it is possible to change the pose of its attachments when its pose changes."
                 (setf already-moved '()))))
         (call-next-method))))
 
+(let ((checked-attached-objects-of '())
+      (checked-all-attachments T))
+  
+  (flet ((already-checked-object-p (name)
+           (some (lambda (checked-name)
+                   (equalp name checked-name))
+                 checked-attached-objects-of))
+         (object-directly-attached-p (object other-object)
+           (with-slots (attached-objects) object
+             (some (lambda (attached-object-name)
+                     (equalp attached-object-name (btr:name other-object)))
+                   (mapcar #'car attached-objects)))))
+    
+  (defmethod object-attached ((object item) (other-object item) &key)
+    (with-slots (attached-objects) object
+      (cond (;; If the `other-object' is directly attached to `object'
+             ;; return T and empty the list `checked-attached-object-of'.
+             (object-directly-attached-p object other-object)
+             (setf checked-attached-objects-of nil)
+             (return-from object-attached T))
+            (t
+             ;; Otherwise, it will be checked if `other-object' is
+             ;; attached to any attached object of `object' meaning
+             ;; that an indirect attachment might exist e.g.:
+             ;;    `object' <-> another-object <-> `other-object'
+             (push (btr:name object) checked-attached-objects-of)
+             (setf checked-all-attachments T)
+             (loop for attachment in attached-objects do
+               (unless (already-checked-object-p (car attachment))
+                 (setf checked-all-attachments NIL)
+                 (when (object-attached (btr:object
+                                         btr:*current-bullet-world*
+                                         (car attachment))
+                                        other-object)
+                   (setf checked-attached-objects-of nil)
+                   (return-from object-attached T))))
+             ;; If all attached objects were checked and no indirect
+             ;; attachment from `other-object' to `object' were found,
+             ;; we empty the list `checked-attached-object-of' and
+             ;; return NIL.
+             (when (and checked-all-attachments
+                        (equalp (last checked-attached-objects-of)
+                                (btr:name object)))
+               (setf checked-attached-objects-of nil)
+               (return-from object-attached NIL))))))))
+
 ;;;;;;;;;;;;;;;;;;;;; SPAWNING MESH AND PRIMITIVE-SHAPED ITEMS ;;;;;;;;;;;;
 
 (defmethod add-object ((world bt-world) (type (eql :mesh)) name pose

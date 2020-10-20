@@ -139,23 +139,21 @@
 (defgeneric (setf link-pose) (new-value robot-object name)
   (:documentation "Sets the pose of a link and all its children"))
 
-(defgeneric object-attached (robot-object object &key loose)
-  (:documentation "Returns the list of links `object' has been
-  attached to.")
-  (:method ((robot-object robot-object) (object object) &key loose)
-    (with-slots (attached-objects) robot-object
-      (values (mapcar #'attachment-link (remove-if-not
-                                         (if loose
-                                             #'attachment-loose
-                                             #'identity)
-                                         (car (cdr (assoc (name object) attached-objects
-                                                          :test #'equal)))))
-              (mapcar #'attachment-grasp (remove-if-not
-                                          (if loose
-                                              #'attachment-loose
-                                              #'identity)
-                                          (car (cdr (assoc (name object) attached-objects
-                                                           :test #'equal)))))))))
+(defmethod object-attached ((object robot-object) (other-object object) &key loose)
+  "Returns the list of links `other-object' has been attached to."
+  (with-slots (attached-objects) object
+    (values (mapcar #'attachment-link (remove-if-not
+                                       (if loose
+                                           #'attachment-loose
+                                           #'identity)
+                                       (car (cdr (assoc (name other-object) attached-objects
+                                                        :test #'equal)))))
+            (mapcar #'attachment-grasp (remove-if-not
+                                        (if loose
+                                            #'attachment-loose
+                                            #'identity)
+                                        (car (cdr (assoc (name other-object) attached-objects
+                                                         :test #'equal))))))))
 
 (defmethod attach-object ((robot-object robot-object) (obj object)
                           &key link loose grasp &allow-other-keys)
