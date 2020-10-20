@@ -460,6 +460,10 @@ of the object should _not_ be updated. `grasp' is the type of grasp orientation.
 (defgeneric detach-all-objects (object)
   (:documentation "Removes all attachments form the list of attached objects of `object'."))
 
+(defgeneric object-attached (object other-object &key &allow-other-keys)
+  (:documentation "Returns something if `other-object' is attached to
+  `object', otherwise NIL."))
+
 (defmethod attach-object ((object-to-attach-to-name symbol) (object-name symbol)
                           &key attachment-type loose skip-removing-loose link grasp)
   "Attaches object named `object-name' to another object named `object-to-attach-to-name'."
