@@ -269,7 +269,7 @@ it is possible to change the pose of its attachments when its pose changes."
 
 (defmethod add-object ((world bt-world) (type (eql :mesh)) name pose
                        &key mass mesh (color '(0.5 0.5 0.5 1.0)) types (scale 1.0)
-                         disable-face-culling (compound *all-meshes-as-compound*) (collision-mask :default-filter) (collision-group :default-filter))
+                         disable-face-culling (compound *all-meshes-as-compound*) (collision-mask :all-filter) (collision-group :default-filter))
   (let ((collision-shape
           (etypecase mesh
 
