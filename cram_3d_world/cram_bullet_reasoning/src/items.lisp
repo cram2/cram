@@ -269,7 +269,7 @@ it is possible to change the pose of its attachments when its pose changes."
 
 (defmethod add-object ((world bt-world) (type (eql :mesh)) name pose
                        &key mass mesh (color '(0.5 0.5 0.5 1.0)) types (scale 1.0)
-                         disable-face-culling (compound *all-meshes-as-compound*))
+                         disable-face-culling (compound *all-meshes-as-compound*) (collision-mask :default-filter) (collision-group :default-filter))
   (let ((collision-shape
           (etypecase mesh
 
@@ -305,8 +305,9 @@ it is possible to change the pose of its attachments when its pose changes."
     (make-item world name (or types (list mesh))
                (list
                 (make-instance 'rigid-body
-                  :name name :mass mass :pose (ensure-pose pose)
-                  :collision-shape collision-shape)))))
+                               :mask collision-mask :group collision-group
+                               :name name :mass mass :pose (ensure-pose pose)
+                               :collision-shape collision-shape)))))
 
 (defmethod add-object ((world bt-world) (type (eql :mug)) name pose &key mass)
   (add-object world :mesh name pose :mass mass :mesh :mug))
