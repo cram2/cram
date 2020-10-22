@@ -280,14 +280,22 @@ or other objects to which current object is attached."
                 (attached-objects (get-robot-object)))))
 
 (defun visualize-thinking (robot-object)
-  "Creates an object out of all the meshes in robot-object and spawns it over the robot to visualize the computing process of the robot.
-   The newly spawned meshes are scaled by a factor of 1.3. The object has the name :thinking"
+  "Visualizes the thinking of the robot by spawning the meshes in grey and bigger over the robot."
+  (if *thinking-objects-list*
+      (move-thinking robot-object)
+      (spawn-thinking robot-object)))
+
+(defun spawn-thinking (robot-object)
+  "Creates new objects of the meshes of the given robot-object and attaches them to the original link.
+   The newly created objects are saved in the global variable *thinking-objects*. " 
   (let* ((urdf (btr:urdf robot-object))
          (links (cl-urdf:links urdf))
          (object-list '())
          (counter 0))
 
+    ;; Iterates over the URDF
     (loop for link being the hash-values of links
+          ;; Only take links which contain a mesh
           do (if (not (eql (cl-urdf:collision link) NIL))
              (when (typep (cl-urdf:geometry (cl-urdf:collision link)) 'cl-urdf::mesh)
                (let* ((rigid-body-name (intern (concatenate 'string "PR2." (cl-urdf:name link)) "KEYWORD"))
@@ -296,23 +304,41 @@ or other objects to which current object is attached."
                       (mesh-file-name (cl-urdf:filename (cl-urdf:geometry (cl-urdf:collision link))))
                       (mesh-size (cl-urdf:size (cl-urdf:geometry (cl-urdf:collision link))))
                       (object-name (intern (concatenate 'string "Thinking-" (write-to-string counter))))
-                      (new-object (make-object *current-bullet-world* object-name
-                                               (list (make-instance 'btr::rigid-body 
-                                                                         :name 'body :mass 2 :pose pose
-                                                                         :collision-shape
-                                                                         (btr::make-collision-shape-from-mesh mesh-file-name
-                                                                                                              :color '(0.2 0.2 0.2 0.6) :scale 1.3
-                                                                                                              :size mesh-size :compound nil))))))
-                 (setf object-list (append object-list (list new-object)))
-                 ;;(print (attached-objects new-object))
-                 (attach-object robot-object new-object :link (cl-urdf:name link))
+                      (new-item (add-object *current-bullet-world* :mesh object-name pose
+                                            :mesh mesh-file-name
+                                            :mass 1
+                                            :scale 1.3
+                                            :color '(0.2 0.2 0.2 0.6)
+                                            :collision-mask :no-filter
+                                            :collision-group :default-filter)))
+                 ;; add the new object to the list of all objects and attach it to the respective link of the robot
+                 (setf object-list (append object-list (list `(,(cl-urdf:name link) . ,new-item))))
+                 (attach-object robot-object new-item :link (cl-urdf:name link))
+                 (setf (cl-bullet:collision-flags (car (rigid-bodies new-item))) :cf-no-contact-response)
                  (incf counter)))))
 
     (setf *thinking-objects-list* object-list)))
 
 
-(defun unvisualize-thinking ()
+(defun move-thinking (robot-object)
+  "Moves the Thinkning objects back to the respective links."
+  (let* ((urdf (btr:urdf robot-object))
+         (links (cl-urdf:links urdf)))
+    ;; Iterate over all links of the URDF
+    (loop for link being the hash-value of links
+          ;; Only take links which contains a mesh
+          do (if (not (eql (cl-urdf:collision link) NIL))
+                 (when (typep (cl-urdf:geometry (cl-urdf:collision link)) 'cl-urdf::mesh)
+                   (let* ((mesh-item (cdr (assoc (cl-urdf:name link) *thinking-objects-list*)))
+                          (rigid-body-name (intern (concatenate 'string "PR2." (cl-urdf:name link)) "KEYWORD"))
+                          (rigid-body (gethash rigid-body-name (slot-value robot-object 'btr:rigid-bodies)))
+                          (pose (btr:pose rigid-body)))
+                     (btr-utils:move-object (btr:name mesh-item) (cram-tf:pose->list pose))))))))
+
+(defun remove-thinking ()
+  "Moves all spawned Thinking objects under the floor instead of removing it entierly from the simulation, this is
+    done to increase performance. "
   (loop for object in *thinking-objects-list*
-        do (remove-object *current-bullet-world* (name object)))
-  )
+        do (let ((item (cdr object)))
+             (btr-utils:move-object (btr:name item) '((0 0 -1) (0 0 0 1))))))
   
