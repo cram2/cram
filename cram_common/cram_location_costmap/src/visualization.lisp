@@ -89,11 +89,10 @@ respectively."
 
 (defun location-costmap->marker-array (map &key
                                              (frame-id *fixed-frame*)
-                                             (threshold 0.0005) (z *z-padding*)
+                                             (threshold 0.0005)
                                              hsv-colormap
                                              (intensity-colormap nil)
-                                             (base-color (vector 0 0 1))
-                                             (elevate-costmap nil))
+                                             (base-color (vector 0 0 1)))
   (with-slots (origin-x origin-y resolution) map
     (let* ((map-array (get-cost-map map))
            (boxes nil)
@@ -107,31 +106,32 @@ respectively."
           (dotimes (col (array-dimension map-array 1))
             (let ((curr-val (/ (aref map-array row col) max-val)))
               (when (> curr-val threshold)
-                (let ((pose (cl-transforms:make-pose
-                             (cl-transforms:make-3d-vector
-                              (+ (* col resolution) origin-x)
-                              (+ (* row resolution) origin-y)
-                              (+ z (or (when elevate-costmap curr-val)
-                                       0.0)))
-                             (cl-transforms:axis-angle->quaternion
-                              (cl-transforms:make-3d-vector 1.0 0.0 0.0) 0.0)))
-                      (color (cond (hsv-colormap
-                                    (hsv->rgb (* 360 curr-val)
-                                              0.5 0.5))
-                                   (intensity-colormap
-                                    (let* ((hsv-color (rgb->hsv
-                                                       (elt base-color 0)
-                                                       (elt base-color 1)
-                                                       (elt base-color 2)))
-                                           (mod-hsv
-                                             (vector (elt hsv-color 0)
-                                                     (elt hsv-color 1)
-                                                     curr-val)))
-                                      (hsv->rgb
-                                       (elt mod-hsv 0)
-                                       (elt mod-hsv 1)
-                                       (elt mod-hsv 2))))
-                                   (t base-color))))
+                (let* ((x (+ (* col resolution) origin-x))
+                       (y (+ (* row resolution) origin-y))
+                       (pose (cl-transforms:make-pose
+                              (cl-transforms:make-3d-vector
+                               x
+                               y
+                               (generate-height map x y))
+                              (cl-transforms:axis-angle->quaternion
+                               (cl-transforms:make-3d-vector 1.0 0.0 0.0) 0.0)))
+                       (color (cond (hsv-colormap
+                                     (hsv->rgb (* 360 curr-val)
+                                               0.5 0.5))
+                                    (intensity-colormap
+                                     (let* ((hsv-color (rgb->hsv
+                                                        (elt base-color 0)
+                                                        (elt base-color 1)
+                                                        (elt base-color 2)))
+                                            (mod-hsv
+                                              (vector (elt hsv-color 0)
+                                                      (elt hsv-color 1)
+                                                      curr-val)))
+                                       (hsv->rgb
+                                        (elt mod-hsv 0)
+                                        (elt mod-hsv 1)
+                                        (elt mod-hsv 2))))
+                                    (t base-color))))
                   (push (make-message "visualization_msgs/Marker"
                                       (frame_id header) frame-id
                                       (stamp header) (ros-time)
@@ -196,13 +196,12 @@ respectively."
                 (markers) (map 'vector #'identity removers))))))
 
 (defun publish-location-costmap (map &key (frame-id *fixed-frame*)
-                                       (threshold 0.0005) (z *z-padding*))
+                                       (threshold 0.0005))
   (when *location-costmap-publisher*
     (multiple-value-bind (markers last-index)
         (location-costmap->marker-array
          map :frame-id frame-id
              :threshold threshold
-             :z z
              :hsv-colormap t)
       (when *last-published-marker-index*
         (remove-markers-up-to-index *last-published-marker-index*))
@@ -210,7 +209,7 @@ respectively."
       (publish *location-costmap-publisher*
                markers))))
 
-(defun publish-point (point &key id)
+(defun publish-point (point resolution &key (id))
   (let ((current-index 0))
     (when *marker-publisher*
       (publish *marker-publisher*
@@ -220,20 +219,20 @@ respectively."
                              ns "kipla_locations"
                              id (or id (incf current-index))
                              type (symbol-code
-                                   'visualization_msgs-msg:<marker> :sphere)
+                                   'visualization_msgs-msg:<marker> :cube)
                              action (symbol-code
                                      'visualization_msgs-msg:<marker> :add)
                              (x position pose) (cl-transforms:x point)
                              (y position pose) (cl-transforms:y point)
                              (z position pose) (cl-transforms:z point)
                              (w orientation pose) 1.0
-                             (x scale) 0.15
-                             (y scale) 0.15
-                             (z scale) 0.15
+                             (x scale) resolution
+                             (y scale) resolution
+                             (z scale) resolution
                              (r color) 1.0 ; (random 1.0)
                              (g color) 0.0 ; (random 1.0)
                              (b color) 0.0 ; (random 1.0)
-                             (a color) 0.9)))))
+                             (a color) 1.0)))))
 
 (defun publish-pose (pose &key id)
   (let ((point (cl-transforms:origin pose))
@@ -268,8 +267,8 @@ respectively."
                              (b color) 0.0
                              (a color) 1.0)))))
 
-(defmethod on-visualize-costmap-sample rviz ((point cl-transforms:3d-vector))
-  (publish-point point))
+(defmethod on-visualize-costmap-sample rviz ((point cl-transforms:3d-vector) &key resolution)
+  (publish-point point (or resolution 0.15)))
 
 (defmethod on-visualize-costmap rviz ((map location-costmap))
   (publish-location-costmap map :threshold *costmap-valid-solution-threshold*))
