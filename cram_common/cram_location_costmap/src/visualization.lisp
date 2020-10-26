@@ -209,7 +209,7 @@ respectively."
       (publish *location-costmap-publisher*
                markers))))
 
-(defun publish-point (point resolution &key (id))
+(defun publish-point (point resolution &key id)
   (let ((current-index 0))
     (when *marker-publisher*
       (publish *marker-publisher*
