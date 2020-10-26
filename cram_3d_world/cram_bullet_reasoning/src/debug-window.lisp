@@ -216,5 +216,5 @@ It is built from 3 rigid bodies of primitive box shape.
 (defmethod costmap:on-visualize-costmap opengl ((map costmap:location-costmap))
   (add-costmap-function-object map))
 
-(defmethod costmap:on-visualize-costmap-sample opengl ((point cl-transforms:3d-vector))
+(defmethod costmap:on-visualize-costmap-sample opengl ((point cl-transforms:3d-vector) &key)
   (add-costmap-sample-object point))
