@@ -41,6 +41,7 @@ Repeat `navigation-location-samples' + 1 times.
 Store found pose into designator or throw error if good pose not found."
 
   (when *projection-checks-enabled*
+    (btr:visualize-thinking (btr:get-robot-object))
     (let ((world-pose-info (btr:get-world-objects-pose-info)))
       (unwind-protect
            (cpl:with-failure-handling
@@ -88,12 +89,15 @@ Store found pose into designator or throw error if good pose not found."
                    ;;                   "Found non-colliding pose~%~a to satisfy~%~a."
                    ;;                   pose-at-navigation-location navigation-location-desig)
                    navigation-location-desig))))
-        (btr:restore-world-poses world-pose-info)))))
+        (btr:restore-world-poses world-pose-info)
+        (btr:remove-thinking)
+        ))))
 
 
 
 (defun check-picking-up-collisions (pick-up-action-desig &optional (retries 30))
   (when *projection-checks-enabled*
+    (btr:visualize-thinking (btr:get-robot-object))
     (let ((world-pose-info (btr:get-world-objects-pose-info)))
       (unwind-protect
 
@@ -185,13 +189,15 @@ Store found pose into designator or throw error if good pose not found."
                     (list left-reach-poses left-grasp-poses left-lift-poses)
                     (list right-reach-poses right-grasp-poses right-lift-poses)
                     (list :avoid-all :allow-hand :avoid-all))))))
-
-        (btr:restore-world-poses world-pose-info)))))
+        (btr:restore-world-poses world-pose-info)
+        (btr:remove-thinking)
+        ))))
 
 
 
 (defun check-placing-collisions (placing-action-desig &optional (retries 3))
   (when *projection-checks-enabled*
+    (btr:visualize-thinking (btr:get-robot-object))
     (let ((world-pose-info (btr:get-world-objects-pose-info)))
       (unwind-protect
 
@@ -296,7 +302,9 @@ Store found pose into designator or throw error if good pose not found."
                     ;; (list right-put-poses)
                     (list left-reach-poses left-put-poses left-retract-poses)
                     (list right-reach-poses right-put-poses right-retract-poses))))))
-        (btr:restore-world-poses world-pose-info)))))
+        (btr:restore-world-poses world-pose-info)
+        (btr:remove-thinking)
+        ))))
 
 
 
@@ -314,7 +322,8 @@ Store found pose into designator or throw error if good pose not found."
              (btr:add-object btr:*current-bullet-world* :mesh
                              bullet-object-name placing-pose
                              :mesh bullet-object-type
-                             :mass 0.2)))
+                             :mass 0.2
+                             :color btr::*thinking-color*)))
       (unwind-protect
            (progn
              (cpl:sleep urdf-proj::*debug-short-sleep-duration*)
@@ -336,6 +345,7 @@ Store found pose into designator or throw error if good pose not found."
 
 (defun check-environment-manipulation-collisions (action-desig)
   (when *projection-checks-enabled*
+    (btr:visualize-thinking (btr:get-robot-object))
     (let ((world-pose-info (btr:get-world-objects-pose-info)))
       (unwind-protect
 
@@ -408,4 +418,6 @@ Store found pose into designator or throw error if good pose not found."
                    (btr:restore-world-poses world-pose-info)
                    ;; (cpl:fail 'common-fail:manipulation-goal-in-collision)
                    ))))
-        (btr:restore-world-poses world-pose-info)))))
+        (btr:restore-world-poses world-pose-info)
+        (btr:remove-thinking)
+        ))))

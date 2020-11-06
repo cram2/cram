@@ -95,6 +95,7 @@
   (declare (type cl-transforms-stamped:pose-stamped target))
 
   (btr:add-vis-axis-object target)
+  (btr:visualize-thinking (btr:get-robot-object))
 
   (let ((world-pose-info (btr:get-world-objects-pose-info)))
     (unwind-protect
@@ -112,7 +113,9 @@
                 (btr:robot-attached-objects-in-collision))
         (unless (< (abs *debug-short-sleep-duration*) 0.0001)
           (cpl:sleep *debug-short-sleep-duration*))
+        ;;(btr:remove-thinking)
         (btr:restore-world-poses world-pose-info)
+        (btr:remove-thinking)
         (cpl:fail 'common-fail:navigation-pose-unreachable :pose-stamped target)))))
 
 ;;;;;;;;;;;;;;;;; TORSO ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -746,6 +749,7 @@ with the given offsets (the offsets are specified in the torso frame).
                                  (:allow-arm
                                   '(rob-int:arm-links ?robot :right ?links)))))))))
                       :test #'string-equal))
+                (btr:remove-thinking)
                 (make-instance 'common-fail:manipulation-goal-not-reached
                   :description "Robot is in collision with environment.")))
              (:avoid-all
@@ -756,14 +760,17 @@ with the given offsets (the offsets are specified in the torso frame).
                                 (btr:robot-colliding-objects-without-attached))
                         (remove object-name-to-allow-collisions-with
                                 (btr:robot-attached-objects-in-collision)))
+                (btr:remove-thinking)
                 (make-instance 'common-fail:manipulation-goal-not-reached
-                  :description "Robot is in collision with environment."))))))
+                               :description "Robot is in collision with environment."))))))
 
     (unless collision-mode
       (setf collision-mode :avoid-all))
     ;; if joint state is given, first set the robot to given state,
     ;; then perform the collision check, then restore the robot to original state
     (if (or torso-offsets joint-state-msg)
+        (progn
+          (btr:visualize-thinking (btr:get-robot-object))
         (let ((world-pose-info (btr:get-world-objects-pose-info)))
           (unwind-protect
                (progn
@@ -776,7 +783,8 @@ with the given offsets (the offsets are specified in the torso frame).
                   collision-mode left-hand-moves right-hand-moves))
             (btr:restore-world-poses world-pose-info)))
         (the-actual-collision-check
-         collision-mode left-hand-moves right-hand-moves))))
+         collision-mode left-hand-moves right-hand-moves)
+        (btr:remove-thinking)))))
 
 ;;; joint movement
 
@@ -1003,6 +1011,7 @@ collision by moving its torso and base"
                                validation-function
                                move-base)
   (when ee-pose
+    (btr:visualize-thinking (btr:get-robot-object))
     (let ((current-torso-angle
             (btr:joint-state (btr:get-robot-object) torso-joint-name))
           (seed-state-msg
@@ -1053,6 +1062,7 @@ collision by moving its torso and base"
                   (btr:pose (btr:get-robot-object))
                   (btr:link-pose (btr:get-robot-object) cram-tf:*robot-torso-frame*)
                   torso-offset-x torso-offset-y)))
+          (btr:remove-thinking)
           (values (map 'list #'identity
                        (roslisp:msg-slot-value ik-solution-msg :position))
                   new-torso-angle
