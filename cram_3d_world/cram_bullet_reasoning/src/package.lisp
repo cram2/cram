@@ -115,6 +115,6 @@
            ;; simple-sem-map
            #:*mesh-path-whitelist*
            ;; Visualize Thinking
-           #:spawn-thinking
+           #:visualize-thinking
            #:remove-thinking
            ))

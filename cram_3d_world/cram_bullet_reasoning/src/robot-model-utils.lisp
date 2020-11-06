@@ -31,6 +31,7 @@
 (in-package :btr)
 
 (defparameter *thinking-objects-list* '())
+(defparameter *thinking-color* '(0.2 0.2 0.2 0.6))
 
 (defun set-robot-state-from-tf (tf-buffer robot
                                 &key (reference-frame *fixed-frame*)
@@ -298,19 +299,24 @@ or other objects to which current object is attached."
           ;; Only take links which contain a mesh
           do (if (not (eql (cl-urdf:collision link) NIL))
              (when (typep (cl-urdf:geometry (cl-urdf:collision link)) 'cl-urdf::mesh)
-               (let* ((rigid-body-name (intern (concatenate 'string "PR2." (cl-urdf:name link)) "KEYWORD"))
+               (let* ((robot-name (substitute #\- #\_ (string-upcase (cl-urdf:name urdf))))
+                      (rigid-body-name (intern (concatenate 'string robot-name "." (cl-urdf:name link)) "KEYWORD"))
                       (rigid-body (gethash rigid-body-name (slot-value robot-object 'btr:rigid-bodies)))
                       (pose (btr:pose rigid-body))
-                      (mesh-file-name (cl-urdf:filename (cl-urdf:geometry (cl-urdf:collision link))))
-                      (mesh-size (cl-urdf:size (cl-urdf:geometry (cl-urdf:collision link))))
+                      (mesh (cl-urdf:geometry (cl-urdf:collision link)))
+                      (mesh-file-name (cl-urdf:filename mesh))
+                      (scale (if (not (eql (cl-urdf:scale mesh) NIL))
+                                 (cl-urdf:scale mesh)
+                                 (cl-transforms:make-3d-vector 1 1 1)))
                       (object-name (intern (concatenate 'string "Thinking-" (write-to-string counter))))
                       (new-item (add-object *current-bullet-world* :mesh object-name pose
                                             :mesh mesh-file-name
                                             :mass 1
-                                            :scale 1.3
-                                            :color '(0.2 0.2 0.2 0.6)
+                                            :scale (* 1.1 (cl-transforms:x scale))
+                                            :color *thinking-color*
                                             :collision-mask :no-filter
                                             :collision-group :default-filter)))
+                 (print rigid-body-name)
                  ;; add the new object to the list of all objects and attach it to the respective link of the robot
                  (setf object-list (append object-list (list `(,(cl-urdf:name link) . ,new-item))))
                  (attach-object robot-object new-item :link (cl-urdf:name link))
@@ -330,15 +336,18 @@ or other objects to which current object is attached."
           do (if (not (eql (cl-urdf:collision link) NIL))
                  (when (typep (cl-urdf:geometry (cl-urdf:collision link)) 'cl-urdf::mesh)
                    (let* ((mesh-item (cdr (assoc (cl-urdf:name link) *thinking-objects-list*)))
-                          (rigid-body-name (intern (concatenate 'string "PR2." (cl-urdf:name link)) "KEYWORD"))
+                          (robot-name (substitute #\- #\_ (string-upcase (cl-urdf:name urdf))))
+                          (rigid-body-name (intern (concatenate 'string robot-name "." (cl-urdf:name link)) "KEYWORD"))
                           (rigid-body (gethash rigid-body-name (slot-value robot-object 'btr:rigid-bodies)))
                           (pose (btr:pose rigid-body)))
-                     (btr-utils:move-object (btr:name mesh-item) (cram-tf:pose->list pose))))))))
+                     (btr:prolog-?w
+                       `(assert (object-pose ?w ,(name mesh-item) ,(cram-tf:pose->list pose))))))))))
 
 (defun remove-thinking ()
   "Moves all spawned Thinking objects under the floor instead of removing it entierly from the simulation, this is
     done to increase performance. "
   (loop for object in *thinking-objects-list*
         do (let ((item (cdr object)))
-             (btr-utils:move-object (btr:name item) '((0 0 -1) (0 0 0 1))))))
+             (btr:prolog-?w
+               `(assert (object-pose ?w ,(name item) ((0 0 -10) (0 0 0 1))))))))
   
