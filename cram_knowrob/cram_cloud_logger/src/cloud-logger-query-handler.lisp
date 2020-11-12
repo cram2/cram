@@ -58,7 +58,7 @@
   (send-query-1-without-result "mem_event_set_failed" event-prolog-url))
 
 (defun send-attach-object-as-parameter-to-situation (object-url parameter-type-url event-prolog-url)
-  (break)
+  ;; (break)
   (send-query-1-without-result "add_participant_with_role" event-prolog-url object-url parameter-type-url))
 
 (defun set-event-diagnosis (event-prolog-url diagnosis-url)
@@ -90,8 +90,8 @@
 (defun send-query-1-without-result (query-name &rest query-parameters)
   (let* ((query (create-query query-name query-parameters))
          (result (send-query-1 query)))
-    (when (not result)
-      (break))
+    ;; (when (not result)
+    ;;   (break))
     (print "DONE REASONING")))
 
 (defun send-query-1 (query)
@@ -112,7 +112,7 @@
 (defun send-object-action-parameter (action-inst object-designator)
   (let* ((object-name (get-designator-property-value-str object-designator :NAME))
          (object-ease-id (get-ease-object-id-of-detected-object-by-name object-name)))
-    (when object-ease-id 
+    (when object-ease-id
       (send-query-1-without-result "add_participant_with_role" action-inst object-ease-id "'http://www.ease-crc.org/ont/SOMA.owl#AffectedObject'"))))
 
 
@@ -329,7 +329,7 @@
 
 (defun send-pose-stamped-list-action-parameter (action-inst list-name pose-stamped-list)
   (let ((pose-stamp (get-last-element-in-list pose-stamped-list)))
-    (if pose-stamp (progn 
+    (if pose-stamp (progn
                      (send-rdf-query (convert-to-prolog-str action-inst)
                                      "knowrob:goalLocation" (convert-to-prolog-str (send-create-pose-stamped pose-stamp)))
                      (if (string-equal "left" list-name)

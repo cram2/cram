@@ -98,11 +98,11 @@
                 0.028393128886818886d0
                 0.7164095640182495d0
                 0.696520984172821d0)))
-    (:milk . ((-3.3491180419921873d0 0.29785102208455405d0 0.8362768809000651d0)
-              (-0.01168766152113676d0
-               -0.0014950307086110115d0
-               0.8665012121200562d0
-               -0.49903586506843567d0)))
+    (:milk . ((-3.3491180419921873d0 0.2085102208455405d0 0.8762768809000651d0)
+              (0.0
+               0.0
+               0.707
+               -0.707)))
     (:breakfast-cereal . ((-3.150148 0.298135248819987d0 0.850479253133138d0)
                           (-0.008403636515140533d0
                            -0.002780231647193432d0
@@ -226,7 +226,9 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
     (let* ((?deliver-pose (cram-tf:ensure-pose-in-frame
                            (btr:ensure-pose
                             (cdr (assoc ?object-type
+                                        ;; *delivery-poses*)))
                                         *delivery-poses-dining-table-absolute*)))
+                                        ;; *delivery-poses-dining-table-relative*)))
                            cram-tf:*fixed-frame*))
            (?deliver-location (a location (pose ?deliver-pose)))
            (?color (cdr (assoc ?object-type *object-colors*)))

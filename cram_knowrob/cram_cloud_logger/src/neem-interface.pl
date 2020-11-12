@@ -3,10 +3,10 @@
 
 mem_episode_start(Action) :- tripledb_drop(),forall(mng_collection(roslog,Coll),mng_drop(roslog,Coll)),
     tripledb_load('package://knowrob/owl/knowrob.owl',[graph(tbox),namespace(knowrob)]),
-    tripledb_load('/home/koralewski/catkin_ws/ros_cram/src/iai_maps/iai_kitchen/owl/iai-kitchen-knowledge.owl'),
-    tripledb_load('/home/koralewski/catkin_ws/ros_cram/src/knowrob/owl/robots/PR2.owl'),
-    urdf_load('http://knowrob.org/kb/PR2.owl#PR2_0', '/home/koralewski/catkin_ws/ros_cram/src/knowrob/urdf/pr2_for_unit_tests.urdf', [load_rdf]),
-    tell([is_episode(Episode), is_action(Action), has_type(Task,soma:'PhysicalTask'), 
+    % tripledb_load('/home/koralewski/catkin_ws/ros_cram/src/iai_maps/iai_kitchen/owl/iai-kitchen-knowledge.owl'),
+    % tripledb_load('/home/koralewski/catkin_ws/ros_cram/src/knowrob/owl/robots/PR2.owl'),
+    % urdf_load('http://knowrob.org/kb/PR2.owl#PR2_0', '/home/koralewski/catkin_ws/ros_cram/src/knowrob/urdf/pr2_for_unit_tests.urdf', [load_rdf]),
+    tell([is_episode(Episode), is_action(Action), has_type(Task,soma:'PhysicalTask'),
             executes_task(Action,Task),is_setting_for(Episode,Action)]),notify_synchronize(event(Action)),assertz(cramEpisodeName(Action)),!.
 
 is_recording_episode(Result) :- assertz(cramEpisodeName('None')), retract(cramEpisodeName('None')), (cramEpisodeName(Name) -> Result = Name ; Result = 'NoName').
@@ -33,10 +33,10 @@ add_comment(Entity,Comment) :- tell(triple(Entity, 'http://www.w3.org/2000/01/rd
 ros_logger_start :- process_create(path('rosrun'),['mongodb_log', 'mongodb_log.py','__name:=topic_logger', '--mongodb-name', 'roslog', '/tf_projection', '/tf'],[process(PID)]),asserta(ros_logger_pid(PID)).
 ros_logger_stop :-     ros_logger_pid(PID),
     retractall(ros_logger_pid(PID)),
-    process_create(path(rosnode), ['kill', '/topic_logger'], 
+    process_create(path(rosnode), ['kill', '/topic_logger'],
         [process(KillPID)]),process_wait(KillPID, _),
     process_wait(PID, _),
     process_create(path(rosnode),['cleanup'],
-        [stdin(pipe(In)), detached(true), process(TLPID)]), 
+        [stdin(pipe(In)), detached(true), process(TLPID)]),
     writeln(In,'y'),flush_output(In), process_wait(TLPID, _),
     print_message(informational,'Topic Logger stopped').

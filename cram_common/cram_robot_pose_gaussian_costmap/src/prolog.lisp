@@ -30,46 +30,70 @@
 
 (defun calculate-learned-mean-and-covariance (object-type
                                               reference-location-name)
+  (print reference-location-name)
+  (print object-type)
   (if reference-location-name
       (case object-type
-        (:breakfast-cereal
-         (case reference-location-name
-           (:oven-area-area-right-drawer-main
-            (list
-             (cl-transforms:make-3d-vector 0.75288949 0.75126507 0.0)
-             #2a((0.00334272 -0.00167905) (-0.00167905 0.01173699))))
-           (t
-            '(nil nil))))
-        (:bowl
-         (case reference-location-name
-           (:sink-area-left-middle-drawer-main
-            (list
-             (cl-transforms:make-3d-vector 0.48262422 0.60007345 0.0)
-             #2a((0.01696884 -0.02503274) (-0.02503274 0.18154158))))
-           (:dining-area-jokkmokk-table-main
-            (list
-             (cl-transforms:make-3d-vector -2.58749167 -0.17260023 0.0)
-             #2a((0.0004593 0.00107521) (0.00107521 0.01146658))))
-           (t
-            '(nil nil))))
-        (t
-         '(nil nil)))
-      (case object-type
-        (:sink-area-left-middle-drawer-main
-         (list
-          (cl-transforms:make-3d-vector 0.3703701 1.28296277 0.0)
-          #2a((0.02345756 0.03769117) (0.03769117 0.0812215))))
-        (:iai-fridge-door
-         (list
-          (cl-transforms:make-3d-vector 0.39157908 -0.65701128 0.0)
-          #2a((0.02198436 0.01780009) (0.01780009 0.031634))))
-        (:oven-area-area-right-drawer-main
-         (list
-          (cl-transforms:make-3d-vector 0.52883482 2.06610992 0.0)
-          #2a((0.01591575 0.01717804) (0.01717804 0.02525052))))
-        (t
-         '(nil nil)))))
-  
+            ;; (:milk
+            ;;  (list
+            ;;   (cl-transforms:make-3d-vector 0.37866893 -0.80361425 0.0)
+            ;;   #2a((0.00672251 0.00583198) (0.00583198 0.01246477))))
+            (:milk
+              (case reference-location-name
+                     (:dining-area-jokkmokk-table-main
+                      (list
+                       (cl-transforms:make-3d-vector -2.55014446 0.18598878 0.0)
+                       #2a((0.13766548 0.01226931) (0.01226931 0.03288541)))
+                     )
+
+                    (:iai-fridge-door
+                            (list
+                             (cl-transforms:make-3d-vector 0.37866893 -0.80361425 0.0)
+                             #2a((0.00672251 0.00583198) (0.00583198 0.01246477))))
+                    (t
+                      (list
+                       (cl-transforms:make-3d-vector 0.37866893 -0.80361425 0.0)
+                       #2a((0.00672251 0.00583198) (0.00583198 0.01246477))))))
+              (:breakfast-cereal
+               (case reference-location-name
+                     (:oven-area-area-right-drawer-main
+                      (list
+                       (cl-transforms:make-3d-vector 0.75288949 0.75126507 0.0)
+                       #2a((0.00334272 -0.00167905) (-0.00167905 0.01173699))))
+                     (t
+                      '(nil nil))))
+              (:bowl
+               (case reference-location-name
+                     (:sink-area-left-middle-drawer-main
+                      (list
+                       (cl-transforms:make-3d-vector 0.48262422 0.60007345 0.0)
+                       #2a((0.01696884 -0.02503274) (-0.02503274 0.18154158))))
+                     (:dining-area-jokkmokk-table-main
+                      (list
+                       (cl-transforms:make-3d-vector -2.58749167 -0.17260023 0.0)
+                       #2a((0.0004593 0.00107521) (0.00107521 0.01146658))))
+                     (t
+                      '(nil nil))))
+              (t
+               '(nil nil)))
+            (case object-type
+                  (:sink-area-left-middle-drawer-main
+                   (list
+                    (cl-transforms:make-3d-vector 0.3703701 1.28296277 0.0)
+                    #2a((0.02345756 0.03769117) (0.03769117 0.0812215))))
+                  (:iai-fridge-door
+                   (list
+                    (cl-transforms:make-3d-vector 0.39157908 -0.65701128 0.0)
+                    #2a((0.02198436 0.01780009) (0.01780009 0.031634))))
+                  (:oven-area-area-right-drawer-main
+                   (list
+                    (cl-transforms:make-3d-vector 0.52883482 2.06610992 0.0)
+                    #2a((0.01591575 0.01717804) (0.01717804 0.02525052))))
+                  (t
+                   '(nil nil))))
+    )
+
+
 (defmethod costmap-generator-name->score ((name (eql 'pose-distribution))) 5)
 (defmethod costmap-generator-name->score ((name (eql 'learned-pose-distribution))) 3)
 (defmethod costmap-generator-name->score ((name (eql 'reachable-from-space))) 5)
