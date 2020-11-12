@@ -1,19 +1,19 @@
 ;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
 ;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors 
-;;;       may be used to endorse or promote products derived from this software 
+;;;       Technische Universitaet Muenchen nor the names of its contributors
+;;;       may be used to endorse or promote products derived from this software
 ;;;       without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -28,7 +28,74 @@
 
 (in-package :gaussian-costmap)
 
+(defun calculate-learned-mean-and-covariance (object-type
+                                              reference-location-name)
+  (print reference-location-name)
+  (print object-type)
+  (if reference-location-name
+      (case object-type
+            ;; (:milk
+            ;;  (list
+            ;;   (cl-transforms:make-3d-vector 0.37866893 -0.80361425 0.0)
+            ;;   #2a((0.00672251 0.00583198) (0.00583198 0.01246477))))
+            (:milk
+              (case reference-location-name
+                     (:dining-area-jokkmokk-table-main
+                      (list
+                       (cl-transforms:make-3d-vector -2.55014446 0.18598878 0.0)
+                       #2a((0.13766548 0.01226931) (0.01226931 0.03288541)))
+                     )
+
+                    (:iai-fridge-door
+                            (list
+                             (cl-transforms:make-3d-vector 0.37866893 -0.80361425 0.0)
+                             #2a((0.00672251 0.00583198) (0.00583198 0.01246477))))
+                    (t
+                      (list
+                       (cl-transforms:make-3d-vector 0.37866893 -0.80361425 0.0)
+                       #2a((0.00672251 0.00583198) (0.00583198 0.01246477))))))
+              (:breakfast-cereal
+               (case reference-location-name
+                     (:oven-area-area-right-drawer-main
+                      (list
+                       (cl-transforms:make-3d-vector 0.75288949 0.75126507 0.0)
+                       #2a((0.00334272 -0.00167905) (-0.00167905 0.01173699))))
+                     (t
+                      '(nil nil))))
+              (:bowl
+               (case reference-location-name
+                     (:sink-area-left-middle-drawer-main
+                      (list
+                       (cl-transforms:make-3d-vector 0.48262422 0.60007345 0.0)
+                       #2a((0.01696884 -0.02503274) (-0.02503274 0.18154158))))
+                     (:dining-area-jokkmokk-table-main
+                      (list
+                       (cl-transforms:make-3d-vector -2.58749167 -0.17260023 0.0)
+                       #2a((0.0004593 0.00107521) (0.00107521 0.01146658))))
+                     (t
+                      '(nil nil))))
+              (t
+               '(nil nil)))
+            (case object-type
+                  (:sink-area-left-middle-drawer-main
+                   (list
+                    (cl-transforms:make-3d-vector 0.3703701 1.28296277 0.0)
+                    #2a((0.02345756 0.03769117) (0.03769117 0.0812215))))
+                  (:iai-fridge-door
+                   (list
+                    (cl-transforms:make-3d-vector 0.39157908 -0.65701128 0.0)
+                    #2a((0.02198436 0.01780009) (0.01780009 0.031634))))
+                  (:oven-area-area-right-drawer-main
+                   (list
+                    (cl-transforms:make-3d-vector 0.52883482 2.06610992 0.0)
+                    #2a((0.01591575 0.01717804) (0.01717804 0.02525052))))
+                  (t
+                   '(nil nil))))
+    )
+
+
 (defmethod costmap-generator-name->score ((name (eql 'pose-distribution))) 5)
+(defmethod costmap-generator-name->score ((name (eql 'learned-pose-distribution))) 3)
 (defmethod costmap-generator-name->score ((name (eql 'reachable-from-space))) 5)
 (defmethod costmap-generator-name->score ((name (eql 'reachable-from-weighted))) 4)
 
@@ -87,6 +154,48 @@
     (costmap:costmap-add-height-generator
      (costmap:make-constant-height-function 0.0)
      ?cm))
+
+
+  ;;;; RALF
+  (<- (desig-costmap ?designator ?costmap)
+    (rob-int:reachability-designator ?designator)
+    (costmap:costmap ?costmap)
+    (spec:property ?designator (:object ?some-object-designator))
+    (desig:current-designator ?some-object-designator ?object-designator)
+    (spec:property ?object-designator (:type ?object-type))
+    (-> (man-int:object-type-subtype :container ?object-type)
+        ;; opening/closing doors/drawers
+        (and (spec:property ?object-designator (:urdf-name ?container-name))
+             ;; (spec:property ?object-designator (:part-of ?btr-environment))
+             ;; (spec:property ?designator (:arm ?arm))
+             (lisp-fun calculate-learned-mean-and-covariance
+                       ?container-name nil
+                       (?learned-mean ?learned-covariance))
+             (lisp-pred identity ?learned-mean)
+             (costmap:costmap-add-function
+              learned-pose-distribution
+              (costmap:make-gauss-cost-function
+               ?learned-mean ?learned-covariance)
+              ?costmap))
+        ;; fetching or placing items
+        (and (spec:property ?object-designator (:pose ?container-type))
+             (spec:property ?object-designator (:location ?some-obj-loc))
+             (desig:current-designator ?some-obj-loc ?object-location)
+             (once
+              (or (spec:property ?object-location (:on ?obj-loc-object))
+                  (spec:property ?object-location (:in ?obj-loc-object))))
+             (desig:current-designator ?obj-loc-object ?object-location-object)
+             (spec:property ?object-location-object (:urdf-name ?ref-loc-name))
+             (lisp-fun calculate-learned-mean-and-covariance
+                       ?object-type ?ref-loc-name
+                       (?learned-mean ?learned-covariance))
+             (lisp-pred identity ?learned-mean)
+             (costmap:costmap-add-function
+              learned-pose-distribution
+              (costmap:make-gauss-cost-function
+               ?learned-mean ?learned-covariance)
+              ?costmap))))
+
 
   (<- (desig-costmap ?desig ?cm)
     (rob-int:reachability-designator ?desig)

@@ -42,6 +42,7 @@
 (defparameter *detected-objects* (make-hash-table :test 'equal))
 (defparameter *episode-name* nil)
 (defparameter *is-logging-enabled* nil)
+(defparameter *retry-numbers* 0)
 (defparameter *ease-object-lookup-table* (get-ease-object-lookup-table))
 
 
@@ -132,7 +133,11 @@
               (set-event-status-to-succeeded action-id)
               (ccl::stop-situation action-id)
               perform-result))))
-      (call-next-method)))
+       (cpl:with-failure-handling
+            ((cpl:plan-failure (e)
+               (setf *retry-numbers* (+ 1 *retry-numbers*))
+               (print "plan failure")))
+         (call-next-method))))
 
 (defun equate (designator-id referenced-designator-id)
   (send-rdf-query (convert-to-prolog-str designator-id)

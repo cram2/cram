@@ -34,11 +34,15 @@
   (<- (desig:action-grounding ?action-designator (go-to-target ?resolved-action-designator))
     (spec:property ?action-designator (:type :going))
     (spec:property ?action-designator (:target ?some-location-designator))
+    (once (or (spec:property ?action-designator (:speed ?speed))
+              (equal ?speed nil)))
     (desig:current-designator ?some-location-designator ?location-designator)
     (desig:designator-groundings ?location-designator ?poses)
     (member ?pose-stamped ?poses)
     (desig:designator :action ((:type :going)
-                               (:pose ?pose-stamped))
+                               (:pose ?pose-stamped)
+                               (:speed ?speed)
+                               (:slow-speed :slow))
                       ?resolved-action-designator))
 
 

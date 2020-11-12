@@ -248,7 +248,8 @@
                  :align-planes-right align-planes-right
                  :unmovable-joints unmovable-joints)
    :action-timeout action-timeout
-   :check-goal-function (lambda ()
+   :check-goal-function (lambda (result status)
+                          (declare (ignore result status))
                           (or (ensure-arm-cartesian-goal-reached
                                goal-pose-left cram-tf:*robot-left-tool-frame*)
                               (ensure-arm-cartesian-goal-reached
@@ -273,7 +274,8 @@
                    joint-state-left joint-state-right
                    align-planes-left align-planes-right)
      :action-timeout action-timeout
-     :check-goal-function (lambda ()
+     :check-goal-function (lambda (result status)
+                            (declare (ignore result status))
                             (or (ensure-arm-joint-goal-reached
                                  goal-configuration-left :left)
                                 (ensure-arm-joint-goal-reached

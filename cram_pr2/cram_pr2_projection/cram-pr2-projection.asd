@@ -1,5 +1,4 @@
-;;;
-;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,30 +26,39 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cl-user)
+(defsystem cram-pr2-projection
+  :author "Gayane Kazhoyan"
+  :license "BSD"
 
-(defpackage cram-bullet-reasoning-belief-state
-  (:use #:common-lisp #:cram-prolog)
-  (:nicknames #:btr-belief)
-  (:export
-   ;; utilities
-   #:get-designator-object-name #:get-designator-object
-   ;; tf
-   #:set-tf-from-bullet
-   ;; broadcaster
-   #:update-bullet-transforms
-   ;; occasions
-   #:object-designator-name
-   ;; belief-state
-   #:*spawn-debug-window*
-   #:setup-world-database
-   #:vary-kitchen-urdf
-   ;; world-state-detecting
-   #:world-state-detecting-pm
-   ;; consistency-checking
-   #:*artificial-perception-noise-factor*
-   #:*perception-instability-threshold*
-   #:*perception-noise-correction-offset*
-   #:*perception-noise-correction-iterations*
-   #:*perception-noise-correction-step*
-   #:*perception-noise-simulation-timeout*))
+  :depends-on (cram-projection
+               cram-prolog
+               cram-designators
+               cram-utilities
+               cram-bullet-reasoning
+               cram-bullet-reasoning-belief-state ; for event updating before ik requests
+               cram-tf
+               cram-robot-interfaces    ; for ROBOT predicate and COMPUTE-IKS
+               cl-transforms
+               cl-transforms-stamped
+               cl-tf
+               cram-occasions-events
+               cram-plan-occasions-events
+               cram-pr2-description ; to get kinematic structure names
+               cram-common-designators
+               cram-common-failures
+               cram-process-modules
+               alexandria ; for CURRY in low-level perception
+               roslisp-utilities ; for rosify-lisp-name
+               moveit_msgs-msg
+               moveit_msgs-srv)
+  :components
+  ((:module "src"
+    :components
+    ((:file "package")
+     (:file "projection-clock" :depends-on ("package"))
+     (:file "tf" :depends-on ("package"))
+     (:file "ik" :depends-on ("package"))
+     (:file "low-level" :depends-on ("package" "tf" "ik"))
+     (:file "process-modules" :depends-on ("package" "low-level"))
+     (:file "projection-environment" :depends-on ("package" "projection-clock" "tf"
+                                                            "process-modules"))))))

@@ -10,6 +10,7 @@
                :cram-pr2-description
                :cram-urdf-projection
                :cram-cloud-logger
+               :world_control_msgs-srv
                :cram-utilities)
   :components
   ((:module "src"

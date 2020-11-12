@@ -58,25 +58,31 @@
   (send-query-1-without-result "mem_event_set_failed" event-prolog-url))
 
 (defun send-attach-object-as-parameter-to-situation (object-url parameter-type-url event-prolog-url)
-  (break)
+  ;; (break)
   (send-query-1-without-result "add_participant_with_role" event-prolog-url object-url parameter-type-url))
 
 (defun set-event-diagnosis (event-prolog-url diagnosis-url)
   (send-query-1-without-result "mem_event_add_diagnosis" event-prolog-url diagnosis-url))
 
 (defun start-episode ()
+  (setf ccl::*is-logging-enabled* t)
+  (ccl::init-logging)
   (when *episode-name*
     (progn
       (print "Previous episode recording is still running. Stopping the recording ...")
       (stop-episode)))
-  (setf ccl::*is-logging-enabled* t)
-  (ccl::init-logging)
+  (let ((cram-episode-name (ccl::get-url-from-send-query-1 "Name" "is_recording_episode" "Name")))
+             (when (string-not-equal "'NoName'"cram-episode-name)
+               (progn
+                 (setf ccl::*episode-name* cram-episode-name)
+                 (stop-episode))))
   (ccl::clear-detected-objects)
   (setf ccl::*episode-name* (get-url-from-send-query-1 "RootAction" "mem_episode_start" "RootAction"))
   (ccl::start-situation *episode-name*))
 
 (defun stop-episode ()
   (ccl::stop-situation *episode-name*)
+  (send-query-1-without-result "delete_episode_name" *episode-name*)
   (send-query-1-without-result "mem_episode_stop" (concatenate 'string "'" (uiop:getenv "KNOWROB_MEMORY_DIR") "'"))
   (setf ccl::*episode-name* nil)
   (setf ccl::*is-logging-enabled* nil))
@@ -84,8 +90,8 @@
 (defun send-query-1-without-result (query-name &rest query-parameters)
   (let* ((query (create-query query-name query-parameters))
          (result (send-query-1 query)))
-    (when (not result)
-      (break))
+    ;; (when (not result)
+    ;;   (break))
     (print "DONE REASONING")))
 
 (defun send-query-1 (query)
@@ -106,7 +112,7 @@
 (defun send-object-action-parameter (action-inst object-designator)
   (let* ((object-name (get-designator-property-value-str object-designator :NAME))
          (object-ease-id (get-ease-object-id-of-detected-object-by-name object-name)))
-    (when object-ease-id 
+    (when object-ease-id
       (send-query-1-without-result "add_participant_with_role" action-inst object-ease-id "'http://www.ease-crc.org/ont/SOMA.owl#AffectedObject'"))))
 
 
@@ -323,7 +329,7 @@
 
 (defun send-pose-stamped-list-action-parameter (action-inst list-name pose-stamped-list)
   (let ((pose-stamp (get-last-element-in-list pose-stamped-list)))
-    (if pose-stamp (progn 
+    (if pose-stamp (progn
                      (send-rdf-query (convert-to-prolog-str action-inst)
                                      "knowrob:goalLocation" (convert-to-prolog-str (send-create-pose-stamped pose-stamp)))
                      (if (string-equal "left" list-name)
