@@ -54,7 +54,8 @@
     (:bowl . :top)))
 
 (defparameter *object-arms*
-  '((:milk . :right)))
+  '((:milk . :left)))
+  ;; '((:milk . :right)))
 
 (defun park-robot ()
   (cpl:with-failure-handling
@@ -74,15 +75,16 @@
       (exe:perform (desig:an action (type moving-torso ) (joint-angle 0.30)))
       (exe:perform (desig:an action (type opening-gripper) (gripper (left right))))
       (exe:perform (desig:an action (type looking) (direction forward))))
-    (let ((?pose (cl-transforms-stamped:make-pose-stamped
-                  cram-tf:*fixed-frame*
-                  0.0
-                  (cl-transforms:make-identity-vector)
-                  (cl-transforms:make-identity-rotation))))
-      (exe:perform
-       (desig:an action
-                 (type going)
-                 (target (desig:a location (pose ?pose))))))))
+    ;; (let ((?pose (cl-transforms-stamped:make-pose-stamped
+    ;;               cram-tf:*fixed-frame*
+    ;;               0.0
+    ;;               (cl-transforms:make-identity-vector)
+    ;;               (cl-transforms:make-identity-rotation))))
+    ;;   (exe:perform
+    ;;    (desig:an action
+    ;;              (type going)
+    ;;              (target (desig:a location (pose ?pose))))))
+    ))
 
 (defun start-logging ()
   (ccl::start-episode))
