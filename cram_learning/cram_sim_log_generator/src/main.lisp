@@ -1,6 +1,6 @@
 (in-package :cslg)
 (defparameter *mongo-logger* nil)
-(defparameter num-experiments 5)
+(defparameter num-experiments 1)
 (defparameter connection-retries 0)
 (defparameter *start-time* 0)
 (defparameter *global-timer* 0)
@@ -39,13 +39,18 @@
   (loop for x from 0 to (- num-experiments 1)
         do (progn
              (print "Start")
+             (print (ccl::get-timestamp-for-logging))
              (ccl::start-episode)
-             ;;(urdf-proj:with-simulated-robot (demo::demo-random nil ))
-             (urdf-proj:with-simulated-robot
-               (cpl:with-failure-handling
-                   ((condition (e)
-                      (return)))
-                 (demo::setting-demo))
-               (ccl::stop-episode)
-               (print "End"))))
+             (urdf-proj:with-simulated-robot (demo::setting-demo '(:milk)))
+             ;;(urdf-proj:with-simulated-robot
+             ;;  (cpl:with-failure-handling
+             ;;      ((condition (e)
+             ;;         (print e)
+             ;;         (return)))
+             ;;    (demo::setting-demo '(:milk)))
+             ;;(ccl::stop-episode)
+             ;;(print "End"))))
+             (ccl::stop-episode)
+             (print (ccl::get-timestamp-for-logging))
+             (print "End")))
   (ccl::finish-logging))
