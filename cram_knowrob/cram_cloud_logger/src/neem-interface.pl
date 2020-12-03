@@ -1,14 +1,17 @@
 :- rdf_meta(mem_event_create(r,r,r)).
 :- use_module(library('db/mongo/client')).
+:- dynamic execution_agent/1.
 
-mem_episode_start(Action) :- tf_logger_disable, tripledb_drop(),forall(mng_collection(roslog,Coll),mng_drop(roslog,Coll)), tf_logger_enable,
+mem_episode_start(Action) :- retractall(execution_agent(_)),tf_logger_disable, tripledb_drop(),forall(mng_collection(roslog,Coll),mng_drop(roslog,Coll)), tf_logger_enable,
     tripledb_load('package://knowrob/owl/knowrob.owl',[graph(tbox),namespace(knowrob)]),
     tripledb_load('package://iai_semantic_maps/owl/kitchen.owl'),
     tripledb_load('package://knowrob/owl/robots/PR2.owl'),
     urdf_load('http://knowrob.org/kb/PR2.owl#PR2_0', 'package://knowrob/urdf/pr2.urdf', [load_rdf]),
     urdf_load('http://knowrob.org/kb/IAI-kitchen.owl#iai_kitchen_room_link', 'package://iai_kitchen/urdf_obj/iai_kitchen_python.urdf', [load_rdf,prefix('iai_kitchen/')]),
+    assertz(execution_agent('http://knowrob.org/kb/PR2.owl#PR2_0')),
+    execution_agent(Agent),
     tell([is_episode(Episode), is_action(Action), has_type(Task,soma:'PhysicalTask'), 
-            executes_task(Action,Task),is_setting_for(Episode,Action)]),notify_synchronize(event(Action)),!.
+            executes_task(Action,Task),is_setting_for(Episode,Action), is_performed_by(Action,Agent)]),notify_synchronize(event(Action)),!.
 
 %is_recording_episode(Result) :- assertz(cramEpisodeName('None')), retract(cramEpisodeName('None')), (cramEpisodeName(Name) -> Result = Name ; Result = 'NoName').
 %delete_episode_name(Name) :- retract(cramEpisodeName(Name)).
@@ -17,7 +20,7 @@ mem_event_set_failed(Action) :- tell(action_failed(Action)).
 mem_event_set_succeeded(Action) :- tell(action_succeeded(Action)).
 mem_event_add_diagnosis(Situation, Diagnosis) :- tell(satisfies(Situation, Diagnosis)).
 
-add_subaction_with_task(Action,SubAction,TaskType) :- tell([is_action(SubAction), has_type(Task,TaskType), executes_task(SubAction,Task), has_subevent(Action,SubAction)]),notify_synchronize(event(Event)), !.
+add_subaction_with_task(Action,SubAction,TaskType) :- execution_agent(Agent), tell([is_action(SubAction), has_type(Task,TaskType), executes_task(SubAction,Task), has_subevent(Action,SubAction),is_performed_by(SubAction,Agent)]),notify_synchronize(event(Event)), !.
 
 mem_event_end(Event) :- get_time(CurrentTime),ask(triple(Event,dul:'hasTimeInterval',TimeInterval)),tripledb_forget(TimeInterval, soma:'hasIntervalEnd', _),tell(holds(TimeInterval, soma:'hasIntervalEnd', CurrentTime)),!.
 
