@@ -71,18 +71,19 @@
     (progn
       (print "Previous episode recording is still running. Stopping the recording ...")
       (stop-episode)))
-  (let ((cram-episode-name (ccl::get-url-from-send-query-1 "Name" "is_recording_episode" "Name")))
+  (let ((cram-episode-name "'NoName'"))
              (when (string-not-equal "'NoName'"cram-episode-name)
                (progn
-                 (setf ccl::*episode-name* cram-episode-name)
-                 (stop-episode))))
+                 (print "test"))))
+                 ;;(setf ccl::*episode-name* cram-episode-name)
+                 ;;(stop-episode))))
   (ccl::clear-detected-objects)
   (setf ccl::*episode-name* (get-url-from-send-query-1 "RootAction" "mem_episode_start" "RootAction"))
   (ccl::start-situation *episode-name*))
 
 (defun stop-episode ()
   (ccl::stop-situation *episode-name*)
-  (send-query-1-without-result "delete_episode_name" *episode-name*)
+  ;;(send-query-1-without-result "delete_episode_name" *episode-name*)
   (send-query-1-without-result "mem_episode_stop" (concatenate 'string "'" (uiop:getenv "KNOWROB_MEMORY_DIR") "'"))
   (setf ccl::*episode-name* nil)
   (setf ccl::*is-logging-enabled* nil))
@@ -114,6 +115,13 @@
          (object-ease-id (get-ease-object-id-of-detected-object-by-name object-name)))
     (when object-ease-id
       (send-query-1-without-result "add_participant_with_role" action-inst object-ease-id "'http://www.ease-crc.org/ont/SOMA.owl#AffectedObject'"))))
+
+(defun send-object-name-action-parameter (action-inst object-name)
+  (break)
+  (let* ((object-ease-id (get-ease-object-id-of-detected-object-by-name object-name)))
+    (when object-ease-id 
+      (send-query-1-without-result "add_participant_with_role" action-inst object-ease-id "'http://www.ease-crc.org/ont/SOMA.owl#AffectedObject'"))))
+
 
 
 (defun send-grasp-action-parameter (action-inst grasp)
