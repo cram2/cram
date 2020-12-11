@@ -53,6 +53,9 @@
          :initform (error "Process modules need a name.")
          :initarg :name)
    (input :reader input :documentation "Input fluent.")
+   (input-queue :reader input-queue
+                :documentation "Queue to manage multiple simultaneous
+                                inputs to the process module")
    (status :reader status
            :documentation "Status fluent. Possible status: 
                            :waiting :running :failed")
@@ -69,9 +72,11 @@
            (intern (concatenate
                     'string (symbol-name process-module-name)
                     "-" (symbol-name type)))))
-    (with-slots (name input status cancel caller)
+    (with-slots (name input input-queue status cancel caller)
         pm
       (setf input (make-fluent :name (make-fluent-name name :input)))
+      (setf input-queue (make-fluent :name (make-fluent-name name :input-queue)
+                                     :value (make-queue)))
       (setf status (make-fluent :name (make-fluent-name name :status)
                                 :value :offline))
       (setf cancel (make-fluent :name (make-fluent-name name :cancel)))

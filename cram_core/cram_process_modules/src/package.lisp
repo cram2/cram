@@ -36,7 +36,8 @@
         #:alexandria)
   (:import-from #:cram-prolog def-fact-group <- prolog)
   (:shadowing-import-from #:cram-prolog fail)
-  (:import-from #:cram-utilities lazy-mapcar force-ll var-value)
+  (:import-from #:cram-utilities lazy-mapcar force-ll var-value
+                make-queue enqueue dequeue list-queue-contents)
   (:nicknames :cpm)
   (:export process-module name input feedback result
            status cancel priority caller
