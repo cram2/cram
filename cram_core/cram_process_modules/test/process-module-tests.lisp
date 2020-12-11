@@ -185,3 +185,31 @@
                                 :designators (list designator))))))
     (assert-eq :ok execute-result)
     (assert-eq :ok monitor-result)))
+
+(define-test execution-order.1
+  (let* ((result nil)
+        (designator1 (desig:make-designator :test (lambda () (push 1 result))))
+        (designator2 (desig:make-designator :test (lambda () (push 2 result))))
+        (designator3 (desig:make-designator :test (lambda () (push 3 result)))))
+    (cpl:top-level
+      (with-process-modules-running (test-process-module)
+        (cpl:par
+          (pm-execute 'test-process-module designator1)
+          (progn 
+            (cpl:sleep 0.1)
+            (pm-execute 'test-process-module designator2))
+          (pm-execute 'test-process-module designator3))))
+    (assert-equal '(2 3 1) result)))
+
+(define-test execution-order.2
+  (let* ((result nil)
+        (designator1 (desig:make-designator :test (lambda () (push 1 result))))
+        (designator2 (desig:make-designator :test (lambda () (push 2 result))))
+        (designator3 (desig:make-designator :test (lambda () (push 3 result)))))
+    (cpl:top-level
+      (with-process-modules-running (test-process-module)
+        (cpl:par
+          (pm-execute 'test-process-module designator1)
+          (pm-execute 'test-process-module designator2)
+          (pm-execute 'test-process-module designator3))))
+    (assert-equal '(3 2 1) result)))
