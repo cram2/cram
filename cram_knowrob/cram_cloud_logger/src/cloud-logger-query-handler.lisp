@@ -30,7 +30,16 @@
     (setf (gethash ":BACK" lookup-table) "BackGrasp")
     lookup-table))
 
+
+(defun get-object-parameter-role-lookup-table()
+  (let ((lookup-table (make-hash-table :test 'equal)))
+    (setf (gethash "Lowering" lookup-table) "AlteredObject")
+    (setf (gethash "Perceiving" lookup-table) "DetectedObject")
+    (setf (gethash "Reaching" lookup-table) "Destination")
+    lookup-table))
+
 (defparameter *grasp-type-lookup-table* (get-grasp-type-lookup-table))
+(defparameter *object-parameter-role-lookup-table* (get-object-parameter-role-lookup-table))
 
 (defun start-situation (situation-uri)
   (attach-time-to-situation "mem_event_begin" situation-uri))
@@ -110,11 +119,24 @@
   (send-query-1-without-result "add_comment" action-inst (concatenate 'string "'"comment"'")))
   ;;(print "COMMENT"))
 
-(defun send-object-action-parameter (action-inst object-designator)
-  (let* ((object-name (get-designator-property-value-str object-designator :NAME))
+(defun send-object-action-parameter (action-inst action-type object-designator)
+  (let* ((role (gethash action-type *object-parameter-role-lookup-table*))
+         (object-name (get-designator-property-value-str object-designator :NAME))
          (object-ease-id (get-ease-object-id-of-detected-object-by-name object-name)))
+    (when (not object-ease-id)
+      (let ((owl-name (get-designator-property-value-str object-designator :OWL-NAME)))
+        (when owl-name
+          (send-query-1-without-result "add_participant_with_role"
+                                       action-inst
+                                       (concatenate 'string "'" owl-name "'")
+                                       "'http://www.ease-crc.org/ont/SOMA.owl#AlteredObject'"))))
     (when object-ease-id 
-      (send-query-1-without-result "add_participant_with_role" action-inst object-ease-id "'http://www.ease-crc.org/ont/SOMA.owl#AffectedObject'"))))
+      (if (and (not role) object-ease-id) 
+          (send-query-1-without-result "add_participant_with_role" action-inst object-ease-id "'http://www.ease-crc.org/ont/SOMA.owl#Item'")
+          (send-query-1-without-result "add_participant_with_role"
+                                       action-inst
+                                       object-ease-id
+                                       (concatenate 'string "'http://www.ease-crc.org/ont/SOMA.owl#" role "'"))))))
 
 (defun send-object-name-action-parameter (action-inst object-name)
   (break)
@@ -124,7 +146,7 @@
 
 
 
-(defun send-grasp-action-parameter (action-inst grasp)
+(defun send-grasp-action-parameter (action-inst action-type grasp)
   (let ((grasp-type (gethash (write-to-string grasp) *grasp-type-lookup-table*)))
     (send-parameter action-inst grasp-type)))
 
