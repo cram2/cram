@@ -8,13 +8,18 @@
   (mapcar (lambda (action-designator-parameter)
             (let ((parameter-name (first action-designator-parameter))
                   (parameter-value (second action-designator-parameter)))
-              (let ((logging-function (get-logging-function-for-action-designator-parameter parameter-name))
-                    (logging-args (list action-designator-logging-id parameter-value)))
+              (let* ((logging-function (get-logging-function-for-action-designator-parameter parameter-name))
+                     (action-type (get-knowrob-action-name (get-property-value-str action-designator-parameters :TYPE) ""))
+                     (logging-args (list action-designator-logging-id action-type parameter-value)))
                 (execute-logging-function-with-arguments
-                 action-designator-logging-id parameter-name logging-function logging-args))))
+                 action-designator-logging-id action-type parameter-name logging-function logging-args))))
           action-designator-parameters))
 
-(defun execute-logging-function-with-arguments (action-designator-logging-id parameter-name logging-parameter-function logging-parameter-function-arguments)
+(defun execute-logging-function-with-arguments (action-designator-logging-id
+                                                action-type
+                                                parameter-name
+                                                logging-parameter-function
+                                                logging-parameter-function-arguments)
     (if logging-parameter-function 
         (apply logging-parameter-function logging-parameter-function-arguments)
         (let ((parameter-name-str (write-to-string parameter-name)))
