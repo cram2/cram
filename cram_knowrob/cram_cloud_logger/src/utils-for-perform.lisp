@@ -35,6 +35,16 @@
     (setf (gethash "BOWL" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#Bowl'")
     (setf (gethash "CUP" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#Cup'")
     (setf (gethash "DRAWER" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#Drawer'")
+    (setf (gethash "MILK" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#Milk'")
+    lookup-table))
+
+
+(defun get-mesh-lookup-table()
+  (let ((lookup-table (make-hash-table :test 'equal)))
+    (setf (gethash "BOWL" lookup-table) "'package://kitchen_object_meshes/bowl.dae'")
+    (setf (gethash "CUP" lookup-table) "'package://kitchen_object_meshes/cup.dae'")
+    (setf (gethash "MILK" lookup-table) "'package://kitchen_object_meshes/milk.dae'")
+    ;;(setf (gethash "DRAWER" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#Drawer'")
     lookup-table))
 
 (cpl:define-task-variable *action-parents* '())
@@ -44,6 +54,7 @@
 (defparameter *is-logging-enabled* nil)
 (defparameter *retry-numbers* 0)
 (defparameter *ease-object-lookup-table* (get-ease-object-lookup-table))
+(defparameter *mesh-lookup-table* (get-mesh-lookup-table))
 
 
 (defun clear-detected-objects ()
@@ -79,10 +90,11 @@
         (detected-object-type (get-designator-property-value-str detected-object :TYPE))
         (object-type
           (convert-to-ease-object-type-url detected-object-type)))
+    (print detected-object-type)
     (if (gethash object-name *detected-objects*)
         (print "Object exists")
         (let ((object-id (send-belief-perceived-at object-type
-                                                   (get-transform-of-detected-object detected-object)
+                                                   (gethash detected-object-type *mesh-lookup-table*)
                                                    (concatenate 'string
                                                                 "'" "http://www.ease-crc.org/ont/SOMA.owl#"
                                                                 (roslisp-utilities:rosify-underscores-lisp-name (make-symbol object-name)) "'"))))
