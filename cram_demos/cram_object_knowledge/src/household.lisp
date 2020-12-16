@@ -504,7 +504,7 @@
            (in (desig:an object
                          (type drawer)
                          (urdf-name sink-area-left-middle-drawer-main)
-                         (owl-name "drawer_sinkblock_middle_open")
+                         (owl-name "http://knowrob.org/kb/IAI-kitchen.owl#iai_kitchen_sink_area_left_middle_drawer_main")
                          (part-of ?environment-name)))
            (side front)))
 
