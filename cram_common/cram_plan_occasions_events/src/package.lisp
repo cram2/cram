@@ -39,6 +39,7 @@
    #:object-perceived-event
    #:object-location-changed
    #:robot-state-changed
+   #:projection-state-changed
    #:object-connection-event
    #:object-attached-robot #:object-detached-robot
    #:object-attached-object #:object-detached-object

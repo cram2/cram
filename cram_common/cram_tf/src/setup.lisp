@@ -40,6 +40,8 @@
 
 (defvar *broadcaster* nil "A tf-broadcaster instance")
 
+(defvar *projection-broadcaster* nil "A tf-broadcaster for everything that happens in projection")
+
 (defparameter *tf-broadcasting-enabled* nil)
 (defparameter *tf-broadcasting-topic* "tf")
 (defparameter *tf-broadcasting-interval* 0.1)

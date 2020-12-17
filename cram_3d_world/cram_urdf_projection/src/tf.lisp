@@ -28,8 +28,29 @@
 
 (in-package :urdf-proj)
 
+
 (defmethod cram-occasions-events:on-event
     update-tf ((event cram-plan-occasions-events:robot-state-changed))
   (when (eql cram-projection:*projection-environment*
              'cram-urdf-projection::urdf-bullet-projection-environment)
     (cram-bullet-reasoning-belief-state:set-tf-from-bullet)))
+
+(defun publish-object-visualization-markers ()
+  (let ((objects (remove-if-not (lambda (x) (equalp (type-of x) 'btr:item)) (btr:objects btr:*current-bullet-world*)))
+        (item-ids '())
+        (i 0))
+    (loop for item in objects
+          do (let* ((type (car (btr:item-types item)))
+                    (name (btr:name item))
+                    (pose (btr:pose item))
+                    (mesh-path (second (assoc type btr::*mesh-files*)))
+                    (tf-prefix (cram-tf::prefix cram-tf:*projection-broadcaster*)))
+               (cram-tf:visualize-marker pose
+                                         :marker-type :mesh_resource
+                                         :id i
+                                         :scale-list '(1 1 1)
+                                         :mesh-path mesh-path
+                                         :in-frame (concatenate 'string tf-prefix "/" name))
+             (setf item-ids (append `((,type ,i)) item-ids)) 
+             (incf i)))
+    (setf urdf-proj::*object-visualization-marker-ids* item-ids)))

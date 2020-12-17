@@ -42,24 +42,34 @@
    (interval :reader interval :initarg :interval :initform 0.1
              :documentation "in seconds")
    (publisher :reader publisher :initarg :publisher
-              :documentation "ROS publisher for the `tf-topic' topic")))
+              :documentation "ROS publisher for the `tf-topic' topic")
+   (prefix :reader prefix :initarg :prefix
+           :documentation "The tf prefix for this broadcaster")))
 
-(defun make-tf-broadcaster (tf-topic pub-interval-secs)
+(defun make-tf-broadcaster (tf-topic pub-interval-secs &optional (prefix ""))
   (declare (type string tf-topic)
-           (type number pub-interval-secs))
+           (type number pub-interval-secs)
+           (type string prefix))
   (make-instance 'tf-broadcaster
     :tf-topic tf-topic
     :interval pub-interval-secs
-    :publisher (roslisp:advertise tf-topic "tf2_msgs/TFMessage")))
+    :publisher (roslisp:advertise tf-topic "tf2_msgs/TFMessage")
+    :prefix prefix))
 
 (defgeneric add-transform (broadcaster transform)
   (:method ((broadcaster tf-broadcaster) (transform cl-transforms-stamped:transform-stamped))
-    (with-slots (transforms mutex) broadcaster
+    (with-slots (transforms mutex prefix) broadcaster
       (sb-thread:with-mutex (mutex)
-        (setf (gethash (list (cl-transforms-stamped:frame-id transform)
-                             (cl-transforms-stamped:child-frame-id transform))
-                       transforms)
-              transform)))))
+        (let ((frame-id (cl-transforms-stamped:frame-id transform))
+              (child-id (cl-transforms-stamped:child-frame-id transform)))
+          (if (not (equal "map" frame-id))
+              (setf (slot-value transform 'cl-transforms-stamped:frame-id)
+                    (concatenate 'string prefix "/" (cl-transforms-stamped:frame-id transform))))
+          (setf (slot-value transform 'cl-transforms-stamped:child-frame-id)
+                (concatenate 'string prefix "/" (cl-transforms-stamped:child-frame-id transform)))
+          (setf (gethash `(,frame-id ,child-id)
+                         transforms)
+                transform))))))
 
 (defgeneric remove-transform (broadcaster parent-frame-id child-frame-id)
   (:method ((broadcaster tf-broadcaster) parent-frame-id child-frame-id)

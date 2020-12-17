@@ -74,6 +74,7 @@
    #:*robot-torso-frame* #:*robot-torso-joint*
    #:*robot-left-tool-frame* #:*robot-right-tool-frame*
    #:*broadcaster*
+   #:*projection-broadcaster*
    *tf-broadcasting-enabled* *tf-broadcasting-topic* *tf-broadcasting-interval*
    ;; visualization
    #:visualize-marker))

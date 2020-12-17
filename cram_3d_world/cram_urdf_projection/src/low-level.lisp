@@ -1,4 +1,4 @@
-;;;
+2;;;
 ;;; Copyright (c) 2011, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;;               2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;;               2019, Vanessa Hassouna <hassouna@uni-bremen.de>
@@ -107,7 +107,9 @@
                    (btr:assert ?w (btr:object-pose ?robot ,target)))))
            ;; return joint state. this will be our observation
            ;; currently only used by HPN
-           (robot-joint-states-with-odom-joints-as-hash-table))
+           (robot-joint-states-with-odom-joints-as-hash-table)
+           (cram-occasions-events:on-event
+            (make-instance 'cram-plan-occasions-events:projection-state-changed)))
       (when (or (btr:robot-colliding-objects-without-attached '(:floor))
                 (btr:robot-attached-objects-in-collision))
         (unless (< (abs *debug-short-sleep-duration*) 0.0001)
@@ -146,6 +148,8 @@
     (prolog:prolog
      `(btr:assert (btr:joint-state ?w ?robot ((?joint ,cropped-joint-angle))))
      bindings)
+    (cram-occasions-events:on-event
+     (make-instance 'cram-plan-occasions-events:projection-state-changed))
     (when (numberp joint-angle)
       (unless (< (abs (- joint-angle cropped-joint-angle)) 0.0001)
         (cpl:fail 'common-fail:torso-goal-not-reached
@@ -164,7 +168,9 @@
           (btr:bullet-world ?w)
           (rob-int:robot-neck-joints ?robot . ?joint-names)
           (prolog:lisp-fun mapcar list ?joint-names ,joint-angles ?joint-states)
-          (btr:assert ?w (btr:joint-state ?robot ?joint-states))))))
+          (btr:assert ?w (btr:joint-state ?robot ?joint-states)))))
+  (cram-occasions-events:on-event
+   (make-instance 'cram-plan-occasions-events:projection-state-changed)))
 
 (defun look-at-joint-states (joint-states)
   (declare (type list joint-states))
@@ -172,7 +178,9 @@
    (prolog:prolog
     `(and (rob-int:robot ?robot)
           (btr:bullet-world ?w)
-          (btr:assert ?w (btr:joint-state ?robot ,joint-states))))))
+          (btr:assert ?w (btr:joint-state ?robot ,joint-states)))))
+  (cram-occasions-events:on-event
+   (make-instance 'cram-plan-occasions-events:projection-state-changed)))
 
 (defun look-at-pose-stamped-two-joints (pose-stamped)
   (declare (type cl-transforms-stamped:pose-stamped pose-stamped))
@@ -229,6 +237,8 @@
                      (btr:joint-state
                       ?robot ((,?pan-joint ,cropped-pan-angle)
                               (,?tilt-joint ,cropped-tilt-angle))))))
+      (cram-occasions-events:on-event
+       (make-instance 'cram-plan-occasions-events:projection-state-changed))
       (unless (and (< (abs (- pan-angle cropped-pan-angle)) 0.00001)
                    (< (abs (- tilt-angle cropped-tilt-angle)) 0.00001))
         (cpl:fail 'common-fail:ptu-goal-not-reached
@@ -417,6 +427,9 @@ with the object, calculates similar angle around Y axis and applies the rotation
 
     (btr:add-vis-axis-object map-t-camera)
 
+    (cram-occasions-events:on-event
+     (make-instance 'cram-plan-occasions-events:projection-state-changed))
+
     (if joint-state
         (look-at-joint-angles joint-state)
         (cpl:fail 'common-fail:ptu-goal-not-reached
@@ -577,6 +590,9 @@ with the object, calculates similar angle around Y axis and applies the rotation
            (rob-int:joint-lower-limit ?robot ?joint ?min-limit)
            (rob-int:joint-upper-limit ?robot ?joint ?max-limit)
            (rob-int:gripper-meter-to-joint-multiplier ?robot ?mult)))))
+  
+   (cram-occasions-events:on-event
+    (make-instance 'cram-plan-occasions-events:projection-state-changed))
 
   ;; check if there is an object to grip
   ;; i.e. if action was gripping check if gripper collided with an item
@@ -775,7 +791,9 @@ with the given offsets (the offsets are specified in the torso frame).
                    (apply-torso-offsets torso-offsets))
                  (the-actual-collision-check
                   collision-mode left-hand-moves right-hand-moves))
-            (btr:restore-world-poses world-pose-info)))
+            (btr:restore-world-poses world-pose-info)
+            (cram-occasions-events:on-event
+             (make-instance 'cram-plan-occasions-events:projection-state-changed))))
         (the-actual-collision-check
          collision-mode left-hand-moves right-hand-moves))))
 
@@ -807,6 +825,9 @@ with the given offsets (the offsets are specified in the torso frame).
                    (btr:bullet-world ?world)
                    (rob-int:robot ?robot)
                    (assert ?world (btr:joint-state ?robot ,joint-name-value-list)))))
+
+               (cram-occasions-events:on-event
+                (make-instance 'cram-plan-occasions-events:projection-state-changed))
                ;; check if joint state was indeed reached
                (let* ((robot-object
                         (btr:get-robot-object))
@@ -1147,6 +1168,10 @@ collision by moving its torso and base"
             (right-torso-angle
              (move-torso right-torso-angle)))
           ;; set the base to inferred position
+
+          (cram-occasions-events:on-event
+           (make-instance 'cram-plan-occasions-events:projection-state-changed))
+          
           (cond
             ((and left-base-pose right-base-pose)
              (if (funcall (cram-tf:make-euclidean-distance-filter
@@ -1164,7 +1189,10 @@ collision by moving its torso and base"
           ;; set the arm joints to inferred position
           (move-joints left-ik right-ik)
           ;; perform one last collision check
-          (perform-collision-check collision-mode left-tcp-pose right-tcp-pose))))))
+          (perform-collision-check collision-mode left-tcp-pose right-tcp-pose)
+
+          (cram-occasions-events:on-event
+           (make-instance 'cram-plan-occasions-events:projection-state-changed)))))))
 
 (defun move-tcp (left-poses right-poses
                  &optional

@@ -70,6 +70,12 @@
   (:documentation "Event that is generated whenever the robot state
   changes, i.e. whenever the robot has moved."))
 
+(defclass projection-state-changed (event)
+  ()
+  (:documentation "Event that is generated whenever the state of the projection
+  changes, i.e. whenever the robot is checking for collisions or is sampling
+  ik solutions."))
+
 (defclass object-connection-event (event)
   ((object-name
     :initarg :object-name

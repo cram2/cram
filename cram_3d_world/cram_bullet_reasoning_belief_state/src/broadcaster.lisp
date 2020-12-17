@@ -29,6 +29,8 @@
 
 (in-package :cram-bullet-reasoning-belief-state)
 
+(defvar *object-visualization-marker-ids* nil)
+
 (defun get-bullet-object-transforms ()
   (let ((item-name-pose-list
           (mapcar (lambda (bindings)
@@ -62,7 +64,42 @@
 (defmethod cram-occasions-events:on-event
     update-broadcaster ((event cram-plan-occasions-events:robot-state-changed))
   (update-bullet-transforms))
+  ;;(update-bullet-transforms cram-urdf-projection::*sim-broadcaster*))
 
 (defmethod cram-occasions-events:on-event
     update-broadcaster ((event cpoe:object-perceived-event))
   (update-bullet-transforms))
+  ;;(update-bullet-transforms cram-urdf-projection::*sim-broadcaster*))
+
+(defmethod cram-occasions-events:on-event
+    update-broadcaster ((event cpoe:projection-state-changed))
+  (update-bullet-transforms cram-tf:*projection-broadcaster*)
+  ;;hack because otherwise they dont show up in rviz
+  (publish-object-visualization-markers)
+  (if (not *object-visualization-marker-ids*)
+      (publish-object-visualization-markers)))
+
+(defun publish-object-visualization-markers ()
+  (let ((objects (remove-if-not (lambda (x) (equalp (type-of x) 'btr:item)) (btr:objects btr:*current-bullet-world*)))
+        (item-ids '())
+        (i 0))
+    (loop for item in objects
+          do (let* ((type (car (btr:item-types item)))
+                    (name (btr:name item))
+                    (pose (cl-transforms:make-pose
+                           (cl-transforms:make-3d-vector 0 0 0)
+                           (cl-transforms:make-quaternion 0 0 0 1)))
+                    (mesh-path (second (assoc type btr::*mesh-files*)))
+                    (tf-prefix (cram-tf::prefix cram-tf:*projection-broadcaster*)))
+               (cram-tf:visualize-marker pose
+                                         :marker-type :mesh_resource
+                                         :id i
+                                         :scale-list '(1 1 1)
+                                         :mesh-path mesh-path
+                                         :in-frame (concatenate 'string tf-prefix "/"
+                                                                (substitute #\_ #\- (string-downcase
+                                                                                     (remove #\:
+                                                                                             (write-to-string name))))))
+             (setf item-ids (append `((,type ,i)) item-ids)) 
+             (incf i)))
+    (setf *object-visualization-marker-ids* item-ids)))

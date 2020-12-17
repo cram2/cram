@@ -29,7 +29,6 @@
 (in-package :urdf-proj)
 
 (defvar *last-timeline* nil)
-
 ;; (defmethod desig:resolve-designator :around (designator (role (eql 'projection-role)))
 ;;   (cram-projection:with-partially-ordered-clock-disabled *projection-clock*
 ;;     (call-next-method)))
@@ -42,8 +41,14 @@
    ;; For that first change tf2_ros/TransformListener to accept custom topic names
    (cram-tf:*broadcaster*
     (cram-tf:make-tf-broadcaster
-     "tf_projection"
+     "tf"
      cram-tf:*tf-broadcasting-interval*))
+
+   (cram-tf:*projection-broadcaster*
+    (cram-tf:make-tf-broadcaster
+     "tf"
+     cram-tf:*tf-broadcasting-interval*
+     "simulation"))
    ;; (*current-bullet-world* (cl-bullet:copy-world btr:*current-bullet-world*))
    (cram-bullet-reasoning:*current-timeline*
     (btr:timeline-init btr:*current-bullet-world*))
@@ -69,10 +74,13 @@
   :startup (progn
              (cram-bullet-reasoning-belief-state:set-tf-from-bullet)
              (cram-bullet-reasoning-belief-state:update-bullet-transforms)
-             (cram-tf:start-publishing-transforms cram-tf:*broadcaster*))
+             (cram-bullet-reasoning-belief-state:update-bullet-transforms cram-tf:*projection-broadcaster*)
+             (cram-tf:start-publishing-transforms cram-tf:*broadcaster*)
+             (cram-tf:start-publishing-transforms cram-tf:*projection-broadcaster*))
   :shutdown (progn
               (setf *last-timeline* cram-bullet-reasoning:*current-timeline*)
-              (cram-tf:stop-publishing-transforms cram-tf:*broadcaster*)))
+              (cram-tf:stop-publishing-transforms cram-tf:*broadcaster*)
+              (cram-tf:stop-publishing-transforms cram-tf:*projection-broadcaster*)))
 
 
 (def-fact-group projection-available-pms (cpm:available-process-module
@@ -113,6 +121,7 @@
 (defmacro with-projected-robot (&body args)
   "Alias for WITH-SIMULATED-ROBOT."
   `(with-simulated-robot ,@args))
+
 
 
 #+below-is-a-very-simple-example-of-how-to-use-projection
