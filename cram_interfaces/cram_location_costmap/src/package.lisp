@@ -110,7 +110,7 @@
            #:costmap-in-reach-distance #:costmap-reach-minimal-distance
            #:visibility-costmap-size
            #:orientation-samples #:orientation-sample-step
-           #:reachability-orientation-offset
+           #:reachability-orientation-offset #:visibility-orientation-offset
            ;; facts
            #:make-angle-to-point-generator #:make-orientation-generator
            #:2d-pose-covariance

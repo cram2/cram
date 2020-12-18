@@ -180,6 +180,7 @@ The order is random, so the main direction is NOT prioritized."
                                            orientation-samples
                                            orientation-sample-step
                                            reachability-orientation-offset
+                                           visibility-orientation-offset
                                            costmap-padding
                                            costmap-manipulation-padding
                                            costmap-in-reach-distance
@@ -211,9 +212,14 @@ The order is random, so the main direction is NOT prioritized."
   (<- (orientation-sample-step ?robot-name ?step-in-radian)
     (fail))
 
-  ;; when generating ORIENTATION-SAMPLES number of samples,
+  ;; when generating ORIENTATION-SAMPLES number of samples in reaching,
   ;; what should be the angle offset from looking directly at target
   (<- (reachability-orientation-offset ?robot-name ?offset-in-radian)
+    (fail))
+
+  ;; when generating ORIENTATION-SAMPLES number of samples in looking,
+  ;; what should be the angle offset from looking directly at target
+  (<- (visibility-orientation-offset ?robot-name ?offset-in-radian)
     (fail))
 
   ;; padding offset from obstacles, depends on the robot base dimension
