@@ -78,7 +78,7 @@
 
 (defparameter *dish-washer-tabs-grasp-x-offset* 0.0 "in meters")
 (defparameter *dish-washer-tabs-grasp-z-offset* 0.0 "in meters")
-(defparameter *dish-washer-tabs-pregrasp-x-offset* 0.3 "in meters")
+(defparameter *dish-washer-tabs-pregrasp-x-offset* 0.1 "in meters") ; 0.3
 (defparameter *dish-washer-tabs-small-lift-z-offset* 0.01 "in meters")
 (defparameter *dish-washer-tabs-lift-z-top-grasp-offset* 0.10 "in meters")
 (defparameter *dish-washer-tabs-lift-z-other-grasp-offset* 0.05 "in meters")
@@ -461,6 +461,20 @@
 (man-int:def-object-type-in-other-object-transform :dish-washer-tabs :robot
   :donbot-tray-back
   :attachment-translation `(0.2 0.05 0.11)
+  :attachment-rot-matrix '(( 0  0  1)
+                           ( 0  1  0)
+                           (-1  0  0)))
+
+(man-int:def-object-type-in-other-object-transform :dish-washer-tabs :robot
+  :kukabot-tray-front
+  :attachment-translation `(0.1 0.0 0.75)
+  :attachment-rot-matrix '((0  0  1)
+                           (0 -1  0)
+                           (1  0  0)))
+
+(man-int:def-object-type-in-other-object-transform :dish-washer-tabs :robot
+  :kukabot-tray-back
+  :attachment-translation `(0.1 0.0 0.75)
   :attachment-rot-matrix '(( 0  0  1)
                            ( 0  1  0)
                            (-1  0  0)))
