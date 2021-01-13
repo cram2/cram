@@ -315,7 +315,8 @@
     (btr-utils:kill-all-objects)
     (spawn-objects-on-small-shelf)
     (spawn-objects-on-big-shelf)
-    (unless (eql (rob-int:get-robot-name) :iai-donbot)
+    (unless (or (eql (rob-int:get-robot-name) :iai-donbot)
+                (eql (rob-int:get-robot-name) :kmr-iiwa))
       (spawn-basket))
 
     (let* ((?environment-name
@@ -361,7 +362,7 @@
                       (for ?balea-bottle-desig)
                       (attachments (balea-bottle-shelf-1-front
                                     balea-bottle-shelf-1-back))))
-           (?target-location-tray-dish-washer-tabs
+           (?target-location-donbot-tray-dish-washer-tabs
              (desig:a location
                       (on (desig:an object
                                     (type robot)
@@ -371,6 +372,16 @@
                                     (urdf-name plate)))
                       (for ?dish-washer-tabs-desig)
                       (attachments (donbot-tray-front donbot-tray-back))))
+           (?target-location-kukabot-tray-dish-washer-tabs
+             (desig:a location
+                      (on (desig:an object
+                                    (type robot)
+                                    (name ?robot-name)
+                                    (part-of ?robot-name)
+                                    (owl-name "kukabot_tray")
+                                    (urdf-name base-link)))
+                      (for ?dish-washer-tabs-desig)
+                      (attachments (kukabot-tray-front kukabot-tray-back))))
            (?target-location-basket-dish-washer-tabs
              (desig:a location
                       (on (desig:an object
@@ -381,8 +392,12 @@
                                     in-basket-back))))
            (?target-location-robot-dish-washer-tabs
              (case ?robot-name
-               (:iai-donbot ?target-location-tray-dish-washer-tabs)
-               (t ?target-location-basket-dish-washer-tabs))))
+               (:iai-donbot
+                ?target-location-donbot-tray-dish-washer-tabs)
+               (:kmr-iiwa
+                ?target-location-kukabot-tray-dish-washer-tabs)
+               (t
+                ?target-location-basket-dish-washer-tabs))))
 
       (exe:perform
        (desig:an action
