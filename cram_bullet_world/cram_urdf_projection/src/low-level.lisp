@@ -287,7 +287,7 @@
              (roslisp:msg-slot-value joint-state-msg :position))))))
 
 (defun calculate-camera-pose-from-object-pose (neck-base-t-object)
-  "Takes the vector from neck-base to object, sets its Z to 0,
+  "Takes the vector from neck-base to object, sets its Z to 0 (in neck frame),
 then normalizes to get a unit vector, then multiplies with a multiplier
 to make it shorter (multiplier should be comparable to maximum length
 between neck base and camera), then pulls the vector up in Z a bit
@@ -400,27 +400,25 @@ with the object, calculates similar angle around Y axis and applies the rotation
          (neck-base-t-camera
            (calculate-camera-pose-from-object-pose neck-base-t-object))
 
-         (camera-t-neck-ee
-           (cl-transforms:transform-inv
-            (cl-transforms:pose->transform neck-ee-p-camera)))
-         (neck-base-t-neck-ee
-           (cl-transforms:transform* neck-base-t-camera camera-t-neck-ee))
-         (neck-base-p-neck-ee
-           (cl-transforms:transform->pose neck-base-t-neck-ee))
-
-         (joint-state
-           (get-neck-ik neck-ee-frame neck-base-p-neck-ee
-                        neck-base-frame neck-joints))
-
          (map-t-camera
             (cl-transforms:transform-pose map-t-neck-base neck-base-t-camera)))
-
     (btr:add-vis-axis-object map-t-camera)
 
-    (if joint-state
-        (look-at-joint-angles joint-state)
-        (cpl:fail 'common-fail:ptu-goal-not-reached
-                  :description "Look goal was not reachable"))))
+    (let* ((camera-t-neck-ee
+             (cl-transforms:transform-inv
+              (cl-transforms:pose->transform neck-ee-p-camera)))
+           (neck-base-t-neck-ee
+             (cl-transforms:transform* neck-base-t-camera camera-t-neck-ee))
+           (neck-base-p-neck-ee
+             (cl-transforms:transform->pose neck-base-t-neck-ee))
+
+           (joint-state
+             (get-neck-ik neck-ee-frame neck-base-p-neck-ee
+                          neck-base-frame neck-joints)))
+      (if joint-state
+          (look-at-joint-angles joint-state)
+          (cpl:fail 'common-fail:ptu-goal-not-reached
+                    :description "Look goal was not reachable")))))
 
 
 (defun look-at (pose configuration)
