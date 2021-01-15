@@ -74,15 +74,19 @@
 (defmethod cram-occasions-events:on-event
     update-broadcaster ((event cpoe:projection-state-changed))
   (update-bullet-transforms cram-tf:*projection-broadcaster*)
-  ;;hack because otherwise they dont show up in rviz
-  (publish-object-visualization-markers)
+  ;; Only published the visualization marker if no visualization marker exist, afterwards the position will be updated according to the
+  ;; published tf frames. 
   (if (not *object-visualization-marker-ids*)
-      (publish-object-visualization-markers)))
+      (publish-object-visualization-markers cram-tf:*projection-broadcaster*)))
 
-(defun publish-object-visualization-markers ()
+(defun publish-object-visualization-markers (broadcaster)
+  "Publishes visualization marker for all items in the bullet world. The visualization marker will be published in the frame of the
+   prefix of the given broadcaster. Additionally the visualization marker will be frame-locked meaning they only have to be published
+   once and then update their position according to the published tf frames."
   (let ((objects (remove-if-not (lambda (x) (equalp (type-of x) 'btr:item)) (btr:objects btr:*current-bullet-world*)))
         (item-ids '())
-        (i 0))
+        ;; Has to start at 10 to not interferre with the goal marker 
+        (i 10))
     (loop for item in objects
           do (let* ((type (car (btr:item-types item)))
                     (name (btr:name item))
@@ -90,16 +94,18 @@
                            (cl-transforms:make-3d-vector 0 0 0)
                            (cl-transforms:make-quaternion 0 0 0 1)))
                     (mesh-path (second (assoc type btr::*mesh-files*)))
-                    (tf-prefix (cram-tf::prefix cram-tf:*projection-broadcaster*)))
+                    (tf-prefix (cram-tf::prefix broadcaster))
+                    (obj-name-converted  (substitute #\_ #\- (string-downcase (remove #\: (write-to-string name)))))
+                    (frame (concatenate 'string tf-prefix "/" obj-name-converted)))
                (cram-tf:visualize-marker pose
                                          :marker-type :mesh_resource
-                                         :id i
+                                         :id i 
                                          :scale-list '(1 1 1)
                                          :mesh-path mesh-path
-                                         :in-frame (concatenate 'string tf-prefix "/"
-                                                                (substitute #\_ #\- (string-downcase
-                                                                                     (remove #\:
-                                                                                             (write-to-string name))))))
+                                         :in-frame frame
+                                         :frame-locked t)
+               ;; Sleep is needed to give Rviz enough time to load the mesh of each item 
+               (cpl:sleep 0.5)
              (setf item-ids (append `((,type ,i)) item-ids)) 
-             (incf i)))
+               (incf i)))
     (setf *object-visualization-marker-ids* item-ids)))

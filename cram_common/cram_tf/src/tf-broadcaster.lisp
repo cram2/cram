@@ -62,6 +62,8 @@
       (sb-thread:with-mutex (mutex)
         (let ((frame-id (cl-transforms-stamped:frame-id transform))
               (child-id (cl-transforms-stamped:child-frame-id transform)))
+          ;; If the parent frame is "map" no prefix will be added because otherwise no transformation between the frames with the
+          ;; prefix and the rest will be found 
           (if (not (equal "map" frame-id))
               (setf (slot-value transform 'cl-transforms-stamped:frame-id)
                     (concatenate 'string prefix "/" (cl-transforms-stamped:frame-id transform))))
