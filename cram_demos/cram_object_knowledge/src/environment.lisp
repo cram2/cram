@@ -37,13 +37,14 @@
   (<- (costmap:costmap-origin :iai-kitchen -6 -6))
   (<- (costmap:costmap-resolution :iai-kitchen 0.04))
 
-  (<- (costmap:costmap-size :dm-shelves 10 10))
-  (<- (costmap:costmap-origin :dm-shelves -5 -5))
-  (<- (costmap:costmap-resolution :dm-shelves 0.04))
-
-  (<- (costmap:costmap-size :dm-room 10 10))
-  (<- (costmap:costmap-origin :dm-room -5 -5))
-  (<- (costmap:costmap-resolution :dm-room 0.04))
+  (<- (is-dm-room-urdf-name ?name)
+    (member ?name (:dm-shelves :dm-room :store)))
+  (<- (costmap:costmap-size ?name 10 10)
+    (is-dm-room-urdf-name ?name))
+  (<- (costmap:costmap-origin ?name -5 -5)
+    (is-dm-room-urdf-name ?name))
+  (<- (costmap:costmap-resolution ?name 0.04)
+    (is-dm-room-urdf-name ?name))
 
   (<- (man-int:object-tf-prefix :iai-kitchen "iai_kitchen/")))
 
