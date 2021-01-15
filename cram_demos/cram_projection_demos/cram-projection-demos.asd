@@ -73,6 +73,7 @@
                cram-pr2-description
                cram-boxy-description
                cram-donbot-description
+               cram-kukabot-description
                ;; cram-hsrb-description
                )
   :components
