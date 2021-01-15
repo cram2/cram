@@ -60,9 +60,16 @@
                     '$(find iai_kitchen)/urdf_obj/iai_kitchen_python.urdf.xacro'"/>
   </group>
   <group if="$(arg retail)">
-    <param name="kitchen_description"
-           command="$(find xacro)/xacro.py
-                    '$(find iai_refills_lab)/urdf/dm_room.urdf.xacro'"/>
+    <group if="$(arg kukabot)">
+      <param name="kitchen_description"
+             command="$(find xacro)/xacro.py
+                      '$(find cram_projection_demos)/resource/retail/full_store.urdf.xacro'"/>
+    </group>
+    <group unless="$(arg kukabot)">
+      <param name="kitchen_description"
+             command="$(find xacro)/xacro.py
+                      '$(find iai_refills_lab)/urdf/dm_room.urdf.xacro'"/>
+    </group>
   </group>
 
   <!-- environment state publisher -->

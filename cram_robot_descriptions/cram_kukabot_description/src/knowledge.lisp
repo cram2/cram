@@ -257,12 +257,13 @@
                                            costmap:reachability-orientation-offset
                                            costmap:visibility-orientation-offset
                                            costmap:visibility-costmap-size)
-  (<- (costmap:costmap-padding :kmr-iiwa 0.5))
+  (<- (costmap:costmap-padding :kmr-iiwa 0.3))
   (<- (costmap:costmap-manipulation-padding :kmr-iiwa 0.3))
-  (<- (costmap:costmap-in-reach-distance :kmr-iiwa 1.325))
+  (<- (costmap:costmap-in-reach-distance :kmr-iiwa 1.1))
   (<- (costmap:costmap-reach-minimal-distance :kmr-iiwa 0.1))
   (<- (costmap:orientation-samples :kmr-iiwa 1))
   (<- (costmap:orientation-sample-step :kmr-iiwa 0.3))
   (<- (costmap:reachability-orientation-offset :kmr-iiwa 1.5))
-  (<- (costmap:visibility-orientation-offset :kmr-iiwa 1.5))
+  (<- (costmap:visibility-orientation-offset :kmr-iiwa ?offset)
+    (costmap:reachability-orientation-offset :kmr-iiwa ?offset))
   (<- (costmap:visibility-costmap-size :kmr-iiwa 2.0)))

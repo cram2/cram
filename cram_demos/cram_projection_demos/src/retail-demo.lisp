@@ -88,6 +88,13 @@
     ;; (:box-item . ((-0.075 -0.135 0.1) (0 0 0 1)))
     ))
 
+(defparameter *real-small-shelf-poses*
+  '("DMFloorT4W100_NLBMVEGQ"
+    (:balea-bottle . ((-0.15 -0.14 0.1) (0 0 0.5 0.5)))
+    (:dish-washer-tabs . ((0.1 -0.13 0.11) (0 0 0.5 0.5)))
+    ;; (:box-item . ((-0.075 -0.135 0.1) (0 0 0 1)))
+    ))
+
 (defparameter *basket-in-pr2-wrist*
   (cl-transforms:make-transform
    (cl-transforms:make-3d-vector 0.36 0 -0.15)
@@ -270,6 +277,17 @@
   ;; (btr:simulate btr:*current-bullet-world* 50)
   )
 
+(defun spawn-objects-on-real-small-shelf ()
+  (let ((poses (make-poses-relative *real-small-shelf-poses*)))
+    (mapcar (lambda (type-and-pose)
+              (destructuring-bind (type . pose) type-and-pose
+                (spawn-object-n-times type pose 1
+                                      (case type
+                                        (:dish-washer-tabs '(0 1 0))
+                                        (:balea-bottle '(1 1 0))
+                                        (t '(1.0 1.0 0.9))))))
+            poses)))
+
 (defun spawn-basket ()
   (let* ((left-ee-frame
            (cut:var-value
@@ -313,13 +331,42 @@
 
     (setf btr:*visibility-threshold* 0.5)
     (btr-utils:kill-all-objects)
-    (spawn-objects-on-small-shelf)
-    (spawn-objects-on-big-shelf)
+    (btr:detach-all-objects (btr:get-robot-object))
+    (btr:detach-all-objects (btr:get-environment-object))
+    (if (eql (rob-int:get-environment-name) :store)
+        (spawn-objects-on-real-small-shelf)
+        (progn
+          (spawn-objects-on-small-shelf)
+          (spawn-objects-on-big-shelf)))
     (unless (or (eql (rob-int:get-robot-name) :iai-donbot)
                 (eql (rob-int:get-robot-name) :kmr-iiwa))
       (spawn-basket))
 
-    (let* ((?environment-name
+    (let* ((?source-shelf-base-urdf-name
+             (if (eql (rob-int:get-environment-name) :store)
+                 :|DMShelfW100_EVZDYXFU|
+                 :shelf-2-base))
+           (?source-shelf-base-level
+             (if (eql (rob-int:get-environment-name) :store)
+                 3
+                 4))
+           (?target-shelf-level-urdf-name
+             (if (eql (rob-int:get-environment-name) :store)
+                 :|DMFloorT6W100_KYINFGDM|
+                 :shelf-1-level-2-link))
+           (?target-shelf-dishwasher-attachments
+             (if (eql (rob-int:get-environment-name) :store)
+                 '(:dish-washer-tabs-real-shelf-1-front
+                   :dish-washer-tabs-real-shelf-1-back)
+                 '(:dish-washer-tabs-shelf-1-front
+                   :dish-washer-tabs-shelf-1-back)))
+           (?target-shelf-balea-attachments
+             (if (eql (rob-int:get-environment-name) :store)
+                 '(:balea-bottle-real-shelf-1-front
+                   :balea-bottle-real-shelf-1-back)
+                 '(:balea-bottle-shelf-1-front
+                   :balea-bottle-shelf-1-back)))
+           (?environment-name
              (rob-int:get-environment-name))
            (?robot-name
              (rob-int:get-robot-name))
@@ -327,10 +374,9 @@
              (desig:a location
                       (on (desig:an object
                                     (type shelf)
-                                    (urdf-name shelf-2-base)
-                                    (owl-name "shelf_system_verhuetung")
+                                    (urdf-name ?source-shelf-base-urdf-name)
                                     (part-of ?environment-name)
-                                    (level 4)))
+                                    (level ?source-shelf-base-level)))
                       (side left)
                       (range 0.2)))
 
@@ -348,20 +394,18 @@
                                     (type environment)
                                     (name ?environment-name)
                                     (part-of ?environment-name)
-                                    (urdf-name shelf-1-level-2-link)))
+                                    (urdf-name ?target-shelf-level-urdf-name)))
                       (for ?dish-washer-tabs-desig)
-                      (attachments (dish-washer-tabs-shelf-1-front
-                                    dish-washer-tabs-shelf-1-back))))
+                      (attachments ?target-shelf-dishwasher-attachments)))
            (?target-location-shelf-balea-bottle
              (desig:a location
                       (on (desig:an object
                                     (type environment)
                                     (name ?environment-name)
                                     (part-of ?environment-name)
-                                    (urdf-name shelf-1-level-2-link)))
+                                    (urdf-name ?target-shelf-level-urdf-name)))
                       (for ?balea-bottle-desig)
-                      (attachments (balea-bottle-shelf-1-front
-                                    balea-bottle-shelf-1-back))))
+                      (attachments ?target-shelf-balea-attachments)))
            (?target-location-donbot-tray-dish-washer-tabs
              (desig:a location
                       (on (desig:an object
