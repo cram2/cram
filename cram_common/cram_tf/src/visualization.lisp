@@ -36,6 +36,7 @@
                                   (marker-type :arrow)
                                   (id 1)
                                   (in-frame cram-tf:*fixed-frame*)
+                                  (frame-locked NIL)
                                   mesh-path)
   (declare (type (or cl-transforms:pose cl-transforms-stamped:pose-stamped list) pose/s)
            (type string topic)
@@ -76,7 +77,8 @@
                                         (g color) (second r-g-b-list)
                                         (b color) (third r-g-b-list)
                                         (a color) 0.7
-                                        :mesh_resource (or mesh-path ""))))
+                                        :mesh_resource (or mesh-path "")
+                                        :frame_locked frame-locked)))
                ;; (roslisp:ros-warn (ll visualize-marker) "asked to visualize a null pose")
                )))
     (if (listp pose/s)
