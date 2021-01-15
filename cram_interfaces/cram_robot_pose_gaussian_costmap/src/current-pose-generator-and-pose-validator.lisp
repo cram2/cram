@@ -137,8 +137,10 @@
                   (generated-angle (calculate-z-angle pose)))
               (if (and (< dist ?max-distance)
                        (> dist ?min-distance)
-                       (<= (abs (- (abs (- perfect-angle generated-angle))
-                                   (cl-transforms:normalize-angle ?orientation-offset)))
+                       (<= (abs (- (cl-transforms:normalize-angle
+                                    (- generated-angle perfect-angle))
+                                   (cl-transforms:normalize-angle
+                                    ?orientation-offset)))
                            allowed-range))
                   :accept
                   :reject))))
@@ -203,8 +205,10 @@
                   ;; GENERATED-ANGLE is the suggested robot base pose angle around Z
                   (generated-angle (calculate-z-angle pose)))
               (if (and (< dist ?max-distance)
-                       (<= (abs (- (abs (- perfect-angle generated-angle))
-                                   (cl-transforms:normalize-angle ?orientation-offset)))
+                       (<= (abs (- (cl-transforms:normalize-angle
+                                    (- generated-angle perfect-angle))
+                                   (cl-transforms:normalize-angle
+                                    ?orientation-offset)))
                            allowed-range))
                   :accept
                   :reject))))
