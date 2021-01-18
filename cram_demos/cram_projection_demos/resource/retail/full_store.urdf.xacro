@@ -4,6 +4,13 @@
 
   <xacro:include filename="$(find cram_projection_demos)/resource/retail/store_walls.urdf.xacro"/>
 
+  <link name="world"/>
+  <joint name="world_to_root" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <parent link="world"/>
+    <child link="store_root"/>
+  </joint>
+
   <link name="store_root"/>
   <joint name="DMShelfW100_FVHEZLXN" type="fixed">
     <origin rpy="0.0 -0.0 -3.12759288225" xyz="-1.264 -4.203 1.0"/>
@@ -15,13 +22,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T7L10W/ShelfSystemH200T7L10W.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T7L10W/ShelfSystemH200T7L10W.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T7L10W/ShelfSystemH200T7L10W.obj"/>
       </geometry>
     </collision>
   </link>
@@ -35,9 +39,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer7TilesL10_Bottom/ShelfLayer7TilesL10_Bottom.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -55,9 +56,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -75,9 +73,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -95,9 +90,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -115,9 +107,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -135,9 +124,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -155,9 +141,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -175,9 +158,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -195,13 +175,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -215,9 +192,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -235,9 +209,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -255,9 +226,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -275,9 +243,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -295,9 +260,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -315,9 +277,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -335,9 +294,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -355,13 +311,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -375,9 +328,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -395,9 +345,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -415,9 +362,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -435,9 +379,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -455,9 +396,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -475,13 +413,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -495,9 +430,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -515,9 +447,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -535,9 +464,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -555,9 +481,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -575,9 +498,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -595,9 +515,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSystemH180T510W/SM_ShelfSystemH180T5L10W.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -615,9 +532,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10_Bottom/ShelfLayer5TilesL10_Bottom.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -635,9 +549,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -655,9 +566,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -675,9 +583,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -695,9 +600,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -715,9 +617,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -735,13 +634,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -755,9 +651,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -775,9 +668,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -795,9 +685,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -815,9 +702,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -835,9 +719,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -855,13 +736,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -875,9 +753,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -895,9 +770,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -915,9 +787,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -935,9 +804,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -955,9 +821,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -975,9 +838,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -995,13 +855,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -1015,9 +872,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1035,9 +889,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1055,9 +906,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1075,9 +923,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1095,9 +940,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1115,9 +957,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1135,9 +974,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1155,9 +991,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1175,9 +1008,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1195,13 +1025,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -1215,9 +1042,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1235,9 +1059,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1255,9 +1076,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1275,9 +1093,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1295,9 +1110,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1315,9 +1127,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T6L10W/ShelfSystemH200T6L10W.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1335,9 +1144,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10_Bottom/ShelfLayer6TilesL10_Bottom.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1355,9 +1161,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1375,9 +1178,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1395,9 +1195,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1415,9 +1212,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1435,9 +1229,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1455,9 +1246,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1475,13 +1263,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -1495,9 +1280,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1515,9 +1297,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1535,9 +1314,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1555,9 +1331,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1575,9 +1348,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1595,13 +1365,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -1615,9 +1382,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1635,9 +1399,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1655,9 +1416,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1675,9 +1433,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1695,9 +1450,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1715,13 +1467,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -1735,9 +1484,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1755,9 +1501,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1775,9 +1518,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1795,9 +1535,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1815,9 +1552,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1835,9 +1569,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T6L10W/ShelfSystemH200T6L10W.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1855,9 +1586,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10_Bottom/ShelfLayer6TilesL10_Bottom.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1875,9 +1603,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1895,9 +1620,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1915,9 +1637,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1935,9 +1654,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1955,9 +1671,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -1975,13 +1688,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -1995,9 +1705,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2015,9 +1722,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2035,9 +1739,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2055,9 +1756,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2075,9 +1773,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2095,13 +1790,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -2115,9 +1807,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2135,9 +1824,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2155,9 +1841,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2175,9 +1858,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2195,9 +1875,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2215,9 +1892,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2235,13 +1909,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -2255,9 +1926,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2275,9 +1943,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2295,9 +1960,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2315,9 +1977,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2335,9 +1994,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2355,13 +2011,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -2375,9 +2028,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2395,9 +2045,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2415,9 +2062,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2435,9 +2079,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2455,9 +2096,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2475,13 +2113,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T7L10W/ShelfSystemH200T7L10W.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T7L10W/ShelfSystemH200T7L10W.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T7L10W/ShelfSystemH200T7L10W.obj"/>
       </geometry>
     </collision>
   </link>
@@ -2495,9 +2130,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer7TilesL10_Bottom/ShelfLayer7TilesL10_Bottom.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2515,9 +2147,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2535,9 +2164,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2555,9 +2181,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2575,9 +2198,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2595,9 +2215,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2615,9 +2232,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2635,13 +2249,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -2655,9 +2266,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2675,9 +2283,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2695,9 +2300,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2715,9 +2317,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2735,9 +2334,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2755,9 +2351,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2775,13 +2368,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -2795,9 +2385,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2815,9 +2402,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2835,9 +2419,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2855,9 +2436,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2875,9 +2453,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2895,9 +2470,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2915,13 +2487,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -2935,9 +2504,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2955,9 +2521,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2975,9 +2538,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -2995,9 +2555,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3015,9 +2572,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3035,13 +2589,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -3055,9 +2606,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3075,9 +2623,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3095,9 +2640,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3115,9 +2657,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3135,9 +2674,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3155,9 +2691,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3175,9 +2708,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3195,9 +2725,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3215,9 +2742,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3235,9 +2759,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T6L10W/ShelfSystemH200T6L10W.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3255,9 +2776,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10_Bottom/ShelfLayer6TilesL10_Bottom.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3275,9 +2793,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3295,9 +2810,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3315,9 +2827,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3335,9 +2844,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3355,9 +2861,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3375,13 +2878,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -3395,9 +2895,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3415,9 +2912,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3435,9 +2929,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3455,9 +2946,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3475,9 +2963,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3495,13 +2980,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -3515,9 +2997,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3535,9 +3014,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3555,9 +3031,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3575,9 +3048,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3595,9 +3065,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3615,9 +3082,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3635,13 +3099,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -3655,9 +3116,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3675,9 +3133,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3695,9 +3150,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3715,9 +3167,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3735,9 +3184,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3755,9 +3201,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3775,13 +3218,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -3795,9 +3235,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3815,9 +3252,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3835,9 +3269,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3855,9 +3286,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3875,9 +3303,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3895,9 +3320,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3915,9 +3337,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3935,9 +3354,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T6L6W/ShelfSystemH200T6L6W.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3955,9 +3371,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL6_Bottom/ShelfLayer6TilesL6_Bottom.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3975,9 +3388,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -3995,9 +3405,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4015,9 +3422,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4035,9 +3439,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4055,9 +3456,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4075,9 +3473,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL6/ShelfLayer5TilesL6.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4095,9 +3490,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4115,9 +3507,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4135,9 +3524,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4155,9 +3541,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4175,9 +3558,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4195,9 +3575,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL6/ShelfLayer5TilesL6.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4215,9 +3592,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4235,9 +3609,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4255,9 +3626,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4275,9 +3643,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4295,9 +3660,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4315,9 +3677,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4335,9 +3694,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL6/ShelfLayer5TilesL6.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4355,9 +3711,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4375,9 +3728,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4395,9 +3745,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4415,9 +3762,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4435,9 +3779,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4455,9 +3796,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4475,9 +3813,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4495,9 +3830,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4515,9 +3847,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4535,9 +3864,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4555,9 +3881,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL6/ShelfLayer5TilesL6.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4575,9 +3898,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4595,9 +3915,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4615,9 +3932,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4635,9 +3949,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4655,9 +3966,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4675,9 +3983,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4695,13 +4000,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T7L10W/ShelfSystemH200T7L10W.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T7L10W/ShelfSystemH200T7L10W.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T7L10W/ShelfSystemH200T7L10W.obj"/>
       </geometry>
     </collision>
   </link>
@@ -4715,9 +4017,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer7TilesL10_Bottom/ShelfLayer7TilesL10_Bottom.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4735,9 +4034,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4755,9 +4051,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4775,9 +4068,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4795,9 +4085,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4815,9 +4102,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4835,13 +4119,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -4855,9 +4136,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4875,9 +4153,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4895,9 +4170,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4915,9 +4187,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4935,9 +4204,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4955,13 +4221,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -4975,9 +4238,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -4995,9 +4255,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5015,9 +4272,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5035,9 +4289,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5055,9 +4306,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5075,13 +4323,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -5095,9 +4340,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5115,9 +4357,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5135,9 +4374,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5155,9 +4391,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5175,9 +4408,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5195,9 +4425,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5215,9 +4442,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T5L6W/ShelfSystemH200T5L6W.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5235,9 +4459,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL6/ShelfLayer5TilesL6.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5255,9 +4476,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5275,9 +4493,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5295,9 +4510,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5315,9 +4527,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5335,9 +4544,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5355,9 +4561,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5375,9 +4578,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5395,9 +4595,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL6/ShelfLayer5TilesL6.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5415,9 +4612,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5435,9 +4629,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5455,9 +4646,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5475,9 +4663,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5495,9 +4680,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5515,13 +4697,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSystemH160T5L10W/ShelfSystemH160T5L10W.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfSystemH160T5L10W/ShelfSystemH160T5L10W.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH160T5L10W/ShelfSystemH160T5L10W.obj"/>
       </geometry>
     </collision>
   </link>
@@ -5535,9 +4714,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10_Bottom/ShelfLayer5TilesL10_Bottom.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5555,9 +4731,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5575,9 +4748,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5595,9 +4765,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5615,9 +4782,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5635,9 +4799,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5655,13 +4816,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -5675,9 +4833,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5695,9 +4850,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5715,9 +4867,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5735,9 +4884,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5755,9 +4901,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5775,13 +4918,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -5795,9 +4935,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5815,9 +4952,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5835,9 +4969,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5855,9 +4986,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5875,9 +5003,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5895,13 +5020,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -5915,9 +5037,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5935,9 +5054,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5955,9 +5071,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5975,9 +5088,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -5995,9 +5105,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6015,13 +5122,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -6035,9 +5139,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6055,9 +5156,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6075,9 +5173,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6095,9 +5190,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6115,9 +5207,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6135,9 +5224,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6155,13 +5241,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSystemH160T5L10W/ShelfSystemH160T5L10W.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfSystemH160T5L10W/ShelfSystemH160T5L10W.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH160T5L10W/ShelfSystemH160T5L10W.obj"/>
       </geometry>
     </collision>
   </link>
@@ -6175,9 +5258,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10_Bottom/ShelfLayer5TilesL10_Bottom.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6195,9 +5275,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6215,9 +5292,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6235,9 +5309,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6255,9 +5326,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6275,9 +5343,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6295,13 +5360,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -6315,9 +5377,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6335,9 +5394,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6355,9 +5411,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6375,9 +5428,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6395,9 +5445,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6415,13 +5462,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -6435,9 +5479,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6455,9 +5496,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6475,9 +5513,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6495,9 +5530,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6515,9 +5547,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6535,13 +5564,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -6555,9 +5581,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6575,9 +5598,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6595,9 +5615,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6615,9 +5632,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6635,9 +5649,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6655,13 +5666,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -6675,9 +5683,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6695,9 +5700,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6715,9 +5717,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6735,9 +5734,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6755,9 +5751,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6775,9 +5768,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T6L12W/ShelfSystemH200T6L12W.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6795,9 +5785,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL12_Bottom/ShelfLayer6TilesL12_Bottom.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6815,9 +5802,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6835,9 +5819,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6855,9 +5836,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6875,9 +5853,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6895,9 +5870,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6915,9 +5887,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL12/ShelfLayer5TilesL12.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6935,9 +5904,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6955,9 +5921,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6975,9 +5938,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -6995,9 +5955,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7015,9 +5972,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7035,9 +5989,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL12/ShelfLayer5TilesL12.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7055,9 +6006,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7075,9 +6023,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7095,9 +6040,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7115,9 +6057,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7135,9 +6074,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7155,9 +6091,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7175,9 +6108,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7195,9 +6125,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7215,9 +6142,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL12/ShelfLayer5TilesL12.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7235,9 +6159,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7255,9 +6176,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7275,9 +6193,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7295,9 +6210,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7315,9 +6227,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7335,9 +6244,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7355,9 +6261,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7375,9 +6278,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7395,9 +6295,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSystemH180T510W/SM_ShelfSystemH180T5L10W.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7415,9 +6312,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10_Bottom/ShelfLayer5TilesL10_Bottom.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7435,9 +6329,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7455,9 +6346,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7475,9 +6363,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7495,9 +6380,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7515,9 +6397,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7535,13 +6414,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -7555,9 +6431,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7575,9 +6448,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7595,9 +6465,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7615,9 +6482,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7635,9 +6499,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7655,9 +6516,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7675,13 +6533,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -7695,9 +6550,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7715,9 +6567,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7735,9 +6584,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7755,9 +6601,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7775,9 +6618,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7795,9 +6635,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7815,13 +6652,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -7835,9 +6669,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7855,9 +6686,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7875,9 +6703,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7895,9 +6720,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7915,9 +6737,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7935,9 +6754,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7955,13 +6771,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -7975,9 +6788,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -7995,9 +6805,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8015,9 +6822,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8035,9 +6839,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8055,9 +6856,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8075,9 +6873,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8095,9 +6890,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8115,13 +6907,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSystemH160T5L10W/ShelfSystemH160T5L10W.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfSystemH160T5L10W/ShelfSystemH160T5L10W.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH160T5L10W/ShelfSystemH160T5L10W.obj"/>
       </geometry>
     </collision>
   </link>
@@ -8135,9 +6924,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10_Bottom/ShelfLayer5TilesL10_Bottom.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8155,9 +6941,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8175,9 +6958,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8195,9 +6975,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8215,9 +6992,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8235,9 +7009,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8255,13 +7026,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -8275,9 +7043,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8295,9 +7060,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8315,9 +7077,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8335,9 +7094,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8355,9 +7111,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8375,13 +7128,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -8395,9 +7145,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8415,9 +7162,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8435,9 +7179,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8455,9 +7196,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8475,9 +7213,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8495,13 +7230,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -8515,9 +7247,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8535,9 +7264,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8555,9 +7281,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8575,9 +7298,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8595,9 +7315,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8615,9 +7332,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8635,9 +7349,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8655,9 +7366,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8675,9 +7383,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8695,9 +7400,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T6L10W/ShelfSystemH200T6L10W.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8715,9 +7417,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10_Bottom/ShelfLayer6TilesL10_Bottom.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8735,9 +7434,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8755,9 +7451,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8775,9 +7468,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8795,9 +7485,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8815,9 +7502,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8835,13 +7519,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -8855,9 +7536,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8875,9 +7553,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8895,9 +7570,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8915,9 +7587,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8935,9 +7604,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8955,9 +7621,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -8975,13 +7638,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -8995,9 +7655,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9015,9 +7672,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9035,9 +7689,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9055,9 +7706,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9075,9 +7723,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9095,13 +7740,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10/ShelfLayer5TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -9115,9 +7757,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9135,9 +7774,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9155,9 +7791,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9175,9 +7808,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9195,9 +7825,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9215,9 +7842,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9235,9 +7859,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9255,13 +7876,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T7L10W/ShelfSystemH200T7L10W.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T7L10W/ShelfSystemH200T7L10W.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T7L10W/ShelfSystemH200T7L10W.obj"/>
       </geometry>
     </collision>
   </link>
@@ -9275,9 +7893,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer7TilesL10_Bottom/ShelfLayer7TilesL10_Bottom.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9295,9 +7910,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9315,9 +7927,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9335,9 +7944,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9355,9 +7961,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9375,9 +7978,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9395,13 +7995,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -9415,9 +8012,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9435,9 +8029,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9455,9 +8046,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9475,9 +8063,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9495,9 +8080,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9515,13 +8097,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -9535,9 +8114,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9555,9 +8131,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9575,9 +8148,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9595,9 +8165,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9615,9 +8182,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9635,13 +8199,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -9655,9 +8216,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9675,9 +8233,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9695,9 +8250,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9715,9 +8267,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9735,9 +8284,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9755,13 +8301,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -9775,9 +8318,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9795,9 +8335,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9815,9 +8352,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9835,9 +8369,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9855,9 +8386,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9875,9 +8403,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9895,13 +8420,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSystemH160T5L10W/ShelfSystemH160T5L10W.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfSystemH160T5L10W/ShelfSystemH160T5L10W.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH160T5L10W/ShelfSystemH160T5L10W.obj"/>
       </geometry>
     </collision>
   </link>
@@ -9915,9 +8437,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10_Bottom/ShelfLayer5TilesL10_Bottom.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9935,9 +8454,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9955,9 +8471,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9975,9 +8488,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -9995,9 +8505,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10015,9 +8522,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10035,9 +8539,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10055,13 +8556,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -10075,9 +8573,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10095,9 +8590,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10115,9 +8607,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10135,9 +8624,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10155,9 +8641,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10175,9 +8658,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10195,13 +8675,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -10215,9 +8692,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10235,9 +8709,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10255,9 +8726,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10275,9 +8743,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10295,9 +8760,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10315,13 +8777,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -10335,9 +8794,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10355,9 +8811,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10375,9 +8828,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10395,9 +8845,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10415,9 +8862,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10435,13 +8879,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -10455,9 +8896,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10475,9 +8913,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10495,9 +8930,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10515,9 +8947,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10535,9 +8964,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10555,9 +8981,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10575,13 +8998,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSystemH160T5L10W/ShelfSystemH160T5L10W.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfSystemH160T5L10W/ShelfSystemH160T5L10W.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH160T5L10W/ShelfSystemH160T5L10W.obj"/>
       </geometry>
     </collision>
   </link>
@@ -10595,9 +9015,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10_Bottom/ShelfLayer5TilesL10_Bottom.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10615,9 +9032,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10635,9 +9049,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10655,9 +9066,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10675,9 +9083,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10695,9 +9100,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10715,13 +9117,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -10735,9 +9134,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10755,9 +9151,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10775,9 +9168,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10795,9 +9185,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10815,9 +9202,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10835,9 +9219,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10855,9 +9236,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10875,13 +9253,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -10895,9 +9270,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10915,9 +9287,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10935,9 +9304,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10955,9 +9321,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10975,9 +9338,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -10995,13 +9355,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -11015,9 +9372,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11035,9 +9389,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11055,9 +9406,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11075,9 +9423,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11095,9 +9440,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11115,9 +9457,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11135,9 +9474,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11155,9 +9491,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11175,13 +9508,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSystemH160T5L10W/ShelfSystemH160T5L10W.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfSystemH160T5L10W/ShelfSystemH160T5L10W.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH160T5L10W/ShelfSystemH160T5L10W.obj"/>
       </geometry>
     </collision>
   </link>
@@ -11195,9 +9525,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10_Bottom/ShelfLayer5TilesL10_Bottom.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11215,9 +9542,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11235,9 +9559,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11255,9 +9576,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11275,9 +9593,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11295,9 +9610,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11315,13 +9627,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -11335,9 +9644,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11355,9 +9661,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11375,9 +9678,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11395,9 +9695,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11415,9 +9712,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11435,9 +9729,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11455,9 +9746,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11475,9 +9763,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11495,9 +9780,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11515,13 +9797,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -11535,9 +9814,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11555,9 +9831,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11575,9 +9848,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11595,9 +9865,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11615,9 +9882,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11635,13 +9899,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -11655,9 +9916,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11675,9 +9933,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11695,9 +9950,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11715,9 +9967,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11735,9 +9984,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11755,13 +10001,10 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.obj"/>
       </geometry>
     </collision>
   </link>
@@ -11775,9 +10018,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11795,9 +10035,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11815,9 +10052,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11835,9 +10069,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
@@ -11855,9 +10086,6 @@
       <geometry>
         <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
       </geometry>
-      <material name="green">
-        <color rgba="0.7 0.7 0.7 1.0"/>
-      </material>
     </visual>
     <collision>
       <geometry>
