@@ -90,9 +90,11 @@
 
 (defparameter *real-small-shelf-poses*
   '("DMFloorT4W100_NLBMVEGQ"
-    (:balea-bottle . ((-0.15 -0.14 0.1) (0 0 0.5 0.5)))
-    (:dish-washer-tabs . ((0.1 -0.13 0.11) (0 0 0.5 0.5)))
-    ;; (:box-item . ((-0.075 -0.135 0.1) (0 0 0 1)))
+    (:balea-bottle . ((-0.15 -0.14 0.16) (0 0 0.5 0.5)))
+    (:dish-washer-tabs . ((0.1 -0.13 0.16) (0 0 0.5 0.5)))
+    (:breakfast-cereal . ((-0.35 -0.135 0.2) (0 0 0.5 0.5)))
+    (:breakfast-cereal . ((-0.35 0.135 0.2) (0 0 0.5 0.5)))
+    (:breakfast-cereal . ((-0.35 0 0.2) (0 0 0.5 0.5)))
     ))
 
 (defparameter *basket-in-pr2-wrist*
@@ -329,7 +331,9 @@
 (defun retail-demo ()
   (urdf-proj:with-simulated-robot
 
-    (setf btr:*visibility-threshold* 0.5)
+    (if (eql (rob-int:get-robot-name) :kmr-iiwa)
+        (setf btr:*visibility-threshold* 0.7)
+        (setf btr:*visibility-threshold* 0.5))
     (btr-utils:kill-all-objects)
     (btr:detach-all-objects (btr:get-robot-object))
     (btr:detach-all-objects (btr:get-environment-object))
