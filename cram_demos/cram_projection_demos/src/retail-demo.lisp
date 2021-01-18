@@ -90,9 +90,11 @@
 
 (defparameter *real-small-shelf-poses*
   '("DMFloorT4W100_NLBMVEGQ"
-    (:balea-bottle . ((-0.15 -0.14 0.1) (0 0 0.5 0.5)))
-    (:dish-washer-tabs . ((0.1 -0.13 0.11) (0 0 0.5 0.5)))
-    ;; (:box-item . ((-0.075 -0.135 0.1) (0 0 0 1)))
+    (:balea-bottle . ((-0.15 -0.14 0.16) (0 0 0.5 0.5)))
+    (:dish-washer-tabs . ((0.1 -0.13 0.16) (0 0 0.5 0.5)))
+    (:breakfast-cereal . ((-0.35 -0.135 0.2) (0 0 0.5 0.5)))
+    (:breakfast-cereal . ((-0.35 0.135 0.2) (0 0 0.5 0.5)))
+    (:breakfast-cereal . ((-0.35 0 0.2) (0 0 0.5 0.5)))
     ))
 
 (defparameter *basket-in-pr2-wrist*
@@ -327,9 +329,13 @@
 
 
 (defun retail-demo ()
+  ;; (setf cram-tf:*tf-broadcasting-enabled* t)
+  ;; (roslisp-utilities:startup-ros)
   (urdf-proj:with-simulated-robot
 
-    (setf btr:*visibility-threshold* 0.5)
+    (if (eql (rob-int:get-robot-name) :kmr-iiwa)
+        (setf btr:*visibility-threshold* 0.7)
+        (setf btr:*visibility-threshold* 0.5))
     (btr-utils:kill-all-objects)
     (btr:detach-all-objects (btr:get-robot-object))
     (btr:detach-all-objects (btr:get-environment-object))
@@ -341,6 +347,16 @@
     (unless (or (eql (rob-int:get-robot-name) :iai-donbot)
                 (eql (rob-int:get-robot-name) :kmr-iiwa))
       (spawn-basket))
+
+    ;; (cram-tf:visualize-marker
+    ;;      (cl-transforms-stamped:make-pose-stamped
+    ;;       "camera_link" 0.0
+    ;;       (cl-transforms:make-3d-vector 0 0 -0.1)
+    ;;       (cl-transforms:make-identity-rotation))
+    ;;      :r-g-b-list '(0 1 0)
+    ;;      :marker-type :mesh_resource
+    ;;      :scale-list '(1 1 1)
+    ;;      :mesh-path "package://cram_projection_demos/resource/retail/dish-washer-tabs.stl")
 
     (let* ((?source-shelf-base-urdf-name
              (if (eql (rob-int:get-environment-name) :store)
@@ -432,7 +448,7 @@
                                     (type basket)
                                     (name b)))
                       (for ?dish-washer-tabs-desig)
-                      (attachments (; in-basket-front
+                      (attachments (  ; in-basket-front
                                     in-basket-back))))
            (?target-location-robot-dish-washer-tabs
              (case ?robot-name
