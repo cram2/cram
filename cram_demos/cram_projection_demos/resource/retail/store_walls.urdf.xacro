@@ -8,6 +8,9 @@
         <geometry>
           <box size="${size}"/>
         </geometry>
+        <material name="green">
+          <color rgba="0.5 0.5 0.5 1.0"/>
+        </material>
       </visual>
       <collision>
         <geometry>

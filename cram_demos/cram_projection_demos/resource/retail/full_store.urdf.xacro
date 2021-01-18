@@ -4,6 +4,13 @@
 
   <xacro:include filename="$(find cram_projection_demos)/resource/retail/store_walls.urdf.xacro"/>
 
+  <link name="world"/>
+  <joint name="world_to_root" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <parent link="world"/>
+    <child link="store_root"/>
+  </joint>
+
   <link name="store_root"/>
   <joint name="DMShelfW100_FVHEZLXN" type="fixed">
     <origin rpy="0.0 -0.0 -3.12759288225" xyz="-1.264 -4.203 1.0"/>

@@ -329,6 +329,8 @@
 
 
 (defun retail-demo ()
+  ;; (setf cram-tf:*tf-broadcasting-enabled* t)
+  ;; (roslisp-utilities:startup-ros)
   (urdf-proj:with-simulated-robot
 
     (if (eql (rob-int:get-robot-name) :kmr-iiwa)
@@ -345,6 +347,16 @@
     (unless (or (eql (rob-int:get-robot-name) :iai-donbot)
                 (eql (rob-int:get-robot-name) :kmr-iiwa))
       (spawn-basket))
+
+    ;; (cram-tf:visualize-marker
+    ;;      (cl-transforms-stamped:make-pose-stamped
+    ;;       "camera_link" 0.0
+    ;;       (cl-transforms:make-3d-vector 0 0 -0.1)
+    ;;       (cl-transforms:make-identity-rotation))
+    ;;      :r-g-b-list '(0 1 0)
+    ;;      :marker-type :mesh_resource
+    ;;      :scale-list '(1 1 1)
+    ;;      :mesh-path "package://cram_projection_demos/resource/retail/dish-washer-tabs.stl")
 
     (let* ((?source-shelf-base-urdf-name
              (if (eql (rob-int:get-environment-name) :store)
@@ -436,7 +448,7 @@
                                     (type basket)
                                     (name b)))
                       (for ?dish-washer-tabs-desig)
-                      (attachments (; in-basket-front
+                      (attachments (  ; in-basket-front
                                     in-basket-back))))
            (?target-location-robot-dish-washer-tabs
              (case ?robot-name
