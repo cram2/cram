@@ -28,11 +28,11 @@
 
 
 (defun main ()
-  (ros-load:load-system "cram_pr2_description" :cram-pr2-description)
+  ;;(ros-load:load-system "cram_pr2_description" :cram-pr2-description)
   ;;(ros-load:load-system "cram_boxy_description" :cram-boxy-description)
   ;;(setf cram-bullet-reasoning-belief-state:*spawn-debug-window* nil)
   (setf cram-tf:*tf-broadcasting-enabled* t)
-  (setf cram-urdf-projection-reasoning::*projection-checks-enabled* nil)
+  ;;(setf cram-urdf-projection-reasoning::*projection-checks-enabled* nil)
   (roslisp-utilities:startup-ros :name "cram" :anonymous nil)
   ;;(setq roslisp::*debug-stream* nil)
   (print "Init bullet world")
@@ -41,7 +41,9 @@
              (print "Start")
              (print (ccl::get-timestamp-for-logging))
              (ccl::start-episode)
-             (urdf-proj:with-simulated-robot (demo::setting-demo '(:milk)))
+
+             (urdf-proj:with-simulated-robot              (demos::retail-demo))
+             ;;(urdf-proj:with-simulated-robot (demo::setting-demo '(:bowl :spoon :milk :breakfast-cereal)))
              ;;(urdf-proj:with-simulated-robot
              ;;  (cpl:with-failure-handling
              ;;      ((condition (e)

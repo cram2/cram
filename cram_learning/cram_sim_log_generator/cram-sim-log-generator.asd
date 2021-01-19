@@ -5,7 +5,8 @@
                :cl-transforms-stamped
                :cram-json-prolog
                :roslisp
-               :cram-pr2-pick-place-demo
+               ;;:cram-pr2-pick-place-demo
+               :cram-projection-demos
                :cram-urdf-projection
                :cram-cloud-logger
                :cram-utilities)
@@ -14,4 +15,5 @@
     :components
     ((:file "package")
      (:file "main" :depends-on ("package"))
-     (:file "neem-generator" :depends-on ("package"))))))
+     ;;(:file "neem-generator" :depends-on ("package"))
+))))
