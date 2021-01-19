@@ -442,7 +442,7 @@
            (on (desig:an object
                          (type counter-top)
                          (urdf-name sink-area-surface)
-                         (owl-name "kitchen_sink_block_counter_top")
+                         (owl-name "http://knowrob.org/kb/IAI-kitchen.owl#iai_kitchen_sink_area_surface")
                          (part-of ?environment-name)))
            (side left)))
 
@@ -462,7 +462,7 @@
            (on (desig:an object
                          (type counter-top)
                          (urdf-name sink-area-surface)
-                         (owl-name "kitchen_sink_block_counter_top")
+                         (owl-name "http://knowrob.org/kb/IAI-kitchen.owl#iai_kitchen_sink_area_surface")
                          (part-of ?environment-name)))
            (side left)
            (side front)
@@ -473,6 +473,7 @@
            (above (desig:an object
                             (type sink)
                             (urdf-name sink-area-sink)
+ 			    (owl-name "http://knowrob.org/kb/IAI-kitchen.owl#iai_kitchen_sink_area_surface")
                             (part-of ?environment-name)))
            (side right)
            (for (desig:an object (type ?object-type)))
@@ -487,7 +488,7 @@
            (in (desig:an object
                          (type drawer)
                          (urdf-name sink-area-left-upper-drawer-main)
-                         (owl-name "drawer_sinkblock_upper_open")
+                         (owl-name "http://knowrob.org/kb/IAI-kitchen.owl#iai_kitchen_sink_area_left_upper_drawer_main")
                          (part-of ?environment-name)))
            (side front)))
 
@@ -496,6 +497,7 @@
            (in (desig:an object
                          (type drawer)
                          (urdf-name sink-area-left-bottom-drawer-main)
+			 (owl-name "http://knowrob.org/kb/IAI-kitchen.owl#iai_kitchen_sink_area_left_bottom_drawer_main")
                          (part-of ?environment-name)))
            (side front)))
 
@@ -513,6 +515,7 @@
            (above (desig:an object
                             (type drawer)
                             (urdf-name sink-area-trash-drawer-main)
+			    (owl-name "http://knowrob.org/kb/IAI-kitchen.owl#iai_kitchen_sink_area_trash_drawer_main")
                             (part-of ?environment-name)))
            (z-offset -0.05)
            (side front)
@@ -528,6 +531,7 @@
                    (in (desig:an object
                                  (type dishwasher)
                                  (urdf-name sink-area-dish-washer-main)
+                                 (owl-name "http://knowrob.org/kb/IAI-kitchen.owl#iai_kitchen_sink_area_dish_washer_main")
                                  (part-of ?environment-name)))))
         (?attachments
           (case ?object-type
@@ -542,13 +546,15 @@
     (desig:a location
              (above (desig:an object
                               (type drawer)
-                              (urdf-name sink-area-dish-washer-tray-bottom)
+                              (urdf-name sink-area-dish-washer-tray-handle-front-side)
+			      (owl-name "http://knowrob.org/kb/IAI-kitchen.owl#iai_kitchen_sink_area_dish_washer_tray_handle_front_side")
                               (part-of ?environment-name)
                               (location ?location-in-dishwasher)))
              (for (desig:an object
                             (type ?object-type)
                             (name some-name)))
-             (attachments ?attachments))))
+             (attachments (bowl-dish-washer-drawer-front-1
+                           bowl-dish-washer-drawer-front-2)))))
 
 ;;;;;;;; vertical drawer
 
@@ -558,11 +564,11 @@
            (in (desig:an object
                          (type drawer)
                          (urdf-name oven-area-area-right-drawer-main)
-                         (owl-name "drawer_oven_right_open")
+			 (owl-name "http://knowrob.org/kb/IAI-kitchen.owl#iai_kitchen_sink_area_dish_washer_tray_handle_front_side")
                          (part-of ?environment-name)
                          (level topmost)))
            (side front)
-           (orientation support-aligned)
+           (orientation axis-aligned)
            (for (desig:an object (type ?object-type)))))
 
 ;;;;;;;; fridge
@@ -572,7 +578,7 @@
            (in (desig:an object
                          (type fridge)
                          (urdf-name iai-fridge-main)
-                         (owl-name "drawer_fridge_upper_interior")
+                         (owl-name "http://knowrob.org/kb/IAI-kitchen.owl#iai_kitchen_fridge_main")
                          (part-of ?environment-name)
                          (level topmost)))))
 
@@ -581,7 +587,7 @@
            (in (desig:an object
                          (type fridge)
                          (urdf-name iai-fridge-door)
-                         (owl-name "drawer_fridge_door_open")
+                         (owl-name "http://knowrob.org/kb/IAI-kitchen.owl#iai_kitchen_fridge_door")
                          (part-of ?environment-name)
                          (level bottommost)))))
 
@@ -592,7 +598,7 @@
            (on (desig:an object
                          (type counter-top)
                          (urdf-name kitchen-island-surface)
-                         (owl-name "kitchen_island_counter_top")
+                         (owl-name "http://knowrob.org/kb/IAI-kitchen.owl#iai_kitchen_kitchen_island_surface")
                          (part-of ?environment-name)))
            (for (desig:an object (type ?object-type)))
            (side back)
@@ -606,7 +612,7 @@
            (on (desig:an object
                          (type counter-top)
                          (urdf-name kitchen-island-surface)
-                         (owl-name "kitchen_island_counter_top")
+                         (owl-name "http://knowrob.org/kb/IAI-kitchen.owl#iai_kitchen_kitchen_island_surface")
                          (part-of ?environment-name)))
            (for (desig:an object (type ?object-type)))
            (side back)
@@ -620,7 +626,7 @@
            (on (desig:an object
                          (type counter-top)
                          (urdf-name kitchen-island-surface)
-                         (owl-name "kitchen_island_counter_top")
+                         (owl-name "http://knowrob.org/kb/IAI-kitchen.owl#iai_kitchen_kitchen_island_surface")
                          (part-of ?environment-name)))
            (for (desig:an object (type ?object-type)))
            (side back)
@@ -631,6 +637,7 @@
            (in (desig:an object
                          (type drawer)
                          (urdf-name kitchen-island-left-upper-drawer-main)
+			 (owl-name "http://knowrob.org/kb/IAI-kitchen.owl#iai_kitchen_kitchen_island_left_upper_drawer_main")
                          (part-of ?environment-name)))
            (side front)))
 
@@ -641,6 +648,7 @@
            (on (desig:an object
                          (type counter-top)
                          (urdf-name dining-area-jokkmokk-table-main)
+			 (owl-name "http://knowrob.org/kb/IAI-kitchen.owl#iai_kitchen_jokkmokk_table_main")
                          (part-of ?environment-name)))
            (for (desig:an object (type ?object-type)))
            (side right)
@@ -652,6 +660,7 @@
            (on (desig:an object
                          (type counter-top)
                          (urdf-name dining-area-jokkmokk-table-main)
+			 (owl-name "http://knowrob.org/kb/IAI-kitchen.owl#iai_kitchen_jokkmokk_table_main")
                          (part-of ?environment-name)))
            (side back)
            (side right)))
@@ -661,6 +670,7 @@
            (on (desig:an object
                          (type counter-top)
                          (urdf-name dining-area-jokkmokk-table-main)
+ 			 (owl-name "http://knowrob.org/kb/IAI-kitchen.owl#iai_kitchen_jokkmokk_table_main")
                          (part-of ?environment-name)))
            (for (desig:an object (type ?object-type)))
            (range 0.2)
