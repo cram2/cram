@@ -390,9 +390,9 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                  (exe:perform (desig:an action
                                         (type releasing)
                                         (gripper left)))
-                 (exe:perform (desig:an action
-                                        (type releasing)
-                                        (gripper right)))
+                 ;;(exe:perform (desig:an action
+                 ;;                       (type releasing)
+                 ;;                       (gripper right)))
                  (cpl:do-retry regrasping-retries
                    (roslisp:ros-info (fd-plans fetch) "Reperceiving and repicking...")
                    (cpl:retry))

@@ -253,20 +253,22 @@
                                         (:balea-bottle '(1 1 0))
                                         (t '(1.0 1.0 0.9))))))
             poses)
-    (btr:add-object btr:*current-bullet-world*
-                    :box-item
-                    :small-shelf-collision-box
-                    (cdr (find :dish-washer-tabs poses :key #'car))
-                    :mass 0.0
-                    :size '(0.15 0.2 0.1)
-                    :color '(0 0 0)
-                    :item-type :collision-thingy))
+    ;;(btr:add-object btr:*current-bullet-world*
+    ;;                :box-item
+    ;;                :small-shelf-collision-box
+    ;;                (cdr (find :dish-washer-tabs poses :key #'car))
+    ;;                :mass 0.0
+    ;;                :size '(0.15 0.2 0.1)
+    ;;                :color '(0 0 0)
+    ;;                :item-type :collision-thingy)
+    )
+  
 
-  (spawn-random-box-objects-on-shelf "shelf_2_base"
-                                     :start-x-offset 0.05
-                                     :minimal-color 0.6)
+  ;;(spawn-random-box-objects-on-shelf "shelf_2_base"
+  ;;                                   :start-x-offset 0.05
+  ;;                                   :minimal-color 0.6)
 
-  (btr:remove-object btr:*current-bullet-world* :small-shelf-collision-box)
+  ;;(btr:remove-object btr:*current-bullet-world* :small-shelf-collision-box)
   ;; (btr:simulate btr:*current-bullet-world* 50)
   )
 
@@ -309,12 +311,12 @@
 
 
 (defun retail-demo ()
-  (urdf-proj:with-simulated-robot
+  ;;(urdf-proj:with-simulated-robot
 
     (setf btr:*visibility-threshold* 0.5)
     (btr-utils:kill-all-objects)
     (spawn-objects-on-small-shelf)
-    (spawn-objects-on-big-shelf)
+    ;;(spawn-objects-on-big-shelf)
     (unless (eql (rob-int:get-robot-name) :iai-donbot)
       (spawn-basket))
 
@@ -406,7 +408,7 @@
       ;;            (type looking)
       ;;            (direction right-separators)))
       ;; (cpl:sleep 5.0)
-      )))
+      ))
 
 
 
