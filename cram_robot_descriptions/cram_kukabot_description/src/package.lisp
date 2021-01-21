@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2020, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,55 +27,8 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cram-manipulation-interfaces)
+(in-package :cl-user)
 
-(defparameter *rotation-around-z-90-matrix*
-  '(( 0  1  0)
-    (-1  0  0)
-    ( 0  0  1)))
-
-(defparameter *rotation-around-z+90-matrix*
-  '((0 -1  0)
-    (1  0  0)
-    (0  0  1)))
-
-(defparameter *rotation-around-z-180-and-x+90-matrix*
-  '((0  0  1)
-    (1  0  0)
-    (0  1  0)))
-
-(defparameter *rotation-around-x+90-matrix*
-  '((1  0  0)
-    (0  0 -1)
-    (0  1  0)))
-
-(defparameter *identity-matrix*
-  '((1 0 0)
-    (0 1 0)
-    (0 0 1)))
-
-(defparameter *rotation-around-x-180-matrix*
-  '((1  0  0)
-    (0 -1  0)
-    (0  0 -1)))
-
-(defparameter *rotation-around-y-180-matrix*
-  '((-1  0  0)
-    ( 0  1  0)
-    ( 0  0 -1)))
-
-
-(defparameter *rotation-around-x+90-list*
-  '(0.7071067811865475d0 0.0d0 0.0d0 0.7071067811865476d0))
-(defparameter *rotation-around-x-90-list*
-  '(-0.7071067811865475d0 0.0d0 0.0d0 0.7071067811865476d0))
-(defparameter *rotation-around-y+90-list*
-  '(0.0d0 0.7071067811865475d0 0.0d0 0.7071067811865476d0))
-(defparameter *rotation-around-y-90-list*
-  '(0.0d0 -0.7071067811865475d0 0.0d0 0.7071067811865476d0))
-(defparameter *rotation-around-z+90-list*
-  '(0.0d0 0.0d0 0.7071067811865475d0 0.7071067811865476d0))
-(defparameter *rotation-around-z-90-list*
-  '(0.0d0 0.0d0 -0.7071067811865475d0 0.7071067811865476d0))
-(defparameter *rotation-around-z+180-list*
-  '(0.0d0 0.0d0 1.0d0 0.0d0))
+(defpackage cram-kukabot-description
+  (:nicknames #:kukabot-descr)
+  (:use #:common-lisp #:cram-prolog #:cram-robot-interfaces))

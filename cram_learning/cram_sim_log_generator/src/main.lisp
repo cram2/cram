@@ -1,6 +1,6 @@
 (in-package :cslg)
 (defparameter *mongo-logger* nil)
-(defparameter num-experiments 1)
+(defparameter num-experiments 20)
 (defparameter connection-retries 0)
 (defparameter *start-time* 0)
 (defparameter *global-timer* 0)
@@ -42,7 +42,7 @@
              (print (ccl::get-timestamp-for-logging))
              (ccl::start-episode)
 
-             (urdf-proj:with-simulated-robot              (demos::retail-demo))
+              (demos::retail-demo)
              ;;(urdf-proj:with-simulated-robot (demo::setting-demo '(:bowl :spoon :milk :breakfast-cereal)))
              ;;(urdf-proj:with-simulated-robot
              ;;  (cpl:with-failure-handling

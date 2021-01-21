@@ -78,7 +78,7 @@
 
 (defparameter *dish-washer-tabs-grasp-x-offset* 0.0 "in meters")
 (defparameter *dish-washer-tabs-grasp-z-offset* 0.0 "in meters")
-(defparameter *dish-washer-tabs-pregrasp-x-offset* 0.3 "in meters")
+(defparameter *dish-washer-tabs-pregrasp-x-offset* 0.1 "in meters") ; 0.3
 (defparameter *dish-washer-tabs-small-lift-z-offset* 0.01 "in meters")
 (defparameter *dish-washer-tabs-lift-z-top-grasp-offset* 0.10 "in meters")
 (defparameter *dish-washer-tabs-lift-z-other-grasp-offset* 0.05 "in meters")
@@ -465,6 +465,20 @@
                            ( 0  1  0)
                            (-1  0  0)))
 
+(man-int:def-object-type-in-other-object-transform :dish-washer-tabs :robot
+  :kukabot-tray-front
+  :attachment-translation `(0.1 0.0 0.75)
+  :attachment-rot-matrix '((0  0  1)
+                           (0 -1  0)
+                           (1  0  0)))
+
+(man-int:def-object-type-in-other-object-transform :dish-washer-tabs :robot
+  :kukabot-tray-back
+  :attachment-translation `(0.1 0.0 0.75)
+  :attachment-rot-matrix '(( 0  0  1)
+                           ( 0  1  0)
+                           (-1  0  0)))
+
 (man-int:def-object-type-in-other-object-transform :dish-washer-tabs :environment
   :dish-washer-tabs-shelf-1-front
   :attachment-translation `(0.39968 -0.26038335 0.1202)
@@ -521,6 +535,30 @@
   :attachment-rot-matrix '((1 0 0)
                            (0 1 0)
                            (0 0 1)))
+
+
+
+(man-int:def-object-type-in-other-object-transform :dish-washer-tabs :environment
+  :dish-washer-tabs-real-shelf-1-front
+  :attachment-translation `(0.39968 -0.26038335 0.1902)
+  :attachment-rot-matrix man-int:*rotation-around-z-90-matrix*)
+
+(man-int:def-object-type-in-other-object-transform :dish-washer-tabs :environment
+  :dish-washer-tabs-real-shelf-1-back
+  :attachment-translation `(0.39968 -0.26038335 0.1902)
+  :attachment-rot-matrix man-int:*rotation-around-z+90-matrix*)
+
+(man-int:def-object-type-in-other-object-transform :balea-bottle :environment
+  :balea-bottle-real-shelf-1-front
+  :attachment-translation `(0.33 -0.27 0.175)
+  :attachment-rot-matrix man-int:*rotation-around-z-90-matrix*)
+
+(man-int:def-object-type-in-other-object-transform :balea-bottle :environment
+  :balea-bottle-real-shelf-1-back
+  :attachment-translation `(0.33 -0.27 0.175)
+  :attachment-rot-matrix man-int:*rotation-around-z+90-matrix*)
+
+
 
 (defmethod man-int:get-z-offset-for-placing-with-dropping (object
                                                            (other-object (eql :basket))

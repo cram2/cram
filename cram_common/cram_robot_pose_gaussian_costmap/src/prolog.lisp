@@ -123,9 +123,11 @@
      ?cm)
     (costmap:orientation-samples ?robot-name ?samples)
     (costmap:orientation-sample-step ?robot-name ?sample-step)
+    (once (or (costmap:visibility-orientation-offset ?robot-name ?offset)
+              (equal ?offset 0.0)))
     (costmap:costmap-add-orientation-generator
      (costmap:make-angle-to-point-generator
-      ?mean :samples ?samples :sample-step ?sample-step)
+      ?mean :samples ?samples :sample-step ?sample-step :sample-offset ?offset)
      ?cm)
     (costmap:costmap-add-height-generator
      (costmap:make-constant-height-function 0.0)
