@@ -88,14 +88,21 @@
     ;; (:box-item . ((-0.075 -0.135 0.1) (0 0 0 1)))
     ))
 
-(defparameter *real-small-shelf-poses*
+(defparameter *real-random-small-shelf-poses*
   '("DMFloorT4W100_NLBMVEGQ"
     (:balea-bottle . ((-0.15 -0.14 0.16) (0 0 0.5 0.5)))
     (:dish-washer-tabs . ((0.1 -0.13 0.16) (0 0 0.5 0.5)))
     (:breakfast-cereal . ((-0.35 -0.135 0.2) (0 0 0.5 0.5)))
     (:breakfast-cereal . ((-0.35 0.135 0.2) (0 0 0.5 0.5)))
-    (:breakfast-cereal . ((-0.35 0 0.2) (0 0 0.5 0.5)))
-    ))
+    (:breakfast-cereal . ((-0.35 0 0.2) (0 0 0.5 0.5)))))
+
+(defparameter *real-small-shelf-poses*
+  '("DMFloorT4W100_ZMIYURLQ"
+    (:balea-bottle . ((-0.01 -0.14 0.16) (0 0 0.5 0.5)))
+    (:dish-washer-tabs . ((0.12 -0.13 0.16) (0 0 0.5 0.5)))
+    (:breakfast-cereal . ((-0.37 -0.135 0.19) (0 0 0.5 0.5)))
+    (:breakfast-cereal . ((-0.37 0.135 0.19) (0 0 0.5 0.5)))
+    (:breakfast-cereal . ((-0.37 0 0.19) (0 0 0.5 0.5)))))
 
 (defparameter *basket-in-pr2-wrist*
   (cl-transforms:make-transform
@@ -364,11 +371,11 @@
                  :shelf-2-base))
            (?source-shelf-base-level
              (if (eql (rob-int:get-environment-name) :store)
-                 3
+                 4 ;3
                  4))
            (?target-shelf-level-urdf-name
              (if (eql (rob-int:get-environment-name) :store)
-                 :|DMFloorT6W100_KYINFGDM|
+                 :|DMFloorT6W100_YVLKGJSB| ; :|DMFloorT6W100_KYINFGDM|
                  :shelf-1-level-2-link))
            (?target-shelf-dishwasher-attachments
              (if (eql (rob-int:get-environment-name) :store)
