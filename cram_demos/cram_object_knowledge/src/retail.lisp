@@ -78,7 +78,7 @@
 
 (defparameter *dish-washer-tabs-grasp-x-offset* 0.0 "in meters")
 (defparameter *dish-washer-tabs-grasp-z-offset* 0.0 "in meters")
-(defparameter *dish-washer-tabs-pregrasp-x-offset* 0.1 "in meters") ; 0.3
+(defparameter *dish-washer-tabs-pregrasp-x-offset* 0.0 "in meters") ; 0.3
 (defparameter *dish-washer-tabs-small-lift-z-offset* 0.01 "in meters")
 (defparameter *dish-washer-tabs-lift-z-top-grasp-offset* 0.10 "in meters")
 (defparameter *dish-washer-tabs-lift-z-other-grasp-offset* 0.05 "in meters")
@@ -355,7 +355,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; BALEA-BOTTLE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *balea-bottle-grasp-z-offset* 0.0 "in meters")
-(defparameter *balea-bottle-pregrasp-x-offset* 0.2 "in meters")
+(defparameter *balea-bottle-pregrasp-x-offset* 0.0 "in meters") ;0.2
 
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms :balea-bottle '(:left :right) :top
@@ -550,12 +550,14 @@
 
 (man-int:def-object-type-in-other-object-transform :balea-bottle :environment
   :balea-bottle-real-shelf-1-front
-  :attachment-translation `(0.33 -0.27 0.175)
+  :attachment-translation `(;0.33 -0.27 0.175
+                            -0.05 -0.27 0.175)
   :attachment-rot-matrix man-int:*rotation-around-z-90-matrix*)
 
 (man-int:def-object-type-in-other-object-transform :balea-bottle :environment
   :balea-bottle-real-shelf-1-back
-  :attachment-translation `(0.33 -0.27 0.175)
+  :attachment-translation `(;0.33 -0.27 0.175
+                            -0.05 -0.27 0.175)
   :attachment-rot-matrix man-int:*rotation-around-z+90-matrix*)
 
 
