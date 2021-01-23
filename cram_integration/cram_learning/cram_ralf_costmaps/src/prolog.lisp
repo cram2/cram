@@ -37,7 +37,8 @@
   3)
 
 (def-fact-group ralf-costmaps (costmap:desig-costmap)
-  (<- (costmap:desig-costmap ?designator ?costmap)
+  (<- (costmap:desig-costmap ?some-designator ?costmap)
+    (desig:current-designator ?some-designator ?designator)
     (rob-int:reachability-designator ?designator)
     (costmap:costmap ?costmap)
     (spec:property ?designator (:object ?some-object-designator))
@@ -58,20 +59,25 @@
                ?learned-mean ?learned-covariance)
               ?costmap))
         ;; fetching or placing items
-        (and (spec:property ?object-designator (:pose ?container-type))
-             (spec:property ?object-designator (:location ?some-obj-loc))
-             (desig:current-designator ?some-obj-loc ?object-location)
-             (once
-              (or (spec:property ?object-location (:on ?obj-loc-object))
-                  (spec:property ?object-location (:in ?obj-loc-object))))
-             (desig:current-designator ?obj-loc-object ?object-location-object)
-             (spec:property ?object-location-object (:urdf-name ?ref-loc-name))
-             (lisp-fun calculate-learned-mean-and-covariance
-                       ?object-type ?ref-loc-name
-                       (?learned-mean ?learned-covariance))
-             (lisp-pred identity ?learned-mean)
-             (costmap:costmap-add-function
-              learned-pose-distribution
-              (costmap:make-gauss-cost-function
-               ?learned-mean ?learned-covariance)
-              ?costmap)))))
+        (and
+         (once
+          (or
+           ;; if the object has a pose property, it's a recently perceived obj
+           (and (spec:property ?object-designator (:pose ?_))
+                (spec:property ?object-designator (:location ?some-obj-loc)))
+           ;; otherwise, it's an object in hand or somewhere else on the robot
+           (spec:property ?designator (:location ?some-obj-loc))))
+         (desig:current-designator ?some-obj-loc ?object-location)
+         (once (or (spec:property ?object-location (:on ?obj-loc-object))
+                   (spec:property ?object-location (:in ?obj-loc-object))))
+         (desig:current-designator ?obj-loc-object ?object-location-object)
+         (spec:property ?object-location-object (:urdf-name ?ref-loc-name))
+         (lisp-fun calculate-learned-mean-and-covariance
+                   ?object-type ?ref-loc-name
+                   (?learned-mean ?learned-covariance))
+         (lisp-pred identity ?learned-mean)
+         (costmap:costmap-add-function
+          learned-pose-distribution
+          (costmap:make-gauss-cost-function
+           ?learned-mean ?learned-covariance)
+          ?costmap)))))

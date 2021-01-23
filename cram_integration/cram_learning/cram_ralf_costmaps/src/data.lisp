@@ -54,8 +54,34 @@
              #2a((0.0004593 0.00107521) (0.00107521 0.01146658))))
            (t
             '(nil nil))))
+        (:balea-bottle
+         (case reference-location-name
+           (:|DMShelfW100_EVZDYXFU|
+            (list
+             (cl-transforms:make-3d-vector 1.61739825 -0.48690506 0.0)
+             #2a((0.03400717 -0.0018618) (-0.0018618   0.00555095))))
+           (:|DMFloorT6W100_YVLKGJSB|
+            (list
+             (cl-transforms:make-3d-vector 3.28376786 -0.32065618 0.0)
+             #2A((0.00813238 -0.00511833) (-0.00511833  0.04660763))))
+           (t
+            '(nil nil))))
+        (:dish-washer-tabs
+         (case reference-location-name
+           (:|DMShelfW100_EVZDYXFU|
+            (list
+             (cl-transforms:make-3d-vector 1.50413393 -0.49667084 0.0)
+             #2A((0.02513883 -0.003428) (-0.003428    0.00710252))))
+           (:|DMFloorT6W100_YVLKGJSB|
+            (list
+             (cl-transforms:make-3d-vector 3.27839074 -0.70688138 0.0)
+             #2A((0.01067973 0.00101954) (0.00101954 0.02411302))))
+           (t
+            '(nil nil))))
         (t
          '(nil nil)))
+      ;; trying to reach a semantic map link means we're opening/closing
+      ;; containers or so
       (case object-type
         (:sink-area-left-middle-drawer-main
          (list
