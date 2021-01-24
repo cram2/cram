@@ -30,8 +30,6 @@
 
 (in-package :ralf-cm)
 
-(defvar *ralf-on* t)
-
 (defmethod costmap:costmap-generator-name->score
     ((name (eql 'learned-pose-distribution)))
   3)
@@ -39,11 +37,15 @@
 (def-fact-group ralf-costmaps (costmap:desig-costmap)
   (<- (costmap:desig-costmap ?some-designator ?costmap)
     (desig:current-designator ?some-designator ?designator)
-    (rob-int:reachability-designator ?designator)
-    (costmap:costmap ?costmap)
+    (once (or (and (rob-int:reachability-designator ?designator)
+                   (equal ?location-type :reachable-for))
+              (and (rob-int:visibility-designator ?designator)
+                   (equal ?location-type :visible-for))))
     (spec:property ?designator (:object ?some-object-designator))
     (desig:current-designator ?some-object-designator ?object-designator)
     (spec:property ?object-designator (:type ?object-type))
+    (rob-int:environment-name ?environment-name)
+    (costmap:costmap ?costmap)
     (-> (man-int:object-type-subtype :container ?object-type)
         ;; opening/closing doors/drawers
         (and (spec:property ?object-designator (:urdf-name ?container-name))
@@ -66,6 +68,7 @@
            (and (spec:property ?object-designator (:pose ?_))
                 (spec:property ?object-designator (:location ?some-obj-loc)))
            ;; otherwise, it's an object in hand or somewhere else on the robot
+           ;; or a yet unperceived object (latter only for visibility cms)
            (spec:property ?designator (:location ?some-obj-loc))))
          (desig:current-designator ?some-obj-loc ?object-location)
          (once (or (spec:property ?object-location (:on ?obj-loc-object))
@@ -73,8 +76,11 @@
          (desig:current-designator ?obj-loc-object ?object-location-object)
          (spec:property ?object-location-object (:urdf-name ?ref-loc-name))
          (lisp-fun calculate-learned-mean-and-covariance
+                   ?environment-name ?location-type
                    ?object-type ?ref-loc-name
                    (?learned-mean ?learned-covariance))
+         (format "means: ~a~%~%" ?learned-mean)
+         (format "cov: ~a~%~%" ?learned-covariance)
          (lisp-pred identity ?learned-mean)
          (costmap:costmap-add-function
           learned-pose-distribution
