@@ -33,7 +33,7 @@
 (defvar *marker-publisher* nil)
 (defvar *occupancy-grid-publisher* nil)
 
-(defparameter *z-padding* 1.0)
+(defparameter *z-padding* 0.0)
 (defparameter *last-published-marker-index* nil)
 
 (defun location-costmap-vis-init ()
@@ -87,11 +87,25 @@ respectively."
              (vector h s v)))
           (t (vector 0 0 c-max)))))
 
+(defun value->rgb (val)
+  (let ((segment (* val 4)))
+    (cond ((< segment 1.0)
+           (vector 0.0 (* val 4) 1.0))
+          ((< segment 2.0)
+           (vector 0.0 1.0 (- 1.0 (* (- val 0.25) 4))))
+          ((< segment 3.0)
+           (vector (* (- val 0.5) 4) 1.0 0.0))
+          ((< segment 4.0)
+           (vector 1.0 (- 1.0 (* (- val 0.75) 4)) 0.0))
+          (t (vector 1.0 0.0 0.0)))))
+
 (defun location-costmap->marker-array (map &key
                                              (frame-id *fixed-frame*)
-                                             (threshold 0.0005) (z *z-padding*)
-                                             hsv-colormap
+                                             (threshold 0.0005)
+                                             (z *z-padding*)
+                                             (hsv-colormap nil)
                                              (intensity-colormap nil)
+                                             (rgb-colormap t)
                                              (base-color (vector 0 0 1))
                                              (elevate-costmap nil))
   (with-slots (origin-x origin-y resolution) map
@@ -131,6 +145,8 @@ respectively."
                                        (elt mod-hsv 0)
                                        (elt mod-hsv 1)
                                        (elt mod-hsv 2))))
+                                   (rgb-colormap
+                                    (value->rgb curr-val))
                                    (t base-color))))
                   (push (make-message "visualization_msgs/Marker"
                                       (frame_id header) frame-id
@@ -190,7 +206,7 @@ respectively."
                                                 'visualization_msgs-msg:marker
                                                 :delete)))))
     (when removers
-      (publish *location-costmap-publisher* 
+      (publish *location-costmap-publisher*
                (make-message
                 "visualization_msgs/MarkerArray"
                 (markers) (map 'vector #'identity removers))))))
@@ -203,7 +219,10 @@ respectively."
          map :frame-id frame-id
              :threshold threshold
              :z z
-             :hsv-colormap t)
+             :rgb-colormap t
+             ;; :hsv-colormap nil
+             ;; :intensity-colormap nil
+             )
       (when *last-published-marker-index*
         (remove-markers-up-to-index *last-published-marker-index*))
       (setf *last-published-marker-index* last-index)
@@ -217,7 +236,7 @@ respectively."
                (make-message "visualization_msgs/Marker"
                              (stamp header) (ros-time)
                              (frame_id header) *fixed-frame*
-                             ns "kipla_locations"
+                             ns "cram_location_costmap"
                              id (or id (incf current-index))
                              type (symbol-code
                                    'visualization_msgs-msg:<marker> :sphere)
@@ -227,13 +246,13 @@ respectively."
                              (y position pose) (cl-transforms:y point)
                              (z position pose) (cl-transforms:z point)
                              (w orientation pose) 1.0
-                             (x scale) 0.15
-                             (y scale) 0.15
-                             (z scale) 0.15
-                             (r color) 1.0 ; (random 1.0)
-                             (g color) 0.0 ; (random 1.0)
-                             (b color) 0.0 ; (random 1.0)
-                             (a color) 0.9)))))
+                             (x scale) 0.05
+                             (y scale) 0.05
+                             (z scale) 0.05
+                             (r color) 1.0
+                             (g color) 0.0
+                             (b color) 0.0
+                             (a color) 0.7)))))
 
 (defun publish-pose (pose &key id)
   (let ((point (cl-transforms:origin pose))
@@ -247,7 +266,7 @@ respectively."
                              (typecase pose
                                (pose-stamped (frame-id pose))
                                (t *fixed-frame*))
-                             ns "kipla_locations"
+                             ns "cram_location_costmap"
                              id (or id (incf current-index))
                              type (symbol-code
                                    'visualization_msgs-msg:<marker> :arrow)

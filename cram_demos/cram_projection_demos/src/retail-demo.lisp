@@ -293,7 +293,7 @@
                 (spawn-object-n-times type pose 1
                                       (case type
                                         (:dish-washer-tabs '(0 1 0))
-                                        (:balea-bottle '(1 1 0))
+                                        (:balea-bottle '(1 0.5 0))
                                         (t '(1.0 1.0 0.9))))))
             poses)))
 
@@ -354,16 +354,6 @@
     (unless (or (eql (rob-int:get-robot-name) :iai-donbot)
                 (eql (rob-int:get-robot-name) :kmr-iiwa))
       (spawn-basket))
-
-    ;; (cram-tf:visualize-marker
-    ;;      (cl-transforms-stamped:make-pose-stamped
-    ;;       "camera_link" 0.0
-    ;;       (cl-transforms:make-3d-vector 0 0 -0.1)
-    ;;       (cl-transforms:make-identity-rotation))
-    ;;      :r-g-b-list '(0 1 0)
-    ;;      :marker-type :mesh_resource
-    ;;      :scale-list '(1 1 1)
-    ;;      :mesh-path "package://cram_projection_demos/resource/retail/dish-washer-tabs.stl")
 
     (let* ((?source-shelf-base-urdf-name
              (if (eql (rob-int:get-environment-name) :store)
@@ -491,7 +481,32 @@
       )))
 
 
+(defmethod cram-occasions-events:on-event
+    publish-object 3 ((event cram-plan-occasions-events:robot-state-changed))
 
+  (let ((items (remove-if-not (lambda (object)
+                                (typep object 'btr:item))
+                              (btr:objects btr:*current-bullet-world*))))
+    (dolist (item items)
+      (let* ((name
+               (btr:name item))
+             (ros-name
+               (roslisp-utilities:rosify-underscores-lisp-name name))
+             (pose
+               (btr:pose item))
+             (mesh-path
+               (second (assoc (car (btr:item-types item)) btr::*mesh-files*)))
+             (color
+               (cl-bullet-vis:collision-shape-color
+                (cl-bullet:collision-shape
+                 (btr:rigid-body item name)))))
+        (cram-tf:visualize-marker pose
+                                  ;; :topic "cram_items"
+                                  :namespace ros-name
+                                  :marker-type :mesh_resource
+                                  :scale-list '(1 1 1)
+                                  :r-g-b-list color
+                                  :mesh-path mesh-path)))))
 
 
 
