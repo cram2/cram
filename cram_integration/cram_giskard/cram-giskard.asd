@@ -60,7 +60,8 @@
   ((:module "src"
     :components
     ((:file "package")
-     (:file "action-client" :depends-on ("package"))
+     (:file "collision-scene" :depends-on ("package"))
+     (:file "action-client" :depends-on ("package" "collision-scene"))
      (:file "hash-table-conversions" :depends-on ("package"))
      (:file "making-goal-messages" :depends-on ("package" "hash-table-conversions"))
      (:file "base-goals" :depends-on ("package"
@@ -90,7 +91,6 @@
      (:file "misc-goals" :depends-on ("package"
                                       "making-goal-messages"
                                       "action-client"))
-     (:file "collision-scene" :depends-on ("package"))
      (:file "process-module" :depends-on ("package"
                                           "arm-goals"
                                           "base-goals"
