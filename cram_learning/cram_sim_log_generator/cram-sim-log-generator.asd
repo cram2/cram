@@ -6,6 +6,7 @@
                :cram-json-prolog
                :roslisp
                ;;:cram-pr2-pick-place-demo
+               :cram-ralf-costmaps
                :cram-projection-demos
                :cram-urdf-projection
                :cram-cloud-logger
