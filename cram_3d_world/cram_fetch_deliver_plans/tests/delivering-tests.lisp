@@ -34,7 +34,8 @@
                                    delivery-attempt-with-wrong-arm-deliver-test
                                    object-delivery-location-unreachable-from-2-robot-locations-deliver-test
                                    object-reachable-on-2nd-robot-location-deliver-test
-                                   object-reachable-on-2nd-target-location-deliver-test))
+                                   object-reachable-on-2nd-target-location-deliver-test
+                                   first-deliver-location-designator-error-deliver-test))
 
   
 (define-test object-can-be-delivered-no-errors-deliver-test
@@ -89,6 +90,7 @@
                                                  (poses
                                                   (*valid-robot-pose-towards-island*))))))))
     (sleep 0.5)
+    (assert-nil (get-total-error-count))
     (assert-error
      'common-fail:delivering-failed
      (urdf-proj:with-simulated-robot
@@ -252,4 +254,37 @@
   (assert-equal 0 (get-error-count-for-error 'common-fail:delivering-failed))
   (assert-equal 0 (get-error-count-for-error 'common-fail:object-undeliverable))
   (assert-equal 1 (get-error-count-for-error 'common-fail:manipulation-low-level-failure))
+  (assert-equal 0 (get-error-count-for-error 'common-fail:object-unreachable)))
+
+(define-test first-deliver-location-designator-error-deliver-test
+  (init-projection)
+  (spawn-object *valid-location-on-island* :bowl)
+  ;; Deterministic Fetch
+  (let ((?fetched-object))
+    (urdf-proj:with-simulated-robot
+      (setf ?fetched-object
+            (perform (an action
+                              (type fetching)
+                              (location (a location 
+                                           (poses (*valid-location-on-island*))))
+                              (object (an object
+                                          (type bowl)
+                                          (location (a location 
+                                                       (poses
+                                                        (*valid-location-on-island*))))))
+                              (robot-location (a location
+                                                 (poses
+                                                  (*valid-robot-pose-towards-island*))))))))
+    (sleep 0.5)
+    (assert-nil (get-total-error-count))
+    (urdf-proj:with-simulated-robot
+      (perform (an action
+                   (type delivering)
+                   (target (a location
+                              (poses (*invalid-location-outside-map*
+                                      *valid-location-on-island*))))
+                   (object ?fetched-object)))))
+  (assert-equal 0 (get-error-count-for-error 'common-fail:delivering-failed))
+  (assert-equal 0 (get-error-count-for-error 'common-fail:object-undeliverable))
+  (assert-equal 0 (get-error-count-for-error 'common-fail:manipulation-low-level-failure))
   (assert-equal 0 (get-error-count-for-error 'common-fail:object-unreachable)))
