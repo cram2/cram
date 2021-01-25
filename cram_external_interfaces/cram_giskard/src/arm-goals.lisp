@@ -29,7 +29,7 @@
 
 (in-package :giskard)
 
-(defparameter *arm-convergence-delta-xy* 0.03 ;; 0.005
+(defparameter *arm-convergence-delta-xy* 0.025 ;; 0.005
   "in meters")
 (defparameter *arm-convergence-delta-theta* 0.5 ;; 0.1
   "in radiants, about 30 degrees")
@@ -83,7 +83,11 @@
                    (when unmovable-joints
                      (make-unmovable-joints-constraint unmovable-joints))
                    (make-base-velocity-constraint
-                    *base-max-velocity-slow-xy* *base-max-velocity-slow-theta*))
+                    *base-max-velocity-slow-xy* *base-max-velocity-slow-theta*)
+                   (make-head-pointing-at-hand-constraint
+                    (if left-pose
+                        :left
+                        :right)))
      :cartesian-constraints (list (when left-pose
                                     (make-simple-cartesian-constraint
                                      pose-base-frame
@@ -131,18 +135,18 @@
                  (make-ee-velocity-constraint
                   :left
                   (if try-harder
-                      (/ *arm-max-velocity-slow-xy* 2.0)
+                      (/ *arm-max-velocity-slow-xy* 3.0)
                       *arm-max-velocity-slow-xy*)
                   (if try-harder
-                      (/ *arm-max-velocity-slow-theta* 2.0)
+                      (/ *arm-max-velocity-slow-theta* 3.0)
                       *arm-max-velocity-slow-theta*))
                  (make-ee-velocity-constraint
                   :right
                   (if try-harder
-                      (/ *arm-max-velocity-slow-xy* 2.0)
+                      (/ *arm-max-velocity-slow-xy* 3.0)
                       *arm-max-velocity-slow-xy*)
                   (if try-harder
-                      (/ *arm-max-velocity-slow-theta* 2.0)
+                      (/ *arm-max-velocity-slow-theta* 3.0)
                       *arm-max-velocity-slow-theta*))
                  (make-cartesian-constraint
                   cram-tf:*odom-frame* cram-tf:*robot-base-frame*
@@ -194,20 +198,19 @@
                                goal-configuration)
              (get-arm-joint-names-and-positions-list arm))))
 
-
-
 (defun ensure-arm-cartesian-goal-reached (goal-pose goal-frame)
   (when goal-pose
-    (unless (cram-tf:tf-frame-converged
-             goal-frame goal-pose
-             *arm-convergence-delta-xy* *arm-convergence-delta-theta*)
-      (make-instance 'common-fail:manipulation-goal-not-reached
-        :description (format nil "Giskard did not converge to goal:~%~
-                                  ~a should have been at ~a ~
-                                  with delta-xy of ~a and delta-angle of ~a."
-                             goal-frame goal-pose
-                             *arm-convergence-delta-xy*
-                             *arm-convergence-delta-theta*)))))
+    (multiple-value-bind (converged delta-xy delta-theta)
+        (cram-tf:tf-frame-converged
+         goal-frame goal-pose
+         *arm-convergence-delta-xy* *arm-convergence-delta-theta*)
+     (unless converged
+       (make-instance 'common-fail:manipulation-goal-not-reached
+         :description (format nil "Giskard did not converge to goal:~%~
+                                   ~a should have been at ~a.~%
+                                   Delta-xy: ~a, delta-theta: ~a."
+                              goal-frame goal-pose
+                              delta-xy delta-theta))))))
 
 (defun ensure-arm-joint-goal-reached (goal-configuration arm)
   (when goal-configuration

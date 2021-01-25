@@ -36,7 +36,9 @@
 
 (cram-projection:define-projection-environment urdf-bullet-projection-environment
   :special-variable-initializers
-  ((cram-tf:*transformer*
+  ((cram-tf:*tf-default-timeout*
+    0.1) ; 1/10th of a second
+   (cram-tf:*transformer*
     (make-instance 'cl-tf:transformer))
    ;; TODO: use custom tf topic "tf_sim"
    ;; For that first change tf2_ros/TransformListener to accept custom topic names

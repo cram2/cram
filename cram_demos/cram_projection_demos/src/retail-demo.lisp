@@ -371,13 +371,13 @@
                  :shelf-1-level-2-link))
            (?target-shelf-dishwasher-attachments
              (if (eql (rob-int:get-environment-name) :store)
-                 '(:dish-washer-tabs-real-shelf-1-front
+                 '(;; :dish-washer-tabs-real-shelf-1-front
                    :dish-washer-tabs-real-shelf-1-back)
                  '(:dish-washer-tabs-shelf-1-front
                    :dish-washer-tabs-shelf-1-back)))
            (?target-shelf-balea-attachments
              (if (eql (rob-int:get-environment-name) :store)
-                 '(:balea-bottle-real-shelf-1-front
+                 '(;; :balea-bottle-real-shelf-1-front
                    :balea-bottle-real-shelf-1-back)
                  '(:balea-bottle-shelf-1-front
                    :balea-bottle-shelf-1-back)))
@@ -440,7 +440,8 @@
                                     (owl-name "kukabot_tray")
                                     (urdf-name base-link)))
                       (for ?dish-washer-tabs-desig)
-                      (attachments (kukabot-tray-front kukabot-tray-back))))
+                      (attachments (;; kukabot-tray-front
+                                    kukabot-tray-back))))
            (?target-location-basket-dish-washer-tabs
              (desig:a location
                       (on (desig:an object
@@ -458,21 +459,36 @@
                (t
                 ?target-location-basket-dish-washer-tabs))))
 
-      (exe:perform
-       (desig:an action
-                 (type transporting)
-                 (object ?dish-washer-tabs-desig)
-                 (target ?target-location-robot-dish-washer-tabs)))
-      (exe:perform
-       (desig:an action
-                 (type transporting)
-                 (object ?balea-bottle-desig)
-                 (target ?target-location-shelf-balea-bottle)))
-      (exe:perform
-       (desig:an action
-                 (type transporting)
-                 (object ?dish-washer-tabs-desig)
-                 (target ?target-location-shelf-dish-washer-tabs)))
+      (cpl:with-failure-handling
+          ((cpl:simple-plan-failure (e)
+             (declare (ignore e))
+             (return)))
+        (exe:perform
+         (desig:an action
+                   (type transporting)
+                   (object ?dish-washer-tabs-desig)
+                   (target ?target-location-robot-dish-washer-tabs)
+                   (grasps (back)))))
+      (cpl:with-failure-handling
+          ((cpl:simple-plan-failure (e)
+             (declare (ignore e))
+             (return)))
+        (exe:perform
+         (desig:an action
+                   (type transporting)
+                   (object ?balea-bottle-desig)
+                   (target ?target-location-shelf-balea-bottle)
+                   (grasps (back)))))
+      (cpl:with-failure-handling
+          ((cpl:simple-plan-failure (e)
+             (declare (ignore e))
+             (return)))
+        (exe:perform
+         (desig:an action
+                   (type transporting)
+                   (object ?dish-washer-tabs-desig)
+                   (target ?target-location-shelf-dish-washer-tabs)
+                   (grasps (back)))))
 
       ;; look at separators
       ;; (exe:perform
