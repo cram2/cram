@@ -30,10 +30,11 @@
 (in-package :fd-plans-tests)
 
 (defparameter *searching-tests* '(object-can-be-found-no-errors-search-test
-                                 object-can-be-found-in-second-try-search-test
-                                 object-occluded-from-view-search-test
-                                 unreachable-location-search-test
-                                 initially-unreachable-location-search-test))
+                                  object-can-be-found-in-second-try-search-test
+                                  object-occluded-from-view-search-test
+                                  unreachable-location-search-test
+                                  initially-unreachable-location-search-test
+                                  object-can-be-found-after-visibility-designator-error-search-test))
 
 (define-test object-can-be-found-no-errors-search-test
   (init-projection)
@@ -69,7 +70,7 @@
                  (robot-location (a location (poses (*valid-robot-pose-towards-island*)))))))
   (assert-equal 0 (get-error-count-for-error 'common-fail:searching-failed))
   (assert-equal 0 (get-error-count-for-error 'common-fail:object-nowhere-to-be-found))
-  (assert-equal 5 (get-error-count-for-error 'common-fail:perception-object-not-found)))
+  (assert-equal 2 (get-error-count-for-error 'common-fail:perception-object-not-found)))
 
 
 (define-test object-occluded-from-view-search-test
@@ -132,3 +133,15 @@
   (assert-equal 1 (get-error-count-for-error 'common-fail:navigation-pose-unreachable)))
 
 
+(define-test object-can-be-found-after-visibility-designator-error-search-test
+  (init-projection)
+  (spawn-object *valid-location-on-island* :bowl)
+  (urdf-proj:with-simulated-robot
+    (perform (an action
+                 (type searching)
+                 (object (an object
+                             (type bowl)
+                             (location (a location
+                                          (poses (*valid-location-inside-fridge*
+                                                  *valid-location-on-island*)))))))))
+  (assert-equal 1 (get-error-count-for-error 'common-fail:navigation-goal-in-collision)))
