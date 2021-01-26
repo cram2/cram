@@ -340,6 +340,15 @@
   ;; (roslisp-utilities:startup-ros)
   (urdf-proj:with-simulated-robot
 
+    (let ((?pose (cl-transforms-stamped:make-pose-stamped
+                  "map" 0.0
+                  (cl-transforms-stamped:make-3d-vector 2 0 0.0d0)
+                  (cl-transforms:make-quaternion 0 0 1 0))))
+      (exe:perform
+       (desig:a motion
+                (type going)
+                (pose ?pose))))
+
     (if (eql (rob-int:get-robot-name) :kmr-iiwa)
         (setf btr:*visibility-threshold* 0.7)
         (setf btr:*visibility-threshold* 0.5))
