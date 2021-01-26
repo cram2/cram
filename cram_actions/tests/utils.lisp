@@ -99,6 +99,46 @@
         0
         (cdr (assoc error-keyword *error-counter-look-up*)))))
 
+(defun make-restricted-area-cost-function ()
+  (lambda (x y)
+    (if (> x 1.2)
+        0.0
+        (if (and (> x 0.5) (> y -1.5) (< y 2.0))
+            1.0
+            (if (and (> x 0.0) (> y -1.5) (< y 1.0))
+                1.0
+                (if (and (> x -1.5) (> y -1.5) (< y 2.5))
+                    1.0
+                    (if (and (> x -4.0) (> y -1.0) (< y 1.0))
+                        1.0
+                        0.0)))))))
+
+(defmethod location-costmap:costmap-generator-name->score ((name (eql 'restricted-area))) 5)
+
+(def-fact-group demo-costmap (location-costmap:desig-costmap)
+  (<- (location-costmap:desig-costmap ?designator ?costmap)
+    (or (rob-int:visibility-designator ?designator)
+        (rob-int:reachability-designator ?designator))
+    ;; make sure that the location is not on the robot itself
+    ;; if it is, don't generate a costmap
+    (once (or (and (desig:desig-prop ?designator (:object ?some-object))
+                   (desig:current-designator ?some-object ?object)
+                   (lisp-fun man-int:get-object-pose-in-map ?object ?to-reach-pose)
+                   (lisp-pred identity ?to-reach-pose)
+                   (-> (desig:desig-prop ?object (:location ?loc))
+                       (not (man-int:location-always-reachable ?loc))
+                       (true)))
+              (and (desig:desig-prop ?designator (:location ?some-location))
+                   (desig:current-designator ?some-location ?location)
+                   ;; if the location is on the robot itself,
+                   ;; don't use the costmap
+                   (not (man-int:location-always-reachable ?location)))))
+    (location-costmap:costmap ?costmap)
+    (location-costmap:costmap-add-function
+     restricted-area
+     (make-restricted-area-cost-function)
+     ?costmap)))
+
 ;;;;;;;;;;;; Object Poses ;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *valid-location-on-island*
@@ -110,6 +150,12 @@
 
 (defparameter *valid-location-on-sink-area-surface-near-oven*
   (make-pose-stamped '((1.54 1.1 0.9) (0 0 0 1))))
+
+(defparameter *valid-location-inside-fridge*
+  (make-pose-stamped '((1.48 -1.16 0.55) (0 0 0 1))))
+
+(defparameter *invalid-location-outside-map*
+  (make-pose-stamped '((2.8 0.71 0.9) (0 0 0 1))))
 
 ;;;;;;;;;;;;; Robot Poses ;;;;;;;;;;;;;;;;;;;;;;;;;
 
