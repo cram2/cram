@@ -48,6 +48,7 @@
                cram-manipulation-interfaces
                cram-location-costmap ; for resetting the costmap cache
 
+               cram-urdf-projection ; for prospection
                cram-urdf-projection-reasoning ; for projection-based reasoning
                cram-urdf-environment-manipulation)
 

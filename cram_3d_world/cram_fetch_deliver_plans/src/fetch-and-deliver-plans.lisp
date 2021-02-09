@@ -185,11 +185,32 @@ if yes, relocate and retry, if no collisions, open or close container."
                                (desig:when ?distance
                                  (distance ?distance))
                                (goal ?goal)))))))
+          
+          (cpl:with-failure-handling
+              ((desig:designator-error (e)
+                 (roslisp:ros-warn (fd-plans environment)
+                                   "Desig ~a could not be resolved: ~a~%Cannot manipulate."
+                                   manipulation-action e)
+                 (cpl:fail 'common-fail:environment-unreachable
+                           :description "Designator could not be resolved"))
 
-          (proj-reasoning:check-environment-manipulation-collisions manipulation-action)
-          (setf manipulation-action (desig:current-desig manipulation-action))
+               ((or common-fail:manipulation-goal-in-collision
+                    common-fail:manipulation-low-level-failure) (e)
+                 (declare (ignore e))
+                 (roslisp:ros-warn (coll-check environment)
+                                   "Manipulation pose of ~a is unreachable or colliding.~%~
+                                     Propagating up."
+                                   manipulation-action)
+                 (cpl:fail 'common-fail:environment-unreachable
+                           :description "Manipulation pose in collision or unreachable.")))
 
-          (exe:perform manipulation-action)))))
+
+            ;; (proj-reasoning:check-environment-manipulation-collisions manipulation-action)
+            (urdf-proj:with-prospection
+              (exe:perform manipulation-action))
+            (setf manipulation-action (desig:current-desig manipulation-action))
+
+            (exe:perform manipulation-action))))))
 
   ;; Seal the object containing location after sealing the object
   (when (and ?object-location
