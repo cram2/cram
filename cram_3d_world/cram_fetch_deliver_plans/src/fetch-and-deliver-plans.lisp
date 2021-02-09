@@ -38,10 +38,7 @@ if yes, perform GOING action while ignoring failures."
 
   (exe:perform (desig:an action
                          (type parking-arms)))
-
-  (proj-reasoning:check-navigating-collisions ?navigation-location)
-  (setf ?navigation-location (desig:current-desig ?navigation-location))
-
+  ;; (proj-reasoning:check-navigating-collisions ?navigation-location)
   (cpl:with-failure-handling
       ((common-fail:navigation-low-level-failure (e)
          (roslisp:ros-warn (pp-plans navigate)
