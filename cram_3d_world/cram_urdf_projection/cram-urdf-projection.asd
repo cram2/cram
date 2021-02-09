@@ -33,6 +33,7 @@
   :depends-on (alexandria ; for CURRY in low-level perception
                roslisp-utilities ; for rosify-lisp-name
 
+               cram-language
                cram-projection
                cram-prolog
                cram-designators

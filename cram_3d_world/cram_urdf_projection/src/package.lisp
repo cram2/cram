@@ -33,6 +33,7 @@
   (:export
    ;; projection-environment
    #:with-simulated-robot #:with-projected-robot
+   #:with-prospection
    #:urdf-bullet-projection-environment
    ;; low-level
    #:*debug-short-sleep-duration* #:*debug-long-sleep-duration*))

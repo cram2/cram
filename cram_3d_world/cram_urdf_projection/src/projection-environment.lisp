@@ -114,6 +114,17 @@
   "Alias for WITH-SIMULATED-ROBOT."
   `(with-simulated-robot ,@args))
 
+(defmacro with-prospection (&body body)
+  "This macro runs the `body' inside a urdf projection, which saves and restores world state"
+  `(btr:with-stored-bullet-world
+     (proj:with-projection-environment urdf-bullet-projection-environment
+       (cpl:with-failure-handling
+           ((cpl:plan-failure (e)
+              (roslisp:ros-warn
+               (proj-reason proj-prospection)
+               "PROSPECTION RUN HAD A FAILURE...~%~a~%" e)))
+              ;; (return)))
+         ,@body))))
 
 #+below-is-a-very-simple-example-of-how-to-use-projection
 (

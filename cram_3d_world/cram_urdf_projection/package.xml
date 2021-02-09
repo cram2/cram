@@ -15,6 +15,7 @@
 
   <depend>alexandria</depend>
   <depend>roslisp_utilities</depend>
+  <depend>cram_language</depend>
   <depend>cram_projection</depend>
   <depend>cram_prolog</depend>
   <depend>cram_designators</depend>
