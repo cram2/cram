@@ -60,19 +60,25 @@
 (defun make-projection-environment-function
     (name special-variable-initializers process-module-definitions startup shutdown)
   `(lambda (function)
-     (let ((*projection-environment* ',name)
-           ,@special-variable-initializers)
-       (cram-process-modules:with-process-modules-running ,process-module-definitions
-         (unwind-protect
-              (progn
-                ,startup
-                (make-projection-environment-result
-                 :name *projection-environment*
-                 :result (multiple-value-list (funcall function))
-                 :environment (symbol-values-alist
-                               (append ',(mapcar #'car special-variable-initializers)
-                                       (mapcar #'car *special-projection-variables*)))))
-           ,shutdown)))))
+     (flet ((create-projection-environment-function ()
+              (unwind-protect
+                   (progn
+                     ,startup
+                     (make-projection-environment-result
+                      :name *projection-environment*
+                      :result (multiple-value-list (funcall function))
+                      :environment (symbol-values-alist
+                                    (append ',(mapcar #'car special-variable-initializers)
+                                            (mapcar #'car *special-projection-variables*)))))
+                ,shutdown)))
+       (if (eq *projection-environment* ',name)
+           (let (,@special-variable-initializers)
+             (cram-process-modules:with-process-modules-nested ,process-module-definitions
+               (create-projection-environment-function)))
+           (let ((*projection-environment* ',name)
+                 ,@special-variable-initializers)
+             (cram-process-modules:with-process-modules-running ,process-module-definitions
+               (create-projection-environment-function)))))))
 
 (defun symbol-values-alist (variable-names)
   "Returns an alist for all symbol values in `variable-names' of the
