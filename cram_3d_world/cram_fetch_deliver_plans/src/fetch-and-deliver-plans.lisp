@@ -429,79 +429,47 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                            (object ?object-designator)))))
 
 
-              (let ((?arm (cut:lazy-car ?arms)))
-                ;; if picking up fails, try another arm
-                (cpl:with-retry-counters ((arm-retries 1))
-                  (cpl:with-failure-handling
-                      (((or common-fail:manipulation-low-level-failure
-                            common-fail:object-unreachable
-                            desig:designator-error) (e)
-                         (common-fail:retry-with-list-solutions
-                             ?arms
-                             arm-retries
-                             (:error-object-or-string
-                              (format NIL "Manipulation failed: ~a.~%Next." e)
-                              :warning-namespace (fd-plans fetch)
-                              :rethrow-failure 'common-fail:object-unreachable)
-                           (setf ?arm (cut:lazy-car ?arms)))))
+              (let* ((?goal
+                       `(cpoe:object-in-hand
+                         ,?more-precise-perceived-object-desig
+                         :left-or-right))
+                     (pick-up-action
+                       ;; if pick-up-action already exists,
+                       ;; use its params for picking up
+                       (or (when pick-up-action
+                             (let* ((referenced-action-desig
+                                        (desig:reference pick-up-action))
+                                      (?arms
+                                        (desig:desig-prop-value
+                                         referenced-action-desig
+                                         :arms))
+                                      (?grasps
+                                        (desig:desig-prop-value
+                                         referenced-action-desig
+                                         :grasps)))
+                                 (desig:an action
+                                           (type picking-up)
+                                           (desig:when ?arms
+                                             (arms ?arms))
+                                           (desig:when ?grasps
+                                             (grasps ?grasps))
+                                           (object
+                                            ?more-precise-perceived-object-desig)
+                                           (goal ?goal))))
+                             (desig:an action
+                                       (type picking-up)
+                                       (desig:when ?arms
+                                         (arms ?arms))
+                                       (desig:when ?grasps
+                                         (grasps ?grasps))
+                                       (object
+                                        ?more-precise-perceived-object-desig)
+                                       (goal ?goal)))))
 
-                    (let ((?grasp (cut:lazy-car ?grasps)))
-                      ;; if picking up fails, try another grasp orientation
-                      (cpl:with-retry-counters ((grasp-retries 4))
-                        (cpl:with-failure-handling
-                            (((or common-fail:manipulation-low-level-failure
-                                  common-fail:object-unreachable
-                                  desig:designator-error) (e)
-                               (common-fail:retry-with-list-solutions
-                                   ?grasps
-                                   grasp-retries
-                                   (:error-object-or-string
-                                    (format NIL "Picking up failed: ~a.~%Next" e)
-                                    :warning-namespace (fd-plans fetch))
-                                 (setf ?grasp (cut:lazy-car ?grasps)))))
-
-                          (let* ((?goal
-                                   `(cpoe:object-in-hand
-                                     ,?more-precise-perceived-object-desig
-                                     :left-or-right))
-                                 (pick-up-action
-                                   ;; if pick-up-action already exists,
-                                   ;; use its params for picking up
-                                   (or (when pick-up-action
-                                         (let* ((referenced-action-desig
-                                                  (desig:reference pick-up-action))
-                                                (?arm
-                                                  (desig:desig-prop-value
-                                                   referenced-action-desig
-                                                   :arm))
-                                                (?grasp
-                                                  (desig:desig-prop-value
-                                                   referenced-action-desig
-                                                   :grasp)))
-                                           (desig:an action
-                                                     (type picking-up)
-                                                     (arm ?arm)
-                                                     (grasp ?grasp)
-                                                     (object
-                                                      ?more-precise-perceived-object-desig)
-                                                     (goal ?goal))))
-                                       (desig:an action
-                                                 (type picking-up)
-                                                 (desig:when ?arm
-                                                   (arm ?arm))
-                                                 (desig:when ?grasp
-                                                   (grasp ?grasp))
-                                                 (object
-                                                  ?more-precise-perceived-object-desig)
-                                                 (goal ?goal)))))
-
-                            (setf pick-up-action (desig:current-desig pick-up-action))
-                            (proj-reasoning:check-picking-up-collisions pick-up-action)
-                            (setf pick-up-action (desig:current-desig pick-up-action))
-
-                            (exe:perform pick-up-action)
-
-                            (desig:current-desig ?object-designator)))))))))))))))
+                ;; (proj-reasoning:check-picking-up-collisions pick-up-action)
+                (setf pick-up-action (desig:current-desig pick-up-action))
+                (exe:perform pick-up-action)
+                (desig:current-desig ?object-designator)))))))))
 
 
 
