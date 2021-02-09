@@ -86,7 +86,7 @@
    (urdf :initarg :urdf :reader urdf)
    (attached-objects
     :initarg :attached-objects :initform nil
-    :reader attached-objects
+    :accessor attached-objects
     :documentation "An alist that maps object
                      instances to a list of instances of the struct
                      `attachment' and an instance of

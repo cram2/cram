@@ -90,7 +90,8 @@ The name in the list is a keyword that is created by lispifying the filename."
 
 (defclass item (object)
   ((types :reader item-types :initarg :types)
-   (attached-objects :reader attached-objects :initarg :attached-objects
+   (attached-objects :accessor attached-objects
+                     :initarg :attached-objects
                      :type 'list :initform nil)))
 
 (defmethod copy-object ((object item) (world bt-reasoning-world))
