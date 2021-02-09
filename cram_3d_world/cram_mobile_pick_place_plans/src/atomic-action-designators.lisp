@@ -32,27 +32,25 @@
 (def-fact-group pick-and-place-atomic-actions (desig:action-grounding)
 
   (<- (desig:action-grounding ?action-designator (go-to-target ?resolved-action-designator))
-    (spec:property ?action-designator (:type :going))
+    (spec:property ?action-designator (:type :going-raw))
     (spec:property ?action-designator (:target ?some-location-designator))
     (once (or (spec:property ?action-designator (:speed ?speed))
               (equal ?speed nil)))
     (desig:current-designator ?some-location-designator ?location-designator)
     (desig:designator-groundings ?location-designator ?poses)
     (member ?pose-stamped ?poses)
-    (desig:designator :action ((:type :going)
+    (desig:designator :action ((:type :going-raw)
                                (:pose ?pose-stamped)
                                (:speed ?speed)
                                (:slow-speed :slow))
                       ?resolved-action-designator))
 
 
-
   (<- (desig:action-grounding ?action-designator (go-with-torso ?action-designator))
     (spec:property ?action-designator (:type :moving-torso))
     (spec:property ?action-designator (:joint-angle ?_)))
 
-
-
+  
   (<- (infer-prefer-base ?action-designator ?prefer-base)
     ;; infer if the robot should prefer to move the base more than arms
     ;; prefer-base is only true when we're opening prismatic containers

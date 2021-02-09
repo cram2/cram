@@ -26,4 +26,5 @@
   <depend>cram_manipulation_interfaces</depend>
   <depend>cram_robot_interfaces</depend>
   <depend>cram_plan_occasions_events</depend>
+  <depend>cram_urdf_projection</depend>
 </package>

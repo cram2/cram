@@ -89,8 +89,8 @@
                       ?resolved-action-desig))
 
 
-  (<- (desig:action-grounding ?action-designator (pick-up ?resolved-action-designator))
-    (spec:property ?action-designator (:type :picking-up))
+  (<- (desig:action-grounding ?action-designator (pick-up-raw ?resolved-action-designator))
+    (spec:property ?action-designator (:type :picking-up-raw))
 
     ;; extract info from ?action-designator
     (spec:property ?action-designator (:object ?object-designator))
@@ -158,7 +158,7 @@
         (equal ?right-grasp-poses (?look-pose . ?_)))
 
     ;; put together resulting action designator
-    (desig:designator :action ((:type :picking-up)
+    (desig:designator :action ((:type :picking-up-raw)
                                (:object ?current-object-desig)
                                (:arm ?arm)
                                (:gripper-opening ?gripper-opening)

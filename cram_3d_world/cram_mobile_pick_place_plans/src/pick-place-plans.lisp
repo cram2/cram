@@ -38,21 +38,21 @@
 ;; Actually, the main thing we use in the task tree is the PERFORM calls,
 ;; which are already stored in the task tree. So there is no need for
 ;; def-cram-function as of now anymore.
-(defun pick-up (&key
-                  ((:object ?object-designator))
-                  ((:arm ?arm))
-                  ((:gripper-opening ?gripper-opening))
-                  ((:effort ?grip-effort))
-                  ((:grasp ?grasp))
-                  location-type
-                  ((:look-pose ?look-pose))
-                  ((:left-reach-poses ?left-reach-poses))
-                  ((:right-reach-poses ?right-reach-poses))
-                  ((:left-grasp-poses ?left-grasp-poses))
-                  ((:right-grasp-poses ?right-grasp-poses))
-                  ((:left-lift-poses ?left-lift-poses))
-                  ((:right-lift-poses ?right-lift-poses))
-                &allow-other-keys)
+(defun pick-up-raw (&key
+                      ((:object ?object-designator))
+                      ((:arm ?arm))
+                      ((:gripper-opening ?gripper-opening))
+                      ((:effort ?grip-effort))
+                      ((:grasp ?grasp))
+                      location-type
+                      ((:look-pose ?look-pose))
+                      ((:left-reach-poses ?left-reach-poses))
+                      ((:right-reach-poses ?right-reach-poses))
+                      ((:left-grasp-poses ?left-grasp-poses))
+                      ((:right-grasp-poses ?right-grasp-poses))
+                      ((:left-lift-poses ?left-lift-poses))
+                      ((:right-lift-poses ?right-lift-poses))
+                    &allow-other-keys)
   (declare (type desig:object-designator ?object-designator)
            (type keyword ?arm ?grasp)
            (type number ?gripper-opening ?grip-effort)
@@ -288,7 +288,7 @@
              (type parking-arms)
              (arms (?arm)))))
 
-
+;; TODO high_level.lisp
 (defun park-arms (&key
                     ((:left-arm ?left-arm-p))
                     ((:right-arm ?right-arm-p))
@@ -307,7 +307,7 @@
                  (right-configuration park))
                (goal ?goal)))))
 
-
+;; TODO high_level.lisp
 (defun perceive (&key
                    ((:object ?object-designator))
                    park-arms

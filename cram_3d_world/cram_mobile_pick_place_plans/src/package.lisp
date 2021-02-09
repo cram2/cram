@@ -37,10 +37,15 @@
    #:move-arms-in-sequence
    #:release #:grip #:close-gripper #:set-gripper-to-position
    #:look-at #:go-to-target
+   #:go-with-target-retries
    ;; pick-place-plans
    #:pick-up #:place
    ;; high-level-plans
    #:perceive
+   #:go-with-target-retries
+   #:pick-up-with-configuration-retries
+   #:pick-up-with-grasp-retries
+   #:pick-up-with-arm-retries
    ;; #:drive-to-reach-pose #:drive-towards-object-plan #:drive-and-pick-up-plan
    ;; #:perceive-and-drive-and-pick-up-plan
    ;; #:pick-and-place-plan

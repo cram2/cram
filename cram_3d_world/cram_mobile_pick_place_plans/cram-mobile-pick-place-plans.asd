@@ -49,7 +49,9 @@
                cram-plan-occasions-events
                cram-common-failures
                cram-manipulation-interfaces
-               cram-robot-interfaces)
+               cram-robot-interfaces
+               cram-urdf-projection ; for prospection before action
+               )
 
   :components
   ((:module "src"
@@ -68,4 +70,6 @@
      ;; high-level plans such as DRIVE-AND-PICK-UP, PERCEIVE, etc.
      (:file "high-level-plans" :depends-on ("package"
                                             "atomic-action-designators"
-                                            "pick-place-designators"))))))
+                                            "pick-place-designators"))
+     (:file "high-level-designators" :depends-on ("package"
+                                                  "high-level-plans"))))))
