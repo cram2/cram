@@ -59,6 +59,7 @@
            bt-reasoning-world invalidate-object objects object %object
            bt-reasoning-world-state
            get-world-objects-pose-info restore-world-poses
+           with-stored-bullet-world
            robot-object links joint-states
            assert joint-state urdf joint-names joint-state link-names
            link-pose

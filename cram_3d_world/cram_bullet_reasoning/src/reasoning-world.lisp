@@ -112,18 +112,25 @@ list from bt-reasoning-world to keep in the current world state.")))
   "Returns a cons with (name-pose-hash-table . name-joint-states-hash-table)."
   (loop with name-pose-tbl = (make-hash-table :test #'equalp)
         with name-joint-state-tbl = (make-hash-table :test #'equalp)
+        with name-attachment-state-tbl = (make-hash-table :test #'equalp)
         for obj in (objects world)
         do (let ((obj-name (name obj)))
              (setf (gethash obj-name name-pose-tbl)
                    (pose obj))
+             (when (or (typep obj 'robot-object)
+                       (typep obj 'item))
+               (setf (gethash obj-name name-attachment-state-tbl)
+                     (copy-list (attached-objects obj))))
              (when (typep obj 'robot-object)
                (setf (gethash obj-name name-joint-state-tbl)
                      (alexandria:copy-hash-table (joint-states obj)))))
-        finally (return (cons name-pose-tbl name-joint-state-tbl))))
+             finally (return (list name-pose-tbl name-joint-state-tbl
+                                   name-attachment-state-tbl))))
 
 (defun restore-world-poses (poses-and-joint-states
                             &optional (world *current-bullet-world*))
-  (destructuring-bind (name-pose-tbl . name-joint-states-tbl)
+  (destructuring-bind (name-pose-tbl name-joint-states-tbl
+                       name-attachment-state-tbl)
       poses-and-joint-states
     (let ((current-names (mapcar #'name (objects *current-bullet-world*)))
           (new-names (alexandria:hash-table-keys name-pose-tbl)))
@@ -139,5 +146,17 @@ list from bt-reasoning-world to keep in the current world state.")))
                 (when (typep obj 'robot-object)
                   (set-robot-state-from-joints
                    (gethash obj-name name-joint-states-tbl)
-                   obj))))
+                   obj))
+                (when (or (typep obj 'robot-object)
+                          (typep obj 'item))
+                  (setf (attached-objects obj)
+                        (gethash obj-name name-attachment-state-tbl)))))
             (objects world)))))
+
+(defmacro with-stored-bullet-world (&body body)
+  "A simple macro to save the bullet world state execute the `body' and
+restore the world state."
+  `(let ((world-pose-info (get-world-objects-pose-info)))
+     (unwind-protect ,@body
+       (progn
+         (restore-world-poses world-pose-info)))))
