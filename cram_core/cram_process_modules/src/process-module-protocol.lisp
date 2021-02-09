@@ -346,3 +346,49 @@ just a different name for an existing process module."
                  (unwind-protect (body-function)
                    (setf (value process-modules-running) nil))))
             `(body-function)))))
+
+
+(defmacro with-process-modules-nested (process-modules &body body)
+  "Saves the input queues process modules specified in `process-modules'
+  and instantiates fresh queues to execute `body'. Restores the initial
+  queues after `body' is finished. The process modules are expected to
+  already be running.
+
+  `process-modules' is a list with elements with the following format:
+
+  PROCESS-MODULE | (NAME PROCESS-MODULE)
+
+  Example:
+  (with-process-modules-nested 
+      (foo
+       (:bar baz))
+    (code))"
+  
+  `(flet ((body-function () ,@body))
+     ,(if process-modules
+          `(flet ((save-pm-queues (pm-queues)
+                    (loop for name in ',process-modules
+                          do (progn
+                               (let ((pm-instance (get-running-process-module name)))
+                                 (with-slots (input-queue) pm-instance
+                                   (setf (value pm-queues)
+                                         (cons `(,name ,@(value input-queue))
+                                               (value pm-queues)))
+                                   (setf (value input-queue) (make-queue)))))))
+                  (restore-pm-queues (pm-queues)
+                    (loop for name in ',process-modules
+                          do (progn
+                               (let ((pm-instance (get-running-process-module name)))
+                                 (with-slots (input-queue) pm-instance
+                                   (assert (cut:queuep (cdr
+                                                        (assoc
+                                                         name (value pm-queues)))))
+                                   (setf (value input-queue)
+                                         (cdr (assoc
+                                               name (value pm-queues))))))))))
+             
+             (let ((process-modules-queues (make-fluent :value nil)))
+               (save-pm-queues process-modules-queues)
+               (unwind-protect (body-function)
+                 (restore-pm-queues process-modules-queues))))
+          `(body-function))))

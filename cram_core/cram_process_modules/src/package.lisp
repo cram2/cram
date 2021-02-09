@@ -51,6 +51,7 @@
            abstract-process-module wait-for-process-module-running
            *process-module-debugger-hook* finished-fluent running-fluent
            with-process-module-registered-running
+           with-process-modules-nested
            def-asynchronous-process-module asynchronous-process-module
            on-input on-cancel on-run synchronization-fluent
            finish-process-module fail-process-module monitor-process-module
