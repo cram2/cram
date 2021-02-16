@@ -74,55 +74,6 @@
                      (speed ?speed))))))))
 
 
-(defun pick-up-with-configuration-retries (&key
-                                             ((:object ?object-designator))
-                                             ((:arm ?arm))
-                                             ((:grasp ?grasp))
-                                           &allow-other-keys)
-  (let ((?pick-up-desig (desig:an action
-                                  (type picking-up-raw)
-                                  (object ?object-designator)
-                                  (desig:when ?arm
-                                    (arm ?arm))
-                                  (desig:when ?grasp
-                                    (grasp ?grasp)))))
-    (cpl:with-failure-handling
-        ((desig:designator-error (e)
-           (roslisp:ros-warn (pick-and-place pick-up-with-configuration-retry)
-                             "Desig ~a could not be resolved: ~a~%~
-                            Cannot pick up."
-                             ?object-designator e)
-           (cpl:fail 'common-fail:object-unreachable
-                     :description "Designator could not be resolved")))
-      (cpl:with-retry-counters ((pick-up-configuration-retries 30))
-        (cpl:with-failure-handling
-            (((or common-fail:manipulation-low-level-failure
-                  common-fail:manipulation-goal-in-collision) (e)
-               (common-fail:retry-with-designator-solutions
-                   ?pick-up-desig
-                   pick-up-configuration-retries
-                   (:error-object-or-string
-                    (format NIL "Picking up failed: ~a.~%~
-                               Retrying with a different configuration for ~a.~%"
-                            e ?pick-up-desig)
-                    :warning-namespace
-                    (pick-and-place pick-up-with-configuration-retry)))))
-
-          (let ((?object-copy-desig (desig:copy-designator ?object-designator)))
-            ;; Perform the action in prospection before doing it in the actual routine
-            (urdf-proj:with-prospection
-              (exe:perform
-               (desig:an action
-                         (type picking-up-raw)
-                         (desig:when ?arm
-                           (arm ?arm))
-                         (desig:when ?grasp
-                           (grasp ?grasp))
-                         (object ?object-copy-desig))))
-
-          (exe:perform ?pick-up-desig)))))))
-
-
 (defun pick-up-with-grasp-retries (&key
                                      ((:object ?object-designator))
                                      ((:arm ?arm))
@@ -150,7 +101,7 @@
                  (setf ?grasp (cut:lazy-car ?grasps)))))
           (exe:perform
            (desig:an action
-                     (type picking-up-with-configuration-retries)
+                     (type picking-up-raw)
                      (desig:when ?arm
                        (arm ?arm))
                      (desig:when ?grasp
