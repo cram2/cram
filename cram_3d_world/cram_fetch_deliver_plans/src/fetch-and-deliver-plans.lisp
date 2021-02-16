@@ -38,7 +38,6 @@ if yes, perform GOING action while ignoring failures."
 
   (exe:perform (desig:an action
                          (type parking-arms)))
-  ;; (proj-reasoning:check-navigating-collisions ?navigation-location)
   (cpl:with-failure-handling
       ((common-fail:navigation-low-level-failure (e)
          (roslisp:ros-warn (pp-plans navigate)
@@ -201,8 +200,6 @@ if yes, relocate and retry, if no collisions, open or close container."
                  (cpl:fail 'common-fail:environment-unreachable
                            :description "Manipulation pose in collision or unreachable.")))
 
-
-            ;; (proj-reasoning:check-environment-manipulation-collisions manipulation-action)
             (urdf-proj:with-prospection
               (exe:perform manipulation-action))
             (setf manipulation-action (desig:current-desig manipulation-action))
@@ -466,7 +463,6 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                         ?more-precise-perceived-object-desig)
                                        (goal ?goal)))))
 
-                ;; (proj-reasoning:check-picking-up-collisions pick-up-action)
                 (setf pick-up-action (desig:current-desig pick-up-action))
                 (exe:perform pick-up-action)
                 (desig:current-desig ?object-designator)))))))))
@@ -623,7 +619,6 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                   ;; test if the placing trajectory is reachable and not colliding
                   (setf place-action (desig:current-desig place-action))
                   (urdf-proj:with-prospection
-                    ;; (proj-reasoning:check-placing-collisions place-action)
                     (exe:perform place-action))
                     
                   ;; test if the placing pose is a good one -- not falling on the floor
