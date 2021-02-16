@@ -203,6 +203,12 @@
     (property-member (?object-desig-key ?value) ?designator)
     (assert-type ?value desig:object-designator "LOCATION SPEC:PROPERTY"))
 
+  (<- (%property ?designator (?location-desig-key ?value))
+    (lisp-pred typep ?designator desig:location-designator)
+    (member ?location-desig-key (:location))
+    (property-member (?location-desig-key ?value) ?designator)
+    (assert-type ?value desig:location-designator "LOCATION SPEC:PROPERTY"))
+
   (<- (%property ?designator (?keyword-key ?value))
     (lisp-pred typep ?designator desig:location-designator)
     (member ?keyword-key (:arm :attachment))

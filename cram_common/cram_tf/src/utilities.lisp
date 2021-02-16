@@ -422,8 +422,10 @@ Multiply from the right with the yTz transform -- xTy * yTz == xTz."
          (goal-angle (cl-transforms:normalize-angle
                       (cl-transforms:get-yaw
                        (cl-transforms:orientation pose-in-frame)))))
-    (and (<= goal-dist delta-xy)
-         (<= (abs goal-angle) delta-theta))))
+    (values (and (<= goal-dist delta-xy)
+                 (<= (abs goal-angle) delta-theta))
+            goal-dist
+            goal-angle)))
 
 (defun pose-stampeds-converged (pose other-pose delta-position delta-rotation)
   (declare (type (or null cl-transforms-stamped:pose-stamped) pose other-pose))

@@ -46,9 +46,9 @@
   (<- (robot-base-link :pr2 "base_link"))
   (<- (robot-torso-link-joint :pr2 "torso_lift_link" "torso_lift_joint"))
 
+  (<- (camera-frame :pr2 "narrow_stereo_optical_frame"))
   (<- (camera-frame :pr2 "head_mount_kinect_rgb_optical_frame"))
   (<- (camera-frame :pr2 "openni_rgb_optical_frame"))
-  (<- (camera-frame :pr2 "narrow_stereo_optical_frame"))
 
   (<- (camera-minimal-height :pr2 1.27))
   (<- (camera-maximal-height :pr2 1.60))
