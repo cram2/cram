@@ -45,30 +45,6 @@
                       ?resolved-action-designator))
 
 
-  (<- (desig:action-grounding ?action-designator (pick-up-with-configuration-retries
-                                                  ?resolved-action-designator))
-    (spec:property ?action-designator (:type :picking-up-with-configuration-retries))
-    (spec:property ?action-designator (:object ?object-designator))
-    (desig:current-designator ?object-designator ?current-object-desig)
-
-    (-> (spec:property ?action-designator (:arm ?arm))
-        (true)
-        (man-int:robot-free-hand ?_ ?arm))
-
-    (-> (spec:property ?action-designator (:grasp ?grasp))
-        (true)
-        (and (spec:property ?current-object-desig (:type ?object-type))
-             (lisp-fun man-int:get-object-transform ?current-object-desig ?object-transform)
-             (lisp-fun man-int:get-action-grasps ?object-type ?arm ?object-transform ?grasps)
-             (member ?grasp ?grasps)))
-    
-    (desig:designator :action ((:type :picking-up-with-configuration-retries)
-                               (:object ?current-object-desig)
-                               (:arm ?arm)
-                               (:grasp ?grasp))
-                      ?resolved-action-designator))
-
-
   (<- (desig:action-grounding ?action-designator (pick-up-with-grasp-retries
                                                   ?resolved-action-designator))
     (spec:property ?action-designator (:type :picking-up-with-grasp-retries))
