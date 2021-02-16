@@ -65,7 +65,7 @@
                                  (desig:when ?speed
                                    (speed ?speed)))))
 
-        (setf ?navigation-location (desig:current-desig ?target-location)
+        (setf ?target-location (desig:current-desig ?target-location))
         (exe:perform
          (desig:an action
                    (type going-raw)
@@ -111,7 +111,6 @@
           (let ((?object-copy-desig (desig:copy-designator ?object-designator)))
             ;; Perform the action in prospection before doing it in the actual routine
             (urdf-proj:with-prospection
-              (break)
               (exe:perform
                (desig:an action
                          (type picking-up-raw)
