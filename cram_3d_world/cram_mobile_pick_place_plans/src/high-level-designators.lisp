@@ -67,8 +67,7 @@
                       ?resolved-action-designator))
 
 
-  
-  (<- (desig:action-grounding ?action-designator (pick-up-with-arm-retries
+    (<- (desig:action-grounding ?action-designator (pick-up-with-arm-retries
                                                   ?resolved-action-designator))
     (or (spec:property ?action-designator (:type :picking-up))
         (spec:property ?action-designator (:type :picking-up-with-arm-retries)))

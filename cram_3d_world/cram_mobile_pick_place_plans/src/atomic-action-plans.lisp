@@ -29,8 +29,7 @@
 
 (in-package :pp-plans)
 
-;; go-raw
-(defun go-to-target (&key
+(defun go-raw (&key
                        ((:pose ?pose-stamped))
                        ((:speed ?speed))
                        ((:slow-speed ?slow-speed))
@@ -58,11 +57,6 @@
                        (speed ?speed))))))
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
-
-;; pick-up-raw -> picking-up-raw
-;; pick-up-with-grasp-retry -> picking-up-with-grasp-retry  -> high_level
-;; pick-up-with-arm-retry -> picking-up -> high_level
-;; go-with-target-retries
 
 
 (defun go-with-torso (&key

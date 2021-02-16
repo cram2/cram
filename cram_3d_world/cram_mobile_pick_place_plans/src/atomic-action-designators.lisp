@@ -31,7 +31,7 @@
 
 (def-fact-group pick-and-place-atomic-actions (desig:action-grounding)
 
-  (<- (desig:action-grounding ?action-designator (go-to-target ?resolved-action-designator))
+  (<- (desig:action-grounding ?action-designator (go-raw ?resolved-action-designator))
     (spec:property ?action-designator (:type :going-raw))
     (spec:property ?action-designator (:target ?some-location-designator))
     (once (or (spec:property ?action-designator (:speed ?speed))

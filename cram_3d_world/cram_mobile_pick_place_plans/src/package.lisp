@@ -36,8 +36,7 @@
    ;; atomic-action-plans
    #:move-arms-in-sequence
    #:release #:grip #:close-gripper #:set-gripper-to-position
-   #:look-at #:go-to-target
-   #:go-with-target-retries
+   #:look-at #:go-raw
    ;; pick-place-plans
    #:pick-up #:place
    ;; high-level-plans
