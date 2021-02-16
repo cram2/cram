@@ -99,6 +99,19 @@
                     (format NIL "Picking up failed: ~a.~%Trying next grasp" e)
                     :warning-namespace (pick-and-place pick-up-with-grasp-retry))
                  (setf ?grasp (cut:lazy-car ?grasps)))))
+
+          (let ((?object-copy-desig (desig:copy-designator ?object-designator)))
+            ;; perform the action in prospection before doing it in the actual routine
+            (urdf-proj:with-prospection
+              (exe:perform
+               (desig:an action
+                         (type picking-up-raw)
+                         (desig:when ?arm
+                           (arm ?arm))
+                         (desig:when ?grasp
+                           (grasp ?grasp))
+                         (object ?object-copy-desig)))))
+          
           (exe:perform
            (desig:an action
                      (type picking-up-raw)
