@@ -620,12 +620,13 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                   (setf place-action (desig:current-desig place-action))
                   (urdf-proj:with-prospection
                     (exe:perform place-action))
-                    
+                  
                   ;; test if the placing pose is a good one -- not falling on the floor
                   ;; test function throws a high-level-failure if not good pose
                   (unless target-stable
-                    (proj-reasoning:check-placing-pose-stability
-                     ?object-designator ?target-location))
+                    (urdf-proj:with-prospection
+                      (proj-reasoning:check-placing-pose-stability
+                       ?object-designator ?target-location)))
                   
                   (setf place-action (desig:current-desig place-action))
                   (exe:perform place-action)

@@ -346,37 +346,32 @@ Store found pose into designator or throw error if good pose not found."
 
 
 (defun check-placing-pose-stability (object-desig placing-location)
-  (when *projection-checks-enabled*
-    (let* ((world-pose-info
-             (btr:get-world-objects-pose-info))
-           (placing-pose
-             (desig:reference (desig:current-desig placing-location)))
-           (bullet-object-type
-             (desig:desig-prop-value object-desig :type))
-           (bullet-object-name
-             (gensym "obj"))
-           (new-btr-object
-             (btr:add-object btr:*current-bullet-world* :mesh
-                             bullet-object-name placing-pose
-                             :mesh bullet-object-type
-                             :mass 0.2)))
-      (unwind-protect
-           (progn
-             (cpl:sleep urdf-proj::*debug-short-sleep-duration*)
-             (btr:simulate btr:*current-bullet-world* 500)
-             (btr:simulate btr:*current-bullet-world* 100)
-             (let* ((new-pose
-                      (btr:pose new-btr-object))
-                    (distance-new-pose-and-place-pose
-                      (cl-transforms:v-dist
-                       (cl-transforms:origin new-pose)
-                       (cl-transforms:origin placing-pose))))
-               (when (> distance-new-pose-and-place-pose 0.2)
-                 (cpl:fail 'common-fail:high-level-failure
-                           :description "Pose unstable."))))
-        (btr:remove-object btr:*current-bullet-world* bullet-object-name)
-        (btr:restore-world-poses world-pose-info)))))
-
+  (let* ((placing-pose
+           (desig:reference (desig:current-desig placing-location)))
+         (bullet-object-type
+           (desig:desig-prop-value object-desig :type))
+         (bullet-object-name
+           (gensym "obj"))
+         (new-btr-object
+           (btr:add-object btr:*current-bullet-world* :mesh
+                           bullet-object-name placing-pose
+                           :mesh bullet-object-type
+                           :mass 0.2)))
+    (unwind-protect
+         (progn
+           (cpl:sleep urdf-proj::*debug-short-sleep-duration*)
+           (btr:simulate btr:*current-bullet-world* 500)
+           (btr:simulate btr:*current-bullet-world* 100)
+           (let* ((new-pose
+                    (btr:pose new-btr-object))
+                  (distance-new-pose-and-place-pose
+                    (cl-transforms:v-dist
+                     (cl-transforms:origin new-pose)
+                     (cl-transforms:origin placing-pose))))
+             (when (> distance-new-pose-and-place-pose 0.2)
+               (cpl:fail 'common-fail:high-level-failure
+                         :description "Pose unstable."))))
+      (btr:remove-object btr:*current-bullet-world* bullet-object-name))))
 
 
 (defun check-environment-manipulation-collisions (action-desig)
