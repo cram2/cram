@@ -3,7 +3,7 @@
 (defparameter *environment-owl* "'package://iai_semantic_maps/owl/kitchen.owl'")
 (defparameter *environment-owl-individual-name* "'http://knowrob.org/kb/IAI-kitchen.owl#iai_kitchen_room_link'")
 (defparameter *environment-urdf* "'package://iai_kitchen/urdf_obj/iai_kitchen_python.urdf'")
-(defparameter *environment-urdf-prefix* "'package://knowrob/urdf/pr2.urdf'")
+(defparameter *environment-urdf-prefix* "'iai_kitchen/'")
 
 (defparameter *agent-owl* "'package://knowrob/owl/robots/PR2.owl'")
 (defparameter *agent-owl-individual-name* "'http://knowrob.org/kb/PR2.owl#PR2_0'")
