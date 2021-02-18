@@ -127,7 +127,7 @@
     (once (or (spec:property ?action-designator (:right-poses ?right-poses))
               (equal ?right-poses nil)))
     (once (or (spec:property ?action-designator (:collision-mode ?collision))
-              (equal ?collision :allow-fingers)))
+              (equal ?collision :allow-hand)))
     (infer-motion-flags ?action-designator
                         ?_ ?move-base ?align-planes-left ?align-planes-right)
     (desig:designator :action ((:type ?action-type)
@@ -158,7 +158,8 @@
              (equal ?collision-object-b ?robot)
              (equal ?object-link ?object-name))
         (and (equal ?collision-object-b ?object-name)
-             (equal ?object-link nil)))
+             (once (or (spec:property ?action-designator (:link ?object-link))
+                       (equal ?object-link nil)))))
     (desig:designator :action ((:type ?action-type)
                                (:left-poses ?left-poses)
                                (:right-poses ?right-poses)

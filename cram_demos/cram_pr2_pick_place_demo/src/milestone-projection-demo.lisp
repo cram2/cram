@@ -30,7 +30,7 @@
 
 (in-package :demo)
 
-(setf cram-tf:*tf-broadcasting-enabled* t)
+;; (setf cram-tf:*tf-broadcasting-enabled* t)
 
 (defparameter *demo-object-spawning-poses*
   '((:bowl
@@ -70,7 +70,7 @@
       (0.0d0 0.0d0 0.9542005181967461d0 0.299167797520156d0)))
     (:spoon
      "dining_area_jokkmokk_table_main"
-     ((-0.46 -0.1816 0.755256716410319d0)
+     ((-0.46 -0.2016 0.755256716410319d0)
       (0 0 0 1)))
     (:milk
      "dining_area_jokkmokk_table_main"
@@ -93,7 +93,7 @@
               -1.31627733935602d-4
               0.8862651586532593d0
               -0.46317803859710693d0)))
-    (:spoon . ((-3.1984092712402346d0 -0.14934446016947428d0 0.755256716410319d0)
+    (:spoon . ((-3.1784092712402346d0 -0.14934446016947428d0 0.755256716410319d0)
                (0.02845500223338604d0
                 0.028393128886818886d0
                 0.7164095640182495d0
@@ -255,8 +255,8 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
            (target ?deliver-location)
            )))))
 
-(defun cleaning-demo (&optional (object-list '(:bowl :spoon :cup
-                                               :milk :breakfast-cereal)))
+(defun cleaning-demo (&optional (object-list '(:breakfast-cereal :milk
+                                               :spoon :cup :bowl)))
   "Cleans up object to the designated locations by iterating over
 `object-list' "
   ;; (setup-for-demo object-list)
@@ -269,8 +269,12 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
      :spawning-poses-relative *delivery-poses-dining-table-relative*))
 
   (dolist (?object-type object-list)
-    (exe:perform
-     (desig:an action
-               (type transporting)
-               (object (desig:an object (type ?object-type)))
-               (context table-cleaning)))))
+    (let ((?grasps (when (eq ?object-type :cup)
+                     '(:front :back :left-side :right-side))))
+      (exe:perform
+       (desig:an action
+                 (type transporting)
+                 (object (desig:an object (type ?object-type)))
+                 (context table-cleaning)
+                 (desig:when ?grasps
+                   (grasps ?grasps)))))))

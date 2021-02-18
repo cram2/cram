@@ -88,6 +88,22 @@
     ;; (:box-item . ((-0.075 -0.135 0.1) (0 0 0 1)))
     ))
 
+(defparameter *real-random-small-shelf-poses*
+  '("DMFloorT4W100_NLBMVEGQ"
+    (:balea-bottle . ((-0.15 -0.14 0.16) (0 0 0.5 0.5)))
+    (:dish-washer-tabs . ((0.1 -0.13 0.16) (0 0 0.5 0.5)))
+    (:breakfast-cereal . ((-0.35 -0.135 0.2) (0 0 0.5 0.5)))
+    (:breakfast-cereal . ((-0.35 0.135 0.2) (0 0 0.5 0.5)))
+    (:breakfast-cereal . ((-0.35 0 0.2) (0 0 0.5 0.5)))))
+
+(defparameter *real-small-shelf-poses*
+  '("DMFloorT4W100_ZMIYURLQ"
+    (:balea-bottle . ((-0.01 -0.14 0.16) (0 0 0.5 0.5)))
+    (:dish-washer-tabs . ((0.12 -0.13 0.16) (0 0 0.5 0.5)))
+    (:breakfast-cereal . ((-0.37 -0.135 0.19) (0 0 0.5 0.5)))
+    (:breakfast-cereal . ((-0.37 0.135 0.19) (0 0 0.5 0.5)))
+    (:breakfast-cereal . ((-0.37 0 0.19) (0 0 0.5 0.5)))))
+
 (defparameter *basket-in-pr2-wrist*
   (cl-transforms:make-transform
    (cl-transforms:make-3d-vector 0.36 0 -0.15)
@@ -253,22 +269,35 @@
                                         (:balea-bottle '(1 1 0))
                                         (t '(1.0 1.0 0.9))))))
             poses)
-    (btr:add-object btr:*current-bullet-world*
-                    :box-item
-                    :small-shelf-collision-box
-                    (cdr (find :dish-washer-tabs poses :key #'car))
-                    :mass 0.0
-                    :size '(0.15 0.2 0.1)
-                    :color '(0 0 0)
-                    :item-type :collision-thingy))
+    ;;(btr:add-object btr:*current-bullet-world*
+    ;;                :box-item
+    ;;                :small-shelf-collision-box
+    ;;                (cdr (find :dish-washer-tabs poses :key #'car))
+    ;;                :mass 0.0
+    ;;                :size '(0.15 0.2 0.1)
+    ;;                :color '(0 0 0)
+    ;;                :item-type :collision-thingy)
+    )
+  
 
-  (spawn-random-box-objects-on-shelf "shelf_2_base"
-                                     :start-x-offset 0.05
-                                     :minimal-color 0.6)
+  ;;(spawn-random-box-objects-on-shelf "shelf_2_base"
+  ;;                                   :start-x-offset 0.05
+  ;;                                   :minimal-color 0.6)
 
-  (btr:remove-object btr:*current-bullet-world* :small-shelf-collision-box)
+  ;;(btr:remove-object btr:*current-bullet-world* :small-shelf-collision-box)
   ;; (btr:simulate btr:*current-bullet-world* 50)
   )
+
+(defun spawn-objects-on-real-small-shelf ()
+  (let ((poses (make-poses-relative *real-small-shelf-poses*)))
+    (mapcar (lambda (type-and-pose)
+              (destructuring-bind (type . pose) type-and-pose
+                (spawn-object-n-times type pose 1
+                                      (case type
+                                        (:dish-washer-tabs '(0 1 0))
+                                        (:balea-bottle '(1 0.5 0))
+                                        (t '(1.0 1.0 0.9))))))
+            poses)))
 
 (defun spawn-basket ()
   (let* ((left-ee-frame
@@ -309,16 +338,59 @@
 
 
 (defun retail-demo ()
+  ;; (setf cram-tf:*tf-broadcasting-enabled* t)
+  ;; (roslisp-utilities:startup-ros)
   (urdf-proj:with-simulated-robot
 
-    (setf btr:*visibility-threshold* 0.5)
+    (let ((?pose (cl-transforms-stamped:make-pose-stamped
+                  "map" 0.0
+                  (cl-transforms-stamped:make-3d-vector 2 0 0.0d0)
+                  (cl-transforms:make-quaternion 0 0 1 0))))
+      (exe:perform
+       (desig:a motion
+                (type going)
+                (pose ?pose))))
+
+    (if (eql (rob-int:get-robot-name) :kmr-iiwa)
+        (setf btr:*visibility-threshold* 0.7)
+        (setf btr:*visibility-threshold* 0.5))
     (btr-utils:kill-all-objects)
-    (spawn-objects-on-small-shelf)
-    (spawn-objects-on-big-shelf)
-    (unless (eql (rob-int:get-robot-name) :iai-donbot)
+    (btr:detach-all-objects (btr:get-robot-object))
+    (btr:detach-all-objects (btr:get-environment-object))
+    (if (eql (rob-int:get-environment-name) :store)
+        (spawn-objects-on-real-small-shelf)
+        (progn
+          (spawn-objects-on-small-shelf)
+          (spawn-objects-on-big-shelf)))
+    (unless (or (eql (rob-int:get-robot-name) :iai-donbot)
+                (eql (rob-int:get-robot-name) :kmr-iiwa))
       (spawn-basket))
 
-    (let* ((?environment-name
+    (let* ((?source-shelf-base-urdf-name
+             (if (eql (rob-int:get-environment-name) :store)
+                 :|DMShelfW100_EVZDYXFU|
+                 :shelf-2-base))
+           (?source-shelf-base-level
+             (if (eql (rob-int:get-environment-name) :store)
+                 4 ;3
+                 4))
+           (?target-shelf-level-urdf-name
+             (if (eql (rob-int:get-environment-name) :store)
+                 :|DMFloorT6W100_YVLKGJSB| ; :|DMFloorT6W100_KYINFGDM|
+                 :shelf-1-level-2-link))
+           (?target-shelf-dishwasher-attachments
+             (if (eql (rob-int:get-environment-name) :store)
+                 '(;; :dish-washer-tabs-real-shelf-1-front
+                   :dish-washer-tabs-real-shelf-1-back)
+                 '(:dish-washer-tabs-shelf-1-front
+                   :dish-washer-tabs-shelf-1-back)))
+           (?target-shelf-balea-attachments
+             (if (eql (rob-int:get-environment-name) :store)
+                 '(;; :balea-bottle-real-shelf-1-front
+                   :balea-bottle-real-shelf-1-back)
+                 '(:balea-bottle-shelf-1-front
+                   :balea-bottle-shelf-1-back)))
+           (?environment-name
              (rob-int:get-environment-name))
            (?robot-name
              (rob-int:get-robot-name))
@@ -326,10 +398,9 @@
              (desig:a location
                       (on (desig:an object
                                     (type shelf)
-                                    (urdf-name shelf-2-base)
-                                    (owl-name "shelf_system_verhuetung")
+                                    (urdf-name ?source-shelf-base-urdf-name)
                                     (part-of ?environment-name)
-                                    (level 4)))
+                                    (level ?source-shelf-base-level)))
                       (side left)
                       (range 0.2)))
 
@@ -347,21 +418,19 @@
                                     (type environment)
                                     (name ?environment-name)
                                     (part-of ?environment-name)
-                                    (urdf-name shelf-1-level-2-link)))
+                                    (urdf-name ?target-shelf-level-urdf-name)))
                       (for ?dish-washer-tabs-desig)
-                      (attachments (dish-washer-tabs-shelf-1-front
-                                    dish-washer-tabs-shelf-1-back))))
+                      (attachments ?target-shelf-dishwasher-attachments)))
            (?target-location-shelf-balea-bottle
              (desig:a location
                       (on (desig:an object
                                     (type environment)
                                     (name ?environment-name)
                                     (part-of ?environment-name)
-                                    (urdf-name shelf-1-level-2-link)))
+                                    (urdf-name ?target-shelf-level-urdf-name)))
                       (for ?balea-bottle-desig)
-                      (attachments (balea-bottle-shelf-1-front
-                                    balea-bottle-shelf-1-back))))
-           (?target-location-tray-dish-washer-tabs
+                      (attachments ?target-shelf-balea-attachments)))
+           (?target-location-donbot-tray-dish-washer-tabs
              (desig:a location
                       (on (desig:an object
                                     (type robot)
@@ -371,34 +440,64 @@
                                     (urdf-name plate)))
                       (for ?dish-washer-tabs-desig)
                       (attachments (donbot-tray-front donbot-tray-back))))
+           (?target-location-kukabot-tray-dish-washer-tabs
+             (desig:a location
+                      (on (desig:an object
+                                    (type robot)
+                                    (name ?robot-name)
+                                    (part-of ?robot-name)
+                                    (owl-name "kukabot_tray")
+                                    (urdf-name base-link)))
+                      (for ?dish-washer-tabs-desig)
+                      (attachments (;; kukabot-tray-front
+                                    kukabot-tray-back))))
            (?target-location-basket-dish-washer-tabs
              (desig:a location
                       (on (desig:an object
                                     (type basket)
                                     (name b)))
                       (for ?dish-washer-tabs-desig)
-                      (attachments (; in-basket-front
+                      (attachments (  ; in-basket-front
                                     in-basket-back))))
            (?target-location-robot-dish-washer-tabs
              (case ?robot-name
-               (:iai-donbot ?target-location-tray-dish-washer-tabs)
-               (t ?target-location-basket-dish-washer-tabs))))
+               (:iai-donbot
+                ?target-location-donbot-tray-dish-washer-tabs)
+               (:kmr-iiwa
+                ?target-location-kukabot-tray-dish-washer-tabs)
+               (t
+                ?target-location-basket-dish-washer-tabs))))
 
-      (exe:perform
-       (desig:an action
-                 (type transporting)
-                 (object ?dish-washer-tabs-desig)
-                 (target ?target-location-robot-dish-washer-tabs)))
-      (exe:perform
-       (desig:an action
-                 (type transporting)
-                 (object ?balea-bottle-desig)
-                 (target ?target-location-shelf-balea-bottle)))
-      (exe:perform
-       (desig:an action
-                 (type transporting)
-                 (object ?dish-washer-tabs-desig)
-                 (target ?target-location-shelf-dish-washer-tabs)))
+      (cpl:with-failure-handling
+          ((cpl:simple-plan-failure (e)
+             (declare (ignore e))
+             (return)))
+        (exe:perform
+         (desig:an action
+                   (type transporting)
+                   (object ?dish-washer-tabs-desig)
+                   (target ?target-location-robot-dish-washer-tabs)
+                   (grasps (back)))))
+      (cpl:with-failure-handling
+          ((cpl:simple-plan-failure (e)
+             (declare (ignore e))
+             (return)))
+        (exe:perform
+         (desig:an action
+                   (type transporting)
+                   (object ?balea-bottle-desig)
+                   (target ?target-location-shelf-balea-bottle)
+                   (grasps (back)))))
+      (cpl:with-failure-handling
+          ((cpl:simple-plan-failure (e)
+             (declare (ignore e))
+             (return)))
+        (exe:perform
+         (desig:an action
+                   (type transporting)
+                   (object ?dish-washer-tabs-desig)
+                   (target ?target-location-shelf-dish-washer-tabs)
+                   (grasps (back)))))
 
       ;; look at separators
       ;; (exe:perform
@@ -409,7 +508,32 @@
       )))
 
 
+(defmethod cram-occasions-events:on-event
+    publish-object 3 ((event cram-plan-occasions-events:robot-state-changed))
 
+  (let ((items (remove-if-not (lambda (object)
+                                (typep object 'btr:item))
+                              (btr:objects btr:*current-bullet-world*))))
+    (dolist (item items)
+      (let* ((name
+               (btr:name item))
+             (ros-name
+               (roslisp-utilities:rosify-underscores-lisp-name name))
+             (pose
+               (btr:pose item))
+             (mesh-path
+               (second (assoc (car (btr:item-types item)) btr::*mesh-files*)))
+             (color
+               (cl-bullet-vis:collision-shape-color
+                (cl-bullet:collision-shape
+                 (btr:rigid-body item name)))))
+        (cram-tf:visualize-marker pose
+                                  ;; :topic "cram_items"
+                                  :namespace ros-name
+                                  :marker-type :mesh_resource
+                                  :scale-list '(1 1 1)
+                                  :r-g-b-list color
+                                  :mesh-path mesh-path)))))
 
 
 

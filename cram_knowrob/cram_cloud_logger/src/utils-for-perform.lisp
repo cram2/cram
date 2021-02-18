@@ -36,6 +36,8 @@
     (setf (gethash "CUP" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#Cup'")
     (setf (gethash "DRAWER" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#Drawer'")
     (setf (gethash "MILK" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#Milk'")
+    (setf (gethash "SPOON" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#Spoon'")
+    (setf (gethash "BREAKFAST-CEREAL" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#Cereal'")
     lookup-table))
 
 
@@ -44,6 +46,19 @@
     (setf (gethash "BOWL" lookup-table) "'package://kitchen_object_meshes/bowl.dae'")
     (setf (gethash "CUP" lookup-table) "'package://kitchen_object_meshes/cup.dae'")
     (setf (gethash "MILK" lookup-table) "'package://kitchen_object_meshes/milk.dae'")
+    (setf (gethash "SPOON" lookup-table) "'package://kitchen_object_meshes/spoon.dae'")
+    (setf (gethash "BREAKFAST-CEREAL" lookup-table) "'package://kitchen_object_meshes/cereal.dae'")
+    ;;(setf (gethash "DRAWER" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#Drawer'")
+    lookup-table))
+
+
+(defun get-rotation-lookup-table()
+  (let ((lookup-table (make-hash-table :test 'equal)))
+    (setf (gethash "BOWL" lookup-table) "[-1.0,0.0,0.0,1.0]")
+    (setf (gethash "CUP" lookup-table) "[-1.0,0.0,0.0,1.0]")
+    (setf (gethash "MILK" lookup-table) "[0.0,0.0,0.0,1.0]")
+    (setf (gethash "SPOON" lookup-table) "[-1.0,0.0,0.0,1.0]")
+    (setf (gethash "BREAKFAST-CEREAL" lookup-table) "[0.0,0.0,0.0,1.0]")
     ;;(setf (gethash "DRAWER" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#Drawer'")
     lookup-table))
 
@@ -55,6 +70,7 @@
 (defparameter *retry-numbers* 0)
 (defparameter *ease-object-lookup-table* (get-ease-object-lookup-table))
 (defparameter *mesh-lookup-table* (get-mesh-lookup-table))
+(defparameter *rotation-lookup-table* (get-rotation-lookup-table))
 
 
 (defun clear-detected-objects ()
@@ -95,6 +111,7 @@
         (print "Object exists")
         (let ((object-id (send-belief-perceived-at object-type
                                                    (gethash detected-object-type *mesh-lookup-table*)
+                                                   (gethash detected-object-type *rotation-lookup-table*)
                                                    (concatenate 'string
                                                                 "'" "http://www.ease-crc.org/ont/SOMA.owl#"
                                                                 (roslisp-utilities:rosify-underscores-lisp-name (make-symbol object-name)) "'"))))
@@ -134,16 +151,24 @@
           ;; (car *action-parents*) action-id (get-knowrob-action-name cram-action-name designator))
           (push action-id *action-parents*)
           (ccl::start-situation action-id)
+          (print "HERE 0")
           (multiple-value-bind (perform-result action-desig)
               (call-next-method)
             ;;(let ((referenced-action-id (log-perform-call action-desig)))
+            (print "HERE 1")
             (let ((referenced-action-id "")
                   (action-designator-parameters (desig:properties (or action-desig designator))))
+              (print "HERE 2")
               (log-action-designator-parameters-for-logged-action-designator action-designator-parameters action-id)
+              (when (string-equal cram-action-name "grasping")
+                (print action-designator-parameters))
               (when (string-equal cram-action-name "detecting")
                 (handle-detected-object perform-result))
+              (print "HERE 3")
               (set-event-status-to-succeeded action-id)
+              (print "HERE 4")
               (ccl::stop-situation action-id)
+              (print "HERE 5")
               perform-result))))
        (cpl:with-failure-handling
             ((cpl:plan-failure (e)

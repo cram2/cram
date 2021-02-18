@@ -3,6 +3,7 @@
   <arg name="pr2" default="false" />
   <arg name="boxy" default="false" />
   <arg name="donbot" default="false" />
+  <arg name="kukabot" default="false" />
 
   <!-- choose environment -->
   <arg name="household" default="false" />
@@ -34,6 +35,9 @@
     <group if="$(arg donbot)">
       <include file="$(find iai_donbot_description)/launch/upload_with_refills_finger.launch" />
     </group>
+    <group if="$(arg kukabot)">
+      <include file="$(find iai_kmr_iiwa_description)/launch/upload_kmr_iiwa.launch" />
+    </group>
   </group>
 
   <!-- robot state publisher -->
@@ -56,9 +60,16 @@
                     '$(find iai_kitchen)/urdf_obj/iai_kitchen_python.urdf.xacro'"/>
   </group>
   <group if="$(arg retail)">
-    <param name="kitchen_description"
-           command="$(find xacro)/xacro.py
-                    '$(find iai_refills_lab)/urdf/dm_room.urdf.xacro'"/>
+    <group if="$(arg kukabot)">
+      <param name="kitchen_description"
+             command="$(find xacro)/xacro.py
+                      '$(find cram_projection_demos)/resource/retail/full_store.urdf.xacro'"/>
+    </group>
+    <group unless="$(arg kukabot)">
+      <param name="kitchen_description"
+             command="$(find xacro)/xacro.py
+                      '$(find iai_refills_lab)/urdf/dm_room.urdf.xacro'"/>
+    </group>
   </group>
 
   <!-- environment state publisher -->
@@ -104,7 +115,7 @@
     <include file="$(find pr2_arm_kinematics)/launch/pr2_ik_larm_node.launch" />
     <include file="$(find pr2_arm_kinematics)/launch/pr2_ik_rarm_node.launch" />
   </group>
-  <group if="$(eval arg('donbot') | arg('boxy'))">
+  <group unless="$(arg pr2)">
     <include file="$(find kdl_ik_service)/launch/kdl_ik.launch" />
   </group>
 </launch>

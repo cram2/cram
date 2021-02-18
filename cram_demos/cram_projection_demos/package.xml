@@ -46,6 +46,7 @@
   <depend>cram_pr2_description</depend>
   <depend>cram_boxy_description</depend>
   <depend>cram_donbot_description</depend>
+  <depend>cram_kukabot_description</depend>
   <!-- <depend>cram_hsrb_description</depend> -->
 
   <!-- launch file -->
@@ -63,7 +64,7 @@
   <exec_depend>iai_donbot_description</exec_depend>
   <!-- https://github.com/fmauch/universal_robot.git
        branch: calibration_devel -->
-  <exec_depend>ur_description</exec_depend>
+  <!-- <exec_depend>ur_description</exec_depend> -->
   <!-- https://github.com/code-iai/iai_maps.git -->
   <exec_depend>iai_kitchen</exec_depend>
   <exec_depend>iai_refills_lab</exec_depend>

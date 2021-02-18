@@ -55,7 +55,7 @@ using the `rethrow-failure' key."
                (roslisp:ros-warn ,warning-namespace "Retrying.~%")
                (setf ,iterator-desig next-solution-element)
                (loop for designator in ,reset-designators
-                     do (desig:reset designator))
+                     do (setf designator (desig:reset designator)))
                ,@body
                (cpl:retry))
              (roslisp:ros-warn ,warning-namespace "No samples left.~%"))))
@@ -136,7 +136,7 @@ the previous solution (the default is 0.05m)."
                (roslisp:ros-warn ,warning-namespace "Retrying.~%")
                (setf ,location-desig next-solution-element)
                (loop for designator in ,reset-designators
-                     do (desig:reset designator))
+                     do (setf designator (desig:reset designator)))
                ,@body
                (cpl:retry))
              (roslisp:ros-warn ,warning-namespace "No samples left.~%"))))

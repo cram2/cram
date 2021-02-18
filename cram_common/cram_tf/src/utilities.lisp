@@ -48,13 +48,18 @@
                               (make-identity-rotation))
      :target-frame (or parent-frame *fixed-frame*))))
 
-(defun frame-to-transform-in-fixed-frame (frame-name &optional parent-frame)
+(defun frame-to-transform-in-frame (frame-name parent-frame &key no-error)
   (when *transformer*
-    (cl-transforms-stamped:lookup-transform
-     *transformer*
-     parent-frame frame-name
-     :timeout *tf-default-timeout*
-     :time 0.0)))
+    (handler-case
+        (cl-transforms-stamped:lookup-transform
+         *transformer*
+         parent-frame frame-name
+         :timeout *tf-default-timeout*
+         :time 0.0)
+      (cl-transforms-stamped:transform-stamped-error (e)
+        (if no-error
+            nil
+            (error e))))))
 
 (defun 3d-vector->list (3d-vector)
   (let ((x (cl-transforms:x 3d-vector))
@@ -417,8 +422,10 @@ Multiply from the right with the yTz transform -- xTy * yTz == xTz."
          (goal-angle (cl-transforms:normalize-angle
                       (cl-transforms:get-yaw
                        (cl-transforms:orientation pose-in-frame)))))
-    (and (<= goal-dist delta-xy)
-         (<= (abs goal-angle) delta-theta))))
+    (values (and (<= goal-dist delta-xy)
+                 (<= (abs goal-angle) delta-theta))
+            goal-dist
+            goal-angle)))
 
 (defun pose-stampeds-converged (pose other-pose delta-position delta-rotation)
   (declare (type (or null cl-transforms-stamped:pose-stamped) pose other-pose))

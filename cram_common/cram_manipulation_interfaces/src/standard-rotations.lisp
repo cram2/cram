@@ -54,6 +54,16 @@
     (0 1 0)
     (0 0 1)))
 
+(defparameter *rotation-around-x-180-matrix*
+  '((1  0  0)
+    (0 -1  0)
+    (0  0 -1)))
+
+(defparameter *rotation-around-y-180-matrix*
+  '((-1  0  0)
+    ( 0  1  0)
+    ( 0  0 -1)))
+
 
 (defparameter *rotation-around-x+90-list*
   '(0.7071067811865475d0 0.0d0 0.0d0 0.7071067811865476d0))

@@ -45,9 +45,9 @@
 (defparameter *base-max-velocity-fast-theta*
   0.4 "In rad/s, about 23 deg/s.")
 (defparameter *base-max-velocity-slow-xy*
-  0.05 "In meters/s")
+  0.04 "In meters/s")
 (defparameter *base-max-velocity-slow-theta*
-  0.1 "In rad/s, about 11.5 deg.")
+  0.07 "In rad/s, about 11.5 deg.")
 
 (defun make-giskard-base-action-goal (pose base-velocity)
   (declare (type cl-transforms-stamped:pose-stamped pose)
@@ -67,7 +67,12 @@
                      (make-base-velocity-constraint
                       *base-max-velocity-slow-xy* *base-max-velocity-slow-theta*)
                      (make-base-velocity-constraint
-                      *base-max-velocity-fast-xy* *base-max-velocity-fast-theta*)))
+                      *base-max-velocity-fast-xy* *base-max-velocity-fast-theta*))
+                 (make-head-pointing-constraint
+                  (cl-transforms-stamped:make-pose-stamped
+                   cram-tf:*robot-base-frame* 0.0
+                   (cl-transforms:make-3d-vector 1 0 0)
+                   (cl-transforms:make-identity-rotation))))
    :joint-constraints (make-current-joint-state-constraint '(:left :right))
    :collisions (make-avoid-all-collision *base-collision-avoidance-distance*)))
 

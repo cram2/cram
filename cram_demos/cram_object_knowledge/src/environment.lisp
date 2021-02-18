@@ -29,26 +29,25 @@
 
 (in-package :objects)
 
-(def-fact-group costmap-metadata (costmap:costmap-size
-                                  costmap:costmap-origin
-                                  costmap:costmap-resolution)
+(def-fact-group environment-knowledge (costmap:costmap-size
+                                       costmap:costmap-origin
+                                       costmap:costmap-resolution
+                                       man-int:object-tf-prefix)
   (<- (costmap:costmap-size :iai-kitchen 12 12))
   (<- (costmap:costmap-origin :iai-kitchen -6 -6))
-  (<- (costmap:costmap-resolution :iai-kitchen 0.04)))
+  (<- (costmap:costmap-resolution :iai-kitchen 0.04))
 
-(def-fact-group retail-small-environment-metadata (costmap:costmap-size
-                                                   costmap:costmap-origin
-                                                   costmap:costmap-resolution)
-  (<- (costmap:costmap-size :dm-shelves 10 10))
-  (<- (costmap:costmap-origin :dm-shelves -5 -5))
-  (<- (costmap:costmap-resolution :dm-shelves 0.04)))
+  (<- (is-dm-room-urdf-name ?name)
+    (member ?name (:dm-shelves :dm-room :store)))
+  (<- (costmap:costmap-size ?name 10 10)
+    (is-dm-room-urdf-name ?name))
+  (<- (costmap:costmap-origin ?name -5 -5)
+    (is-dm-room-urdf-name ?name))
+  (<- (costmap:costmap-resolution ?name 0.04)
+    (is-dm-room-urdf-name ?name))
 
-(def-fact-group retail-environment-metadata (costmap:costmap-size
-                                             costmap:costmap-origin
-                                             costmap:costmap-resolution)
-  (<- (costmap:costmap-size :dm-room 10 10))
-  (<- (costmap:costmap-origin :dm-room -5 -5))
-  (<- (costmap:costmap-resolution :dm-room 0.04)))
+  (<- (man-int:object-tf-prefix :iai-kitchen "iai_kitchen/")))
+
 
 (def-fact-group environment-object-type-hierarchy (man-int:object-type-direct-subtype)
   (<- (man-int:object-type-direct-subtype :container :container-prismatic))
@@ -87,8 +86,9 @@
 
 (defmethod man-int:get-container-opening-distance :heuristics 20
     ((container-name (eql :sink-area-dish-washer-main)))
-  ;; 0.78d0 ; 45 deg
-  0.95d0) ; 54 deg
+  0.9d0 ; 45 deg
+  ;; 0.95d0 ; 54 deg
+  )
 
 ;; (defmethod man-int:get-container-opening-distance :heuristics 20
 ;;     ((container-name (eql :iai-fridge-main)))

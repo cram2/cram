@@ -103,7 +103,15 @@
     (lisp-pred typep ?designator desig:motion-designator)
     (member ?list-key (:poses :joint-states :left-joint-states :right-joint-states))
     (property-member (?list-key ?value) ?designator)
-    (assert-type ?value list "MOTION SPEC:PROPERTY")))
+    (assert-type ?value list "MOTION SPEC:PROPERTY"))
+
+  (<- (%property ?designator (?key ?value))
+    (lisp-pred typep ?designator desig:motion-designator)
+    (member ?key (:avoid-collisions-not-much
+                  :align-planes-left
+                  :align-planes-right))
+    (property-member (?key ?value) ?designator)
+    (assert-type ?value boolean "MOTION SPEC:PROPERTY")))
 
 
 (def-fact-group action-designator-specs (%property)
@@ -194,6 +202,12 @@
                                :far-from :near))
     (property-member (?object-desig-key ?value) ?designator)
     (assert-type ?value desig:object-designator "LOCATION SPEC:PROPERTY"))
+
+  (<- (%property ?designator (?location-desig-key ?value))
+    (lisp-pred typep ?designator desig:location-designator)
+    (member ?location-desig-key (:location))
+    (property-member (?location-desig-key ?value) ?designator)
+    (assert-type ?value desig:location-designator "LOCATION SPEC:PROPERTY"))
 
   (<- (%property ?designator (?keyword-key ?value))
     (lisp-pred typep ?designator desig:location-designator)
