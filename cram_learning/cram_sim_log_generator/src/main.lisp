@@ -53,7 +53,7 @@
            (ccl::start-episode)
            ;; (pr2-pms:with-real-robot (demo::park-robot))
            ;; (pr2-pms:with-real-robot (demo::setting-demo '(:milk)))
-           (pr2-pms:with-real-robot (demo::setting-demo '(:bowl :spoon)))
+           (pr2-pms:with-real-robot (demo::setting-demo '(:bowl)))
            (setf *main-result* (push ccl::*retry-numbers* *main-result*))
            (ccl::stop-episode)
            (sleep 2)))
