@@ -73,6 +73,59 @@ The frame-id will be cram-tf:*robot-base-frame* and the child-frame-id will be t
      (string-upcase btr-environment)
      name))))
 
+(defun get-urdf-link-aabb (name btr-environment)
+  "Return the axis-aligned bounding box of the object with `name' in `environment'."
+  (declare (type (or string symbol) name)
+           (type keyword btr-environment))
+  (when (symbolp name)
+    (setf name
+          (roslisp-utilities:rosify-underscores-lisp-name name)))
+  (btr:aabb
+   (btr:rigid-body
+    (btr:object btr:*current-bullet-world*
+                btr-environment)
+    (btr::make-rigid-body-name
+     (string-upcase btr-environment)
+     name))))
+
+(defun get-aabb-at-joint-state (name btr-environment joint-state)
+  "Return the axis-aligned bounding box of the object with `name' in `environment'
+at a specific `joint-state'. First the joint is set to the specified state, then
+the bounding box is retrieved and finally the joint is reset."
+  (declare (type (or string symbol) name)
+           (type keyword btr-environment))
+  (let* ((joint (get-connecting-joint
+                          (get-container-link name btr-environment)))
+         (original-state (get-joint-position
+                          joint
+                          btr-environment)))
+    (setf (btr:joint-state
+           (btr:object btr:*current-bullet-world*
+                       btr-environment)
+           (cl-urdf:name joint))
+          joint-state)
+    (let ((aabb (get-urdf-link-aabb (cl-urdf:name (cl-urdf:child joint)) btr-environment)))
+      (setf (btr:joint-state
+             (btr:object btr:*current-bullet-world*
+                         btr-environment)
+             (cl-urdf:name joint))
+            original-state)
+      aabb)))
+
+(defun get-aabbs-at-joint-states (name btr-environment)
+  "Return a list of axis-aligned bounding boxes at minimum, middle and maximum of the joint's
+limit."
+  (declare (type (or string symbol) name)
+           (type keyword btr-environment))
+  (let* ((joint (get-connecting-joint
+                 (get-container-link name btr-environment)))
+         (limits (cl-urdf:limits joint))
+         (middle (+ (cl-urdf:lower limits) (/ (cl-urdf:upper limits) 2))))
+    (list
+     (get-aabb-at-joint-state name btr-environment (cl-urdf:lower limits))
+     (get-aabb-at-joint-state name btr-environment middle)
+     (get-aabb-at-joint-state name btr-environment (cl-urdf:upper limits)))))
+
 (defun get-container-link (container-name btr-environment)
   "Return the link of the container with `container-name' in the `btr-environment'."
   (declare (type (or string symbol) container-name)
@@ -238,6 +291,42 @@ values, the new pose of the link and the joint object that was changed.
                       (get-urdf-link-pose (cl-urdf:name (cl-urdf:child joint)) btr-environment))))))
            joint))))))
 
+(defun get-manipulated-pose-by-setting-joint (link-name joint-position btr-environment
+                                              &key relative)
+  (declare (type (or string symbol) link-name)
+           (type number joint-position)
+           (type keyword btr-environment)
+           (type boolean relative))
+  (when (not (floatp joint-position))
+    (setf joint-position (float joint-position)))
+  (let ((link (get-container-link link-name btr-environment)))
+    (when (typep link 'cl-urdf:link)
+      (let ((joint (get-connecting-joint link)))
+        (when joint
+          (when relative
+            (setf joint-position
+                  (+
+                   (cl-urdf:lower (cl-urdf:limits joint))
+                   (* joint-position
+                      (- (cl-urdf:upper (cl-urdf:limits joint))
+                         (cl-urdf:lower (cl-urdf:limits joint)))))))
+          (values
+           (let ((original-joint-position (get-joint-position joint btr-environment)))
+             (setf (btr:joint-state
+                    (btr:object btr:*current-bullet-world*
+                                btr-environment)
+                    (cl-urdf:name joint))
+                   joint-position)
+             (let ((manipulated-joint-pose
+                     (get-urdf-link-pose link-name :iai-kitchen)))
+               (setf (btr:joint-state
+                      (btr:object btr:*current-bullet-world*
+                                  btr-environment)
+                      (cl-urdf:name joint))
+                     original-joint-position)
+               manipulated-joint-pose))
+           joint))))))
+
 (defun get-handle-axis (container-designator)
   "Return either a vector with (1 0 0) for horizontal handles or (0 0 1) for
 vertical handles on the container described by `container-designator'.
@@ -254,7 +343,9 @@ this function."
             ("oven_area_area_left_drawer_main"
              (cl-transforms:make-3d-vector 0 0 1))
             ("oven_area_area_right_drawer_main"
-             (cl-transforms:make-3d-vector 0 0 1)))))
+             (cl-transforms:make-3d-vector 0 0 1))
+            ("sink_area_dish_washer_main"
+             (cl-transforms:make-3d-vector 1 0 0)))))
     (if name-exception
         name-exception
         ;; Use prolog to find out which supertype fits.
@@ -307,8 +398,10 @@ Using a default (1 0 0)."
       (:closing
        (- (- distance state))))))
 
+;; Important note: This assumes a relative distance, because the trajectory calculations
+;; were implemented in a relative manner.
 (defun clip-distance (container-name btr-environment distance action-type)
-  "Return a distance that stays inside the joint's limits."
+  "Return a relative distance that stays inside the joint's limits."
   (declare (type (or string symbol) container-name)
            (type keyword btr-environment)
            (type number distance)

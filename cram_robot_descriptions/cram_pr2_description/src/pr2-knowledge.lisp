@@ -46,9 +46,9 @@
   (<- (robot-base-link :pr2 "base_link"))
   (<- (robot-torso-link-joint :pr2 "torso_lift_link" "torso_lift_joint"))
 
+  (<- (camera-frame :pr2 "narrow_stereo_optical_frame"))
   (<- (camera-frame :pr2 "head_mount_kinect_rgb_optical_frame"))
   (<- (camera-frame :pr2 "openni_rgb_optical_frame"))
-  (<- (camera-frame :pr2 "narrow_stereo_optical_frame"))
 
   (<- (camera-minimal-height :pr2 1.27))
   (<- (camera-maximal-height :pr2 1.60))
@@ -80,7 +80,7 @@
                                            costmap:visibility-costmap-size)
   (<- (costmap:costmap-padding :pr2 0.3))
   (<- (costmap:costmap-manipulation-padding :pr2 0.4))
-  (<- (costmap:costmap-in-reach-distance :pr2 1.0))
+  (<- (costmap:costmap-in-reach-distance :pr2 1.05))
   (<- (costmap:costmap-reach-minimal-distance :pr2 0.2))
   (<- (costmap:orientation-samples :pr2 1))
   (<- (costmap:orientation-sample-step :pr2 0.3))

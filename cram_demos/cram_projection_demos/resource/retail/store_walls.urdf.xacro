@@ -1,0 +1,57 @@
+<?xml version="1.0" ?>
+<robot name="store_walls" version="1.0"
+       xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:macro name="wall" params="parent name size *origin">
+    <link name="${name}_link">
+      <visual>
+        <geometry>
+          <box size="${size}"/>
+        </geometry>
+        <material name="green">
+          <color rgba="0.5 0.5 0.5 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="${size}"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint type="fixed" name="${name}_joint">
+      <xacro:insert_block name="origin"/>
+      <parent link="${parent}"/>
+      <child link="${name}_link"/>
+    </joint>
+  </xacro:macro>
+
+  <xacro:property name="wall_thickness" value="0.2" />
+  <xacro:property name="wall_height" value="2.4" />
+  <xacro:property name="room_link" value="store_root" />
+  <wall parent="${room_link}" name="back_wall"
+        size="7.9 ${wall_thickness} ${wall_height}">
+    <origin xyz="0.9 -4.7 ${wall_height/2}" rpy="0 0 0"/>
+  </wall>
+  <wall parent="${room_link}" name="left_wall"
+        size="${wall_thickness} 9.4 ${wall_height}">
+    <origin xyz="4.8 -0.1 ${wall_height/2}" rpy="0 0 0"/>
+  </wall>
+  <wall parent="${room_link}" name="front_wall"
+        size="5.0 ${wall_thickness} ${wall_height}">
+    <origin xyz="2.4 4.6 ${wall_height/2}" rpy="0 0 0"/>
+  </wall>
+  <wall parent="${room_link}" name="right_wall"
+        size="${wall_thickness} 4.9 ${wall_height}">
+    <origin xyz="-3.15 -2.35 ${wall_height/2}" rpy="0 0 0"/>
+  </wall>
+  <wall parent="${room_link}" name="back_corner_wall"
+        size="3.2 ${wall_thickness} ${wall_height}">
+    <origin xyz="-1.5 0.0 ${wall_height/2}" rpy="0 0 0"/>
+  </wall>
+  <wall parent="${room_link}" name="right_corner_wall"
+        size="${wall_thickness} 4.8 ${wall_height}">
+    <origin xyz="0 2.3 ${wall_height/2}" rpy="0 0 0"/>
+  </wall>
+
+</robot>

@@ -80,7 +80,7 @@
      (if (btr:object btr:*current-bullet-world* :big-wooden-plate)
          (make-iai-kitchen-assembly-restricted-area-cost-function)
          (make-iai-kitchen-household-restricted-area-cost-function)))
-    (:dm-room
+    ((or :dm-room :store)
      (make-dm-room-restricted-area-cost-function))
     (:dm-shelves
      (make-small-retail-restricted-area-cost-function))))

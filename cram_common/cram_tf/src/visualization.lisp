@@ -29,8 +29,22 @@
 
 (in-package :cram-tf)
 
+(defvar *marker-publisher* nil)
+
+(defun init-marker-publisher ()
+  (setf *marker-publisher*
+        (roslisp:advertise "visualization_marker"
+                           "visualization_msgs/Marker")))
+
+(defun destroy-marker-publisher ()
+  (setf *marker-publisher* nil))
+
+(roslisp-utilities:register-ros-init-function init-marker-publisher)
+(roslisp-utilities:register-ros-cleanup-function destroy-marker-publisher)
+
 (defun visualize-marker (pose/s &key
-                                  (topic "visualization_marker")
+                                  ;; (topic "visualization_marker")
+                                  (namespace "cram_goal_locations")
                                   (r-g-b-list '(1 0 0))
                                   (scale-list '(0.1 0.06 0.02))
                                   (marker-type :arrow)
@@ -38,7 +52,7 @@
                                   (in-frame cram-tf:*fixed-frame*)
                                   mesh-path)
   (declare (type (or cl-transforms:pose cl-transforms-stamped:pose-stamped list) pose/s)
-           (type string topic)
+           ;; (type string topic)
            (type (or string null) in-frame)
            (type number id)
            (type keyword marker-type))
@@ -47,7 +61,7 @@
                (let ((point (cl-transforms:origin pose))
                      (rot (cl-transforms:orientation pose)))
                  (roslisp:publish
-                  (roslisp:advertise topic "visualization_msgs/Marker")
+                  *marker-publisher*
                   (roslisp:make-message "visualization_msgs/Marker"
                                         (std_msgs-msg:stamp header) (roslisp:ros-time)
                                         (std_msgs-msg:frame_id header)
@@ -55,7 +69,7 @@
                                           (cl-transforms-stamped:pose-stamped
                                            (cl-transforms-stamped:frame-id pose))
                                           (t (or in-frame cram-tf:*fixed-frame*)))
-                                        ns "cram_goal_locations"
+                                        ns namespace
                                         id id
                                         type (roslisp:symbol-code
                                               'visualization_msgs-msg:<marker>
@@ -76,6 +90,7 @@
                                         (g color) (second r-g-b-list)
                                         (b color) (third r-g-b-list)
                                         (a color) 0.7
+                                        :frame_locked t
                                         :mesh_resource (or mesh-path ""))))
                ;; (roslisp:ros-warn (ll visualize-marker) "asked to visualize a null pose")
                )))

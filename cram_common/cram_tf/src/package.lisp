@@ -42,7 +42,7 @@
    #:start-publishing-transforms #:stop-publishing-transforms
    ;; utilities
    #:poses-equal-p
-   #:frame-to-pose-in-fixed-frame #:frame-to-transform-in-fixed-frame
+   #:frame-to-pose-in-fixed-frame #:frame-to-transform-in-frame
    #:3d-vector->list #:list->3d-vector
    #:pose->flat-list #:pose->flat-list-w-first
    #:pose->list

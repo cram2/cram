@@ -30,7 +30,7 @@
 
 (in-package :demo)
 
-(setf cram-tf:*tf-broadcasting-enabled* t)
+;; (setf cram-tf:*tf-broadcasting-enabled* t)
 
 (defparameter *demo-object-spawning-poses*
   '((:bowl
@@ -41,7 +41,7 @@
     ;;  ((0.11 0.12 -0.0547167) (0 0 -1 0)))
     (:cup
      "kitchen_island_left_upper_drawer_main"
-     ((0.11 0.08 -0.0547167) (0 0 -1 0)))
+     ((0.11 0.08 -0.026367) (0 0 -1 0)))
     (:spoon
      ;; "oven_area_area_middle_upper_drawer_main"
      "sink_area_left_upper_drawer_main"
@@ -59,7 +59,58 @@
      ((-0.01 -0.05 0.094) (0 0 0 1)))))
 
 
-(defparameter *delivery-poses-relative*
+(defparameter *delivery-poses-dining-table-relative*
+  `((:bowl
+     "dining_area_jokkmokk_table_main"
+     ((-0.46 -0.012 0.7991485595703125d0)
+      (0.0d0 0.0d0 0.4550555463557553d0 0.8904630535462239d0)))
+    (:cup
+     "dining_area_jokkmokk_table_main"
+     ((-0.283 -0.0975 0.8241376876831055d0)
+      (0.0d0 0.0d0 0.9542005181967461d0 0.299167797520156d0)))
+    (:spoon
+     "dining_area_jokkmokk_table_main"
+     ((-0.46 -0.2016 0.755256716410319d0)
+      (0 0 0 1)))
+    (:milk
+     "dining_area_jokkmokk_table_main"
+     ((-0.012 -0.031 0.8362768809000651d0)
+      (-0.00932157 0.00720728 0.965580536 0.25983724)))
+    (:breakfast-cereal
+     "dining_area_jokkmokk_table_main"
+     ((-0.012 -0.23 0.850479253133138d0)
+      (-0.0079082 0.00397635 0.08238571 0.9965611543)))))
+
+
+(defparameter *delivery-poses-dining-table-absolute*
+  `((:bowl . ((-3.368202972412109d0 -0.15089993476867675d0 0.7991479237874349d0)
+              (3.7803240502398694d-6
+               -5.186260023037903d-5
+               0.9513682126998901d0
+               0.30805596709251404d0)))
+    (:cup . ((-3.2824996948242187d0 0.02729039788246155d0 0.8241376876831055d0)
+             (-8.372070442419499d-5
+              -1.31627733935602d-4
+              0.8862651586532593d0
+              -0.46317803859710693d0)))
+    (:spoon . ((-3.1784092712402346d0 -0.14934446016947428d0 0.755256716410319d0)
+               (0.02845500223338604d0
+                0.028393128886818886d0
+                0.7164095640182495d0
+                0.696520984172821d0)))
+    (:milk . ((-3.3491180419921873d0 0.29785102208455405d0 0.8362768809000651d0)
+              (-0.01168766152113676d0
+               -0.0014950307086110115d0
+               0.8665012121200562d0
+               -0.49903586506843567d0)))
+    (:breakfast-cereal . ((-3.150148 0.298135248819987d0 0.850479253133138d0)
+                          (-0.008403636515140533d0
+                           -0.002780231647193432d0
+                           0.7629306316375732d0
+                           0.6464196443557739d0)))))
+
+
+(defparameter *delivery-poses-relative-kitchen-island*
   `((:bowl
      "kitchen_island_surface"
      ((0.24 -0.5 0.0432199478149414d0)
@@ -92,33 +143,6 @@
               (0.0 0.0 -0.9 0.7)))
     (:breakfast-cereal . ((-0.78 0.8 0.95) (0 0 0.6 0.4)))))
 
-(defparameter *delivery-poses-dining-table*
-  `((:bowl . ((-3.42 -0.12 0.7991467793782552d0)
-              (3.137296516797505d-5
-               1.0759643373603467d-5
-               0.9511423707008362d0
-               0.30875256657600403d0)))
-    (:cup . ((-3.1 -0.08 0.8d0)
-             (-0.03113226592540741d0
-              0.08310400694608688d0
-              0.8814979791641235d0
-              -0.4637735188007355d0)))
-    (:spoon . ((-3.18 -0.1 0.7552929560343424d0)
-               (-5.796735058538616d-4
-                -4.0868669748306274d-4
-                0.7079771161079407d0
-                0.7062349915504456d0)))
-    (:milk . ((-3.2d0 0.3d0 0.8359999974568685d0)
-              (0.011613382957875729d0
-               0.0015667370753362775d0
-               -0.8652299046516418d0
-               0.5012384653091431d0)))
-    (:breakfast-cereal . ((-3.36 0.21 0.85d0)
-                          (-0.00908871553838253d0
-                           -0.00283131655305624d0
-                           0.7276732921600342d0
-                           0.6858578324317932d0)))))
-
 (defparameter *cleaning-deliver-poses*
   `((:bowl . ((1.45 -0.4 1.0) (0 0 0 1)))
     (:cup . ((1.45 -0.4 1.0) (0 0 0 1)))
@@ -127,13 +151,13 @@
     (:breakfast-cereal . ((1.15 -0.5 0.8) (0 0 1 0)))))
 
 
-(defun attach-object-to-the-world (object-type)
-  (when *demo-object-spawning-poses*
+(defun attach-object-to-the-world (object-type spawning-poses-relative)
+  (when spawning-poses-relative
     (btr:attach-object (btr:get-environment-object)
                        (btr:object btr:*current-bullet-world*
                                    (intern (format nil "~a-1" object-type) :keyword))
                        :link (second (find object-type
-                                           *demo-object-spawning-poses*
+                                           spawning-poses-relative
                                            :key #'car)))))
 
 (defun make-poses-list-relative (spawning-poses-list)
@@ -181,7 +205,8 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
     ;; (btr:simulate btr:*current-bullet-world* 100)
     objects)
 
-  (mapcar #'attach-object-to-the-world object-types))
+  (mapcar (alexandria:rcurry #'attach-object-to-the-world spawning-poses-relative)
+          object-types))
 
 
 
@@ -201,7 +226,7 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
     (let* ((?deliver-pose (cram-tf:ensure-pose-in-frame
                            (btr:ensure-pose
                             (cdr (assoc ?object-type
-                                        *delivery-poses-dining-table*)))
+                                        *delivery-poses-dining-table-absolute*)))
                            cram-tf:*fixed-frame*))
            (?deliver-location (a location (pose ?deliver-pose)))
            (?color (cdr (assoc ?object-type *object-colors*)))
@@ -228,19 +253,26 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
            (target ?deliver-location)
            )))))
 
-(defun cleaning-demo (&optional (object-list '(:milk :breakfast-cereal
-                                                :bowl :spoon :cup)))
+(defun cleaning-demo (&optional (object-list '(:breakfast-cereal :milk
+                                               :spoon :cup :bowl)))
   "Cleans up object to the designated locations by iterating over
 `object-list' "
   ;; (setup-for-demo object-list)
-  (when cram-projection:*projection-environment*
+  (initialize)
+  (when (or cram-projection:*projection-environment*
+            ;; dont want to add dependency on sim PMs, thus this stupid hack
+            (roslisp:get-param "/base_simulator/sim_frequency" nil))
     (spawn-objects-on-fixed-spots
      :object-types object-list
-     :spawning-poses-relative *delivery-poses-relative*))
+     :spawning-poses-relative *delivery-poses-dining-table-relative*))
 
   (dolist (?object-type object-list)
-    (exe:perform
-     (desig:an action
-               (type transporting)
-               (object (desig:an object (type ?object-type)))
-               (context table-cleaning)))))
+    (let ((?grasps (when (eq ?object-type :cup)
+                     '(:front :back :left-side :right-side))))
+      (exe:perform
+       (desig:an action
+                 (type transporting)
+                 (object (desig:an object (type ?object-type)))
+                 (context table-cleaning)
+                 (desig:when ?grasps
+                   (grasps ?grasps)))))))

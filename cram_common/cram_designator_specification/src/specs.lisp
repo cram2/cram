@@ -77,7 +77,7 @@
 
   (<- (%property ?designator (?number-key ?value))
     (lisp-pred typep ?designator desig:motion-designator)
-    (member ?number-key (:effort :joint-angle :joint-angle-threshold))
+    (member ?number-key (:effort :joint-angle :joint-angle-threshold :speed))
     (property-member (?number-key ?value) ?designator)
     (assert-type ?value (or keyword number) "MOTION SPEC:PROPERTY"))
 
@@ -103,7 +103,15 @@
     (lisp-pred typep ?designator desig:motion-designator)
     (member ?list-key (:poses :joint-states :left-joint-states :right-joint-states))
     (property-member (?list-key ?value) ?designator)
-    (assert-type ?value list "MOTION SPEC:PROPERTY")))
+    (assert-type ?value list "MOTION SPEC:PROPERTY"))
+
+  (<- (%property ?designator (?key ?value))
+    (lisp-pred typep ?designator desig:motion-designator)
+    (member ?key (:avoid-collisions-not-much
+                  :align-planes-left
+                  :align-planes-right))
+    (property-member (?key ?value) ?designator)
+    (assert-type ?value boolean "MOTION SPEC:PROPERTY")))
 
 
 (def-fact-group action-designator-specs (%property)
@@ -155,9 +163,10 @@
     (property-member (?string-key ?value) ?designator)
     (assert-type ?value string "ACTION SPEC:PROPERTY"))
 
-  (<- (%property ?designator (:joint-angle ?value))
+  (<- (%property ?designator (?key ?value))
     (lisp-pred typep ?designator desig:action-designator)
-    (property-member (:joint-angle ?value) ?designator)
+    (member ?key (:joint-angle :speed))
+    (property-member (?key ?value) ?designator)
     (assert-type ?value (or keyword number) "ACTION SPEC:PROPERTY"))
 
   (<- (%property ?designator (:for ?for-value))
@@ -193,6 +202,12 @@
                                :far-from :near))
     (property-member (?object-desig-key ?value) ?designator)
     (assert-type ?value desig:object-designator "LOCATION SPEC:PROPERTY"))
+
+  (<- (%property ?designator (?location-desig-key ?value))
+    (lisp-pred typep ?designator desig:location-designator)
+    (member ?location-desig-key (:location))
+    (property-member (?location-desig-key ?value) ?designator)
+    (assert-type ?value desig:location-designator "LOCATION SPEC:PROPERTY"))
 
   (<- (%property ?designator (?keyword-key ?value))
     (lisp-pred typep ?designator desig:location-designator)

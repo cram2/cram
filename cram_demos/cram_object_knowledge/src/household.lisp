@@ -69,7 +69,7 @@
   0.10)
 (defmethod man-int:get-action-gripper-opening :heuristics 20
     ((object-type (eql :cutlery)))
-  0.04)
+  0.05)
 (defmethod man-int:get-action-gripper-opening :heuristics 20
     ((object-type (eql :plate)))
   0.02)
@@ -235,7 +235,7 @@
 (defparameter *cup-grasp-xy-offset* 0.02 "in meters")
 ;; (defparameter *cup-eco-orange-grasp-z-offset* 0.01 "in meters")
 (defparameter *cup-grasp-z-offset* 0.01 "in meters")
-(defparameter *cup-top-grasp-x-offset* 0.03 "in meters")
+(defparameter *cup-top-grasp-x-offset* 0.05 "in meters")
 ;; (defparameter *cup-eco-orange-top-grasp-z-offset* 0.02 "in meters")
 (defparameter *cup-top-grasp-z-offset* 0.04 "in meters")
 
@@ -334,7 +334,7 @@
 (defparameter *cereal-pregrasp-xy-offset* 0.15 "in meters")
 (defparameter *cereal-postgrasp-xy-offset* 0.40 "in meters")
 (defparameter *cereal-lift-z-offset* 0.1 "in meters")
-(defparameter *cereal-small-lift-z-offset* 0.07 "in meters")
+(defparameter *cereal-small-lift-z-offset* 0.06 "in meters")
 
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms
@@ -514,11 +514,41 @@
                             (type drawer)
                             (urdf-name sink-area-trash-drawer-main)
                             (part-of ?environment-name)))
-           (z-offset 0.1)
+           (z-offset -0.05)
            (side front)
            (side right)
            (range 0.2)
            (for (desig:an object (type ?object-type)))))
+
+;;;;;;;; dishwasher
+
+(defun make-location-in-dishwasher-drawer (?object-type ?environment-name)
+  (let ((?location-in-dishwasher
+          (desig:a location
+                   (in (desig:an object
+                                 (type dishwasher)
+                                 (urdf-name sink-area-dish-washer-main)
+                                 (part-of ?environment-name)))))
+        (?attachments
+          (case ?object-type
+            (:bowl
+             '(;; :dish-washer-drawer-left
+               :dish-washer-drawer-right))
+            (:cup
+             '(:dish-washer-drawer-left-flipped-around-x
+               :dish-washer-drawer-left-flipped-around-y))
+            (:spoon
+             '(:dish-washer-drawer-center)))))
+    (desig:a location
+             (above (desig:an object
+                              (type drawer)
+                              (urdf-name sink-area-dish-washer-tray-bottom)
+                              (part-of ?environment-name)
+                              (location ?location-in-dishwasher)))
+             (for (desig:an object
+                            (type ?object-type)
+                            (name some-name)))
+             (attachments ?attachments))))
 
 ;;;;;;;; vertical drawer
 
@@ -532,6 +562,7 @@
                          (part-of ?environment-name)
                          (level topmost)))
            (side front)
+           (orientation support-aligned)
            (for (desig:an object (type ?object-type)))))
 
 ;;;;;;;; fridge
@@ -622,6 +653,7 @@
                          (type counter-top)
                          (urdf-name dining-area-jokkmokk-table-main)
                          (part-of ?environment-name)))
+           (side back)
            (side right)))
 
 (defun make-location-in-center-of-dining-table (?object-type ?environment-name)
@@ -889,7 +921,16 @@
                environment human
                (context (eql :table-cleaning)))
             (make-location-in-sink object-type environment)))
-        '(:bowl :cup :spoon :plate :mug :cutlery))
+        '(:plate :mug :cutlery))
+
+(mapcar (lambda (type)
+          (defmethod man-int:get-object-destination :heuristics 20
+              ((object-type (eql type))
+               environment human
+               (context (eql :table-cleaning)))
+            (make-location-in-dishwasher-drawer object-type environment)))
+        '(:bowl :cup :spoon))
+
 
 (mapcar (lambda (type)
           (defmethod man-int:get-object-destination :heuristics 20
@@ -903,15 +944,26 @@
 ;;;;;;;;;;;;;;;;;; Predefined poses for placing on dish-washer-drawer ;;;;;;;;;;;;;
 
 (man-int:def-object-type-in-other-object-transform :bowl :drawer
-  :bowl-dish-washer-drawer-front-1
-  :attachment-translation `(-0.115 -0.15 0.22)
-  :attachment-rot-matrix '((1 0 0)
-                           (0 1 0)
-                           (0 0 1)))
+  :dish-washer-drawer-left
+  :attachment-translation `(0.05 -0.15 0.2)
+  :attachment-rot-matrix man-int:*identity-matrix*)
 
 (man-int:def-object-type-in-other-object-transform :bowl :drawer
-  :bowl-dish-washer-drawer-front-2
-  :attachment-translation `(-0.115 0.15 0.22)
-  :attachment-rot-matrix '((1 0 0)
-                           (0 1 0)
-                           (0 0 1)))
+  :dish-washer-drawer-right
+  :attachment-translation `(0.03 0.15 0.2)
+  :attachment-rot-matrix man-int:*identity-matrix*)
+
+(man-int:def-object-type-in-other-object-transform :cup :drawer
+  :dish-washer-drawer-left-flipped-around-x
+  :attachment-translation `(0.03 -0.19 0.22)
+  :attachment-rot-matrix man-int:*rotation-around-x-180-matrix*)
+
+(man-int:def-object-type-in-other-object-transform :cup :drawer
+  :dish-washer-drawer-left-flipped-around-y
+  :attachment-translation `(0.05 -0.19 0.22)
+  :attachment-rot-matrix man-int:*rotation-around-y-180-matrix*)
+
+(man-int:def-object-type-in-other-object-transform :spoon :drawer
+  :dish-washer-drawer-center
+  :attachment-translation `(0.03 0.0 0.03)
+  :attachment-rot-matrix man-int:*identity-matrix*)

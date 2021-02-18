@@ -108,7 +108,8 @@
               (costmap:costmap-in-reach-distance ?robot-name ?max-distance)
               (costmap:orientation-samples ?robot-name ?orientation-samples)
               (costmap:orientation-sample-step ?robot-name ?orientation-sample-step)
-              (costmap:reachability-orientation-offset ?robot-name ?orientation-offset))))
+              (once (or (costmap:reachability-orientation-offset ?robot-name ?orientation-offset)
+                        (equal ?orientation-offset 0.0))))))
         (if (or (cut:is-var ?to-reach-pose)
                 (cut:is-var ?min-distance)
                 (cut:is-var ?max-distance))
@@ -136,8 +137,10 @@
                   (generated-angle (calculate-z-angle pose)))
               (if (and (< dist ?max-distance)
                        (> dist ?min-distance)
-                       (<= (abs (- (abs (- perfect-angle generated-angle))
-                                   (cl-transforms:normalize-angle ?orientation-offset)))
+                       (<= (abs (- (cl-transforms:normalize-angle
+                                    (- generated-angle perfect-angle))
+                                   (cl-transforms:normalize-angle
+                                    ?orientation-offset)))
                            allowed-range))
                   :accept
                   :reject))))
@@ -152,7 +155,8 @@
   (if (cram-robot-interfaces:visibility-designator-p designator)
       (cut:with-vars-bound (?to-see-pose
                             ?max-distance
-                            ?orientation-samples ?orientation-sample-step)
+                            ?orientation-samples ?orientation-sample-step
+                            ?orientation-offset)
           (cut:lazy-car
            (prolog:prolog
             `(and (once
@@ -173,7 +177,10 @@
                   (costmap:visibility-costmap-size ?robot-name ?max-distance)
                   (costmap:orientation-samples ?robot-name ?orientation-samples)
                   (costmap:orientation-sample-step ?robot-name
-                                                   ?orientation-sample-step))))
+                                                   ?orientation-sample-step)
+                  (once (or (costmap:visibility-orientation-offset
+                             ?robot-name ?orientation-offset)
+                            (equal ?orientation-offset 0.0))))))
         (if (or (cut:is-var ?to-see-pose) (cut:is-var ?max-distance))
             :unknown
             (let (;; DIST ist the distance from the suggested robot pose to to-see-pose
@@ -198,7 +205,11 @@
                   ;; GENERATED-ANGLE is the suggested robot base pose angle around Z
                   (generated-angle (calculate-z-angle pose)))
               (if (and (< dist ?max-distance)
-                       (<= (abs (- perfect-angle generated-angle)) allowed-range))
+                       (<= (abs (- (cl-transforms:normalize-angle
+                                    (- generated-angle perfect-angle))
+                                   (cl-transforms:normalize-angle
+                                    ?orientation-offset)))
+                           allowed-range))
                   :accept
                   :reject))))
       :unknown))

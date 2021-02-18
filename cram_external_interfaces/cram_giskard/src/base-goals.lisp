@@ -41,16 +41,17 @@
   "kitchen_island" "A link name from the environment URDF.")
 (defparameter *base-max-velocity-fast-xy*
   ;; 0.5
-  0.25 "In meters")
+  0.25 "In meters/s")
 (defparameter *base-max-velocity-fast-theta*
-  0.2 "In rad, about 11.5 deg.")
+  0.4 "In rad/s, about 23 deg/s.")
 (defparameter *base-max-velocity-slow-xy*
-  0.05 "In meters")
+  0.04 "In meters/s")
 (defparameter *base-max-velocity-slow-theta*
-  0.1 "In rad, about 11.5 deg.")
+  0.07 "In rad/s, about 11.5 deg.")
 
-(defun make-giskard-base-action-goal (pose)
-  (declare (type cl-transforms-stamped:pose-stamped pose))
+(defun make-giskard-base-action-goal (pose base-velocity)
+  (declare (type cl-transforms-stamped:pose-stamped pose)
+           (type (or keyword number null) base-velocity))
   (make-giskard-goal
    :constraints (list
                  (make-cartesian-constraint
@@ -62,8 +63,16 @@
                   (cl-transforms-stamped:make-vector-stamped
                    cram-tf:*fixed-frame* 0.0
                    *base-collision-avoidance-hint-vector*))
-                 (make-base-velocity-constraint
-                  *base-max-velocity-fast-xy* *base-max-velocity-fast-theta*))
+                 (if (eq base-velocity :slow)
+                     (make-base-velocity-constraint
+                      *base-max-velocity-slow-xy* *base-max-velocity-slow-theta*)
+                     (make-base-velocity-constraint
+                      *base-max-velocity-fast-xy* *base-max-velocity-fast-theta*))
+                 (make-head-pointing-constraint
+                  (cl-transforms-stamped:make-pose-stamped
+                   cram-tf:*robot-base-frame* 0.0
+                   (cl-transforms:make-3d-vector 1 0 0)
+                   (cl-transforms:make-identity-rotation))))
    :joint-constraints (make-current-joint-state-constraint '(:left :right))
    :collisions (make-avoid-all-collision *base-collision-avoidance-distance*)))
 
@@ -82,8 +91,9 @@
                            *base-convergence-delta-xy*
                            *base-convergence-delta-theta*))))
 
-(defun call-base-action (&key action-timeout goal-pose)
+(defun call-base-action (&key action-timeout goal-pose base-velocity)
   (declare (type cl-transforms-stamped:pose-stamped goal-pose)
+           (type (or keyword number null) base-velocity)
            (type (or null number) action-timeout))
 
   (setf goal-pose (ensure-base-goal-input goal-pose))
@@ -91,6 +101,8 @@
   (cram-tf:visualize-marker goal-pose :r-g-b-list '(0 1 0))
 
   (call-action
-   :action-goal (make-giskard-base-action-goal goal-pose)
+   :action-goal (make-giskard-base-action-goal goal-pose base-velocity)
    :action-timeout action-timeout
-   :check-goal-function (lambda () (ensure-base-goal-reached goal-pose))))
+   :check-goal-function (lambda (result status)
+                          (declare (ignore result status))
+                          (ensure-base-goal-reached goal-pose))))

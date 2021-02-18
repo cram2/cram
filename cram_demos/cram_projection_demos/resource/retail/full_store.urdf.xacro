@@ -1,0 +1,2275 @@
+<?xml version="1.0" ?>
+<robot name="store" version="1.0"
+       xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:include filename="$(find cram_projection_demos)/resource/retail/store_walls.urdf.xacro"/>
+
+  <link name="world"/>
+  <joint name="world_to_root" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <parent link="world"/>
+    <child link="store_root"/>
+  </joint>
+
+  <link name="store_root"/>
+  <joint name="DMShelfW100_FVHEZLXN" type="fixed">
+    <origin rpy="0.0 -0.0 -3.12759288225" xyz="-1.264 -4.203 1.0"/>
+    <parent link="store_root"/>
+    <child link="DMShelfW100_FVHEZLXN"/>
+  </joint>
+  <link name="DMShelfW100_FVHEZLXN">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T7L10W/ShelfSystemH200T7L10W.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T7L10W/ShelfSystemH200T7L10W.obj"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfW100_VLKQHWUG" type="fixed">
+    <origin rpy="0.0 0.0 -1.55382360837" xyz="4.442 -1.863 0.9"/>
+    <parent link="store_root"/>
+    <child link="DMShelfW100_VLKQHWUG"/>
+  </joint>
+  <link name="DMShelfW100_VLKQHWUG">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH180T510W/SM_ShelfSystemH180T5L10W.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH180T510W/SM_ShelfSystemH180T5L10W.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfW100_CLXTSZHP" type="fixed">
+    <origin rpy="0.0 -0.0 -3.10759592836" xyz="3.456 -4.238 1.0"/>
+    <parent link="store_root"/>
+    <child link="DMShelfW100_CLXTSZHP"/>
+  </joint>
+  <link name="DMShelfW100_CLXTSZHP">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T6L10W/ShelfSystemH200T6L10W.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T6L10W/ShelfSystemH200T6L10W.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfW100_BOKVLGNS" type="fixed">
+    <origin rpy="0.0 -0.0 -3.13759265892" xyz="0.787 -4.174 1.0"/>
+    <parent link="store_root"/>
+    <child link="DMShelfW100_BOKVLGNS"/>
+  </joint>
+  <link name="DMShelfW100_BOKVLGNS">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T6L10W/ShelfSystemH200T6L10W.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T6L10W/ShelfSystemH200T6L10W.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfW100_JBNFUZLY" type="fixed">
+    <origin rpy="0.0 -0.0 1.57079632679" xyz="-2.619 -3.213 1.0"/>
+    <parent link="store_root"/>
+    <child link="DMShelfW100_JBNFUZLY"/>
+  </joint>
+  <link name="DMShelfW100_JBNFUZLY">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T7L10W/ShelfSystemH200T7L10W.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T7L10W/ShelfSystemH200T7L10W.obj"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfW100_SRGXKNIM" type="fixed">
+    <origin rpy="0.0 -0.0 3.11359448271" xyz="1.771 -4.188 1.0"/>
+    <parent link="store_root"/>
+    <child link="DMShelfW100_SRGXKNIM"/>
+  </joint>
+  <link name="DMShelfW100_SRGXKNIM">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T6L10W/ShelfSystemH200T6L10W.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T6L10W/ShelfSystemH200T6L10W.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfW60_GQNJLBWE" type="fixed">
+    <origin rpy="0.0 -0.0 -3.12559299491" xyz="2.636 -4.264 1.0"/>
+    <parent link="store_root"/>
+    <child link="DMShelfW60_GQNJLBWE"/>
+  </joint>
+  <link name="DMShelfW60_GQNJLBWE">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T6L6W/ShelfSystemH200T6L6W.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T6L6W/ShelfSystemH200T6L6W.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfW100_ZNOQYCRX" type="fixed">
+    <origin rpy="0.0 -0.0 -3.11959354086" xyz="-0.258 -4.192 1.0"/>
+    <parent link="store_root"/>
+    <child link="DMShelfW100_ZNOQYCRX"/>
+  </joint>
+  <link name="DMShelfW100_ZNOQYCRX">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T7L10W/ShelfSystemH200T7L10W.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T7L10W/ShelfSystemH200T7L10W.obj"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfW60_TGVYWMXJ" type="fixed">
+    <origin rpy="0.0 0.0 -1.57503660313" xyz="4.402 -0.988 1.0"/>
+    <parent link="store_root"/>
+    <child link="DMShelfW60_TGVYWMXJ"/>
+  </joint>
+  <link name="DMShelfW60_TGVYWMXJ">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T5L6W/ShelfSystemH200T5L6W.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T5L6W/ShelfSystemH200T5L6W.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfW100_PBKHROIL" type="fixed">
+    <origin rpy="0.0 -0.0 3.13959265426" xyz="-0.233 -1.365 0.8"/>
+    <parent link="store_root"/>
+    <child link="DMShelfW100_PBKHROIL"/>
+  </joint>
+  <link name="DMShelfW100_PBKHROIL">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH160T5L10W/ShelfSystemH160T5L10W.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH160T5L10W/ShelfSystemH160T5L10W.obj"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfW100_BHVSONZL" type="fixed">
+    <origin rpy="0.0 -0.0 3.11759380549" xyz="0.765 -1.373 0.8"/>
+    <parent link="store_root"/>
+    <child link="DMShelfW100_BHVSONZL"/>
+  </joint>
+  <link name="DMShelfW100_BHVSONZL">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH160T5L10W/ShelfSystemH160T5L10W.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH160T5L10W/ShelfSystemH160T5L10W.obj"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfW120_MITXEWPH" type="fixed">
+    <origin rpy="0.0 -0.0 1.57079632679" xyz="-2.618 -0.945 1.0"/>
+    <parent link="store_root"/>
+    <child link="DMShelfW120_MITXEWPH"/>
+  </joint>
+  <link name="DMShelfW120_MITXEWPH">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T6L12W/ShelfSystemH200T6L12W.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T6L12W/ShelfSystemH200T6L12W.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfW100_OFRJKDQX" type="fixed">
+    <origin rpy="0.0 0.0 -1.58211162332" xyz="4.445 -2.852 0.9"/>
+    <parent link="store_root"/>
+    <child link="DMShelfW100_OFRJKDQX"/>
+  </joint>
+  <link name="DMShelfW100_OFRJKDQX">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH180T510W/SM_ShelfSystemH180T5L10W.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH180T510W/SM_ShelfSystemH180T5L10W.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfW100_EVZDYXFU" type="fixed">
+    <origin rpy="0.0 -0.0 3.0975997502" xyz="1.762 -1.452 0.8"/>
+    <parent link="store_root"/>
+    <child link="DMShelfW100_EVZDYXFU"/>
+  </joint>
+  <link name="DMShelfW100_EVZDYXFU">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH160T5L10W/ShelfSystemH160T5L10W.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH160T5L10W/ShelfSystemH160T5L10W.obj"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMBFloorT5W100_ONQURYKP" type="fixed">
+    <origin rpy="0.0 -0.0 0.0" xyz="0.0 -0.08 -0.677"/>
+    <parent link="DMShelfW100_EVZDYXFU"/>
+    <child link="DMBFloorT5W100_ONQURYKP"/>
+  </joint>
+  <link name="DMBFloorT5W100_ONQURYKP">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10_Bottom/ShelfLayer5TilesL10_Bottom.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer5TilesL10_Bottom/ShelfLayer5TilesL10_Bottom.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_ZNDTMIXV" type="fixed">
+    <origin rpy="0.0 -0.0 0.0" xyz="-0.499 -0.04 0.04"/>
+    <parent link="DMBFloorT5W100_ONQURYKP"/>
+    <child link="DMShelfSeparator4Tiles_ZNDTMIXV"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_ZNDTMIXV">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_GLXTQHEJ" type="fixed">
+    <origin rpy="0.0 -0.0 0.0" xyz="-0.242 -0.04 0.04"/>
+    <parent link="DMBFloorT5W100_ONQURYKP"/>
+    <child link="DMShelfSeparator4Tiles_GLXTQHEJ"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_GLXTQHEJ">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_MYGPJCHS" type="fixed">
+    <origin rpy="0.0 -0.0 0.0" xyz="-0.063 -0.04 0.04"/>
+    <parent link="DMBFloorT5W100_ONQURYKP"/>
+    <child link="DMShelfSeparator4Tiles_MYGPJCHS"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_MYGPJCHS">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_VLRNUWFJ" type="fixed">
+    <origin rpy="0.0 -0.0 0.0" xyz="0.051 -0.04 0.04"/>
+    <parent link="DMBFloorT5W100_ONQURYKP"/>
+    <child link="DMShelfSeparator4Tiles_VLRNUWFJ"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_VLRNUWFJ">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_VCIFGWDN" type="fixed">
+    <origin rpy="0.0 -0.0 0.0" xyz="0.16 -0.04 0.04"/>
+    <parent link="DMBFloorT5W100_ONQURYKP"/>
+    <child link="DMShelfSeparator4Tiles_VCIFGWDN"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_VCIFGWDN">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_RESJOKQP" type="fixed">
+    <origin rpy="0.0 -0.0 0.0" xyz="0.287 -0.04 0.04"/>
+    <parent link="DMBFloorT5W100_ONQURYKP"/>
+    <child link="DMShelfSeparator4Tiles_RESJOKQP"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_RESJOKQP">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_YSUXHEQN" type="fixed">
+    <origin rpy="0.0 -0.0 0.0" xyz="0.37 -0.04 0.04"/>
+    <parent link="DMBFloorT5W100_ONQURYKP"/>
+    <child link="DMShelfSeparator4Tiles_YSUXHEQN"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_YSUXHEQN">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_EFSOZKYR" type="fixed">
+    <origin rpy="0.0 -0.0 0.0" xyz="0.499 -0.04 0.04"/>
+    <parent link="DMBFloorT5W100_ONQURYKP"/>
+    <child link="DMShelfSeparator4Tiles_EFSOZKYR"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_EFSOZKYR">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMFloorT4W100_PVEGRZCU" type="fixed">
+    <origin rpy="0.0 -0.0 0.0" xyz="0.0 0.01 -0.457"/>
+    <parent link="DMShelfW100_EVZDYXFU"/>
+    <child link="DMFloorT4W100_PVEGRZCU"/>
+  </joint>
+  <link name="DMFloorT4W100_PVEGRZCU">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.obj"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_XWMDLRIY" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="-0.499 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_PVEGRZCU"/>
+    <child link="DMShelfSeparator4Tiles_XWMDLRIY"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_XWMDLRIY">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_LUHERIYM" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="-0.291 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_PVEGRZCU"/>
+    <child link="DMShelfSeparator4Tiles_LUHERIYM"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_LUHERIYM">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_IJXVHZWC" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="-0.218 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_PVEGRZCU"/>
+    <child link="DMShelfSeparator4Tiles_IJXVHZWC"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_IJXVHZWC">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_ZUPJCNDI" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="-0.14 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_PVEGRZCU"/>
+    <child link="DMShelfSeparator4Tiles_ZUPJCNDI"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_ZUPJCNDI">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_RMXPOGSY" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="-0.058 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_PVEGRZCU"/>
+    <child link="DMShelfSeparator4Tiles_RMXPOGSY"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_RMXPOGSY">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_NJWOHLIG" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="0.02 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_PVEGRZCU"/>
+    <child link="DMShelfSeparator4Tiles_NJWOHLIG"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_NJWOHLIG">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_WGFYQPVD" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="0.108 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_PVEGRZCU"/>
+    <child link="DMShelfSeparator4Tiles_WGFYQPVD"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_WGFYQPVD">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_XZOCPMFQ" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="0.217 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_PVEGRZCU"/>
+    <child link="DMShelfSeparator4Tiles_XZOCPMFQ"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_XZOCPMFQ">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_CZHKFYOE" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="0.314 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_PVEGRZCU"/>
+    <child link="DMShelfSeparator4Tiles_CZHKFYOE"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_CZHKFYOE">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_WGCRPKDE" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="0.424 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_PVEGRZCU"/>
+    <child link="DMShelfSeparator4Tiles_WGCRPKDE"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_WGCRPKDE">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_VRZPILGT" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="0.499 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_PVEGRZCU"/>
+    <child link="DMShelfSeparator4Tiles_VRZPILGT"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_VRZPILGT">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMFloorT4W100_FOMPWXVU" type="fixed">
+    <origin rpy="0.0 -0.0 0.0" xyz="0.0 0.01 -0.206"/>
+    <parent link="DMShelfW100_EVZDYXFU"/>
+    <child link="DMFloorT4W100_FOMPWXVU"/>
+  </joint>
+  <link name="DMFloorT4W100_FOMPWXVU">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.obj"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_TKRZCJBS" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="-0.499 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_FOMPWXVU"/>
+    <child link="DMShelfSeparator4Tiles_TKRZCJBS"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_TKRZCJBS">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_KWUFIODG" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="-0.365 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_FOMPWXVU"/>
+    <child link="DMShelfSeparator4Tiles_KWUFIODG"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_KWUFIODG">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_DMFOIHJW" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="-0.246 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_FOMPWXVU"/>
+    <child link="DMShelfSeparator4Tiles_DMFOIHJW"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_DMFOIHJW">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_TEGFBDMK" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="-0.154 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_FOMPWXVU"/>
+    <child link="DMShelfSeparator4Tiles_TEGFBDMK"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_TEGFBDMK">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_TXFWZLCO" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="-0.063 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_FOMPWXVU"/>
+    <child link="DMShelfSeparator4Tiles_TXFWZLCO"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_TXFWZLCO">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_ZLFRWIKQ" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="0.022 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_FOMPWXVU"/>
+    <child link="DMShelfSeparator4Tiles_ZLFRWIKQ"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_ZLFRWIKQ">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_OJDFZEHX" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="0.123 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_FOMPWXVU"/>
+    <child link="DMShelfSeparator4Tiles_OJDFZEHX"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_OJDFZEHX">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_UXPRGLTI" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="0.225 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_FOMPWXVU"/>
+    <child link="DMShelfSeparator4Tiles_UXPRGLTI"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_UXPRGLTI">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_HORZXISW" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="0.323 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_FOMPWXVU"/>
+    <child link="DMShelfSeparator4Tiles_HORZXISW"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_HORZXISW">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_EWJNVDOP" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="0.409 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_FOMPWXVU"/>
+    <child link="DMShelfSeparator4Tiles_EWJNVDOP"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_EWJNVDOP">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_WQDTUEHS" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="0.499 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_FOMPWXVU"/>
+    <child link="DMShelfSeparator4Tiles_WQDTUEHS"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_WQDTUEHS">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMFloorT4W100_ZMIYURLQ" type="fixed">
+    <origin rpy="0.0 -0.0 0.0" xyz="0.0 0.01 0.045"/>
+    <parent link="DMShelfW100_EVZDYXFU"/>
+    <child link="DMFloorT4W100_ZMIYURLQ"/>
+  </joint>
+  <link name="DMFloorT4W100_ZMIYURLQ">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.obj"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_LWSPNOKQ" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="-0.499 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_ZMIYURLQ"/>
+    <child link="DMShelfSeparator4Tiles_LWSPNOKQ"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_LWSPNOKQ">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_NFMWKPXS" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="-0.413 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_ZMIYURLQ"/>
+    <child link="DMShelfSeparator4Tiles_NFMWKPXS"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_NFMWKPXS">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_CNBEZJHK" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="-0.334 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_ZMIYURLQ"/>
+    <child link="DMShelfSeparator4Tiles_CNBEZJHK"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_CNBEZJHK">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_MXEKHBIT" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="-0.259 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_ZMIYURLQ"/>
+    <child link="DMShelfSeparator4Tiles_MXEKHBIT"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_MXEKHBIT">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_SLYOMNVJ" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="-0.153 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_ZMIYURLQ"/>
+    <child link="DMShelfSeparator4Tiles_SLYOMNVJ"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_SLYOMNVJ">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_YDHJWCZT" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="-0.059 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_ZMIYURLQ"/>
+    <child link="DMShelfSeparator4Tiles_YDHJWCZT"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_YDHJWCZT">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_CRIJBWOK" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="0.188 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_ZMIYURLQ"/>
+    <child link="DMShelfSeparator4Tiles_CRIJBWOK"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_CRIJBWOK">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_GYULBEQD" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="0.276 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_ZMIYURLQ"/>
+    <child link="DMShelfSeparator4Tiles_GYULBEQD"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_GYULBEQD">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_JDBTLFEO" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="0.363 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_ZMIYURLQ"/>
+    <child link="DMShelfSeparator4Tiles_JDBTLFEO"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_JDBTLFEO">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_FXGTYNUK" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="0.444 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_ZMIYURLQ"/>
+    <child link="DMShelfSeparator4Tiles_FXGTYNUK"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_FXGTYNUK">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_FOTGPCNL" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="0.499 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_ZMIYURLQ"/>
+    <child link="DMShelfSeparator4Tiles_FOTGPCNL"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_FOTGPCNL">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMFloorT4W100_IREUNPZL" type="fixed">
+    <origin rpy="0.0 -0.0 0.0" xyz="0.0 0.01 0.343"/>
+    <parent link="DMShelfW100_EVZDYXFU"/>
+    <child link="DMFloorT4W100_IREUNPZL"/>
+  </joint>
+  <link name="DMFloorT4W100_IREUNPZL">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer4TilesL10/ShelfLayer4TilesL10.obj"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_KPDVOYCU" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="-0.499 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_IREUNPZL"/>
+    <child link="DMShelfSeparator4Tiles_KPDVOYCU"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_KPDVOYCU">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_GXQSDYFL" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="-0.386 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_IREUNPZL"/>
+    <child link="DMShelfSeparator4Tiles_GXQSDYFL"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_GXQSDYFL">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_DCZLONYQ" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="-0.301 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_IREUNPZL"/>
+    <child link="DMShelfSeparator4Tiles_DCZLONYQ"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_DCZLONYQ">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_YRJNOUQT" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="-0.205 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_IREUNPZL"/>
+    <child link="DMShelfSeparator4Tiles_YRJNOUQT"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_YRJNOUQT">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_PXOWLNYM" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="-0.104 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_IREUNPZL"/>
+    <child link="DMShelfSeparator4Tiles_PXOWLNYM"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_PXOWLNYM">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_QEZUBCTJ" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="-0.016 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_IREUNPZL"/>
+    <child link="DMShelfSeparator4Tiles_QEZUBCTJ"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_QEZUBCTJ">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_ZUKQCJVX" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="0.075 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_IREUNPZL"/>
+    <child link="DMShelfSeparator4Tiles_ZUKQCJVX"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_ZUKQCJVX">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_HGENLXTZ" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="0.175 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_IREUNPZL"/>
+    <child link="DMShelfSeparator4Tiles_HGENLXTZ"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_HGENLXTZ">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_YTKLOXHS" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="0.256 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_IREUNPZL"/>
+    <child link="DMShelfSeparator4Tiles_YTKLOXHS"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_YTKLOXHS">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_EOBVFQIZ" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="0.345 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_IREUNPZL"/>
+    <child link="DMShelfSeparator4Tiles_EOBVFQIZ"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_EOBVFQIZ">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_YKFBNPXI" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="0.434 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_IREUNPZL"/>
+    <child link="DMShelfSeparator4Tiles_YKFBNPXI"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_YKFBNPXI">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_SYUEGBTQ" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="0.486 -0.02 0.095"/>
+    <parent link="DMFloorT4W100_IREUNPZL"/>
+    <child link="DMShelfSeparator4Tiles_SYUEGBTQ"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_SYUEGBTQ">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfW100_OWMRFKQE" type="fixed">
+    <origin rpy="0.0 -0.0 1.53685333429" xyz="-2.64 -2.076 1.0"/>
+    <parent link="store_root"/>
+    <child link="DMShelfW100_OWMRFKQE"/>
+  </joint>
+  <link name="DMShelfW100_OWMRFKQE">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T6L10W/ShelfSystemH200T6L10W.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T6L10W/ShelfSystemH200T6L10W.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfW100_VCLOQHYW" type="fixed">
+    <origin rpy="0.0 0.0 -1.55382360837" xyz="4.307 -0.1 1.0"/>
+    <parent link="store_root"/>
+    <child link="DMShelfW100_VCLOQHYW"/>
+  </joint>
+  <link name="DMShelfW100_VCLOQHYW">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T7L10W/ShelfSystemH200T7L10W.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH200T7L10W/ShelfSystemH200T7L10W.obj"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMBFloorT7W100_DBHZLWSI" type="fixed">
+    <origin rpy="0.0 -0.0 0.0" xyz="0.0 -0.08 -0.825"/>
+    <parent link="DMShelfW100_VCLOQHYW"/>
+    <child link="DMBFloorT7W100_DBHZLWSI"/>
+  </joint>
+  <link name="DMBFloorT7W100_DBHZLWSI">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer7TilesL10_Bottom/ShelfLayer7TilesL10_Bottom.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer7TilesL10_Bottom/ShelfLayer7TilesL10_Bottom.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_RPDWMZVJ" type="fixed">
+    <origin rpy="0.0 -0.0 0.0" xyz="-0.499 -0.15 0.04"/>
+    <parent link="DMBFloorT7W100_DBHZLWSI"/>
+    <child link="DMShelfSeparator4Tiles_RPDWMZVJ"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_RPDWMZVJ">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_EXQGNBYV" type="fixed">
+    <origin rpy="0.0 -0.0 0.0" xyz="-0.372 -0.15 0.04"/>
+    <parent link="DMBFloorT7W100_DBHZLWSI"/>
+    <child link="DMShelfSeparator4Tiles_EXQGNBYV"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_EXQGNBYV">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_ZWLKOGJB" type="fixed">
+    <origin rpy="0.0 -0.0 0.0" xyz="-0.235 -0.15 0.04"/>
+    <parent link="DMBFloorT7W100_DBHZLWSI"/>
+    <child link="DMShelfSeparator4Tiles_ZWLKOGJB"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_ZWLKOGJB">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_LFRVHMWJ" type="fixed">
+    <origin rpy="0.0 -0.0 0.0" xyz="-0.108 -0.15 0.04"/>
+    <parent link="DMBFloorT7W100_DBHZLWSI"/>
+    <child link="DMShelfSeparator4Tiles_LFRVHMWJ"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_LFRVHMWJ">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_FPNWKLVU" type="fixed">
+    <origin rpy="0.0 -0.0 0.0" xyz="0.01 -0.15 0.04"/>
+    <parent link="DMBFloorT7W100_DBHZLWSI"/>
+    <child link="DMShelfSeparator4Tiles_FPNWKLVU"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_FPNWKLVU">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_KULYJDZE" type="fixed">
+    <origin rpy="0.0 -0.0 0.0" xyz="0.144 -0.15 0.04"/>
+    <parent link="DMBFloorT7W100_DBHZLWSI"/>
+    <child link="DMShelfSeparator4Tiles_KULYJDZE"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_KULYJDZE">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_ZRLDPUVO" type="fixed">
+    <origin rpy="0.0 -0.0 0.0" xyz="0.261 -0.15 0.04"/>
+    <parent link="DMBFloorT7W100_DBHZLWSI"/>
+    <child link="DMShelfSeparator4Tiles_ZRLDPUVO"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_ZRLDPUVO">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_RNPGOFYW" type="fixed">
+    <origin rpy="0.0 -0.0 0.0" xyz="0.362 -0.15 0.04"/>
+    <parent link="DMBFloorT7W100_DBHZLWSI"/>
+    <child link="DMShelfSeparator4Tiles_RNPGOFYW"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_RNPGOFYW">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_NYDTGXZF" type="fixed">
+    <origin rpy="0.0 -0.0 0.0" xyz="0.499 -0.15 0.04"/>
+    <parent link="DMBFloorT7W100_DBHZLWSI"/>
+    <child link="DMShelfSeparator4Tiles_NYDTGXZF"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_NYDTGXZF">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMFloorT6W100_VWMPNKRX" type="fixed">
+    <origin rpy="0.0 -0.0 0.0" xyz="0.0 0.0 -0.547"/>
+    <parent link="DMShelfW100_VCLOQHYW"/>
+    <child link="DMFloorT6W100_VWMPNKRX"/>
+  </joint>
+  <link name="DMFloorT6W100_VWMPNKRX">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.obj"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_CZBXTDHO" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="-0.499 -0.125 0.115"/>
+    <parent link="DMFloorT6W100_VWMPNKRX"/>
+    <child link="DMShelfSeparator4Tiles_CZBXTDHO"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_CZBXTDHO">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_ZGQBIREW" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="-0.372 -0.125 0.115"/>
+    <parent link="DMFloorT6W100_VWMPNKRX"/>
+    <child link="DMShelfSeparator4Tiles_ZGQBIREW"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_ZGQBIREW">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_WOXMLCIP" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="-0.228 -0.125 0.115"/>
+    <parent link="DMFloorT6W100_VWMPNKRX"/>
+    <child link="DMShelfSeparator4Tiles_WOXMLCIP"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_WOXMLCIP">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_NJBURLCM" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="-0.166 -0.125 0.115"/>
+    <parent link="DMFloorT6W100_VWMPNKRX"/>
+    <child link="DMShelfSeparator4Tiles_NJBURLCM"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_NJBURLCM">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_SERPCKVW" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="0.002 -0.125 0.115"/>
+    <parent link="DMFloorT6W100_VWMPNKRX"/>
+    <child link="DMShelfSeparator4Tiles_SERPCKVW"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_SERPCKVW">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_ZKTYNECX" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="0.104 -0.125 0.115"/>
+    <parent link="DMFloorT6W100_VWMPNKRX"/>
+    <child link="DMShelfSeparator4Tiles_ZKTYNECX"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_ZKTYNECX">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_WZCGHRKQ" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="0.273 -0.125 0.115"/>
+    <parent link="DMFloorT6W100_VWMPNKRX"/>
+    <child link="DMShelfSeparator4Tiles_WZCGHRKQ"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_WZCGHRKQ">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_PDCROMBU" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="0.376 -0.125 0.115"/>
+    <parent link="DMFloorT6W100_VWMPNKRX"/>
+    <child link="DMShelfSeparator4Tiles_PDCROMBU"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_PDCROMBU">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_WNVXPQLT" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="0.499 -0.125 0.115"/>
+    <parent link="DMFloorT6W100_VWMPNKRX"/>
+    <child link="DMShelfSeparator4Tiles_WNVXPQLT"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_WNVXPQLT">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMFloorT6W100_YVLKGJSB" type="fixed">
+    <origin rpy="0.0 -0.0 0.0" xyz="0.0 0.0 -0.21"/>
+    <parent link="DMShelfW100_VCLOQHYW"/>
+    <child link="DMFloorT6W100_YVLKGJSB"/>
+  </joint>
+  <link name="DMFloorT6W100_YVLKGJSB">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.obj"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_JSRGMDEN" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="-0.499 -0.125 0.115"/>
+    <parent link="DMFloorT6W100_YVLKGJSB"/>
+    <child link="DMShelfSeparator4Tiles_JSRGMDEN"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_JSRGMDEN">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_DCSHWKVX" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="-0.349 -0.125 0.115"/>
+    <parent link="DMFloorT6W100_YVLKGJSB"/>
+    <child link="DMShelfSeparator4Tiles_DCSHWKVX"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_DCSHWKVX">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_CNKLJPIS" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="-0.149 -0.125 0.115"/>
+    <parent link="DMFloorT6W100_YVLKGJSB"/>
+    <child link="DMShelfSeparator4Tiles_CNKLJPIS"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_CNKLJPIS">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_XPIZGMBS" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="0.02 -0.125 0.115"/>
+    <parent link="DMFloorT6W100_YVLKGJSB"/>
+    <child link="DMShelfSeparator4Tiles_XPIZGMBS"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_XPIZGMBS">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_SYFDCZLH" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="0.213 -0.125 0.115"/>
+    <parent link="DMFloorT6W100_YVLKGJSB"/>
+    <child link="DMShelfSeparator4Tiles_SYFDCZLH"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_SYFDCZLH">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_SXJHFDVP" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="0.34 -0.125 0.115"/>
+    <parent link="DMFloorT6W100_YVLKGJSB"/>
+    <child link="DMShelfSeparator4Tiles_SXJHFDVP"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_SXJHFDVP">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_FNHPSJUO" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="0.499 -0.125 0.115"/>
+    <parent link="DMFloorT6W100_YVLKGJSB"/>
+    <child link="DMShelfSeparator4Tiles_FNHPSJUO"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_FNHPSJUO">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMFloorT6W100_JSWRNKVI" type="fixed">
+    <origin rpy="0.0 -0.0 0.0" xyz="0.0 0.0 0.165"/>
+    <parent link="DMShelfW100_VCLOQHYW"/>
+    <child link="DMFloorT6W100_JSWRNKVI"/>
+  </joint>
+  <link name="DMFloorT6W100_JSWRNKVI">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfLayer6TilesL10/ShelfLayer6TilesL10.obj"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_BSCPWJUG" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="-0.499 -0.125 0.115"/>
+    <parent link="DMFloorT6W100_JSWRNKVI"/>
+    <child link="DMShelfSeparator4Tiles_BSCPWJUG"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_BSCPWJUG">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_TVEWSYDO" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="-0.313 -0.125 0.115"/>
+    <parent link="DMFloorT6W100_JSWRNKVI"/>
+    <child link="DMShelfSeparator4Tiles_TVEWSYDO"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_TVEWSYDO">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_FWJRMVGX" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="-0.205 -0.125 0.115"/>
+    <parent link="DMFloorT6W100_JSWRNKVI"/>
+    <child link="DMShelfSeparator4Tiles_FWJRMVGX"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_FWJRMVGX">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_NGFCBQVK" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="0.06 -0.125 0.115"/>
+    <parent link="DMFloorT6W100_JSWRNKVI"/>
+    <child link="DMShelfSeparator4Tiles_NGFCBQVK"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_NGFCBQVK">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_KDBYJRFT" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="0.305 -0.125 0.115"/>
+    <parent link="DMFloorT6W100_JSWRNKVI"/>
+    <child link="DMShelfSeparator4Tiles_KDBYJRFT"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_KDBYJRFT">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_MNIRJKYB" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="0.459 -0.125 0.115"/>
+    <parent link="DMFloorT6W100_JSWRNKVI"/>
+    <child link="DMShelfSeparator4Tiles_MNIRJKYB"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_MNIRJKYB">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfSeparator4Tiles_ZUOEGNCW" type="fixed">
+    <origin rpy="-0.0199993333733 0.0 0.0" xyz="0.499 -0.125 0.115"/>
+    <parent link="DMFloorT6W100_JSWRNKVI"/>
+    <child link="DMShelfSeparator4Tiles_ZUOEGNCW"/>
+  </joint>
+  <link name="DMShelfSeparator4Tiles_ZUOEGNCW">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSeparator/SM_ShelfSeparator.dae"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfW100_VBSYRLMF" type="fixed">
+    <origin rpy="0.0 0.0 -0.0419938276331" xyz="1.761 -2.152 0.8"/>
+    <parent link="store_root"/>
+    <child link="DMShelfW100_VBSYRLMF"/>
+  </joint>
+  <link name="DMShelfW100_VBSYRLMF">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH160T5L10W/ShelfSystemH160T5L10W.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH160T5L10W/ShelfSystemH160T5L10W.obj"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfW100_JGPUBFOQ" type="fixed">
+    <origin rpy="0.0 0.0 -0.0479907871837" xyz="0.779 -2.15 0.8"/>
+    <parent link="store_root"/>
+    <child link="DMShelfW100_JGPUBFOQ"/>
+  </joint>
+  <link name="DMShelfW100_JGPUBFOQ">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH160T5L10W/ShelfSystemH160T5L10W.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH160T5L10W/ShelfSystemH160T5L10W.obj"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="DMShelfW100_EXSJOHQU" type="fixed">
+    <origin rpy="0.0 0.0 -0.0339967252345" xyz="-0.24 -2.137 0.8"/>
+    <parent link="store_root"/>
+    <child link="DMShelfW100_EXSJOHQU"/>
+  </joint>
+  <link name="DMShelfW100_EXSJOHQU">
+    <visual>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH160T5L10W/ShelfSystemH160T5L10W.dae"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://refills_models/shelf_models/ShelfSystemH160T5L10W/ShelfSystemH160T5L10W.obj"/>
+      </geometry>
+    </collision>
+  </link>
+</robot>

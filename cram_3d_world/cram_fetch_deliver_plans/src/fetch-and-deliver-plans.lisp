@@ -214,8 +214,8 @@ if yes, relocate and retry, if no collisions, open or close container."
 If the object is not there or navigation location is unreachable,
 retries with different search location or robot base location."
 
-  (desig:reset ?search-location)
-  (desig:reset ?robot-location)
+  (setf ?search-location (desig:reset ?search-location))
+  (setf ?robot-location (desig:reset ?robot-location))
 
   (cpl:with-failure-handling
       ((desig:designator-error (e)
@@ -326,8 +326,8 @@ one of arms in the `?arms' lazy list (if not NIL) and one of grasps in `?grasps'
 while standing at `?pick-up-robot-location'
 and using the grasp and arm specified in `pick-up-action' (if not NIL)."
 
-  (desig:reset ?look-location)
-  (desig:reset ?pick-up-robot-location)
+  (setf ?look-location (desig:reset ?look-location))
+  (setf ?pick-up-robot-location (desig:reset ?pick-up-robot-location))
 
   (cpl:with-failure-handling
       ((desig:designator-error (e)
@@ -343,7 +343,11 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                 common-fail:looking-high-level-failure
                 common-fail:perception-low-level-failure
                 common-fail:object-unreachable
-                common-fail:manipulation-low-level-failure) (e)
+                common-fail:manipulation-low-level-failure
+                desig:designator-error) (e)
+             (setf ?pick-up-robot-location
+                   (desig:reset ?pick-up-robot-location))
+             (desig:reference ?pick-up-robot-location)
              (common-fail:retry-with-loc-designator-solutions
                  ?pick-up-robot-location
                  relocation-for-ik-retries
@@ -374,7 +378,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                        (desig:when (eql object-hand :right)
                          (right-configuration hand-over))
                        (goal ?goal)))
-            (desig:reset ?look-location)))
+            (setf ?look-location (desig:reset ?look-location))))
 
         (let (;; (?goal `(cpoe:looking-at ,?look-location))
               )
@@ -505,8 +509,8 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
 and the robot should stand at `?target-robot-location' when placing the object.
 If a failure happens, try a different `?target-location' or `?target-robot-location'."
 
-  (desig:reset ?target-location)
-  (desig:reset ?target-robot-location)
+  (setf ?target-location (desig:reset ?target-location))
+  (setf ?target-robot-location (desig:reset ?target-robot-location))
 
   ;; Reference the `?target-location' to see if that works at all
   ;; If not, delivering is impossible so throw a OBJECT-UNDERLIVERABLE failure
@@ -561,6 +565,9 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                   (((or common-fail:looking-high-level-failure
                         common-fail:object-unreachable
                         common-fail:high-level-failure) (e)
+                     (roslisp:ros-warn (fd-plans deliver)
+                                       "target-location-retries ~A~%"
+                                       (cpl:get-counter target-location-retries))
                      (common-fail:retry-with-loc-designator-solutions
                          ?target-location
                          target-location-retries
@@ -587,7 +594,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                                (desig:when (eql target-hand :right)
                                  (right-configuration hand-over))
                                (goal ?goal)))
-                    (desig:reset ?target-location)))
+                    (setf ?target-location (desig:reset ?target-location))))
 
                 ;; look
                 (let (;; (?goal `(cpoe:looking-at ,?target-location))

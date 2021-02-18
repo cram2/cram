@@ -46,13 +46,29 @@
     (lisp-fun cl-urdf:name ?joint ?joint-name)
     (btr:joint-state ?world ?btr-environment ?joint-name ?joint-state)
     (or (and (lisp-type ?distance number)
-             (lisp-pred cram-tf:values-converged ?joint-state ?distance ?delta))
+             (lisp-fun clip-absolute-distance ?container-name ?btr-environment ?distance
+                       ?clipped-distance)
+             (lisp-pred cram-tf:values-converged ?joint-state ?clipped-distance ?delta))
         (and (member ?distance (:open :closed))
              (lisp-fun cl-urdf:limits ?joint ?joint-limits)
              (lisp-fun cl-urdf:lower ?joint-limits ?lower-limit)
              (lisp-fun cl-urdf:upper ?joint-limits ?upper-limit)
              (-> (equal ?distance :open)
+                 (not (lisp-pred cram-tf:values-converged
+                                 ?joint-state ?lower-limit ?delta))
                  (lisp-pred cram-tf:values-converged
-                            ?joint-state ?upper-limit ?delta)
-                 (lisp-pred cram-tf:values-converged
-                            ?joint-state ?lower-limit ?delta))))))
+                                 ?joint-state ?lower-limit ?delta))))))
+
+(defun clip-absolute-distance (container-name btr-environment distance)
+  (declare (type (or string symbol) container-name)
+           (type keyword btr-environment)
+           (type number distance))
+  (let ((joint-limits
+          (cl-urdf:limits
+           (get-connecting-joint
+            (get-container-link container-name btr-environment)))))
+    (if (< distance (cl-urdf:lower joint-limits))
+        (cl-urdf:lower joint-limits)
+        (if (> distance (cl-urdf:upper joint-limits))
+            (cl-urdf:upper joint-limits)
+            distance))))

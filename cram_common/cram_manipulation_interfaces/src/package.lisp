@@ -46,6 +46,7 @@
    #:object-rotationally-symmetric
    #:orientation-matters
    #:unidirectional-attachment
+   #:object-tf-prefix
    #:location-always-reachable
    #:object-is-a-robot
    #:object-is-a-container
@@ -116,6 +117,8 @@
    #:*rotation-around-x+90-matrix*
    #:*rotation-around-z-180-and-x+90-matrix*
    #:*identity-matrix*
+   #:*rotation-around-x-180-matrix*
+   #:*rotation-around-y-180-matrix*
    #:*rotation-around-x+90-list*
    #:*rotation-around-x-90-list*
    #:*rotation-around-y+90-list*
