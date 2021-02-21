@@ -201,19 +201,16 @@
              (not *projection-reasoning-enabled*))
          (progn
            ,@body)
-         (let* (,paths
-                (world btr:*current-bullet-world*)
-                (world-state (btr::get-state world)))
+         (let* (,paths)
            (time
             (unwind-protect
-                 (proj:with-projection-environment urdf-proj:urdf-bullet-projection-environment
-                   (cpl:with-tags
-                     ,@(loop for i to (1- number-of-runs)
-                             collecting
-                             (let ((task-variable (gensym "PREDICTION-TASK-")))
-                               `(progn
+                 (cpl:with-tags
+                   ,@(loop for i to (1- number-of-runs)
+                           collecting
+                           (let ((task-variable (gensym "PREDICTION-TASK-")))
+                             `(progn
+                                (urdf-proj:with-prospection
                                   (:tag ,task-variable
-                                    (btr::restore-world-state world-state world)
                                     (cram-bullet-reasoning-belief-state::set-tf-from-bullet)
                                     (cpl:with-failure-handling
                                         ((cpl:plan-failure (e)
@@ -222,8 +219,7 @@
                                             "PROJECTION RUN HAD A FAILURE...~%~a~%" e)
                                            (return)))
                                       ,@body))
-                                  (push (cpl:task-path ,task-variable) ,paths))))))
-              (btr::restore-world-state world-state world)))
+                                  (push (cpl:task-path ,task-variable) ,paths))))))))
            (destructuring-bind ,designators
                (time (funcall ,cost-function ,paths))
              ,@body)))))
