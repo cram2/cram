@@ -131,7 +131,7 @@
 
 (defun send-query-1 (query)
   (print query)
-  (print (json-prolog:prolog-simple-1 query)))
+  (json-prolog:prolog-simple-1 query))
 
 (defun get-url-from-send-query-1 (url-parameter query-name &rest query-parameters)
   (let* ((query (create-query query-name query-parameters))
