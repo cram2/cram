@@ -36,6 +36,8 @@
 (defvar *current-costmap-sample* nil "A red sphere for visualizing costmap samples.")
 (defvar *vis-axes* nil "An associative list of ((ID . (X Y Z)) ...) couples,
 storing axes of a coordinate frame for visualizing poses.")
+(defparameter *vis-axis-width* 0.01 "In meters")
+(defparameter *vis-axis-alpha* 1.0 "Color alpha value of frame visualization.")
 (defparameter *costmap-z* 0.005)
 (defparameter *costmap-tilt* (cl-transforms:make-quaternion 0 0 0 1))
 
@@ -150,18 +152,20 @@ storing axes of a coordinate frame for visualizing poses.")
         (push *current-costmap-sample* (gl-objects *debug-window*))))))
 
 
-(defgeneric add-vis-axis-object (object-or-pose &key length id)
+(defgeneric add-vis-axis-object (object-or-pose &key length width id)
   (:documentation "Spawn a coordinate frame at a given pose or at btr:object origin.
 It is built from 3 rigid bodies of primitive box shape.
 `Length' specified the length of a single axis.
 `Id' can be used if one wants to visualize multiple frames at the same time.")
 
-  (:method ((object-name symbol) &key (length 0.30) (id 0))
+  (:method ((object-name symbol)
+            &key (length 0.30) (width *vis-axis-width*) (id 0))
     (add-vis-axis-object
      (pose (btr:object *current-bullet-world* object-name))
-     :length length :id id))
+     :length length :width width :id id))
 
-  (:method ((pose cl-transforms:pose) &key (length 0.30) (id 0))
+  (:method ((pose cl-transforms:pose)
+            &key (length 0.30) (width *vis-axis-width*) (id 0))
     (sb-thread:with-mutex (*debug-window-lock*)
       (when (and *vis-axes* *debug-window* (assoc id *vis-axes*))
         (setf (gl-objects *debug-window*)
@@ -171,6 +175,7 @@ It is built from 3 rigid bodies of primitive box shape.
                       :initial-value (gl-objects *debug-window*))))
 
       (let ((length/2 (/ length 2))
+            (width/2 (/ width 2))
             (object-transform (cl-transforms:pose->transform pose)))
 
         ;; spawn the objects
@@ -192,16 +197,16 @@ It is built from 3 rigid bodies of primitive box shape.
           (let ((new-axes-list
                   (list (make-axis-rigid-body
                          `(,length/2 0 0)
-                         `(,length/2 0.01 0.01)
-                         '(0.5 0 0 0.5))
+                         `(,length/2 ,width/2 ,width/2)
+                         `(0.5 0 0 ,*vis-axis-alpha*))
                         (make-axis-rigid-body
                          `(0 ,length/2 0)
-                         `(0.01 ,length/2 0.01)
-                         '(0 0.5 0 0.5))
+                         `(,width/2 ,length/2 ,width/2)
+                         `(0 0.5 0 ,*vis-axis-alpha*))
                         (make-axis-rigid-body
                          `(0 0 ,length/2)
-                         `(0.01 0.01 ,length/2)
-                         '(0 0 0.5 0.5)))))
+                         `(,width/2 ,width/2 ,length/2)
+                         `(0 0 0.5 ,*vis-axis-alpha*)))))
             (if (assoc id *vis-axes*)
                 (rplacd (assoc id *vis-axes*) new-axes-list)
                 (push (cons id new-axes-list) *vis-axes*))))
