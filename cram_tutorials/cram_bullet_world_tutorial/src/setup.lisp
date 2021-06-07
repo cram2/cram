@@ -33,20 +33,8 @@
 ;; roslaunch cram_bullet_world_tutorial world.launch
 
 (defun init-projection ()
-  (def-fact-group costmap-metadata ()
-    (<- (costmap:costmap-size :iai-kitchen 12 12))
-    (<- (costmap:costmap-origin :iai-kitchen -6 -6))
-    (<- (costmap:costmap-resolution :iai-kitchen 0.05))
-
-    (<- (costmap:costmap-padding :pr2 0.2))
-    (<- (costmap:costmap-manipulation-padding :pr2 0.2))
-    (<- (costmap:costmap-in-reach-distance :pr2 0.6))
-    (<- (costmap:costmap-reach-minimal-distance :pr2 0.2)))
-
   (cram-occasions-events:clear-belief)
-
   (setf cram-tf:*tf-default-timeout* 2.0)
-
   (setf prolog:*break-on-lisp-errors* t))
 
 (roslisp-utilities:register-ros-init-function init-projection)
