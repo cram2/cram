@@ -41,21 +41,11 @@
         do (progn
              (print "Start")
              (print (ccl::get-timestamp-for-logging))
-             (ccl::start-episode)
+             ;;(ccl::start-episode)
 
              ;; (demos::retail-demo)
              (urdf-proj:with-simulated-robot (demo::setting-demo '(:bowl)))
-             ;;(urdf-proj:with-simulated-robot
-             ;;  (cpl:with-failure-handling
-             ;;      ((condition (e)
-             ;;         (print e)
-             ;;         (return)))
-             ;;    (demo::setting-demo '(:milk)))
-             (ccl::stop-episode)
-             ;;(print "End"))))
              ;;(ccl::stop-episode)
-             ;;(print "End"))))
-             (ccl::stop-episode)
              (print (ccl::get-timestamp-for-logging))
              (print "End")))
   (ccl::finish-logging))
