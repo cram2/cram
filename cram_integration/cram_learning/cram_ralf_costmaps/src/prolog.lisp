@@ -52,7 +52,7 @@
              ;; (spec:property ?object-designator (:part-of ?btr-environment))
              ;; (spec:property ?designator (:arm ?arm))
              (lisp-fun calculate-learned-mean-and-covariance
-                       ?container-name nil
+                       ?environment-name ?location-type ?container-name nil
                        (?learned-mean ?learned-covariance))
              (lisp-pred identity ?learned-mean)
              (costmap:costmap-add-function
