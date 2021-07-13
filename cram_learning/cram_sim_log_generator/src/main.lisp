@@ -49,6 +49,7 @@
   (print "Init bullet world")
   (dotimes (n 100)
     (progn (setf ccl::*retry-numbers* 0)
+           (call-reset-world-service (write-to-string n))
            (ccl::start-episode)
            ;; (pr2-pms:with-real-robot (demo::park-robot))
            (pr2-pms:with-real-robot (demo::setting-demo '(:milk)))
@@ -59,7 +60,6 @@
            ;; (pr2-pms:with-real-robot (demo::setting-demo '(:spoon :bowl :milk)))
            (setf *main-result* (push ccl::*retry-numbers* *main-result*))
            (ccl::stop-episode)
-           (call-reset-world-service (write-to-string n))
            (sleep 2)))
   (print *main-result*)
   ;;      do (progn
