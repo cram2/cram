@@ -64,20 +64,20 @@
                    ;;   (make-align-planes-constraint
                    ;;    pose-base-frame
                    ;;    "refills_finger"
-                   ;;    (cl-transforms-stamped:make-vector-stamped
+                   ;;    (cl-transforms-stamped:make-point-stamped
                    ;;     cram-tf:*robot-base-frame* 0.0
                    ;;     (cl-transforms:make-3d-vector 0 0 1))
-                   ;;    (cl-transforms-stamped:make-vector-stamped
+                   ;;    (cl-transforms-stamped:make-point-stamped
                    ;;     cram-tf:*robot-base-frame* 0.0
                    ;;     (cl-transforms:make-3d-vector 0 0 1))))
                    ;; (when align-planes-right
                    ;;   (make-align-planes-constraint
                    ;;    pose-base-frame
                    ;;    "refills_finger"
-                   ;;    (cl-transforms-stamped:make-vector-stamped
+                   ;;    (cl-transforms-stamped:make-point-stamped
                    ;;     cram-tf:*robot-base-frame* 0.0
                    ;;     (cl-transforms:make-3d-vector 0 0 1))
-                   ;;    (cl-transforms-stamped:make-vector-stamped
+                   ;;    (cl-transforms-stamped:make-point-stamped
                    ;;     cram-tf:*robot-base-frame* 0.0
                    ;;     (cl-transforms:make-3d-vector 0 0 1))))
                    (when unmovable-joints
@@ -162,19 +162,19 @@
                  (when align-planes-left
                    (make-align-planes-tool-frame-constraint
                     :left
-                    (cl-transforms-stamped:make-vector-stamped
+                    (cl-transforms-stamped:make-point-stamped
                      cram-tf:*robot-base-frame* 0.0
                      (cl-transforms:make-3d-vector 0 0 1))
-                    (cl-transforms-stamped:make-vector-stamped
+                    (cl-transforms-stamped:make-point-stamped
                      cram-tf:*robot-base-frame* 0.0
                      (cl-transforms:make-3d-vector 0 0 1))))
                  (when align-planes-right
                    (make-align-planes-tool-frame-constraint
                     :right
-                    (cl-transforms-stamped:make-vector-stamped
+                    (cl-transforms-stamped:make-point-stamped
                      cram-tf:*robot-base-frame* 0.0
                      (cl-transforms:make-3d-vector 0 0 1))
-                    (cl-transforms-stamped:make-vector-stamped
+                    (cl-transforms-stamped:make-point-stamped
                      cram-tf:*robot-base-frame* 0.0
                      (cl-transforms:make-3d-vector 0 0 1)))))
    :joint-constraints (list (make-simple-joint-constraint joint-state-left)

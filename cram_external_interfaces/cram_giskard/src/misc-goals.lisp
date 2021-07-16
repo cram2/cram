@@ -36,7 +36,7 @@
                             bar-length
                             root-link)
   (declare (type keyword arm)
-           (type cl-transforms-stamped:vector-stamped
+           (type cl-transforms-stamped:point-stamped
                  tip-grasp-axis bar-axis tip-finger-axis bar-perpendicular-axis)
            (type cl-transforms-stamped:point-stamped bar-center)
            (type string root-link)
@@ -56,7 +56,7 @@
                                 bar-center bar-length
                                 action-timeout)
   (declare (type (or keyword list) arm)
-           (type (or cl-transforms-stamped:vector-stamped null)
+           (type (or cl-transforms-stamped:point-stamped null)
                  tip-grasp-axis bar-axis)
            (type (or cl-transforms-stamped:point-stamped null) bar-center)
            (type (or string null) root-link)
@@ -79,22 +79,22 @@
  (defun call-grasp-fridge-handle-action ()
    (call-grasp-bar-action
     :arm :right
-    :tip-grasp-axis (cl-transforms-stamped:make-vector-stamped
+    :tip-grasp-axis (cl-transforms-stamped:make-point-stamped
                      (ecase arm
                        (:left cram-tf:*robot-left-tool-frame*)
                        (:right cram-tf:*robot-right-tool-frame*))
                      0.0
                      (cl-transforms:make-3d-vector 0 0 1))
-    :tip-finger-axis (cl-transforms-stamped:make-vector-stamped
+    :tip-finger-axis (cl-transforms-stamped:make-point-stamped
                       (ecase arm
                         (:left cram-tf:*robot-left-tool-frame*)
                         (:right cram-tf:*robot-right-tool-frame*))
                       0.0
                       (cl-transforms:make-3d-vector 0 1 0))
-    :bar-axis (cl-transforms-stamped:make-vector-stamped
+    :bar-axis (cl-transforms-stamped:make-point-stamped
                "iai_kitchen/iai_fridge_door_handle" 0.0
                (cl-transforms:make-3d-vector 0 0 -1))
-    :bar-perpendicular-axis (cl-transforms-stamped:make-vector-stamped
+    :bar-perpendicular-axis (cl-transforms-stamped:make-point-stamped
                              "iai_kitchen/iai_fridge_door_handle" 0.0
                              (cl-transforms:make-3d-vector 0 1 0))
     :bar-center (cl-transforms-stamped:make-point-stamped
@@ -106,22 +106,22 @@
  (defun call-grasp-dishwasher-handle-action ()
    (call-grasp-bar-action
     :arm :right
-    :tip-grasp-axis (cl-transforms-stamped:make-vector-stamped
+    :tip-grasp-axis (cl-transforms-stamped:make-point-stamped
                      (ecase arm
                        (:left cram-tf:*robot-left-tool-frame*)
                        (:right cram-tf:*robot-right-tool-frame*))
                      0.0
                      (cl-transforms:make-3d-vector 0 0 1))
-    :tip-finger-axis (cl-transforms-stamped:make-vector-stamped
+    :tip-finger-axis (cl-transforms-stamped:make-point-stamped
                       (ecase arm
                         (:left cram-tf:*robot-left-tool-frame*)
                         (:right cram-tf:*robot-right-tool-frame*))
                       0.0
                       (cl-transforms:make-3d-vector 0 1 0))
-    :bar-axis (cl-transforms-stamped:make-vector-stamped
+    :bar-axis (cl-transforms-stamped:make-point-stamped
                "iai_kitchen/sink_area_dish_washer_door_handle" 0.0
                (cl-transforms:make-3d-vector 0 1 0))
-    :bar-perpendicular-axis (cl-transforms-stamped:make-vector-stamped
+    :bar-perpendicular-axis (cl-transforms-stamped:make-point-stamped
                              "iai_kitchen/sink_area_dish_washer_door_handle" 0.0
                              (cl-transforms:make-3d-vector 0 0 1))
     :bar-center (cl-transforms-stamped:make-point-stamped
@@ -133,22 +133,22 @@
  (defun call-grasp-dishwasher-tray-handle-action ()
    (call-grasp-bar-action
     :arm :right
-    :tip-grasp-axis (cl-transforms-stamped:make-vector-stamped
+    :tip-grasp-axis (cl-transforms-stamped:make-point-stamped
                      (ecase arm
                        (:left cram-tf:*robot-left-tool-frame*)
                        (:right cram-tf:*robot-right-tool-frame*))
                      0.0
                      (cl-transforms:make-3d-vector 0 0 1))
-    :tip-finger-axis (cl-transforms-stamped:make-vector-stamped
+    :tip-finger-axis (cl-transforms-stamped:make-point-stamped
                       (ecase arm
                         (:left cram-tf:*robot-left-tool-frame*)
                         (:right cram-tf:*robot-right-tool-frame*))
                       0.0
                       (cl-transforms:make-3d-vector 0 1 0))
-    :bar-axis (cl-transforms-stamped:make-vector-stamped
+    :bar-axis (cl-transforms-stamped:make-point-stamped
                "iai_kitchen/sink_area_dish_washer_tray_handle_front_side" 0.0
                (cl-transforms:make-3d-vector 0 -1 0))
-    :bar-perpendicular-axis (cl-transforms-stamped:make-vector-stamped
+    :bar-perpendicular-axis (cl-transforms-stamped:make-point-stamped
                              "iai_kitchen/sink_area_dish_washer_tray_handle_front_side" 0.0
                              (cl-transforms:make-3d-vector 0 0 -1))
     :bar-center (cl-transforms-stamped:make-point-stamped
