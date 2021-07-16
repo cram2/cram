@@ -46,17 +46,17 @@
    :constraints (list (make-align-planes-constraint
                        root-link
                        camera-link
-                       (cl-transforms-stamped:make-vector-stamped
+                       (cl-transforms-stamped:make-point-stamped
                         cram-tf:*fixed-frame* 0.0
                         (cl-transforms:make-3d-vector 1 0 0))
-                       (cl-transforms-stamped:make-vector-stamped
+                       (cl-transforms-stamped:make-point-stamped
                         camera-link 0.0
                         (cl-transforms:make-3d-vector 0 -1 0)))
                       (make-pointing-constraint
                        root-link
                        camera-link
                        goal-pose
-                       ;; (cl-transforms-stamped:make-vector-stamped
+                       ;; (cl-transforms-stamped:make-point-stamped
                        ;;  "rs_camera_depth_optical_frame" 0.0
                        ;;  (cl-transforms:make-3d-vector 0 0 1))
                        ))

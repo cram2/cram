@@ -6,7 +6,7 @@
 - git:
     local-name: giskard_msgs
     uri: https://github.com/SemRoCo/giskard_msgs.git
-    version: 5bfb2a2dc0d58635fab4eceaf93a43c2729a4cdf
+    version: b48891230296e332456e517e66fd3861442f511f
 - git:
     local-name: iai_common_msgs
     uri: https://github.com/code-iai/iai_common_msgs.git
