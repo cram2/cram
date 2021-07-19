@@ -159,7 +159,7 @@
 (defun make-align-planes-constraint (root-frame tip-frame root-vector tip-vector
                                      &key avoid-collisions-not-much)
   (declare (type string root-frame tip-frame)
-           (type cl-transforms-stamped:point-stamped root-vector tip-vector))
+           (type cl-transforms-stamped:vector-stamped root-vector tip-vector))
   (roslisp:make-message
    'giskard_msgs-msg:constraint
    :type
@@ -178,7 +178,7 @@
 (defun make-align-planes-tool-frame-constraint (arm root-vector tip-vector
                                                 &key avoid-collisions-not-much)
   (declare (type keyword arm)
-           (type cl-transforms-stamped:point-stamped root-vector tip-vector))
+           (type cl-transforms-stamped:vector-stamped root-vector tip-vector))
   (let ((tool-frame
           (cut:var-value
            '?frame
@@ -195,7 +195,7 @@
                                  &optional pointing-vector)
   (declare (type string root-frame tip-frame)
            (type cl-transforms-stamped:pose-stamped goal-pose)
-           (type (or cl-transforms-stamped:point-stamped null) pointing-vector))
+           (type (or cl-transforms-stamped:vector-stamped null) pointing-vector))
   (roslisp:make-message
    'giskard_msgs-msg:constraint
    :type
@@ -369,7 +369,7 @@
                                                         (max-velocity
                                                          *collision-avoidance-hint-velocity*))
   (declare (type string environment-link)
-           (type cl-transforms-stamped:point-stamped vector)
+           (type cl-transforms-stamped:vector-stamped vector)
            (type number threshold spring-offset max-velocity))
   (let ((base-link
           (cut:var-value

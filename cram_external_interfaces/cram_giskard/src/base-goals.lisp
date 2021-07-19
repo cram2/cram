@@ -60,7 +60,7 @@
                   :max-velocity *base-max-velocity-fast-xy*)
                  (make-base-collision-avoidance-hint-constraint
                   *base-collision-avoidance-hint-link*
-                  (cl-transforms-stamped:make-point-stamped
+                  (cl-transforms-stamped:make-vector-stamped
                    cram-tf:*fixed-frame* 0.0
                    *base-collision-avoidance-hint-vector*))
                  (if (eq base-velocity :slow)
