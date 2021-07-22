@@ -34,7 +34,7 @@ The core packages of CRAM are implemented in Common Lisp (with a little bit of C
 
   * cd ~/workspace/src
   * wstool init
-  * wstool merge https://github.com/sunava/cram/blob/boxy-melodic/cram-18.04.rosinstall
+  *  wstool merge https://raw.githubusercontent.com/sunava/cram/boxy-melodic/cram-18.04.rosinstall
   * wstool update
   * touch iai_maps/iai_dlr_cutting_demo/CATKIN_IGNORE
   * cd ~/workspace/ros
