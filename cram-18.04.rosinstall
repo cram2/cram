@@ -19,3 +19,12 @@
     local-name: genlisp
     uri: https://github.com/ros/genlisp.git
     version: 3ac633abacdf5ab321d23ed013c7d5b7da97736d
+- git:
+    local-name hsr_description
+    url: https://github.com/sunava/hsr_description
+    version: urdf-fix
+- git:
+    local-name: hsr_meshes
+    url: https://github.com/ToyotaResearchInstitute/hsr_meshes.git
+    version: master
+    
