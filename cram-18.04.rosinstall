@@ -2,7 +2,7 @@
 - git:
     local-name: cram
     uri: https://github.com/sunava/cram.git
-    version: master-melodic
+    version: boxy-melodic
 - git:
     local-name: genlisp
     uri: https://github.com/ros/genlisp.git
