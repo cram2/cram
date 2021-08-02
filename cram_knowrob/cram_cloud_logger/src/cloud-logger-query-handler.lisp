@@ -97,9 +97,8 @@
   (let ((cram-episode-name "'NoName'"))
              (when (string-not-equal "'NoName'"cram-episode-name)
                (progn
-                 (print "test"))))
-                 ;;(setf ccl::*episode-name* cram-episode-name)
-                 ;;(stop-episode))))
+                 (setf ccl::*episode-name* cram-episode-name)
+                 (stop-episode))))
   (ccl::clear-detected-objects)
   (setf ccl::*episode-name*
         (get-url-from-send-query-1

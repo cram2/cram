@@ -28,7 +28,7 @@
 
 
 (defun main ()
-  ;;(ros-load:load-system "cram_pr2_description" :cram-pr2-description)
+  (ros-load:load-system "cram_pr2_description" :cram-pr2-description)
   ;;(ros-load:load-system "cram_boxy_description" :cram-boxy-description)
   ;;(setf cram-bullet-reasoning-belief-state:*spawn-debug-window* nil)
   (setf cram-tf:*tf-broadcasting-enabled* t)
@@ -41,11 +41,11 @@
         do (progn
              (print "Start")
              (print (ccl::get-timestamp-for-logging))
-             ;;(ccl::start-episode)
+             (ccl::start-episode)
 
              ;; (demos::retail-demo)
              (urdf-proj:with-simulated-robot (demo::setting-demo '(:bowl)))
-             ;;(ccl::stop-episode)
+             (ccl::stop-episode)
              (print (ccl::get-timestamp-for-logging))
              (print "End")))
   (ccl::finish-logging))
