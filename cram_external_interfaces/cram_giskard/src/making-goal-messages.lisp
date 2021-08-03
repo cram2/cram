@@ -33,7 +33,7 @@
 (defparameter *prefer-base-low-cost* 0.0001)
 (defparameter *avoid-collisions-distance* 0.10 "In cm, not used atm")
 (defparameter *unmovable-joint-weight* 9001)
-(defparameter *collision-avoidance-hint-threshold* 0.35 "In cm")
+(defparameter *collision-avoidance-hint-threshold* 0.4 "In cm")
 (defparameter *collision-avoidance-hint-spring-offset* 0.05 "In m.")
 (defparameter *collision-avoidance-hint-velocity* 1.0 "In m/s")
 
