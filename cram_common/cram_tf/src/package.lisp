@@ -62,6 +62,7 @@
    #:values-converged #:tf-frame-converged #:pose-stampeds-converged
    #:normalize-joint-angles
    #:map-axis-aligned-axis #:map-axis-aligned-orientation #:angle-around-map-z
+   #:pose-dist-gt-threshold
    ;; prolog facts
    #:pose #:pose-stamped #:position #:orientation #:poses-equal
    #:location-pose

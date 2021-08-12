@@ -565,3 +565,14 @@ i.e. that the angles around X and Y are 0."
                      axis-aligned-R-input-angle-normalized
                      (* -1 axis-aligned-R-input-angle-normalized))))
           angle-around-map-positive-Z)))))
+
+(defun pose-dist-gt-threshold (pose threshold)
+  "Checks whether the pose is further away from the robot-current-pose than `threshold'."
+  (declare (type cl-transforms:pose pose)
+           (type number threshold))
+  (assert *fixed-frame* () "cram-tf:*fixed-frame* must be set.")
+  (let ((goal-pose (ensure-pose-in-frame pose cram-tf:*fixed-frame*))
+        (current-pose (robot-current-pose)))
+    (> (cl-transforms:v-dist
+        (cl-transforms:origin current-pose) (cl-transforms:origin goal-pose))
+       threshold)))

@@ -39,6 +39,8 @@
   (cl-transforms:make-3d-vector 0 -1 0))
 (defparameter *base-collision-avoidance-hint-link*
   "kitchen_island" "A link name from the environment URDF.")
+(defparameter *base-collision-avoidance-hint-dist-threshold*
+  1.7 "in meters. Use the collision avoidance hint only for distant goals.")
 (defparameter *base-max-velocity-fast-xy*
   ;; 0.5
   0.25 "In meters/s")
@@ -49,32 +51,36 @@
 (defparameter *base-max-velocity-slow-theta*
   0.07 "In rad/s, about 11.5 deg.")
 
-(defun make-giskard-base-action-goal (pose base-velocity)
+(defun make-giskard-base-action-goal (pose base-velocity &optional (apply-hint T))
   (declare (type cl-transforms-stamped:pose-stamped pose)
            (type (or keyword number null) base-velocity))
-  (make-giskard-goal
-   :constraints (list
-                 (make-cartesian-constraint
-                  cram-tf:*odom-frame* cram-tf:*robot-base-frame* pose
-                  :avoid-collisions-much t
-                  :max-velocity *base-max-velocity-fast-xy*)
-                 (make-base-collision-avoidance-hint-constraint
-                  *base-collision-avoidance-hint-link*
-                  (cl-transforms-stamped:make-vector-stamped
-                   cram-tf:*fixed-frame* 0.0
-                   *base-collision-avoidance-hint-vector*))
-                 (if (eq base-velocity :slow)
-                     (make-base-velocity-constraint
-                      *base-max-velocity-slow-xy* *base-max-velocity-slow-theta*)
-                     (make-base-velocity-constraint
-                      *base-max-velocity-fast-xy* *base-max-velocity-fast-theta*))
-                 (make-head-pointing-constraint
-                  (cl-transforms-stamped:make-pose-stamped
-                   cram-tf:*robot-base-frame* 0.0
-                   (cl-transforms:make-3d-vector 1 0 0)
-                   (cl-transforms:make-identity-rotation))))
-   :joint-constraints (make-current-joint-state-constraint '(:left :right))
-   :collisions (make-avoid-all-collision *base-collision-avoidance-distance*)))
+  (let ((constraints
+          (list
+           (make-cartesian-constraint
+            cram-tf:*odom-frame* cram-tf:*robot-base-frame* pose
+            :avoid-collisions-much t
+            :max-velocity *base-max-velocity-fast-xy*)
+           (if (eq base-velocity :slow)
+               (make-base-velocity-constraint
+                *base-max-velocity-slow-xy* *base-max-velocity-slow-theta*)
+               (make-base-velocity-constraint
+                *base-max-velocity-fast-xy* *base-max-velocity-fast-theta*))
+           (make-head-pointing-constraint
+            (cl-transforms-stamped:make-pose-stamped
+             cram-tf:*robot-base-frame* 0.0
+             (cl-transforms:make-3d-vector 1 0 0)
+             (cl-transforms:make-identity-rotation))))))
+    (when apply-hint
+      (push (make-base-collision-avoidance-hint-constraint
+             *base-collision-avoidance-hint-link*
+             (cl-transforms-stamped:make-vector-stamped
+              cram-tf:*fixed-frame* 0.0
+              *base-collision-avoidance-hint-vector*))
+            constraints))
+    (make-giskard-goal
+     :constraints constraints
+     :joint-constraints (make-current-joint-state-constraint '(:left :right))
+     :collisions (make-avoid-all-collision *base-collision-avoidance-distance*))))
 
 (defun ensure-base-goal-input (pose)
   (cram-tf:ensure-pose-in-frame pose cram-tf:*fixed-frame*))
@@ -99,10 +105,11 @@
   (setf goal-pose (ensure-base-goal-input goal-pose))
 
   (cram-tf:visualize-marker goal-pose :r-g-b-list '(0 1 0))
-
-  (call-action
-   :action-goal (make-giskard-base-action-goal goal-pose base-velocity)
-   :action-timeout action-timeout
-   :check-goal-function (lambda (result status)
-                          (declare (ignore result status))
-                          (ensure-base-goal-reached goal-pose))))
+  (let ((goal-far-away (cram-tf:pose-dist-gt-threshold
+                        goal-pose *base-collision-avoidance-hint-dist-threshold*))) 
+    (call-action
+     :action-goal (make-giskard-base-action-goal goal-pose base-velocity goal-far-away)
+     :action-timeout action-timeout
+     :check-goal-function (lambda (result status)
+                            (declare (ignore result status))
+                            (ensure-base-goal-reached goal-pose)))))
