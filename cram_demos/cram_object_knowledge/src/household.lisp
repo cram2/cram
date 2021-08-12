@@ -235,16 +235,17 @@
 (defparameter *cup-grasp-xy-offset* 0.02 "in meters")
 ;; (defparameter *cup-eco-orange-grasp-z-offset* 0.01 "in meters")
 (defparameter *cup-grasp-z-offset* 0.01 "in meters")
-(defparameter *cup-top-grasp-x-offset* 0.05 "in meters")
+(defparameter *cup-top-grasp-x-offset* 0.04 "in meters")
 ;; (defparameter *cup-eco-orange-top-grasp-z-offset* 0.02 "in meters")
 (defparameter *cup-top-grasp-z-offset* 0.04 "in meters")
+(defparameter *cup-top-pregrasp-z-offset* 0.04 "in meters")
 
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms :cup '(:left :right) :top
   :grasp-translation `(,(- *cup-top-grasp-x-offset*) 0.0d0 ,*cup-top-grasp-z-offset*)
   :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
   :pregrasp-offsets *lift-offset*
-  :2nd-pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets `(0.0d0 0.0d0 ,(+ *lift-z-offset* *cup-top-pregrasp-z-offset*))
   :lift-translation *lift-offset*
   :2nd-lift-translation *lift-offset*)
 
