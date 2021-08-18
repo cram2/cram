@@ -116,6 +116,10 @@
                                     convergence-delta)
   (when (eql status :timeout)
     (roslisp:ros-warn (pr2-ll gripper) "Gripper action timed out."))
+  (when (eql status :lost)
+    (cpl:fail 'common-fail:gripper-goal-not-reached
+              :description (format nil "Gripper action lost, probably due to wiggeling:
+result: ~a, goal: ~a, delta: ~a." result goal-position convergence-delta)))
   (let* ((current-position
            (pr2_controllers_msgs-msg:position result))
          ;; TODO: use current-position from joint state message, not result
