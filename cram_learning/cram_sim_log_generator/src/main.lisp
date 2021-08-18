@@ -61,7 +61,7 @@
            ;; (pr2-pms:with-real-robot (demo::setting-demo '(:cup))))
            ;; (pr2-pms:with-real-robot (demo::setting-demo '(:breakfast-cereal))))
            ;; (pr2-pms:with-real-robot (demo::setting-demo '(:spoon :bowl :milk))))
-           (pr2-pms:with-real-robot (demo::setting-demo '(:spoon :bowl :milk :breakfast-cereal ))))
+           (pr2-pms:with-real-robot (demo::setting-demo '(:spoon :bowl :cup :milk :breakfast-cereal ))))
            (setf *main-result* (push ccl::*retry-numbers* *main-result*))
            (ccl::stop-episode)
            (call-reset-world-service (write-to-string n))
