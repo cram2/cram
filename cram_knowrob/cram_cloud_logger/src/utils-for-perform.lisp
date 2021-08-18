@@ -48,7 +48,6 @@
     (setf (gethash "MILK" lookup-table) "'package://kitchen_object_meshes/milk.dae'")
     (setf (gethash "SPOON" lookup-table) "'package://kitchen_object_meshes/spoon.dae'")
     (setf (gethash "BREAKFAST-CEREAL" lookup-table) "'package://kitchen_object_meshes/cereal.dae'")
-    ;;(setf (gethash "DRAWER" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#Drawer'")
     lookup-table))
 
 
@@ -59,7 +58,6 @@
     (setf (gethash "MILK" lookup-table) "[0.0,0.0,0.0,1.0]")
     (setf (gethash "SPOON" lookup-table) "[-1.0,0.0,0.0,1.0]")
     (setf (gethash "BREAKFAST-CEREAL" lookup-table) "[0.0,0.0,0.0,1.0]")
-    ;;(setf (gethash "DRAWER" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#Drawer'")
     lookup-table))
 
 (cpl:define-task-variable *action-parents* '())
@@ -126,36 +124,18 @@
             (cram-action-name (get-designator-property-value-str designator :TYPE)))
         (cpl:with-failure-handling
             ((cpl:plan-failure (e)
-               ;;(log-cram-finish-action action-id)
                (set-event-status-to-failed action-id)
                (set-event-diagnosis action-id (ccl::get-failure-uri (subseq (write-to-string e) 2 (search " " (write-to-string e)))))
                (let ((action-designator-parameters (desig:properties (or (second (desig:reference designator)) designator))))
                  (log-action-designator-parameters-for-logged-action-designator action-designator-parameters action-id))
                 (ccl::stop-situation action-id)
-               
-               ;;(equate action-id (log-perform-call  (second (desig:reference designator)))))
                (print "plan failure")))
 
-          ;;;;;;;;;;;;;;;; CHECK IF ENVIRONMENT IS A SIMULATION
-          ;;(if cram-projection:*projection-environment*
-          ;;  (send-performed-in-projection action-id "true")
-          ;;  (send-performed-in-projection action-id "false"))
-
-          ;;;;;;;;;;;;;;;; LOG SUBACTIONS
-          ;;(log-cram-sub-action
-          ;; (car *action-parents*)
-          ;; action-id
-          ;; (get-knowrob-action-name cram-action-name designator))
-
-          ;;(log-cram-sibling-action
-          ;; (car *action-parents*) action-id (get-knowrob-action-name cram-action-name designator))
           (push action-id *action-parents*)
           (ccl::start-situation action-id)
           (print "HERE 0")
           (multiple-value-bind (perform-result action-desig)
               (call-next-method)
-            ;;(let ((referenced-action-id (log-perform-call action-desig)))
-            (print "HERE 1")
             (let ((referenced-action-id "")
                   (action-designator-parameters (desig:properties (or action-desig designator))))
               (print "HERE 2")

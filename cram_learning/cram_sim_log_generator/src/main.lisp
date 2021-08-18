@@ -39,8 +39,11 @@
 
   ;;(ros-load:load-system "cram_boxy_description" :cram-boxy-description)
   ;;(setf cram-bullet-reasoning-belief-state:*spawn-debug-window* nil)
+
   ;; (setf cram-tf:*tf-broadcasting-enabled* t)
   ;; (setf cram-urdf-projection-reasoning::*projection-checks-enabled* nil)
+  (setf ralf-cm::*ralf-on* nil)
+
   (roslisp-utilities:startup-ros :name "cram" :anonymous nil)
 
 

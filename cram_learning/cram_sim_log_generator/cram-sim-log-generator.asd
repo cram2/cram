@@ -8,6 +8,7 @@
                :cram-pr2-pick-place-demo
                :cram-pr2-process-modules
                :cram-pr2-description
+               :cram-ralf-costmaps
                :cram-urdf-projection
                :cram-cloud-logger
                :world_control_msgs-srv

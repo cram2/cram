@@ -18,8 +18,6 @@ AgentUrdf) :-
     urdf_load(EnvOwlIndiName, EnvUrdf, [load_rdf,prefix(EnvUrdfPrefix)]),
     assertz(execution_agent(AgentOwlIndiName)),
     execution_agent(Agent),
-
-
     tell([is_episode(Episode), is_action(Action), has_type(Task,soma:'PhysicalTask'),
             executes_task(Action,Task),is_setting_for(Episode,Action), is_performed_by(Action,Agent), has_type(Role, soma:'AgentRole'), has_role(Agent,Role)]),notify_synchronize(event(Action)),!.
     %%executes_task(Action,Task),is_setting_for(Episode,Action),is_setting_for(Episode,Agent)]),notify_synchronize(event(Action)),!.

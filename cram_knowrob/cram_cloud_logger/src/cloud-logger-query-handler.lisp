@@ -68,7 +68,7 @@
   (if transform
       (send-query-1-without-result "belief_perceived_at" object-type transform rotation object-id)
       (send-query-1-without-result "belief_perceived_at" object-type object-id))
-  
+
   object-id)
 
 (defun send-belief-new-object-query (object-type)
@@ -97,9 +97,8 @@
   (let ((cram-episode-name "'NoName'"))
              (when (string-not-equal "'NoName'"cram-episode-name)
                (progn
-                 (print "test"))))
-                 ;;(setf ccl::*episode-name* cram-episode-name)
-                 ;;(stop-episode))))
+                 (setf ccl::*episode-name* cram-episode-name)
+                 (stop-episode))))
   (ccl::clear-detected-objects)
   (setf ccl::*episode-name*
         (get-url-from-send-query-1
@@ -108,9 +107,9 @@
          "RootAction"
          *environment-owl*
          *environment-owl-individual-name*
-         *environment-urdf* 
-         *environment-urdf-prefix* 
-         *agent-owl* 
+         *environment-urdf*
+         *environment-urdf-prefix*
+         *agent-owl*
          *agent-owl-individual-name*
          *agent-urdf*))
   (ccl::start-situation *episode-name*))
@@ -131,7 +130,7 @@
 
 (defun send-query-1 (query)
   (print query)
-  (print (json-prolog:prolog-simple-1 query)))
+  (json-prolog:prolog-simple-1 query))
 
 (defun get-url-from-send-query-1 (url-parameter query-name &rest query-parameters)
   (let* ((query (create-query query-name query-parameters))
@@ -151,7 +150,7 @@
                                    action-inst
                                    (concatenate 'string "'" owl-name "'")
                                    "'http://www.ease-crc.org/ont/SOMA.owl#AlteredObject'"))))
-    
+
 
 (defun send-object-action-parameter (action-inst action-type object-designator)
   (let* ((role (gethash action-type *object-parameter-role-lookup-table*))
