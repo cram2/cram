@@ -6,7 +6,7 @@
 - git:
     local-name: giskard_msgs
     uri: https://github.com/SemRoCo/giskard_msgs.git
-    version: 5bfb2a2dc0d58635fab4eceaf93a43c2729a4cdf
+    version: b48891230296e332456e517e66fd3861442f511f
 - git:
     local-name: iai_common_msgs
     uri: https://github.com/code-iai/iai_common_msgs.git
@@ -19,3 +19,7 @@
     local-name: genlisp
     uri: https://github.com/ros/genlisp.git
     version: 3ac633abacdf5ab321d23ed013c7d5b7da97736d
+- git:
+    local-name: roslisp_common
+    uri: https://github.com/ros/roslisp_common.git
+    version: 4db311da26497d84a147f190200e50c7a5b4106e
