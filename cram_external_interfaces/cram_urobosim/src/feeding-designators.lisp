@@ -1,6 +1,5 @@
 ;;;
-;;; Copyright (c) 2021, Michael Neumann <mine1@uni-bremen.de>
-;;;                     Arthur Niedzwiecki <aniedz@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -28,6 +27,16 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defpackage :cram-sim-log-generator
-  (:nicknames :cslg)
-  (:use :cpl))
+(in-package :unreal)
+
+(def-fact-group feeding-designators (desig:action-grounding)
+  (<- (desig:action-grounding ?action-designator (spooning
+                                                  ?fetching-location-designator
+                                                  ?delivering-location-designator
+                                                  ))
+    (spec:property ?action-designator (:type :spooning))
+    (spec:property ?action-designator (:location ?some-fetching-location-designator))
+    (desig:current-designator ?some-fetching-location-designator ?fetching-location-designator)
+    (spec:property ?action-designator (:target ?some-delivering-location-designator))
+    (desig:current-designator ?some-delivering-location-designator ?delivering-location-designator)
+    ))

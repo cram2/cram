@@ -1,6 +1,5 @@
 ;;;
-;;; Copyright (c) 2021, Michael Neumann <mine1@uni-bremen.de>
-;;;                     Arthur Niedzwiecki <aniedz@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -28,6 +27,20 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defpackage :cram-sim-log-generator
-  (:nicknames :cslg)
-  (:use :cpl))
+(in-package :unreal)
+
+(cpm:def-process-module urobosim-perception-pm (motion-designator)
+  (destructuring-bind (command argument-1) (desig:reference motion-designator)
+    (ecase command
+      (cram-common-designators:detect
+       (handler-case
+           (detect argument-1))))))
+
+(prolog:def-fact-group urobosim-pm (cpm:matching-process-module
+                                    cpm:available-process-module)
+
+  (prolog:<- (cpm:matching-process-module ?motion-designator urobosim-perception-pm)
+    (desig:desig-prop ?motion-designator (:type :detecting)))
+
+  (prolog:<- (cpm:available-process-module urobosim-perception-pm)
+    (prolog:not (cpm:projection-running ?_))))

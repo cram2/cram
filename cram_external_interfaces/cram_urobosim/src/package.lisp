@@ -1,6 +1,5 @@
 ;;;
-;;; Copyright (c) 2021, Michael Neumann <mine1@uni-bremen.de>
-;;;                     Arthur Niedzwiecki <aniedz@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -28,6 +27,16 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defpackage :cram-sim-log-generator
-  (:nicknames :cslg)
-  (:use :cpl))
+(in-package :cl-user)
+
+(defpackage cram-urobosim
+  (:nicknames #:unreal)
+  (:use #:common-lisp #:cram-prolog)
+  (:export
+   ;; action-client
+   #:call-perceive-action
+   ;; low-level
+   #:detect
+   #:perceive
+   ;; process-module
+   #:urobosim-perception-pm))
