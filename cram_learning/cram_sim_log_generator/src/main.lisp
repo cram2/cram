@@ -78,7 +78,6 @@
                (logging-enabled NIL))
   (unless (eq (roslisp:node-status) :RUNNING)
     (roslisp-utilities:startup-ros :name "cram" :anonymous nil))
-  (when logging-enabled (prepare-logging))
   ;; (setf cram-bullet-reasoning-belief-state:*spawn-debug-window* nil)
   ;; (setf cram-tf:*tf-broadcasting-enabled* t)
   ;; (setf cram-urdf-projection-reasoning::*projection-checks-enabled* nil)
