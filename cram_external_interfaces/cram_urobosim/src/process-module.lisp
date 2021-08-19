@@ -1,6 +1,5 @@
 ;;;
-;;; Copyright (c) 2021, Michael Neumann <mine1@uni-bremen.de>
-;;;                     Arthur Niedzwiecki <aniedz@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -28,24 +27,20 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-sim-log-generator
-  :depends-on (:cram-language
-               :cram-designators
-               :cl-transforms
-               :cl-transforms-stamped
-               :cram-json-prolog
-               :roslisp
-               :cram-pr2-pick-place-demo
-               :cram-pr2-process-modules
-               :cram-pr2-description
-               :cram-urdf-projection
-               :cram-cloud-logger
-               :world_control_msgs-srv
-               :cram-utilities)
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "main" :depends-on ("package"))
-     ;;(:file "neem-generator" :depends-on ("package"))
-))))
+(in-package :unreal)
+
+(cpm:def-process-module urobosim-perception-pm (motion-designator)
+  (destructuring-bind (command argument-1) (desig:reference motion-designator)
+    (ecase command
+      (cram-common-designators:detect
+       (handler-case
+           (detect argument-1))))))
+
+(prolog:def-fact-group urobosim-pm (cpm:matching-process-module
+                                    cpm:available-process-module)
+
+  (prolog:<- (cpm:matching-process-module ?motion-designator urobosim-perception-pm)
+    (desig:desig-prop ?motion-designator (:type :detecting)))
+
+  (prolog:<- (cpm:available-process-module urobosim-perception-pm)
+    (prolog:not (cpm:projection-running ?_))))
