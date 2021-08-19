@@ -110,7 +110,7 @@
      `(("header"
         . ,(make-header-hash-table stamp frame-id))))))
 
-(defmethod to-hash-table ((object cl-transforms-stamped:point-stamped))
+(defmethod to-hash-table ((object cl-transforms-stamped:vector-stamped))
   (with-slots ((x cl-transforms:x) (y cl-transforms:y) (z cl-transforms:z)
                (stamp cl-transforms-stamped:stamp)
                (frame-id cl-transforms-stamped:frame-id))
