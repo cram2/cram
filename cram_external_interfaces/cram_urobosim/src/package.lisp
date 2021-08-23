@@ -1,5 +1,6 @@
 ;;;
 ;;; Copyright (c) 2019, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;;                     Arthur Niedzwiecki <aniedz@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -39,4 +40,9 @@
    #:detect
    #:perceive
    ;; process-module
-   #:urobosim-perception-pm))
+   #:urobosim-perception-pm
+   ;; spawn-object-client
+   #:reset-world
+   #:spawn-object
+   #:set-object-pose
+   #:delete-object))
