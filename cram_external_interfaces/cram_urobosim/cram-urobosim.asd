@@ -44,7 +44,8 @@
                cram-utilities
                cram-pr2-description
                cram-process-modules
-               cram-common-designators)
+               cram-common-designators
+               world_control_msgs-srv)
   :components
   ((:module "src"
     :components
@@ -53,4 +54,6 @@
      (:file "low-level" :depends-on ("package" "action-client"))
      (:file "feeding-plans" :depends-on ("package"))
      (:file "feeding-designators" :depends-on ("package" "feeding-plans"))
-     (:file "process-module" :depends-on ("package" "low-level"))))))
+     (:file "process-module" :depends-on ("package" "low-level"))
+     (:file "world-control-services" :depends-on ("package"))
+     (:file "spawn-object-client" :depends-on ("package" "world-control-services"))))))
