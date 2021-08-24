@@ -94,8 +94,24 @@
         do (roslisp:close-persistent-service service))
   (setf *unreal-services* (make-hash-table)))
 
+(roslisp-utilities:register-ros-cleanup-function close-services)
+
 (defun reset-world ()
   (roslisp:call-persistent-service (get-service :reset-world)
     (roslisp:make-request 'world_control_msgs-srv:resetlevel :id "0"))
   ;; Resetting takes a moment in unreal
   (sleep 1))
+
+
+;;;;;;;;;;;;;;; UTILS ;;;;;;;;;;;;;;;
+
+(defparameter *tf-to-unreal-y-mirror*
+  (cl-transforms:make-3d-vector 1.0d0 -1.0d0 1.0d0))
+
+(defun pose-in-tf->pose-in-unreal (pose)
+  (declare (type cl-transforms:pose pose))
+  (let ((pose-in-map (cl-transforms-stamped:pose-stamped->pose
+                      (cram-tf:ensure-pose-in-frame pose cram-tf:*fixed-frame*))))
+    (cl-transforms:make-pose (cl-transforms:v*-pairwise (cl-tf:origin pose-in-map)
+                                                        *tf-to-unreal-y-mirror*)
+                             (cl-transforms:orientation pose-in-map))))
