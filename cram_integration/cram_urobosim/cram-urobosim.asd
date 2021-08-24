@@ -55,5 +55,5 @@
      (:file "feeding-plans" :depends-on ("package"))
      (:file "feeding-designators" :depends-on ("package" "feeding-plans"))
      (:file "process-module" :depends-on ("package" "low-level"))
-     (:file "world-control-services" :depends-on ("package"))
-     (:file "spawn-object-client" :depends-on ("package" "world-control-services"))))))
+     (:file "world-control-clients" :depends-on ("package"))
+     (:file "spawn-object" :depends-on ("package" "world-control-clients"))))))
