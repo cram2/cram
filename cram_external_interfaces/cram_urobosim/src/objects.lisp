@@ -48,7 +48,19 @@
           :pose (cl-transforms-stamped:to-msg pose)
           (:mobility :physics_properties) mobility ;; 0 static, 1 stationary, 2 movable
           (:gravity :physics_properties) gravity
-          (:mass :physics_properties) mass))
+          (:mass :physics_properties) mass
+          ;; -- default values
+          ;; (:generate_overlap_events: :physics_properties) NIL
+          ;; (:type :tags) ""
+          ;; (:key :tags) ""
+          ;; (:value :tags) ""
+          ;; :path ""
+          ;; :actor_label ""
+          ;; :material_names #("")
+          ;; :material_paths #("")
+          ;; :parent_id ""
+          ;; :spawn_collision_check NIL
+          ))
       (unless success
         (if (string= etype "1")
             (progn
@@ -61,70 +73,49 @@
                                (string object-type)))))))
 
 ;; Attach to existing btr methods
-;; (defmethod btr:add-object :after (...) )
+;; (defmethod btr:add-object :after ((type :mesh) ...) )
 
 (defun set-object-pose (object-name pose)
+  (declare (type (or symbol keyword string) object-name)
+           (type cl-transforms:pose pose))
+  (when (typep pose 'cl-transforms-stamped:pose-stamped)
+    (setf pose (cl-transforms-stamped:pose-stamped->pose
+                (cram-tf:ensure-pose-in-frame pose cram-tf:*fixed-frame*))))
+  (let ((service (get-service :set-object-pose)))
+    (roslisp:with-fields (success)
+        (roslisp:call-persistent-service
+         service
+         (roslisp:make-request
+          'world_control_msgs-srv:setmodelpose
+          :id (string object-name)
+          :pose (cl-transforms-stamped:to-msg pose)))
+      (unless success
+       (roslisp:ros-error (unreal set-object-pose)
+            "Setting object pose failed. Does the object with ID ~a exist?"
+            (string object-name))))))
 
-;;   rosservice call /UnrealSim/set_model_pose "id: ''
-;; pose:
-;;   position:
-;;     x: 0.0
-;;     y: 0.0
-;;     z: 0.0
-;;   orientation:
-;;     x: 0.0
-;;     y: 0.0
-;;     z: 0.0
-;;     w: 0.0" 
+(defun delete-object (object-name)
+  (declare (type (or symbol keyword string) object-name))
+  (let ((service (get-service :delete-object)))
+    (roslisp:with-fields (success)
+        (roslisp:call-persistent-service
+         service
+         (roslisp:make-request
+          'world_control_msgs-srv:deletemodel
+          :id (string object-name)))
+      (unless success
+       (roslisp:ros-info (unreal delete-object)
+                         "There's no object with ID ~a to delete?"
+                         (string object-name))))))
 
-  )
-
-(defun delete-object (object-name))
-
-;; "name: 'Bowl'
-;; pose:
-;;   position: {x: 0.0, y: 1.0, z: 2.0}
-;;   orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}
-;; id: ''
-;; tags:
-;; - {type: '', key: '', value: ''}
-;; path: ''
-;; actor_label: ''
-;; physics_properties: {mobility: 2, gravity: true, generate_overlap_events: false,
-;;   mass: 1.0}
-;; material_names: ['']
-;; material_paths: ['']
-;; parent_id: ''
-;; spawn_collision_check: false"
-
-
-
-;; (roslisp:wait-for-service (concatenate 'string
-;;                     (getf *ik-service-namespaces* left-or-right) "/get_ik_solver_info") 10.0)
-;;               (roslisp:call-service
-;;                (concatenate 'string (getf *ik-service-namespaces* left-or-right) "/get_ik")
-;;                "moveit_msgs/GetPositionIK"
-;;                (roslisp:make-request
-;;                 "moveit_msgs/GetPositionIK"
-;;                 (:ik_link_name :ik_request) ik-link
-;;                 (:pose_stamped :ik_request) (cl-transforms-stamped:to-msg
-;;                                              (cl-transforms-stamped:pose->pose-stamped
-;;                                               ik-base-frame 0.0 cartesian-pose))
-;;                 (:joint_state :robot_state :ik_request) (make-current-seed-state left-or-right)
-;;                 (:timeout :ik_request) 1.0))
-
-;; /UnrealSim/attach_model_to_parent
-;; /UnrealSim/change_material
-;; /UnrealSim/delete_all
-;; /UnrealSim/delete_model
-;; /UnrealSim/get_model_pose
-;; /UnrealSim/get_model_socket_pose
-;; /UnrealSim/highlight_models
-;; /UnrealSim/object_to_object_state
-;; /UnrealSim/reset_level
-;; /UnrealSim/set_model_pose
-;; /UnrealSim/set_physics_properties
-;; /UnrealSim/spawn_model
-;; /UnrealSim/spawn_physics_constraint
-;; /UnrealSim/spawn_pro_mesh
-;; /UnrealSim/spawn_semantic_map
+(defun attach-object () (error "Not implemented."))
+(defun change-material () (error "Not implemented."))
+(defun delete-all () (error "Not implemented."))
+(defun get-object-pose () (error "Not implemented."))
+(defun get-socket-pose () (error "Not implemented."))
+(defun highlight-object () (error "Not implemented."))
+(defun object-to-object-state () (error "Not implemented."))
+(defun set-object-physics () (error "Not implemented."))
+(defun spawn-constraint () (error "Not implemented."))
+(defun spawn-mesh () (error "Not implemented."))
+(defun spawn-map () (error "Not implemented."))

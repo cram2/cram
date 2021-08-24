@@ -89,6 +89,13 @@
                                        service-name)
                  :service-type (srv-key->srv-type service-key))))))
 
+(defun close-services ()
+  (loop for service being the hash-values in *unreal-services*
+        do (roslisp:close-persistent-service service))
+  (setf *unreal-services* (make-hash-table)))
+
 (defun reset-world ()
-  ;; TODO
-  )
+  (roslisp:call-persistent-service (get-service :reset-world)
+    (roslisp:make-request 'world_control_msgs-srv:resetlevel :id "0"))
+  ;; Resetting takes a moment in unreal
+  (sleep 1))
