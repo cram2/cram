@@ -36,33 +36,33 @@
 (defparameter *global-timer* 0)
 (defparameter *main-result* '())
 
-(defun prepare-logging ()
-  (setf connection-retries 0)
-  (print "Cleaning old ros nodes ...")
-  ;;(asdf-utils:run-program (concatenate 'string "echo 'y' | rosnode cleanup"))
-  (print "Cleaning old ros nodes done")
-  (print "Waiting for JSON Prolog to start ...")
-  ;;(asdf-utils:run-program (concatenate 'string "python ~/Desktop/lol_launcher.py"))
-  (print "JSON Prolog started")
-  (setf ccl::*is-client-connected* nil)
-  (setf ccl::*is-logging-enabled* t)
-  (setf ccl::*host* "'https://localhost'")
-  (setf ccl::*cert-path* "'/home/koralewski/Desktop/localhost.pem'")
-  ;;(setf ccl::*api-key* "'K103jdr40Rp8UX4egmRf42VbdB1b5PW7qYOOVvTDAoiNG6lcQoaDHONf5KaFcefs'")
-  (setf ccl::*api-key* "'uWZv7X1cQkdlZkx4R4uYSIQGyCr4zgyrYEgorw7XjICK0JyLQrmitf48hMCC4pYg'")
-  (loop while (and (not ccl::*is-client-connected*) (< connection-retries 10)) do
-    (progn
-      (ccl::connect-to-cloud-logger)
-      (setf connection-retries (+ connection-retries 1))))
-  (when (not ccl::*is-client-connected*)
-    (/ 1 0)))
+;; (defun prepare-logging ()
+;;   (setf connection-retries 0)
+;;   (print "Cleaning old ros nodes ...")
+;;   ;;(asdf-utils:run-program (concatenate 'string "echo 'y' | rosnode cleanup"))
+;;   (print "Cleaning old ros nodes done")
+;;   (print "Waiting for JSON Prolog to start ...")
+;;   ;;(asdf-utils:run-program (concatenate 'string "python ~/Desktop/lol_launcher.py"))
+;;   (print "JSON Prolog started")
+;;   (setf ccl::*is-client-connected* nil)
+;;   (setf ccl::*is-logging-enabled* t)
+;;   (setf ccl::*host* "'https://localhost'")
+;;   (setf ccl::*cert-path* "'/home/koralewski/Desktop/localhost.pem'")
+;;   ;;(setf ccl::*api-key* "'K103jdr40Rp8UX4egmRf42VbdB1b5PW7qYOOVvTDAoiNG6lcQoaDHONf5KaFcefs'")
+;;   (setf ccl::*api-key* "'uWZv7X1cQkdlZkx4R4uYSIQGyCr4zgyrYEgorw7XjICK0JyLQrmitf48hMCC4pYg'")
+;;   (loop while (and (not ccl::*is-client-connected*) (< connection-retries 10)) do
+;;     (progn
+;;       (ccl::connect-to-cloud-logger)
+;;       (setf connection-retries (+ connection-retries 1))))
+;;   (when (not ccl::*is-client-connected*)
+;;     (/ 1 0)))
 
-(defun call-reset-world-service (&optional (id "0"))
-  (roslisp:ros-info (logging-demo reset-world) "Resetting Unreal world.")
-  (if (not (roslisp:wait-for-service "/UnrealSim/reset_level" 10))
-      (roslisp:ros-warn (send-reset-world-client) "timed out waiting for send-reset-world service")
-      (roslisp:call-service "/UnrealSim/reset_level" 'world_control_msgs-srv:ResetLevel :id id))
-  (sleep 2))
+;; (defun call-reset-world-service (&optional (id "0"))
+;;   (roslisp:ros-info (logging-demo reset-world) "Resetting Unreal world.")
+;;   (if (not (roslisp:wait-for-service "/UnrealSim/reset_level" 10))
+;;       (roslisp:ros-warn (send-reset-world-client) "timed out waiting for send-reset-world service")
+;;       (roslisp:call-service "/UnrealSim/reset_level" 'world_control_msgs-srv:ResetLevel :id id))
+;;   (sleep 2))
 
 ;; Use like this:
 ;; (main)
@@ -87,7 +87,7 @@
   ;; Demo loop
   (dotimes (n 100)
     (setf ccl::*retry-numbers* 0)
-    (call-reset-world-service)
+    (unreal:reset-world)
     (when logging-enabled (ccl:start-episode))
 
     (cpl:with-failure-handling
