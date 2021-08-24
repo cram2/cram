@@ -41,8 +41,10 @@
    #:perceive
    ;; process-module
    #:urobosim-perception-pm
-   ;; spawn-object-client
+   ;; world-control-clients
+   #:close-services
    #:reset-world
+   ;; objects
    #:spawn-object
    #:set-object-pose
    #:delete-object))
