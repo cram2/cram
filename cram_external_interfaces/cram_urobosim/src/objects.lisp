@@ -34,9 +34,7 @@
                      &key (mass 1.0) (gravity T) (mobility 2))
   (declare (type (or symbol keyword string) object-name object-type)
            (type cl-transforms:pose pose))
-  (when (typep pose 'cl-transforms-stamped:pose-stamped)
-    (setf pose (cl-transforms-stamped:pose-stamped->pose
-                (cram-tf:ensure-pose-in-frame pose cram-tf:*fixed-frame*))))
+  (setf pose (pose-in-tf->pose-in-unreal pose))
   (let ((service (get-service :spawn-object)))
     (roslisp:with-fields (success etype)
         (roslisp:call-persistent-service
@@ -78,9 +76,7 @@
 (defun set-object-pose (object-name pose)
   (declare (type (or symbol keyword string) object-name)
            (type cl-transforms:pose pose))
-  (when (typep pose 'cl-transforms-stamped:pose-stamped)
-    (setf pose (cl-transforms-stamped:pose-stamped->pose
-                (cram-tf:ensure-pose-in-frame pose cram-tf:*fixed-frame*))))
+  (setf pose (pose-in-tf->pose-in-unreal pose))
   (let ((service (get-service :set-object-pose)))
     (roslisp:with-fields (success)
         (roslisp:call-persistent-service
