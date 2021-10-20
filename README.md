@@ -39,7 +39,8 @@ The core packages of CRAM are implemented in Common Lisp (with a little bit of C
   * touch iai_maps/iai_dlr_cutting_demo/CATKIN_IGNORE
   * cd ~/workspace/ros
   * rosdep update
-  * rosdep install --ignore-src --from-paths src/ -r
+  * cd ..
+  * rosdep install --ignore-src --from-paths src/ -r -y
   * catkin build
 
 
