@@ -247,7 +247,7 @@
   :pregrasp-offsets *lift-offset*
   :2nd-pregrasp-offsets `(0.0d0 0.0d0 ,(+ *lift-z-offset* *cup-top-pregrasp-z-offset*))
   :lift-translation *lift-offset*
-  :2nd-lift-translation *lift-offset*)
+  :2nd-lift-translation `(0.0d0 0.0d0 ,(* *lift-z-offset* 2)))
 
 ;; SIDE grasp
 (man-int:def-object-type-to-gripper-transforms :cup '(:left :right) :left-side
