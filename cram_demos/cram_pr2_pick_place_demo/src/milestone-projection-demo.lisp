@@ -220,7 +220,6 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
     (spawn-objects-on-fixed-spots
      :object-types object-list
      :spawning-poses-relative *demo-object-spawning-poses*))
-  (park-robot)
 
   (dolist (?object-type object-list)
     (let* ((?deliver-pose (cram-tf:ensure-pose-in-frame
@@ -242,6 +241,8 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
                           (color ?color))
                         (desig:when ?material
                           (material ?material)))))
+      
+      (park-robot :go-to-initial-pose T)
       (exe:perform
        (an action
            (type transporting)

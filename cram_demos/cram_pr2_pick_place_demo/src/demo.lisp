@@ -57,7 +57,7 @@
   '((:milk . :left)))
   ;; '((:milk . :right)))
 
-(defun park-robot ()
+(defun park-robot (&key (go-to-initial-pose NIL))
   (cpl:with-failure-handling
       ((cpl:plan-failure (e)
          (declare (ignore e))
@@ -75,16 +75,16 @@
       (exe:perform (desig:an action (type moving-torso ) (joint-angle 0.30)))
       (exe:perform (desig:an action (type opening-gripper) (gripper (left right))))
       (exe:perform (desig:an action (type looking) (direction forward))))
-    ;; (let ((?pose (cl-transforms-stamped:make-pose-stamped
-    ;;               cram-tf:*fixed-frame*
-    ;;               0.0
-    ;;               (cl-transforms:make-identity-vector)
-    ;;               (cl-transforms:make-identity-rotation))))
-    ;;   (exe:perform
-    ;;    (desig:an action
-    ;;              (type going)
-    ;;              (target (desig:a location (pose ?pose))))))
-    ))
+    (when go-to-initial-pose
+      (let ((?pose (cl-transforms-stamped:make-pose-stamped
+                    cram-tf:*fixed-frame*
+                    0.0
+                    (cl-transforms:make-3d-vector -0.2d0 -0.5d0 0.0d0)
+                    (cl-transforms:euler->quaternion :az (/ pi 4)))))
+        (exe:perform
+         (desig:an action
+                   (type going)
+                   (target (desig:a location (pose ?pose)))))))))
 
 (defun start-logging ()
   (ccl::start-episode))
