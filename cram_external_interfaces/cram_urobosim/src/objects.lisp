@@ -30,33 +30,42 @@
 
 (in-package :unreal)
 
-(defun spawn-object (object-type pose object-name
-                     &key (mass 1.0) (gravity T) (mobility 2))
+(defun spawn-object (object-type pose
+                     &key
+                       (object-name object-type)
+                       (mass 1.0)
+                       (gravity T)
+                       (mobility 2))
   (declare (type (or symbol keyword string) object-name object-type)
            (type cl-transforms:pose pose))
-  (setf pose (pose-in-tf->pose-in-unreal pose))
+  (setf pose (ensure-stripped-pose pose))
   (let ((service (get-service :spawn-object)))
     (roslisp:with-fields (success etype)
         (roslisp:call-persistent-service
          service
          (roslisp:make-request
           'world_control_msgs-srv:spawnmodel
-          :id (string object-name)
-          :name (string object-type)
+          :id (string-upcase (string object-name))
+          :name (string-upcase (string object-type))
           :pose (cl-transforms-stamped:to-msg pose)
-          (:mobility :physics_properties) mobility ;; 0 static, 1 stationary, 2 movable
+          ;; mobility: 0 static, 1 stationary, 2 movable
+          (:mobility :physics_properties) mobility 
           (:gravity :physics_properties) gravity
           (:mass :physics_properties) mass
           ;; -- default values
-          ;; (:generate_overlap_events: :physics_properties) NIL
-          ;; (:type :tags) ""
-          ;; (:key :tags) ""
-          ;; (:value :tags) ""
+          ;; makes the object movable by the robot
+          (:generate_overlap_events :physics_properties) T
+          ;; creates the tag CramObject;type,OBJECTTYPE
+          :tags (vector (roslisp:make-message
+                         'world_control_msgs-msg:Tag
+                         :type "CramObject"
+                         :key "type"
+                         :value (string-upcase (string object-type))))
           ;; :path ""
-          ;; :actor_label ""
+          :actor_label (string-upcase (string object-name))
           ;; :material_names #("")
           ;; :material_paths #("")
-          ;; :parent_id ""
+          :parent_id ""
           ;; :spawn_collision_check NIL
           ))
       (unless success
@@ -70,13 +79,10 @@
     "Spawning object failed. Check if the asset ~a exists in the Unreal project files."
                                (string object-type)))))))
 
-;; Attach to existing btr methods
-;; (defmethod btr:add-object :after ((type :mesh) ...) )
-
 (defun set-object-pose (object-name pose)
   (declare (type (or symbol keyword string) object-name)
            (type cl-transforms:pose pose))
-  (setf pose (pose-in-tf->pose-in-unreal pose))
+  (setf pose (ensure-stripped-pose pose))
   (let ((service (get-service :set-object-pose)))
     (roslisp:with-fields (success)
         (roslisp:call-persistent-service
@@ -87,8 +93,10 @@
           :pose (cl-transforms-stamped:to-msg pose)))
       (unless success
        (roslisp:ros-error (unreal set-object-pose)
-            "Setting object pose failed. Does the object with ID ~a exist?"
-            (string object-name))))))
+                          "~a~%~a~%Does the object with ID ~a exist?"
+                          "Setting object pose failed."
+                          "Probably the new pose would cause a collision with something else."
+                          (string object-name))))))
 
 (defun delete-object (object-name)
   (declare (type (or symbol keyword string) object-name))
@@ -100,14 +108,31 @@
           'world_control_msgs-srv:deletemodel
           :id (string object-name)))
       (unless success
-       (roslisp:ros-info (unreal delete-object)
-                         "There's no object with ID ~a to delete?"
-                         (string object-name))))))
+        (roslisp:ros-error (unreal delete-object)
+                           "There's no object with ID ~a to delete."
+                           (string object-name)))
+      success)))
 
+(defun get-object-pose (object-name)
+  "Returns the object's pose as Unreal pose (Y is inverted wrt TF)"
+  (declare (type (or symbol keyword string) object-name))
+  (let ((service (get-service :get-object-pose)))
+    (roslisp:with-fields (success pose)
+        (roslisp:call-persistent-service
+         service
+         (roslisp:make-request
+          'world_control_msgs-srv:getmodelpose
+          :id (string object-name)))
+      (if success
+          (pose-tf<->pose-unreal (cl-transforms-stamped:from-msg pose))
+          (progn (roslisp:ros-error (unreal get-object-pose)
+                                    "Pose unkown for the object with ID ~a."
+                                    (string object-name))
+                 NIL)))))
+  
 (defun attach-object () (error "Not implemented."))
 (defun change-material () (error "Not implemented."))
 (defun delete-all () (error "Not implemented."))
-(defun get-object-pose () (error "Not implemented."))
 (defun get-socket-pose () (error "Not implemented."))
 (defun highlight-object () (error "Not implemented."))
 (defun object-to-object-state () (error "Not implemented."))

@@ -108,10 +108,26 @@
 (defparameter *tf-to-unreal-y-mirror*
   (cl-transforms:make-3d-vector 1.0d0 -1.0d0 1.0d0))
 
-(defun pose-in-tf->pose-in-unreal (pose)
+;; (defun pose-in-tf->pose-in-unreal (pose)
+;;   (declare (type cl-transforms:pose pose))
+;;   (let ((pose-in-map (cl-transforms-stamped:pose-stamped->pose
+;;                       (cram-tf:ensure-pose-in-frame pose cram-tf:*fixed-frame*))))
+;;     (cl-transforms:make-pose (cl-transforms:v*-pairwise (cl-tf:origin pose-in-map)
+;;                                                         *tf-to-unreal-y-mirror*)
+;;                              (cl-transforms:orientation pose-in-map))))
+
+(defun ensure-stripped-pose (pose)
   (declare (type cl-transforms:pose pose))
-  (let ((pose-in-map (cl-transforms-stamped:pose-stamped->pose
-                      (cram-tf:ensure-pose-in-frame pose cram-tf:*fixed-frame*))))
+  "Strips pose of it's stamp and ensures it to be in the world's *fixed-frame*."
+  (if (typep pose 'cl-transforms-stamped:pose-stamped)
+      (cl-transforms-stamped:pose-stamped->pose
+       (cram-tf:ensure-pose-in-frame pose cram-tf:*fixed-frame*))
+      pose))
+
+(defun pose-tf<->pose-unreal (pose)
+  (declare (type cl-transforms:pose pose))
+  "Mirrors Y-axis and `ensure-stripped-pose'."
+  (let ((pose-in-map (ensure-stripped-pose pose)))
     (cl-transforms:make-pose (cl-transforms:v*-pairwise (cl-tf:origin pose-in-map)
                                                         *tf-to-unreal-y-mirror*)
                              (cl-transforms:orientation pose-in-map))))

@@ -39,8 +39,10 @@
    ;; low-level
    #:detect
    #:perceive
+   #:pick-up
    ;; process-module
    #:urobosim-perception-pm
+   #:urobosim-manipulation-pm
    ;; world-control-clients
    #:close-services
    #:reset-world
