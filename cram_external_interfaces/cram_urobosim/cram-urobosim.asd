@@ -45,6 +45,8 @@
                cram-pr2-description
                cram-process-modules
                cram-common-designators
+               cram-plan-occasions-events
+               cram-manipulation-interfaces
                world_control_msgs-srv)
   :components
   ((:module "src"

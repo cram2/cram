@@ -121,3 +121,62 @@
                  input-designator
                  (first name-pose-type-lists)))
       (t (error "[PROJECTION DETECT]: Quantifier can only be a/an or all.")))))
+
+;; (defun teleport-object-into-gripper (&key
+;;                                        ((:object-name ?name))
+;;                                        ((:object-type ?type))
+;;                                        ((:arm ?arm))
+;;                                        ((:grasp ?grasp)))
+;;   "Teleports the object of given name directly into the gripper,
+;; both in bullet and in unreal."
+;;   (roslisp:ros-warn (unreal) "THIS IS THE NEW PLAN!!!!!!!!!!!!! ~a" ?name)
+;;   (coe:on-event (make-instance 'cpoe:robot-state-changed))
+;;   (let* (;; (name (desig:desig-prop-value ?object-desig :name))
+;;          (old-pose (btr:pose (btr:object btr:*current-bullet-world* ?name)))
+;;          (gripper-tool-frame
+;;            (ecase ?arm
+;;              (:left cram-tf:*robot-left-tool-frame*)
+;;              (:right cram-tf:*robot-right-tool-frame*)))
+;;          (standard<-particular-gripper-transform ; g'Tg
+;;            (cl-transforms-stamped:transform->transform-stamped
+;;             gripper-tool-frame
+;;             gripper-tool-frame
+;;             0.0
+;;             (cut:var-value
+;;              '?transform
+;;              (car (prolog:prolog
+;;                    `(and (cram-robot-interfaces:robot ?robot)
+;;                          (cram-robot-interfaces:standard<-particular-gripper-transform
+;;                           ?robot ?transform)))))))
+;;          (object<-standard-gripper-transform  (man-int:get-object-type-to-gripper-transform ; oTg'
+;;                                                ?type
+;;                                                ?name
+;;                                                ?arm
+;;                                                ?grasp))
+;;          (gripper-pose (cl-tf:lookup-transform cram-tf:*transformer* cram-tf:*fixed-frame* gripper-tool-frame))
+;;          (particular-gripper<-object-transform (cram-tf:transform-stamped-inv
+;;                                                 (cram-tf:multiply-transform-stampeds
+;;                                                  (cl-tf:frame-id object<-standard-gripper-transform)
+;;                                                  gripper-tool-frame
+;;                                                  object<-standard-gripper-transform
+;;                                                  standard<-particular-gripper-transform)))
+;;          new-pose)
+;;     (setf new-pose 
+;;           (cram-tf:ensure-pose-in-frame 
+;;            (cram-tf:strip-transform-stamped particular-gripper<-object-transform) cram-tf:*fixed-frame*))
+;;     (setf (btr:pose (btr:object btr:*current-bullet-world* ?name)) new-pose)
+;;     (break)
+;;     (setf (btr:pose (btr:object btr:*current-bullet-world* ?name)) old-pose)))
+
+;; (pr2-pms:with-real-robot
+;;   (let ((?object 
+;;           (exe:perform
+;;                 (desig:a motion
+;;                       (TYPE DETECTING)
+;;                       (OBJECT (desig:an OBJECT
+;;                                     (TYPE BOWL)))))))
+;;     (exe:perform
+;;      (desig:an ACTION
+;;                (TYPE PICKING-UP)
+;;                (OBJECT ?object)
+;;                (ARM LEFT)))))

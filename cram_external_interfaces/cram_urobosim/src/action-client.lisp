@@ -29,6 +29,8 @@
 
 (in-package :unreal)
 
+(defparameter *type-tag-format* "CramObject;type,~a;")
+
 (defparameter *perceive-action-timeout* 3.0
   "How many seconds to wait before returning from perceive action.")
 
@@ -44,7 +46,8 @@
 (defun ensure-input-params (object-type)
   (declare (type (or string symbol) object-type))
   (when (symbolp object-type)
-    (setf object-type (symbol-name object-type))))
+    (setf object-type (symbol-name object-type)))
+  (setf object-type (format nil *type-tag-format* (string-upcase object-type))))
 
 (defun ensure-output-params (name-pose-pose-world-type-list)
   (destructuring-bind (name pose pose-world type)
