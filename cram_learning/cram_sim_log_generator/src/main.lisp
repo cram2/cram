@@ -71,8 +71,8 @@
 ;; (main :objects '(:milk :spoon) :logging-enabled NIL)
 (defun main (&key (objects '(;; :milk
                              ;; :breakfast-cereal
-                             ;; :spoon
-                             ;; :bowl
+                             :spoon
+                             :bowl
                              :cup
                              ))
                (logging-enabled NIL))
@@ -83,7 +83,8 @@
   ;; (setf cram-urdf-projection-reasoning::*projection-checks-enabled* nil)
   ;; (setq roslisp::*debug-stream* nil)
   ;; (pr2-pms:with-real-robot (demo::park-robot))
-
+  (setf cram-urdf-environment-manipulation::*detect-gripper-slip* NIL)
+  
   ;; Demo loop
   (dotimes (n 100)
     (setf ccl::*retry-numbers* 0)
