@@ -123,6 +123,12 @@
 
 ;;;# Foreign Pointers
 
+(define-compiler-macro inc-pointer (&whole form pointer offset)
+  (if (and (constantp offset)
+           (eql 0 (eval offset)))
+      pointer
+      form))
+
 (define-modify-macro incf-pointer (&optional (offset 1)) inc-pointer)
 
 (defun mem-ref (ptr type &optional (offset 0))
@@ -388,7 +394,8 @@ newly allocated memory."
       form))
 
 (defun lisp-array-to-foreign (array pointer array-type)
-  "Copy elements from a Lisp array to POINTER."
+  "Copy elements from a Lisp array to POINTER. ARRAY-TYPE must be a CFFI array
+type."
   (let* ((type (ensure-parsed-base-type array-type))
          (el-type (element-type type))
          (dimensions (dimensions type)))
@@ -400,14 +407,15 @@ newly allocated memory."
                                (row-major-index-to-indexes i dimensions))
           do (setf (mem-ref pointer el-type offset) element))))
 
-(defun foreign-array-to-lisp (pointer array-type)
-  "Copy elements from ptr into a Lisp array. If POINTER is a null
-pointer, returns NIL."
+(defun foreign-array-to-lisp (pointer array-type &rest make-array-args)
+  "Copy elements from pointer into a Lisp array. ARRAY-TYPE must be a CFFI array
+type; the type of the resulting Lisp array can be defined in MAKE-ARRAY-ARGS
+that are then passed to MAKE-ARRAY. If POINTER is a null pointer, returns NIL."
   (unless (null-pointer-p pointer)
     (let* ((type (ensure-parsed-base-type array-type))
            (el-type (element-type type))
            (dimensions (dimensions type))
-           (array (make-array dimensions)))
+           (array (apply #'make-array dimensions make-array-args)))
       (loop with foreign-type-size = (array-element-size type)
             with size = (reduce #'* dimensions)
             for i from 0 below size
@@ -837,22 +845,24 @@ The foreign array must be freed with foreign-array-free."
 (defmacro with-foreign-slots ((vars ptr type) &body body)
   "Create local symbol macros for each var in VARS to reference
 foreign slots in PTR of TYPE. Similar to WITH-SLOTS.
-Each var can be of the form: slot-name - in which case slot-name will
-be bound to the value of the slot or: (:pointer slot-name) - in which
-case slot-name will be bound to the pointer to that slot."
+Each var can be of the form: 
+  name                       name bound to slot of same name              
+  (:pointer name)            name bound to pointer to slot of same name
+  (name slot-name)           name bound to slot-name
+  (name :pointer slot-name)  name bound to pointer to slot-name"
   (let ((ptr-var (gensym "PTR")))
     `(let ((,ptr-var ,ptr))
        (symbol-macrolet
            ,(loop :for var :in vars
-              :collect
-              (if (listp var)
-                  (if (eq (first var) :pointer)
-                      `(,(second var) (foreign-slot-pointer
-                                       ,ptr-var ',type ',(second var)))
-                      (error
-                       "Malformed slot specification ~a; must be:`name' or `(:pointer name)'"
-                       var))
-                  `(,var (foreign-slot-value ,ptr-var ',type ',var))))
+               :collect
+                 (if (listp var)
+                     (let ((p1 (first var)) (p2 (second var)) (p3 (third var)))
+                        (if (eq p1 :pointer)	
+                           `(,p2 (foreign-slot-pointer ,ptr-var ',type ',p2))
+                           (if (eq p2 :pointer)
+                               `(,p1 (foreign-slot-pointer ,ptr-var ',type ',p3))
+                               `(,p1 (foreign-slot-value ,ptr-var ',type ',p2)))))
+                     `(,var (foreign-slot-value ,ptr-var ',type ',var))))
          ,@body))))
 
 ;;; We could add an option to define a struct instead of a class, in
@@ -1026,24 +1036,36 @@ The buffer has dynamic extent and may be stack allocated."
 (defctype :llong  :long-long)
 (defctype :ullong :unsigned-long-long)
 
+(defmacro defctype-matching (name size-or-type base-types &key (match-by '=))
+  (let* ((target-size (typecase size-or-type
+                        (integer size-or-type)
+                        (t (foreign-type-size size-or-type))))
+         (matching-type (loop for type in base-types
+                              for size = (foreign-type-size type)
+                              when (funcall match-by target-size size)
+                              return type)))
+    (if matching-type
+        `(defctype ,name ,matching-type)
+        `(warn "Found no matching type of size ~d in~%  ~a"
+               ,target-size ',base-types))))
+
 ;;; We try to define the :[u]int{8,16,32,64} types by looking at
 ;;; the sizes of the built-in integer types and defining typedefs.
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (macrolet
-      ((match-types (sized-types mtypes)
-         `(progn
-            ,@(loop for (type . size-or-type) in sized-types
-                    for m = (car (member (if (keywordp size-or-type)
-                                             (foreign-type-size size-or-type)
-                                             size-or-type)
-                                         mtypes :key #'foreign-type-size))
-                    when m collect `(defctype ,type ,m)))))
-    ;; signed
-    (match-types ((:int8 . 1) (:int16 . 2) (:int32 . 4) (:int64 . 8)
-                  (:intptr . :pointer))
-                 (:char :short :int :long :long-long))
-    ;; unsigned
-    (match-types ((:uint8 . 1) (:uint16 . 2) (:uint32 . 4) (:uint64 . 8)
-                  (:uintptr . :pointer))
-                 (:unsigned-char :unsigned-short :unsigned-int :unsigned-long
-                  :unsigned-long-long))))
+(macrolet ((match-types (sized-types base-types)
+             `(progn ,@(loop for (name size-or-type) in sized-types
+                             collect `(defctype-matching ,name ,size-or-type ,base-types)))))
+  ;; signed
+  (match-types ((:int8 1) (:int16 2) (:int32 4) (:int64 8)
+                (:intptr :pointer))
+               (:char :short :int :long :long-long))
+  ;; unsigned
+  (match-types ((:uint8 1) (:uint16 2) (:uint32 4) (:uint64 8)
+                (:uintptr :pointer))
+               (:unsigned-char :unsigned-short :unsigned-int :unsigned-long
+                :unsigned-long-long)))
+
+;;; Pretty safe bets.
+(defctype :size #+64-bit :uint64 #+32-bit :uint32)
+(defctype :ssize #+64-bit :int64 #+32-bit :int32)
+(defctype :ptrdiff :ssize)
+(defctype :offset #+(or 64-bit bsd) :int64 #-(or 64-bit bsd) :int32)

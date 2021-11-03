@@ -167,7 +167,7 @@ SIZE-VAR is supplied, it will be bound to SIZE during BODY."
 
 (declaim (inline make-shareable-byte-vector))
 (defun make-shareable-byte-vector (size)
-  "Create a Lisp vector of SIZE bytes can passed to
+  "Create a Lisp vector of SIZE bytes that can be passed to
 WITH-POINTER-TO-VECTOR-DATA."
   ; (declare (type sb-int:index size))
   (make-array size :element-type '(unsigned-byte 8)))
@@ -329,10 +329,7 @@ WITH-POINTER-TO-VECTOR-DATA."
   `(setf (gethash ',name *callbacks*)
          (alien-sap
           (sb-alien::alien-lambda
-            #+alien-callback-conventions
             (,convention ,(convert-foreign-type rettype))
-            #-alien-callback-conventions
-            ,(convert-foreign-type rettype)
             ,(mapcar (lambda (sym type)
                        (list sym (convert-foreign-type type)))
                arg-names arg-types)
@@ -350,8 +347,7 @@ WITH-POINTER-TO-VECTOR-DATA."
         error
         (sem (sb-thread:make-semaphore)))
     (sb-thread:interrupt-thread
-     ;; KLUDGE: find a better way to get the initial thread.
-     (car (last (sb-thread:list-all-threads)))
+     sb-thread::*initial-thread*
      (lambda ()
        (multiple-value-setq (result error)
          (ignore-errors (apply fn args)))
@@ -367,8 +363,8 @@ WITH-POINTER-TO-VECTOR-DATA."
   (declare (ignore name))
   ;; As of MacOS X 10.6.6, loading things like CoreFoundation from a
   ;; thread other than the initial one results in a crash.
-  #+darwin (call-within-initial-thread 'load-shared-object path)
-  #-darwin (load-shared-object path))
+  #+(and darwin sb-thread) (call-within-initial-thread 'load-shared-object path)
+  #-(and darwin sb-thread) (load-shared-object path))
 
 ;;; SBCL 1.0.21.15 renamed SB-ALIEN::SHARED-OBJECT-FILE but introduced
 ;;; SB-ALIEN:UNLOAD-SHARED-OBJECT which we can use instead.
@@ -393,7 +389,7 @@ WITH-POINTER-TO-VECTOR-DATA."
       (when obj
         (sb-alien::dlclose-or-lose obj)
         (removef sb-alien::*shared-objects* obj)
-        #+(and linkage-table (not win32))
+        #-win32
         (sb-alien::update-linkage-table)))))
 
 (defun native-namestring (pathname)

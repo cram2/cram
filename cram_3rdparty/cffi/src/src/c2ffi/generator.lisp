@@ -271,9 +271,10 @@
     (setf namespace :default))
   (cffi::find-type-parser type-name namespace))
 
-(define-constant +name-kinds+ '(:struct :union :function :variable :type
-                                :constant :field :argument :enum :member)
-  :test 'equal)
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (define-constant +name-kinds+ '(:struct :union :function :variable :type
+                                  :constant :field :argument :enum :member)
+    :test 'equal))
 
 (deftype ffi-name-kind ()
   '#.(list* 'member +name-kinds+))
@@ -293,6 +294,9 @@
                        (intern name))))
     (when (and (not anonymous)
                (boundp '*generated-names*))
+      ;; TODO FIXME this function also gets called for e.g. argument types of a function. and
+      ;; if the function ends up *not* getting emitted, e.g. because of a missing type, then
+      ;; we wrongly record here the missing type in the *generated-names* registry.
       (setf (gethash name (cdr (assoc kind *generated-names*)))
             cffi-name))
     cffi-name))
@@ -469,6 +473,10 @@
              (t
               (assert (not (starts-with #\: tag)))
               (let ((cffi-name (json-name-to-cffi-name tag :type)))
+                ;; TODO FIXME json-name-to-cffi-name collects the mentioned
+                ;; types to later emit +TYPE-NAMES+, but if this next
+                ;; find-cffi-type-or-die dies then the entire function is
+                ;; skipped.
                 (find-cffi-type-or-die cffi-name)
                 cffi-name)))))
       (assert cffi-type () "Failed to map ~S to a cffi type" json-entry)
@@ -527,9 +535,9 @@ target package."
     (@ include-definitions)
     (@ exclude-definitions))
   (with-standard-io-syntax
-    (with-input-from-file (in c2ffi-spec-file :external-format (asdf/driver:encoding-external-format :utf-8))
+    (with-input-from-file (in c2ffi-spec-file :external-format (uiop:encoding-external-format :utf-8))
       (with-output-to-file (*c2ffi-output-stream* output :if-exists :supersede
-                            :external-format (asdf/driver:encoding-external-format output-encoding))
+                            :external-format (uiop:encoding-external-format output-encoding))
         (let* ((*package* (or (find-package package-name)
                               (make-package package-name)))
                ;; Make sure we use an uninterned symbol, so that it's neutral to READTABLE-CASE.
@@ -540,7 +548,9 @@ target package."
                ;; the previous state. This avoids redefinition warning
                ;; when the generated file gets compiled and loaded
                ;; later.
-               (cffi::*type-parsers* (copy-hash-table cffi::*type-parsers*))
+               (cffi::*default-type-parsers* (copy-hash-table cffi::*default-type-parsers*))
+               (cffi::*struct-type-parsers* (copy-hash-table cffi::*struct-type-parsers*))
+               (cffi::*union-type-parsers* (copy-hash-table cffi::*union-type-parsers*))
                (*anon-name-counter* 0)
                (*anon-entities* (make-hash-table))
                (*generated-names* (mapcar (lambda (key)
