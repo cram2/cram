@@ -34,16 +34,15 @@ The core packages of CRAM are implemented in Common Lisp (with a little bit of C
 
 
 ### Workspace Installation
-
-  * cd ~/workspace/src
+  
+  * cd ~/cram_ws/src
   * wstool init
-  *  wstool merge https://raw.githubusercontent.com/sunava/cram/boxy-melodic/cram-18.04.rosinstall
+  * wstool merge https://raw.githubusercontent.com/cram2/cram/boxy-noetic/cram-20.04.rosinstall
   * wstool update
-  * touch iai_maps/iai_dlr_cutting_demo/CATKIN_IGNORE
-  * cd ~/workspace/ros
-  * rosdep update
   * cd ..
+  * rosdep update
   * rosdep install --ignore-src --from-paths src/ -r -y
   * catkin build
+  * source devel/setup.bash
 
 
