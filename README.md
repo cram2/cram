@@ -47,3 +47,10 @@ The core packages of CRAM are implemented in Common Lisp (with a little bit of C
   * source devel/setup.bash
 
 
+For ROS melodic and the current packages, one thing needs to be fixed. The package octomap contains a dependency to a ROS2 package, which can be ignored. Open the package.xml of octomap.
+
+* roscd octomap
+* sudo nano package.xml
+Now remove the following line within:
+
+* <exec_depend condition="$ROS_VERSION == 2">ament_cmake</exec_depend>
