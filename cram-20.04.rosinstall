@@ -34,5 +34,9 @@
     local-name: orocos_kinematics_dynamics
     uri: git@github.com:orocos/orocos_kinematics_dynamics.git
     version: master    
+- git:
+    local-name: kdl_ik_services
+    uri: git@github.com:sunava/kdl_ik_services.git
+    version: main      
     
 
