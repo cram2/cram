@@ -21,7 +21,7 @@
     </rosparam>
   </node>
   <node pkg="tf" type="static_transform_publisher" name="kitchen_link_broadcaster"
-        args="0 0 0 0 0 0 /map /iai_kitchen/world 25">
+        args="0 0 0 0 0 0 map iai_kitchen/world 25">
   </node>
   <node pkg="robot_state_publisher" type="robot_state_publisher"
     name="kitchen_state_publisher" output="screen">
