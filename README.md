@@ -34,7 +34,8 @@ The core packages of CRAM are implemented in Common Lisp (with a little bit of C
 
 
 ### Workspace Installation
-  
+  * sudo apt-get install ros-noetic-roslisp-repl
+  * sudo apt-get install python3-rosinstall python3-wstool
   * cd ~/cram_ws/src
   * wstool init
   * wstool merge https://raw.githubusercontent.com/cram2/cram/boxy-noetic/cram-20.04.rosinstall
