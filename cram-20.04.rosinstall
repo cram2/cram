@@ -27,9 +27,12 @@
     uri: git@github.com:code-iai/iai_robots.git
     version: master    
 - git:
-    local-name: hsr_meshes
-    uri: git@github.com:ToyotaResearchInstitute/hsr_meshes.git
+    local-name: hsrb_meshes
+    uri: git@github.com:hsr-project/hsrb_meshes.git
     version: master
+- git:
+    local-name: hsrb_description
+    uri: git@github.com:hsr-project/hsrb_description.git
 - git:
     local-name: orocos_kinematics_dynamics
     uri: git@github.com:orocos/orocos_kinematics_dynamics.git
