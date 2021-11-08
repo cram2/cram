@@ -31,7 +31,7 @@
   <group if="$(arg upload)">
     <param name="robot_description"
            command="$(find xacro)/xacro
-                    '$(find hsr_description)/robots/hsrb4s.urdf.xacro'"/>
+                    '$(find hsrb_description)/robots/hsrb4s.urdf.xacro'"/>
   </group>
 
   <group if="$(arg publish_joint_state)">
