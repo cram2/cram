@@ -8,9 +8,6 @@
     uri: git@github.com:ros/roslisp_common.git
     version: master  
 - git:
-    local-name: genlisp
-    uri: git@github.com:ros/genlisp.git
-- git:
     local-name: giskard_msgs
     uri: git@github.com:SemRoCo/giskard_msgs.git
     version: 5bfb2a2dc0d58635fab4eceaf93a43c2729a4cdf
@@ -32,11 +29,8 @@
     version: master
 - git:
     local-name: hsrb_description
-    uri: git@github.com:hsr-project/hsrb_description.git
-- git:
-    local-name: orocos_kinematics_dynamics
-    uri: git@github.com:orocos/orocos_kinematics_dynamics.git
-    version: master    
+    uri: git@github.com:code-iai/hsr_description.git  
+    version: gripper_tool_frame
 - git:
     local-name: kdl_ik_services
     uri: git@github.com:sunava/kdl_ik_services.git
