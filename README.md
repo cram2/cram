@@ -43,6 +43,15 @@ The core packages of CRAM are implemented in Common Lisp (with a little bit of C
   * cd ..
   * rosdep update
   * rosdep install --ignore-src --from-paths src/ -r -y
+  * mkdir -p ~/ros_emacs_utils_ws/src 
+  * cd ~/ros_emacs_utils_ws/src
+  * git clone git@github.com:code-iai/ros_emacs_utils.git
+  * cd ..
+  * catkin_make install
+  * catkin_make
+  * source devel/setup.bash
+  * cd ~/cram_ws
+  * catkin config --extend ~/ros_emacs_utils_ws/devel
   * catkin build
   * source devel/setup.bash
 
