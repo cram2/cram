@@ -34,16 +34,17 @@ The core packages of CRAM are implemented in Common Lisp (with a little bit of C
 
 
 ### Workspace Installation
-  * sudo apt-get install python3-rosinstall python3-wstool
-  * wget https://raw.githubusercontent.com/cram2/cram/boxy-noetic/cram-install.sh
-  * chmod +x cram-install.sh
+  * `sudo apt-get install python3-rosinstall python3-wstool`
+  *` wget https://raw.githubusercontent.com/cram2/cram/boxy-noetic/cram-install.sh`
+  * `chmod +x cram-install.sh`
+  * `./cram-install.sh`
   * Optional: `echo source ~/roscram/cram_ws/devel/setup.bash" >> ~/.bashrc`
 
 
 For ROS noetic and the current packages, one thing needs to be fixed. The package octomap contains a dependency to a ROS2 package, which can be ignored. Open the package.xml of octomap.
 
-* roscd octomap
-* sudo nano package.xml
+* `roscd octomap`
+* `sudo nano package.xml`
 Now remove the following line within:
 
-* <exec_depend condition="$ROS_VERSION == 2">ament_cmake</exec_depend>
+*` <exec_depend condition="$ROS_VERSION == 2">ament_cmake</exec_depend>`
