@@ -34,26 +34,10 @@ The core packages of CRAM are implemented in Common Lisp (with a little bit of C
 
 
 ### Workspace Installation
-  * sudo apt-get install ros-noetic-roslisp-repl
   * sudo apt-get install python3-rosinstall python3-wstool
-  * cd ~/cram_ws/src
-  * wstool init
-  * wstool merge https://raw.githubusercontent.com/cram2/cram/boxy-noetic/cram-20.04.rosinstall
-  * wstool update
-  * cd ..
-  * rosdep update
-  * rosdep install --ignore-src --from-paths src/ -r -y
-  * mkdir -p ~/ros_emacs_utils_ws/src 
-  * cd ~/ros_emacs_utils_ws/src
-  * git clone git@github.com:code-iai/ros_emacs_utils.git
-  * cd ..
-  * catkin_make install
-  * catkin_make
-  * source devel/setup.bash
-  * cd ~/cram_ws
-  * catkin config --extend ~/ros_emacs_utils_ws/devel
-  * catkin build
-  * source devel/setup.bash
+  * wget https://raw.githubusercontent.com/cram2/cram/boxy-noetic/cram-install.sh
+  * chmod +x cram-install/sh
+  * Optional: echo `source ~/roscram/cram_ws/devel/setup.bash" >> ~/.bashrc`
 
 
 For ROS noetic and the current packages, one thing needs to be fixed. The package octomap contains a dependency to a ROS2 package, which can be ignored. Open the package.xml of octomap.
