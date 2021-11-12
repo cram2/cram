@@ -38,7 +38,8 @@ The core packages of CRAM are implemented in Common Lisp (with a little bit of C
   * `wget https://raw.githubusercontent.com/cram2/cram/boxy-noetic/cram-install.sh`
   * `chmod +x cram-install.sh`
   * `./cram-install.sh`
-  * Optional: `echo source ~/roscram/cram_ws/devel/setup.bash" >> ~/.bashrc`
+  * OPTIONAL: `echo source ~/roscram/cram_ws/devel/setup.bash" >> ~/.bashrc`  For sourcing automaticly
+  * OPTIONAL: `echo "alias repl='rosrun roslisp_repl roslisp_repl'" >> ~/.bashrc`  For starting the repl with `repl` and not `rosrun....`
 
 
 For ROS noetic and the current packages, one thing needs to be fixed. The package octomap contains a dependency to a ROS2 package, which can be ignored. Open the package.xml of octomap.
