@@ -25,7 +25,7 @@
     version: master    
 - git:
     local-name: hsrb_meshes
-    uri: git@github.com:hsr-project/hsrb_meshes.git
+    uri: git@github.com:ToyotaResearchInstitute/hsr_meshes.git
     version: master
 - git:
     local-name: hsrb_description
