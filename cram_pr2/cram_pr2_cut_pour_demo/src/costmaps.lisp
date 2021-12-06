@@ -1,3 +1,4 @@
+;;;
 ;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
@@ -26,24 +27,28 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-object-knowledge
-  :author "Gayane Kazhoyan"
-  :maintainer "Gayane Kazhoyan"
-  :license "BSD"
+(in-package :demo)
 
-  :depends-on (cram-prolog
-               cram-manipulation-interfaces
-               cram-designators ; mostly used for likely locations
-               cram-location-costmap ; for specifying the metadata
-               )
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "environment" :depends-on ("package"))
-     (:file "household" :depends-on ("package"))
-     (:file "pouring-and-slicing" :depends-on ("package"))
-     (:file "assembly" :depends-on ("package"))
-     (:file "retail" :depends-on ("package"))
-     (:file "pouring-and-slicing" :depends-on ("package"))
-     (:file "multiple-trajectory-poses" :depends-on ("package"))))))
+(defun make-restricted-area-cost-function ()
+  (lambda (x y)
+    1.0
+    ;; (if (> x 1.0)
+    ;;     0.0
+    ;;     (if (and (> x 0.0) (> y -1.0) (< y 0.7 ;1.0
+    ;;                                      ))
+    ;;         1.0
+    ;;         (if (and (< x 0.0) (> x -1.0) (> y -1.0) (< y 2.5)) 1.0
+    ;;             0.0)))
+    ))
+
+(defmethod location-costmap:costmap-generator-name->score ((name (eql 'restricted-area))) 5)
+
+(def-fact-group demo-costmap (location-costmap:desig-costmap)
+  (<- (location-costmap:desig-costmap ?designator ?costmap)
+    (or (cram-robot-interfaces:visibility-designator ?designator)
+        (cram-robot-interfaces:reachability-designator ?designator))
+    (location-costmap:costmap ?costmap)
+    (location-costmap:costmap-add-function
+     restricted-area
+     (make-restricted-area-cost-function)
+     ?costmap)))
