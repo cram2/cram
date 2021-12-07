@@ -1,6 +1,5 @@
 ;;;
-;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
-;;;                     Thomas Lipps    <tlipps@uni-bremen.de>
+;;; Copyright (c) 2017, Vanessa Hassouna <hassouna@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -60,14 +59,10 @@
                               :pose (cl-transforms:make-pose
                                      (cl-tf:make-3d-vector -0.95 0.9 0.9)
                                      (cl-tf:make-quaternion 0 0 -1 1)))))
-(defun spawn-pr2(location)
+(defun move-pr2(location)
   (if (eq location :sink)
-      (prolog:prolog '(and (btr:bullet-world ?world)
-                       (assert (btr:object-pose ?world cram-pr2-description:pr2
-                                ((0.73 0.6 0) (0 0 0 1))))))
-      (prolog:prolog '(and (btr:bullet-world ?world)
-                       (assert (btr:object-pose ?world cram-pr2-description:pr2
-                                ((-0.3 0.9 0) (0 0 1 0))))))))
+      (btr-utils::move-robot '((0.73 0.6 0) (0 0 0 1)))
+      (btr-utils::move-robot '((-0.3 0.9 0) (0 0 1 0)))))
 
 (defun spawn-bread (location)
   (if (eq location :sink)
@@ -156,14 +151,18 @@
                       :knife)))
       (urdf-proj:with-simulated-robot
         (park)
-        (demo-slice :right bread-or-weisswurst
-                    ?knife island-or-sink
+        (demo-slice :right
+                    bread-or-weisswurst
+                    ?knife
+                    island-or-sink
                     :allow-hand))
       (clean-demo)
       (urdf-proj:with-simulated-robot
         (park)
-        (demo-slice :left bread-or-weisswurst
-                    ?knife island-or-sink
+        (demo-slice :left
+                    bread-or-weisswurst
+                    ?knife
+                    island-or-sink
                     :allow-hand)))))
 
 
@@ -173,6 +172,7 @@
                  (and (eq ?object-type :bread) (eq ?knife-type :big-knife))))
     (error "Types are not compatible: ~a is not sliceable with ~a~%."
            ?object-type ?knife-type))
+  
   (let ((?object-to-slice nil)
         (?object-knife nil)
         (?grasp-to-hold nil)
@@ -204,12 +204,13 @@
           (setf ?pose-slice-object (cl-tf:pose->pose-stamped
                                     cram-tf:*fixed-frame*
                                     0
-                                    (btr:object-pose 'bread-1)))))
+                                    (btr:object-pose 'cram-pr2-cut-pour-demo::bread-1)))))
+
 
     
-    (spawn-pr2 ?location)
+    (move-pr2 ?location)
     
-;;;;; Looking at the knife
+;; ;; Looking at the knife
 
     (cpl:with-retry-counters ((looking-retry 3))
       (cpl:with-failure-handling
@@ -295,6 +296,8 @@
            (desig:an action
                      (type looking)
                      (target (desig:a location (pose ?pose-slice-object))))))))
+
+    
     
 ;;;;; Detecting the object to slice
 
@@ -304,12 +307,13 @@
              (declare (ignore e))
              (cpl:do-retry detecting-retry
                (roslisp:ros-warn (slice-demo detecting-fail)
-                                 "~%Failed to detect ~a~%" ?knife-type)
+                                 "~%Failed to detect ~a~%" ?object-type)
                (cpl:retry))
              (roslisp:ros-warn (slice-demo detecting-fail)
                                "~%No more retries~%")))
         (setf ?object-to-slice
-              (urdf-proj::detect (desig:an object (type ?object-type))))))  
+              (urdf-proj::detect (desig:an object (type ?object-type)))))) 
+    
 
 ;;;;; Holding the object to slice with the other hand
     
@@ -331,7 +335,6 @@
                                (arm ?arm-to-hold) 
                                (grasp ?grasp-to-hold)))))
 
-    
 ;;;;; Slicing the object
 
     (cpl:with-retry-counters ((slicing-retry 3))
@@ -345,7 +348,7 @@
                (cpl:retry))
              (roslisp:ros-warn (slice-demo slicing-fail)
                                "~%No more retries~%")))
-        
+    
         
         (exe:perform (desig:an action
                                (type slicing)
@@ -370,7 +373,7 @@
   (urdf-proj:with-simulated-robot
     (clean-demo)
     (park)
-    (spawn-pr2 island-or-sink)
+    (move-pr2 island-or-sink)
     (spawn-cup island-or-sink)
     (spawn-bottle island-or-sink)
 
@@ -566,3 +569,52 @@
                  (arms (left))
                  (grasp front)
                  (collision-mode :allow-hand))))))
+
+
+
+
+(defun demo-play-slice-island ()
+  (clean-demo)
+  (urdf-proj:with-simulated-robot
+    (park)
+    (demo-slice :right :bread  :big-knife :island :allow-hand))
+  (clean-demo)
+  (urdf-proj:with-simulated-robot
+    (park)
+    (demo-slice :left :bread :big-knife :island :allow-hand)))
+
+(defun demo-play-slice-island-w ()
+  (clean-demo)
+  (urdf-proj:with-simulated-robot
+    (park)
+    (demo-slice :right :weisswurst  :knife :island :allow-hand))
+  (clean-demo)
+  (urdf-proj:with-simulated-robot
+    (park)
+    (demo-slice :left :weisswurst :knife :island :allow-hand)))
+
+(defun demo-play-slice-sink ()
+  (clean-demo)
+  (urdf-proj:with-simulated-robot
+    (park)
+    (demo-slice :right :bread  :big-knife :sink :allow-hand))
+  (clean-demo)
+  (urdf-proj:with-simulated-robot
+    (park)
+    (demo-slice :left :bread :big-knife :sink :allow-hand)))
+
+(defun demo-play-slice-sink-w ()
+  (clean-demo)
+  (urdf-proj:with-simulated-robot
+    (park)
+    (demo-slice :right :weisswurst  :knife :sink :allow-hand))
+  (clean-demo)
+  (urdf-proj:with-simulated-robot
+    (park)
+    (demo-slice :left :weisswurst :knife :sink :allow-hand)))
+
+
+(defun demo-play-pour-sink ()
+  (clean-demo)
+  (spawn-cup 'sink))
+

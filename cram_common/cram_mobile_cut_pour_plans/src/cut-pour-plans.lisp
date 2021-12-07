@@ -1,6 +1,5 @@
 ;;;
-;;; Copyright (c) 2019, Vanessa Hassouna <hassouna@uni-bremen.de>
-;;;                     Thomas Lipps     <tlipps@uni-bremen.de>
+;;; Copyright (c) 2019, Vanessa Hassouna <hassouna@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -115,7 +114,7 @@
                 ((:right-slice-down-poses ?right-slice-down-poses))
                 ((:collision-mode ?collision-mode))
               &allow-other-keys)
-  "Object already in hand, approach 2nd object, tilt 100degree, tilt back"
+  "Object is secured by other hand (desig holding)"
   
   
   
@@ -177,3 +176,80 @@
                             (collision-mode ?collision-mode))))))))
 
 
+
+
+          ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;HOLD
+  
+(defun hold (&key
+               ((:object ?object-designator))
+               ((:object-name ?object-name))
+               ((:arm ?arm))
+               ((:arm-support ?arm-support))
+               ((:gripper-opening ?gripper-opening))
+               ((:effort ?grip-effort))
+               ((:grasp ?grasp))
+               ((:left-reach-poses ?left-reach-poses))
+               ((:right-reach-poses ?right-reach-poses))
+               ((:left-grasp-poses ?left-grasp-poses))
+               ((:right-grasp-poses ?right-grasp-poses))
+             &allow-other-keys)
+  
+  ;; (declare (type desig:object-designator ?object-designator)
+  ;;          (type keyword ?arm ?grasp)
+  ;;          (type (or null list) ; yes, null is also list, but this is better reachability
+  ;;                ?left-slice-up-poses ?left-slice-up-poses
+  ;;                ?left-slice-down-poses ?left-slice-down-poses))
+  "Object already in hand, approach 2nd object, tilt 100degree, tilt back"
+
+  (cpl:par
+    (roslisp:ros-info (pick-place pick-up) "Opening gripper")
+    (exe:perform
+     (desig:an action
+               (type setting-gripper)
+               (gripper ?arm)
+               (position ?gripper-opening)))
+    (roslisp:ros-info (cut-pour slicing) "Approaching")
+    (cpl:with-failure-handling
+        ((common-fail:manipulation-low-level-failure (e)
+           (roslisp:ros-warn (cp-plans slicing)
+                             "Manipulation messed up: ~a~%Ignoring."
+                             e)
+           ;; (return)
+           ))
+      (exe:perform
+       (desig:an action
+                 (type reaching)
+                 (left-poses ?left-reach-poses)
+                 (right-poses ?right-reach-poses)))))
+  
+  (roslisp:ros-info (cut-pour slicing) "Grasping")
+  (cpl:with-failure-handling
+      ((common-fail:manipulation-low-level-failure (e)
+         (roslisp:ros-warn (cp-plans slicing)
+                           "Manipulation messed up: ~a~%Ignoring."
+                           e)
+         (return)
+         ))
+    (exe:perform
+     (desig:an action
+               (type grasping)
+               (object ?object-designator)
+               (left-poses ?left-grasp-poses)
+               (right-poses ?right-grasp-poses))))
+  
+  (roslisp:ros-info (cut-pour slicing) "Gripping")
+  (exe:perform
+   (desig:an action
+             (type gripping)
+             (gripper ?arm)
+             (effort ?grip-effort)
+             (object ?object-designator)))
+  
+  (roslisp:ros-info (cut-pour slicing) "Assert grasp into knowledge base")
+  (cram-occasions-events:on-event
+   (make-instance 'cpoe:object-attached-robot
+     :object-name (desig:desig-prop-value ?object-designator :name)
+     :arm ?arm
+     :grasp ?grasp))
+  
+)
