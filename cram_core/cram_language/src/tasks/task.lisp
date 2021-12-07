@@ -765,13 +765,14 @@
 
 ;;;; Misc
 
-;; (defun log-gc-event ()
-;;   (let ((sb-impl::*deadline* nil)
-;;         (sb-impl::*deadline-seconds* nil))    
-;;     (log-event
-;;       (:context "GC")
-;;       (:display "new dynamic usage: ~10:D bytes" (sb-kernel:dynamic-usage))
-;;       (:tags :gc))))
+(defun log-gc-event ()
+  ;; (let ((sb-impl::*deadline* nil)
+  ;;       (sb-impl::*deadline-seconds* nil))    
+  ;;   (log-event
+  ;;     (:context "GC")
+  ;;     (:display "new dynamic usage: ~10:D bytes" (sb-kernel:dynamic-usage))
+  ;;     (:tags :gc)))
+  )
 
 ;;; FIXME: enabling it resulted regularly in whole-image deadlocks on
 ;;; SBCL 1.0.38, Linux x86-32 when running the test suite with

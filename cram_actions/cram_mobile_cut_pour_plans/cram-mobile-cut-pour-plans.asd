@@ -1,4 +1,5 @@
-;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2016, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Vanessa Hassouna <hassouna@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -10,8 +11,8 @@
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
 ;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors
-;;;       may be used to endorse or promote products derived from this software
+;;;       Technische Universitaet Muenchen nor the names of its contributors 
+;;;       may be used to endorse or promote products derived from this software 
 ;;;       without specific prior written permission.
 ;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -26,23 +27,42 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-object-knowledge
-  :author "Gayane Kazhoyan"
-  :maintainer "Gayane Kazhoyan"
+(defsystem cram-mobile-cut-pour-plans
+  :author "Vanessa Hassouna"
+  :maintainer "Vanessa Hassouna"
   :license "BSD"
 
-  :depends-on (cram-prolog
+  :depends-on (cl-transforms
+               cl-transforms-stamped
+               ;; cl-tf2 ; in grasping overwrite tf transformer with tf2
+
+               roslisp ; for debug statements
+               roslisp-utilities
+
+               cram-language
+               cram-prolog
+               cram-designators
+               cram-occasions-events
+               cram-executive
+               cram-utilities ; for cut:var-value of prolog stuff
+
+               cram-tf
+               cram-plan-occasions-events
+               cram-common-failures
                cram-manipulation-interfaces
-               cram-designators ; mostly used for likely locations
-               cram-location-costmap ; for specifying the metadata
-               )
+               cram-mobile-pick-place-plans
+               cram-robot-interfaces)
+
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "environment" :depends-on ("package"))
-     (:file "household" :depends-on ("package"))
-     (:file "pouring-and-slicing" :depends-on ("package"))
-     (:file "assembly" :depends-on ("package"))
-     (:file "retail" :depends-on ("package"))
-     (:file "multiple-trajectory-poses" :depends-on ("package"))))))
+
+     ;; PICKING-UP and PLACING actions
+     (:file "cut-pour-plans" :depends-on ("package"))
+     (:file "cut-pour-designators" :depends-on ("package"
+                                                "cut-pour-plans"))
+     (:file "trajectories" :depends-on ("package"))
+     ;; high-level plans such as DRIVE-AND-PICK-UP, PERCEIVE, etc.
+     (:file "high-level-plans" :depends-on ("package"
+                                            "cut-pour-designators"))))))

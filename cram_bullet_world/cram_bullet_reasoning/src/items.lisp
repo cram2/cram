@@ -46,10 +46,14 @@
     (:pot "package://cram_bullet_reasoning/resource/pot-ww.stl" nil)
     (:weisswurst "package://cram_bullet_reasoning/resource/ww.stl" nil)
     (:bowl-original "package://cram_bullet_reasoning/resource/bowl_original.stl" t)
-    (:bowl-non-compound "package://cram_bullet_reasoning/resource/bowl_non_compound.stl" nil)
     (:bowl "package://cram_bullet_reasoning/resource/bowl.dae" nil)
+    (:bottle "package://cram_pr2_pick_place_demo/resource/bottle.dae" nil)
+    (:bread "package://cram_bullet_reasoning/resource/bread.stl" nil)
+    (:bowl-compound "package://cram_bullet_reasoning/resource/bowl_compound.dae" nil)
+    (:bowl-non-compound "package://cram_bullet_reasoning/resource/bowl_non_compound.stl" nil)
     (:fork "package://cram_bullet_reasoning/resource/fork.stl" nil)
     (:knife "package://cram_bullet_reasoning/resource/knife.stl" nil)
+    (:big-knife "package://cram_bullet_reasoning/resource/big-knife.stl" nil)
     (:spatula "package://cram_bullet_reasoning/resource/spatula.stl" nil)
     (:cap "package://cram_bullet_reasoning/resource/cap.stl" t)
     (:glasses "package://cram_bullet_reasoning/resource/glasses.stl" nil)
@@ -496,6 +500,17 @@ The length, width and height have to be given for the function to work."
 
 (defmethod add-object ((world bt-world) (type (eql :cereal)) name pose
                        &key mass (color '(0.5 0.5 0.5 1.0)) size)
+  (assert size)
+  (make-item world name (list type)
+             (list
+              (make-instance 'rigid-body
+                :name name :mass mass :pose (ensure-pose pose)
+                :collision-shape (make-instance 'colored-box-shape
+                                   :half-extents (ensure-vector size)
+                                   :color color)))))
+
+(defmethod add-object ((world bt-world) (type (eql :bread)) name pose
+                       &key mass (color '(0 1 0 0.5)) size)
   (assert size)
   (make-item world name (list type)
              (list
