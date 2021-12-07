@@ -67,10 +67,10 @@
 
                cram-urdf-projection      ; for with-simulated-robot
                cram-urdf-projection-reasoning ; to set projection reasoning to T
-               ;; cram-pr2-description
+               cram-pr2-description
                cram-fetch-deliver-plans
                cram-urdf-environment-manipulation
-                      cram-mobile-cut-pour-plans	        )
+               cram-mobile-cut-pour-plans)
 
   :components
   ((:module "src"
