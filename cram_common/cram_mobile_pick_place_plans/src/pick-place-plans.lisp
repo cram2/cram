@@ -52,6 +52,7 @@
                   ((:right-grasp-poses ?right-grasp-poses))
                   ((:left-lift-poses ?left-lift-poses))
                   ((:right-lift-poses ?right-lift-poses))
+                  ((:hold ?holding))
                 &allow-other-keys)
   (declare (type desig:object-designator ?object-designator)
            (type keyword ?arm ?grasp)
@@ -126,8 +127,9 @@
                (object ?object-designator)
                (grasp ?grasp)
                (goal ?goal))))
-  (roslisp:ros-info (pick-place pick-up) "Lifting")
-  (cpl:pursue
+  (unless ?holding
+   (roslisp:ros-info (pick-place pick-up) "Lifting")
+   (cpl:pursue
     (cpl:with-failure-handling
         ((common-fail:manipulation-low-level-failure (e)
            (roslisp:ros-warn (pp-plans pick-up)
@@ -155,8 +157,7 @@
              ;; TODO: this will not work with dual-arm grasping
              ;; but as our ?arm is declared as a keyword,
              ;; for now this code is the right code
-             (arms (?arm)))))
-
+             (arms (?arm))))))
 
 
 (defun place (&key
@@ -261,8 +262,8 @@
   (roslisp:ros-info (pick-place place) "Retract grasp in knowledge base")
   (cram-occasions-events:on-event
    (make-instance 'cpoe:object-detached-robot
-     :arm ?arm
-     :object-name (desig:desig-prop-value ?object-designator :name)))
+                  :arm ?arm
+                  :object-name (desig:desig-prop-value ?object-designator :name)))
   (roslisp:ros-info (pick-place place) "Updating object location in knowledge base")
   (cram-occasions-events:on-event
    (make-instance 'cpoe:object-location-changed
