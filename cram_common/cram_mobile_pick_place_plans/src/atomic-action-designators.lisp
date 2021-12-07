@@ -99,16 +99,12 @@
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
                                                   ?resolved-action-designator))
     (or (spec:property ?action-designator (:type :reaching))
-<<<<<<< HEAD
-        (spec:property ?action-designator (:type :lifting)))
-=======
         (spec:property ?action-designator (:type :retracting))
         (spec:property ?action-designator (:type :lifting))
         (spec:property ?action-designator (:type :approaching))
         (spec:property ?action-designator (:type :tilting))
         (spec:property ?action-designator (:type :retracting))
         (spec:property ?action-designator (:type :cutting)))
->>>>>>> 2c513753d40c9b34caa0e8f5c12ef4296bffd1f2
     (spec:property ?action-designator (:type ?action-type))
     (once (or (spec:property ?action-designator (:left-poses ?left-poses))
               (equal ?left-poses nil)))
@@ -121,11 +117,8 @@
     (desig:designator :action ((:type ?action-type)
                                (:left-poses ?left-poses)
                                (:right-poses ?right-poses)
-<<<<<<< HEAD
-                               (:collision-mode ?collision)
-=======
+                               ;;(:collision-mode ?collision)
                                (:collision-mode :allow-all)
->>>>>>> 2c513753d40c9b34caa0e8f5c12ef4296bffd1f2
                                (:move-base ?move-base)
                                (:align-planes-left ?align-planes-left)
                                (:align-planes-right ?align-planes-right))
