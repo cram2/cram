@@ -36,6 +36,7 @@
   ;; make a clean world instance
   (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
 
+
   ;; get the environment URDF from the ROS parameter server
   (let ((kitchen-urdf-string
           (roslisp:get-param rob-int:*environment-description-parameter* nil)))
