@@ -1,5 +1,7 @@
 ;;;
-;;; Copyright (c) 2017, Vanessa Hassouna<hassouna@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Vanessa Hassouna<hassouna@cs.uni-bremen.de>
+;;;               2020, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;;               2020, Thomas Lipps <tlipps@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,7 +29,37 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
+(in-package :objects)
+
 ;;;;;;;;;;;;;; POURING ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;; POPCORN-POT ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform 
+    ((object-type (eql :popcorn-pot))
+     arm
+     (grasp (eql :left-side)))
+  '((0.0 0.05 0.12)(0 0.707 0 0.707)))
+
+(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform 
+    ((object-type (eql :popcorn-pot))
+     arm
+     (grasp (eql :right-side)))
+  '((0.10 -0.08 0.19)(0.707 0 -0.707 0)))
+
+;;;;;;;;;;;;;;;;; IKEA-PLATE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;y
+
+(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform 
+    ((object-type (eql :ikea-plate))
+     (arm (eql :left))
+     (grasp (eql :front)))
+  '((-0.1 0.125 0.17)(-0.5 0.5 -0.5 0.5)))
+
+(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform 
+    ((object-type (eql :ikea-plate))
+     (arm (eql :right))
+     (grasp (eql :front)))
+  '((-0.1 -0.125 0.17)(-0.5 -0.5 0.5 0.5)))
 
 ;;;;;;;;;;;;;; CUP ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

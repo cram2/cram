@@ -43,7 +43,8 @@
                   ((:arm ?arm))
                   ((:gripper-opening ?gripper-opening))
                   ((:effort ?grip-effort))
-                  ((:grasp ?grasp))
+                  ((:left-grasp ?left-grasp))
+                  ((:right-grasp ?right-grasp))
                   location-type
                   ((:look-pose ?look-pose))
                   ((:left-reach-poses ?left-reach-poses))
@@ -55,7 +56,8 @@
                   ((:hold ?holding))
                 &allow-other-keys)
   (declare (type desig:object-designator ?object-designator)
-           (type keyword ?arm ?grasp)
+           (type list ?arm)
+           ;;(type (or nil keyword) ?left-grasp ?right-grasp)
            (type number ?gripper-opening ?grip-effort)
            (type (or null list) ; yes, null is also a list, but this is more readable
                  ?left-reach-poses ?right-reach-poses
@@ -117,16 +119,28 @@
                  (left-poses ?left-grasp-poses)
                  (right-poses ?right-grasp-poses)
                  (goal ?goal)))))
-  (roslisp:ros-info (pick-place pick-up) "Gripping")
   (let ((?goal `(cpoe:object-in-hand ,?object-designator ,?arm)))
-    (exe:perform
-     (desig:an action
-               (type gripping)
-               (gripper ?arm)
-               (effort ?grip-effort)
-               (object ?object-designator)
-               (grasp ?grasp)
-               (goal ?goal))))
+    (roslisp:ros-info (pick-place pick-up) "Gripping")
+    (when (member :left ?arm)
+      (exe:perform
+       (desig:an action
+                 (type gripping)
+                 (gripper :left)
+                 (effort ?grip-effort)
+                 (object ?object-designator)
+                 (desig:when ?left-grasp
+                   (grasp ?left-grasp))
+                 (goal ?goal))))
+    (when (member :right ?arm)
+      (exe:perform
+       (desig:an action
+                 (type gripping)
+                 (gripper :right)
+                 (effort ?grip-effort)
+                 (object ?object-designator)
+                 (desig:when ?right-grasp
+                   (grasp ?right-grasp))
+                 (goal ?goal)))))
   (unless ?holding
    (roslisp:ros-info (pick-place pick-up) "Lifting")
    (cpl:pursue
@@ -143,13 +157,14 @@
                    (left-poses ?left-lift-poses)
                    (right-poses ?right-lift-poses)
                    (goal ?goal)))))
-    (cpl:seq
-      (exe:perform
-       (desig:an action
-                 (type monitoring-joint-state)
-                 (gripper ?arm)))
-      (cpl:fail 'common-fail:gripper-closed-completely
-                :description "Object slipped")))
+    ;; (cpl:seq
+    ;;   (exe:perform
+    ;;    (desig:an action
+    ;;              (type monitoring-joint-state)
+    ;;              (gripper ?arm)))
+    ;;   (cpl:fail 'common-fail:gripper-closed-completely
+    ;;             :description "Object slipped"))
+     )
   (roslisp:ros-info (pick-place place) "Parking")
   (exe:perform
    (desig:an action
@@ -159,14 +174,14 @@
              ;; for now this code is the right code
              (arms (?arm))))))
 
-
 (defun place (&key
                 ((:object ?object-designator))
                 ((:target ?target-location-designator))
                 ((:other-object ?other-object-designator))
                 other-object-is-a-robot
                 ((:arm ?arm))
-                grasp
+                ((:left-grasp ?left-grasp))
+                ((:right-grasp ?right-grasp))
                 location-type
                 ((:gripper-opening ?gripper-opening))
                 ((:attachment-type ?placing-location-name))
@@ -180,14 +195,14 @@
               &allow-other-keys)
   (declare (type desig:object-designator ?object-designator)
            (type (or desig:object-designator null) ?other-object-designator)
-           (type keyword ?arm)
-           (type (or null keyword) ?placing-location-name)
+           (type list ?arm)
+           (type (or null keyword) ?placing-location-name ?left-grasp ?right-grasp)
            (type number ?gripper-opening)
            (type (or null list) ; yes, null is also list, but this is better readable
                  ?left-reach-poses ?right-reach-poses
                  ?left-put-poses ?right-put-poses
                  ?left-retract-poses ?right-retract-poses)
-           (ignore grasp location-type))
+           (ignore location-type))
   "Reach, put, assert assemblage if given, open gripper, retract grasp event, retract arm."
 
   (roslisp:ros-info (pick-place place) "Looking")
@@ -312,6 +327,8 @@
 (defun perceive (&key
                    ((:object ?object-designator))
                    park-arms
+                   ((:counter ?counter))
+                   ((:occluding-names ?occluding))
                    (object-chosing-function #'identity)
                  &allow-other-keys)
   (declare (type desig:object-designator ?object-designator)
