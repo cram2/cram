@@ -48,10 +48,11 @@
   (<- (man-int:object-type-direct-subtype :assembly-item :front-wheel))
   (<- (man-int:object-type-direct-subtype :assembly-item :nut)))
 
-(def-fact-group attachmend-knowledge (man-int:unidirectional-attachment)
+(def-fact-group attachment-knowledge (man-int:unidirectional-attachment)
 
   (<- (man-int:unidirectional-attachment ?attachment-type)
-    (member ?attachment-type (:horizontal-attachment :vertical-attachment))))
+    (member ?attachment-type (:horizontal-attachment
+                              :vertical-attachment))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -257,8 +258,6 @@
   :lift-translation *default-lift-offsets*
   :2nd-lift-translation *default-lift-offsets*)
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (man-int:def-object-type-in-other-object-transform :chassis :holder-plane-horizontal :horizontal-attachment

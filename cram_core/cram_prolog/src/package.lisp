@@ -40,7 +40,7 @@
    #:and #:or #:not #:-> #:*-> #:cut #:lisp-fun #:lisp-pred #:assert-type
    #:bound #:ground
    #:true #:fail #:once #:call #:findall #:bagof #:setof #:every #:forall
-   #:member #:take #:filter-bindings #:generate-values
+   #:member #:subset #:take #:filter-bindings #:generate-values
    ;; utilities
    #:== #:equal #:length #:append #:sort #:reduce #:max
    #:string-concat #:format #:warn #:error

@@ -43,6 +43,10 @@
    #:get-object-old-transform-in-map
    #:get-object-old-pose-in-map
    ;; prolog
+   #:arms-for-object-type
+   #:check-arms-for-object
+   #:check-arms-for-object-type
+   #:object-in-arms
    #:object-type-subtype #:object-type-direct-subtype
    #:robot-free-hand #:joint-state-for-arm-config
    #:object-rotationally-symmetric
@@ -71,6 +75,7 @@
    #:get-object-destination
    #:get-container-opening-distance
    #:get-container-closing-distance
+   #:get-arms-for-object-type
    ;; grasps
    #:calculate-object-faces
    #:calculate-face-vector
