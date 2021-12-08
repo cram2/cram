@@ -31,13 +31,15 @@
 
 (defun go-without-collisions (&key
                                 ((:location ?navigation-location))
+                                ((:park-arms ?park-arms))
                               &allow-other-keys)
   (declare (type desig:location-designator ?navigation-location))
   "Check if navigation goal is in reach, if not propagate failure up,
 if yes, perform GOING action while ignoring failures."
 
-  (exe:perform (desig:an action
-                         (type parking-arms)))
+  (when ?park-arms
+    (exe:perform (desig:an action
+                           (type parking-arms))))
 
   (proj-reasoning:check-navigating-collisions ?navigation-location)
   (setf ?navigation-location (desig:current-desig ?navigation-location))
@@ -411,7 +413,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                            (object ?object-designator)))))
 
 
-              (let ((?arm (cut:lazy-car ?arms)))
+              (let ((?arm (list (cut:lazy-car ?arms))))
                 ;; if picking up fails, try another arm
                 (cpl:with-retry-counters ((arm-retries 1))
                   (cpl:with-failure-handling
@@ -425,7 +427,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                               (format NIL "Manipulation failed: ~a.~%Next." e)
                               :warning-namespace (fd-plans fetch)
                               :rethrow-failure 'common-fail:object-unreachable)
-                           (setf ?arm (cut:lazy-car ?arms)))))
+                           (setf ?arm (list (cut:lazy-car ?arms))))))
 
                     (let ((?grasp (cut:lazy-car ?grasps)))
                       ;; if picking up fails, try another grasp orientation
@@ -442,41 +444,41 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                     :warning-namespace (fd-plans fetch))
                                  (setf ?grasp (cut:lazy-car ?grasps)))))
 
-                          (let* ((?goal
+                          (let ((?goal
                                    `(cpoe:object-in-hand
                                      ,?more-precise-perceived-object-desig
                                      :left-or-right))
-                                 (pick-up-action
-                                   ;; if pick-up-action already exists,
-                                   ;; use its params for picking up
-                                   (or (when pick-up-action
-                                         (let* ((referenced-action-desig
-                                                  (desig:reference pick-up-action))
-                                                (?arm
-                                                  (desig:desig-prop-value
-                                                   referenced-action-desig
-                                                   :arm))
-                                                (?grasp
-                                                  (desig:desig-prop-value
-                                                   referenced-action-desig
-                                                   :grasp)))
-                                           (desig:an action
-                                                     (type picking-up)
-                                                     (arm ?arm)
-                                                     (grasp ?grasp)
-                                                     (object
-                                                      ?more-precise-perceived-object-desig)
-                                                     (goal ?goal))))
-                                       (desig:an action
-                                                 (type picking-up)
-                                                 (desig:when ?arm
-                                                   (arm ?arm))
-                                                 (desig:when ?grasp
-                                                   (grasp ?grasp))
-                                                 (object
-                                                  ?more-precise-perceived-object-desig)
-                                                 (goal ?goal)))))
-
+                                (pick-up-action
+                                  ;; if pick-up-action already exists,
+                                  ;; use its params for picking up
+                                  (or (when pick-up-action
+                                        (let* ((referenced-action-desig
+                                                 (desig:reference pick-up-action))
+                                               (?arm
+                                                 (list (desig:desig-prop-value
+                                                        referenced-action-desig
+                                                        :arm)))
+                                               (?grasp
+                                                 (desig:desig-prop-value
+                                                  referenced-action-desig
+                                                  :grasp)))
+                                          (desig:an action
+                                                    (type picking-up)
+                                                    (arm ?arm)
+                                                    (grasp ?grasp)
+                                                    (object
+                                                     ?more-precise-perceived-object-desig)
+                                                    (goal ?goal))))
+                                      (desig:an action
+                                                (type picking-up)
+                                                (desig:when ?arm
+                                                  (arm ?arm))
+                                                (desig:when ?grasp
+                                                  (grasp ?grasp))
+                                                (object
+                                                 ?more-precise-perceived-object-desig)
+                                                (goal ?goal)))))
+                            
                             (setf pick-up-action (desig:current-desig pick-up-action))
                             (proj-reasoning:check-picking-up-collisions pick-up-action)
                             (setf pick-up-action (desig:current-desig pick-up-action))
