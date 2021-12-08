@@ -265,14 +265,24 @@ If there is no other method with 1 as qualifier, this method will be executed al
                     (remove-if-not
                      (lambda (c) (typep c 'btr:item))
                      (btr:find-objects-in-contact btr:*current-bullet-world* btr-object))))
-              ;; If a link contacting btr-object was found, btr-object
-              ;; will be attached to it
-              ;; also, if btr-object is in contact with an item,
+              ;; If btr-object is in contact with an item,
               ;; it will be attached loose.
-               (mapcar (lambda (link-name)
-                         (btr:attach-object environment-object btr-object :link link-name))
-                       contacting-links)
-              
+              ;; Otherwise, if a link contacting btr-object was found,
+              ;; btr-object will be attached to it.
+              (or ;; (mapcar (lambda (item-object)
+                  ;;           (when item-object
+                  ;;             (btr:attach-object item-object btr-object :loose T)))
+                  ;;         contacting-items)
+                  (mapcar (lambda (link-name)
+                            (btr:attach-object
+                             environment-object btr-object :link link-name))
+                          contacting-links)
+                  (roslisp:ros-warn (btr-belief btr-detach-object)
+                                    "Object ~a was detached from robot,
+                                     but after falling down it
+                                     is in no contact with the
+                                     environment or another object."
+                                    btr-object-name)))))
         ;; if btr-object-name was not given, detach all objects from the robot link
         (progn
           (btr:detach-all-from-link robot-object first-link)
