@@ -287,7 +287,7 @@ If there is no other method with 1 as qualifier, this method will be executed al
         (progn
           (btr:detach-all-from-link robot-object first-link)
           (btr:detach-all-from-link robot-object second-link)
-          (btr:simulate btr:*current-bullet-world* 10))))))))
+          (btr:simulate btr:*current-bullet-world* 10)))))
 
 
 
