@@ -12,7 +12,7 @@ The core packages of CRAM are implemented in Common Lisp (with a little bit of C
 
 ### Workspace Installation
   * `sudo apt-get install python3-rosinstall python3-wstool`
-  * `wget https://raw.githubusercontent.com/cram2/cram/boxy-noetic/cram-install.sh`
+  * `wget https://raw.githubusercontent.com/cram2/cram/noetic/cram-install.sh`
   * `chmod +x cram-install.sh`
   * `./cram-install.sh`
   * OPTIONAL: `echo "source ~/roscram/cram_ws/devel/setup.bash" >> ~/.bashrc`  For sourcing automaticly
