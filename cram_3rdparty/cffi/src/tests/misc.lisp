@@ -96,10 +96,24 @@
         'pseudo-library-spec)
   t)
 
+(define-foreign-library library-with-pathname
+  (t #p"libdoesnotexistimsure"))
+
+;;; RT: we were mishandling pathnames within libraries. (lp#1720626)
+(deftest library.error.2
+    (handler-case (load-foreign-library 'library-with-pathname)
+      (load-foreign-library-error () 'error))
+  error)
+
+(deftest library.error.3
+    (handler-case (load-foreign-library #p"libdoesnotexistimsure")
+      (load-foreign-library-error () 'error))
+  error)
+
 ;;;# Shareable Byte Vector Tests
 
 #+ecl
-(mapc (lambda (x) (pushnew x rt::*expected-failures*))
+(mapc (lambda (x) (pushnew x rtest::*expected-failures*))
       '(shareable-vector.1 shareable-vector.2))
 
 (deftest shareable-vector.1

@@ -39,7 +39,9 @@
 (defmethod man-int:get-action-gripper-opening :heuristics 20
     ((object-type (eql :pringles))) 0.10)
 
-
+(defmethod man-int:get-object-type-carry-config :heuristics 20
+    ((object-type (eql :pringles)) grasp)
+  :carry)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; pringles ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; pregrasp offset for pringles size '((0.7 0.0777 0.65))
