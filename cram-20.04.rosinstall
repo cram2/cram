@@ -33,7 +33,7 @@
     version: gripper_tool_frame_noetic
 - git:
     local-name: kdl_ik_services
-    uri: git@github.com:sunava/kdl_ik_service.git
+    uri: https://github.com/cram2/kdl_ik_service
     version: main      
     
 
