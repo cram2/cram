@@ -2,7 +2,7 @@
 - git:
     local-name: cram
     uri: git@github.com:cram2/cram.git
-    version: boxy-noetic
+    version: noetic
 - git:
     local-name: roslisp_common
     uri: git@github.com:ros/roslisp_common.git
