@@ -490,7 +490,7 @@
   (1 . 2)
   (3 . 4))
 
-(defcstruct (struct-pair-default-translate :class pair-default)
+(defcstruct (struct-pair-default-translate)
   (a :int)
   (b :int))
 
@@ -508,7 +508,7 @@
   1
   2)
 
-(defcstruct (struct-pair+double :class pair+double)
+(defcstruct (struct-pair+double)
   (pr (:struct struct-pair-default-translate))
   (dbl :double))
 
@@ -566,6 +566,7 @@
 (defcfun "pair_plus_one_sum" :int
   (p (:struct pair+1)))
 
+#+#:unused
 (defcfun "pair_plus_one_pointer_sum" :int
   (p (:pointer (:struct struct-pair+1))))
 
@@ -574,13 +575,12 @@
     (pair-plus-one-pointer-sum '((1 . 2) . 3))
   6)
 
-#+#:unimplemented
-(defcfun "make_pair_plus_one" (:struct pair+1)
+(defcfun "make_pair_plus_one" (:struct struct-pair+1)
   (a :int)
   (b :int)
   (c :int))
 
-(defcfun "alloc_pair_plus_one" struct-pair+1
+(defcfun "alloc_pair_plus_one" (:pointer (:struct struct-pair+1))
   (a :int)
   (b :int)
   (c :int))
@@ -591,38 +591,20 @@
     (alloc-pair-plus-one 1 2 3)
   ((1 . 2) . 3))
 
-#+#:unimplemented
 (defcfun "pair_sum" :int
-  (p (:struct pair)))
+  (p (:struct struct-pair)))
 
-#+#:unimplemented
-(defcfun "make_pair" (:struct pair)
+(defcfun "make_pair" (:struct struct-pair)
   (a :int)
   (b :int))
 
-#|| ; TODO: load cffi-libffi for these tests to work.
 (deftest struct-values.fn.1
-    (with-foreign-object (p '(:struct pair))
-      (with-foreign-slots ((a b) p (:struct pair))
-        (setf a -1 b 2)
-        (pair-sum p)))
+    (pair-sum '(-1 . 2))
   1)
 
 (deftest struct-values.fn.2
-    (pair-sum '(3 . 5))
-  8)
-
-(deftest struct-values.fn.3
-    (with-foreign-object (p '(:struct pair))
-      (make-pair 7 11 :result-pointer p)
-      (with-foreign-slots ((a b) p (:struct pair))
-        (cons a b)))
-  (7 . 11))
-
-(deftest struct-values.fn.4
     (make-pair 13 17)
   (13 . 17))
-||#
 
 (defcstruct single-byte-struct
   (a :uint8))
@@ -703,3 +685,31 @@
   42
   (1 . 2)
   42)
+
+;; Test with-foreign-slots :pointer access and new binding syntax
+(defcstruct struct.wfs
+  (tv-secs :long)
+  (tv-usecs :long))
+
+(deftest struct.with-foreign-slots.1
+    (with-foreign-object (tv 'struct.wfs)
+      (with-foreign-slots (((secs tv-secs) (usecs tv-usecs)) tv timeval)
+        (setf secs 100 usecs 200)
+        (values secs usecs)))
+  100 200)
+
+(deftest struct.with-foreign-slots.2
+    (with-foreign-object (tv 'struct.wfs)
+      (with-foreign-slots (((:pointer tv-secs) (:pointer tv-usecs)
+                            (secs tv-secs) (usecs tv-usecs))
+                           tv timeval)
+        (setf secs 100 usecs 200)
+        (values (mem-ref tv-secs :long) (mem-ref tv-usecs :long))))
+  100 200)
+
+(deftest struct.with-foreign-slots.3
+    (with-foreign-object (tv 'struct.wfs)
+      (with-foreign-slots (((psecs :pointer tv-secs) (pusecs :pointer tv-usecs) (secs tv-secs) (usecs tv-usecs)) tv timeval)
+        (setf secs 100 usecs 200)
+        (values (mem-ref psecs :long) (mem-ref pusecs :long))))
+  100 200)

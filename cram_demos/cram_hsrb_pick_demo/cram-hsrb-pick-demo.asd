@@ -35,38 +35,43 @@
   :depends-on (roslisp-utilities ; for ros-init-function
 
                cl-transforms
-               cl-transforms-stamped
-               cl-tf
-               cl-tf2
-               cram-tf
+               ;; cl-transforms-stamped
+               ;; cl-tf
+	       cl-tf2
 
-               cram-language
-               cram-executive
-               cram-designators
-               cram-prolog
-               cram-projection
-               cram-occasions-events
-               cram-utilities ; for EQUALIZE-LISTS-OF-LISTS-LENGTHS
+               ;; cram_core
+               cram-prolog ; for restricted ground costmap and to set break on errors
+               cram-occasions-events ; for CLEAR-BELIEF
+               cram-designators ; for the plan, costmap
+               cram-executive ; for the plan
+               ;; cram-language
+               ;; cram-projection
+               cram-utilities ;  for RANDOM-WITH-MINIMUM
 
-               cram-common-failures
-               cram-mobile-pick-place-plans
-               cram-object-knowledge
+               ;; cram_common
+               cram-tf ; to set the default timeout to a small number, tf utils
+               cram-location-costmap ; for the restricted ground costmap
+               cram-robot-interfaces ; for ENV-NAME, VIS/REACH-DESIG
+               cram-manipulation-interfaces ; for costmap, standard rotations
+               cram-object-knowledge ; for manipulation knowledge
+               cram-mobile-pick-place-plans ; for action desig implementations
+               ;; cram-common-failures
 
-               ;; cram-robosherlock
-
-               cram-physics-utils ; for reading "package://" paths
-               cl-bullet ; for handling BOUNDING-BOX datastructures
+               ;; cram_3d_world
                cram-bullet-reasoning
-               cram-bullet-reasoning-belief-state
-               cram-bullet-reasoning-utilities
-               cram-btr-visibility-costmap
+               cram-bullet-reasoning-belief-state ; for handling events
+               cram-urdf-projection ; for with-simulated-robot
+               cram-fetch-deliver-plans ; for action desig implementations
+               cram-urdf-environment-manipulation ; for action desig implementations
 
-               cram-semantic-map-costmap
+               ;; costmaps
+               cram-btr-visibility-costmap
+               cram-btr-spatial-relations-costmap
                cram-robot-pose-gaussian-costmap
-               cram-occupancy-grid-costmap
-               cram-location-costmap
-               cram-math
-               cram-urdf-projection
+               ;; cram-occupancy-grid-costmap
+
+               ;; robot descriptions
+            
                cram-hsrb-description)
 
   :components
