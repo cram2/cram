@@ -8,12 +8,13 @@ CRAM is a toolbox for designing, implementing and deploying software on autonomo
 The core packages of CRAM are implemented in Common Lisp (with a little bit of C/C++) with support to the ROS middleware infrastructure.
 
 ### Workspace Installation
+Note: The script *cram-install.sh* is made available because the apt-get pkg has not yet been updated, but this will happen in the future. In the installation script, you can see that the *ros_emacs_utils* pkg is built in a separate *catkin_workspace*, this is due the catkin install command, which is important for roslisp_repl and slime.
   * `sudo apt-get install python3-rosinstall python3-wstool python3-catkin-tools`
   * `wget https://raw.githubusercontent.com/cram2/cram/noetic/cram-install.sh`
   * `chmod +x cram-install.sh`
   * `./cram-install.sh`
   * OPTIONAL: `echo "source ~/roscram/cram_ws/devel/setup.bash" >> ~/.bashrc`  For sourcing automaticly
-  * OPTIONAL: `echo "alias repl='rosrun roslisp_repl roslisp_repl'" >> ~/.bashrc`  For starting the repl with `repl` and not `rosrun....`
+  * OPTIONAL: `echo "alias repl='rosrun roslisp_repl roslisp_repl'" >> ~/.bashrc`  For starting the repl with `repl` otherwise you have to start it with `rosrun roslisp_repl roslisp_repl`
 
 
 For ROS noetic and the current packages, one thing needs to be fixed. The package octomap contains a dependency to a ROS2 package, which can be ignored. Open the package.xml of octomap.
