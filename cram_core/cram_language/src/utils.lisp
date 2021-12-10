@@ -101,6 +101,7 @@
   ;;             (go :retry))))))
   )
 
+
 (defmacro mapcar-clean (function list &rest more-lists)
   "Automatically removes all `NIL' entries from a generated list after
 performing a `mapcar'."

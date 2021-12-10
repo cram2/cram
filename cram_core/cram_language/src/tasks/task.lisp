@@ -512,14 +512,9 @@
   ;; this function within the event loop where scheduling is
   ;; disabled. Still the following check seems rather sensible: 
   (assert (thread-local-binding-p 'sb-impl::*deadline*))
-  ;; (setf sb-impl::*deadline* (+ (get-internal-real-time)
-  ;;                              (seconds-to-internal-time new)))
-  ;; (setf sb-impl::*deadline-seconds* new)
-  (setf sb-impl::*deadline*
-        (sb-impl::make-deadline
-         (+ (get-internal-real-time)
-            (seconds-to-internal-time new))
-         new)))
+  (setf sb-impl::*deadline* (+ (get-internal-real-time)
+                               (seconds-to-internal-time new)))
+  (setf sb-impl::*deadline-seconds* new))
 
 (defun continue-with-adjusted-time-quantum (&optional new-quantum c)
   (let ((restart (find-restart 'continue-with-adjusted-time-quantum c)))
@@ -761,8 +756,6 @@
   (propagate-event task (make-event :evaporate reason sync))
   (setf (slot-value task 'result) result)
   (change-status task final-status))
-
-
 ;;;; Misc
 
 (defun log-gc-event ()
@@ -773,7 +766,6 @@
   ;;     (:display "new dynamic usage: ~10:D bytes" (sb-kernel:dynamic-usage))
   ;;     (:tags :gc)))
   )
-
 ;;; FIXME: enabling it resulted regularly in whole-image deadlocks on
 ;;; SBCL 1.0.38, Linux x86-32 when running the test suite with
 ;;; +LOG-VERY-VERBOSE+. So let's better not enable it by default.
