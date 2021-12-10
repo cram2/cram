@@ -50,6 +50,7 @@
 (defun get-object-old-pose (object-designator)
   (car (getassoc :pose (desig:desig-prop-value object-designator :old-pose))))
 
+
 #+a-hack-in-case-we-dont-want-to-use-perception
 (defun get-object-transform (object-designator)
   (let* ((object-type
@@ -65,3 +66,9 @@
      object-frame
      :time 0.0
      :timeout cram-tf:*tf-default-timeout*)))
+
+(defun get-object-old-transform-in-map (object-designator)
+  (car (getassoc :transform-in-map (desig:desig-prop-value object-designator :old-pose))))
+
+(defun get-object-old-pose-in-map (object-designator)
+  (car (getassoc :pose-in-map (desig:desig-prop-value object-designator :old-pose))))

@@ -76,7 +76,7 @@
   536870912)
 
 #+(and darwin openmcl)
-(pushnew 'deref.long-long rt::*expected-failures*)
+(pushnew 'deref.long-long rtest::*expected-failures*)
 
 (deftest deref.long-long
     (with-foreign-object (p :long-long)
@@ -427,8 +427,8 @@
 
 ;;; RT: FOREIGN-ALLOC with :COUNT 0 on CLISP signalled an error.
 (deftest foreign-alloc.10
-    (foreign-free (foreign-alloc :char :count 0))
-  nil)
+    (null (foreign-free (foreign-alloc :char :count 0)))
+  t)
 
 ;;; Tests for mem-ref with a non-constant type. This is a way to test
 ;;; the functional interface (without compiler macros).
@@ -490,7 +490,7 @@
   536870912)
 
 #+(and darwin openmcl)
-(pushnew 'deref.nonconst.long-long rt::*expected-failures*)
+(pushnew 'deref.nonconst.long-long rtest::*expected-failures*)
 
 (deftest deref.nonconst.long-long
     (let ((type :long-long))
