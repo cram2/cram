@@ -31,6 +31,7 @@
 #define DLLEXPORT
 #endif
 
+#include <sys/types.h>
 #include <stdio.h>
 #include <limits.h>
 #include <string.h>
@@ -38,11 +39,9 @@
 #include <math.h>
 #include <float.h>
 #include <stdbool.h>
-
-/* MSVC doesn't have stdint.h and uses a different syntax for stdcall */
-#ifndef _MSC_VER
+#include <stdarg.h>
 #include <stdint.h>
-#endif
+#include <stddef.h>
 
 #ifdef WIN32
 #ifdef _MSC_VER
@@ -841,6 +840,21 @@ double sum_double26(double a1, double a2, double a3, double a4, double a5,
 }
 
 /*
+ * DEFCFUN.VARARGS.NOSTDLIB and FUNCALL.VARARGS.NOSTDLIB
+ */
+DLLEXPORT
+double sum_double_arbitrary(int n, ...)
+{
+    va_list ap;
+    double sum = 0;
+    va_start(ap, n);
+    for(int j=0; j<n; j++)
+      sum += va_arg(ap, double);
+    va_end(ap);
+    return sum;
+}
+
+/*
  * CALLBACKS.FLOAT26
  */
 
@@ -967,3 +981,37 @@ int call_stdcall_fun(int __attribute__((stdcall)) (*f)(int, int, int))
 
 /* vim: ts=4 et
 */
+
+/*
+ * STDINT.TYPES.1
+ */
+
+DLLEXPORT
+unsigned sizeof_ptrdiff(void)
+{
+  return (unsigned) sizeof(ptrdiff_t);
+}
+
+DLLEXPORT
+unsigned sizeof_size(void)
+{
+  return (unsigned) sizeof(size_t);
+}
+
+DLLEXPORT
+unsigned sizeof_offset(void)
+{
+  return (unsigned) sizeof(off_t);
+}
+
+DLLEXPORT
+unsigned sizeof_uintptr(void)
+{
+  return (unsigned) sizeof(uintptr_t);
+}
+
+DLLEXPORT
+unsigned sizeof_intptr(void)
+{
+  return (unsigned) sizeof(intptr_t);
+}
