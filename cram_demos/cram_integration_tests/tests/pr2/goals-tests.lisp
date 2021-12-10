@@ -53,7 +53,7 @@
             (btr:link-pose (btr:get-environment-object) "sink_area_surface")))
          (surface-T-object
            (cl-transforms:pose->transform
-            (cram-tf:list->pose '((0.2 -0.15 0.1) (0 0 0 1)))))
+            (cram-tf:list->pose '((0.2 -0.15 0.1) (0 0 1 0)))))
          (map-T-object
            (cl-transforms:transform* map-T-surface surface-T-object)))
     (cl-transforms:transform->pose map-T-object)))
@@ -315,11 +315,9 @@
            (target (a location
                       (pose ?look-pose)))))
       (let* ((?object
-               (perform
-                (an action
-                    (type perceiving)
-                    (object (an object
-                                (type breakfast-cereal))))))
+               (urdf-proj::detect
+                (an object
+                    (type breakfast-cereal))))
              ;; We copy the object here because the original gets changed,
              ;; in a way that referencing the pick up designator doesn't work anymore.
              (?object-copy
