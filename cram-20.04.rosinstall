@@ -2,7 +2,7 @@
 - git:
     local-name: cram
     uri: git@github.com:cram2/cram.git
-    version: boxy-noetic
+    version: noetic
 - git:
     local-name: roslisp_common
     uri: git@github.com:ros/roslisp_common.git
@@ -33,7 +33,7 @@
     version: gripper_tool_frame_noetic
 - git:
     local-name: kdl_ik_services
-    uri: git@github.com:sunava/kdl_ik_services.git
+    uri: git@github.com:cram2/kdl_ik_services.git
     version: main      
     
 
