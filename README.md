@@ -8,7 +8,7 @@ CRAM is a toolbox for designing, implementing and deploying software on autonomo
 The core packages of CRAM are implemented in Common Lisp (with a little bit of C/C++) with support to the ROS middleware infrastructure.
 
 ### Workspace Installation
-  * `sudo apt-get install python3-rosinstall python3-wstool`
+  * `sudo apt-get install python3-rosinstall python3-wstool python3-catkin-tools`
   * `wget https://raw.githubusercontent.com/cram2/cram/noetic/cram-install.sh`
   * `chmod +x cram-install.sh`
   * `./cram-install.sh`
