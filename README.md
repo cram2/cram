@@ -35,7 +35,7 @@ If changes are made to the code and a **PullRequest** results from it, please ch
    * `(roslisp-utilities:startup-ros)`
    * `(in-package cram-integration-tests`
    * `(lisp-unit:run-tests)`
-   * The result should look like this: [Test-Summary-IMG](https://github.com/cram2/cram/blob/noetic/graphics/test-summary.png])
+   * The result should look like this: [Test-Summary-IMG](https://github.com/cram2/cram/blob/noetic/graphics/test-summary.png)
 
 ### Current State of Demos:
 WIP
