@@ -25,8 +25,20 @@ Now remove the following line within:
 
 * `<exec_depend condition="$ROS_VERSION == 2">ament_cmake</exec_depend>`
 
-### WIP
-* For all the demos the sandbox.launch are broken at the moment there is one launch file in cram_demos/launch that can be used.
+### Testing & Continuous Integration
+If changes are made to the code and a **PullRequest** results from it, please check the following things:
+* The automatic CI, has to build *CRAM* succesfully.
+* Is the milestone-demo still running correctly?
+* Are the test still running? 
+   * New Terminal: roslaunch cram_integration_tests pr2.launch 
+   * `(swank:operate-on-system-for-emacs "cram-integration-tests-pr2" (quote load-op))`
+   * `(roslisp-utilities:startup-ros)`
+   * `(in-package cram-integration-tests`
+   * `(lisp-unit:run-tests)`
+   * The result should look like this: [Test-Summary-IMG](https://github.com/cram2/cram/blob/noetic/graphics/test-summary.png])
+
+### Current State of Demos:
+WIP
 
 ### Directory
 * **cram_3d_world** Bullet physics engine-based and OpenGl offscreen rendering-based reasoning mechanisms.
