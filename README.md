@@ -14,7 +14,7 @@ The core packages of CRAM are implemented in Common Lisp (with a little bit of C
 ### Workspace Installation
 Note: The script *cram-install.sh* is made available because the apt-get pkg has not yet been updated, but this will happen in the future. In the installation script, you can see that the *ros_emacs_utils* pkg is built in a separate *catkin_workspace*, this is due the catkin install command, which is important for roslisp_repl and slime.
   * `sudo apt-get install python3-rosinstall python3-wstool python3-catkin-tools`
-  * `wget https://raw.githubusercontent.com/cram2/cram/noetic/cram-install.sh`
+  * `https://raw.githubusercontent.com/cram2/cram/popcorn-noetic/cram-install.sh
   * `chmod +x cram-install.sh`
   * `./cram-install.sh`
   * OPTIONAL: `echo "source ~/roscram/cram_ws/devel/setup.bash" >> ~/.bashrc`  For sourcing automaticly
