@@ -512,9 +512,15 @@
   ;; this function within the event loop where scheduling is
   ;; disabled. Still the following check seems rather sensible: 
   (assert (thread-local-binding-p 'sb-impl::*deadline*))
-  (setf sb-impl::*deadline* (+ (get-internal-real-time)
-                               (seconds-to-internal-time new)))
-  (setf sb-impl::*deadline-seconds* new))
+  ;; (setf sb-impl::*deadline* (+ (get-internal-real-time)
+  ;;                              (seconds-to-internal-time new)))
+  ;; (setf sb-impl::*deadline-seconds* new))
+
+   (setf sb-impl::*deadline*
+        (sb-impl::make-deadline
+         (+ (get-internal-real-time)
+            (seconds-to-internal-time new))
+         new)))
 
 (defun continue-with-adjusted-time-quantum (&optional new-quantum c)
   (let ((restart (find-restart 'continue-with-adjusted-time-quantum c)))
