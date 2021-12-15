@@ -28,7 +28,7 @@
 
 (defsystem cram-urobosim
   :author "Gayane Kazhoyan"
-  :maintainer "Gayane Kazhoyan"
+  :maintainer "Arthur Niedzwiecki"
   :license "BSD"
 
   :depends-on (cram-simple-actionlib-client
@@ -54,8 +54,8 @@
     ((:file "package")
      (:file "action-client" :depends-on ("package"))
      (:file "low-level" :depends-on ("package" "action-client"))
-     (:file "feeding-plans" :depends-on ("package"))
-     (:file "feeding-designators" :depends-on ("package" "feeding-plans"))
+     ;; (:file "feeding-plans" :depends-on ("package"))
+     ;; (:file "feeding-designators" :depends-on ("package" "feeding-plans"))
      (:file "process-module" :depends-on ("package" "low-level"))
      (:file "world-control-clients" :depends-on ("package"))
      (:file "objects" :depends-on ("package" "world-control-clients"))))))

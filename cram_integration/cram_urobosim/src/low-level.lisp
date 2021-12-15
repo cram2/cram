@@ -129,7 +129,6 @@
 ;;                                        ((:grasp ?grasp)))
 ;;   "Teleports the object of given name directly into the gripper,
 ;; both in bullet and in unreal."
-;;   (roslisp:ros-warn (unreal) "THIS IS THE NEW PLAN!!!!!!!!!!!!! ~a" ?name)
 ;;   (coe:on-event (make-instance 'cpoe:robot-state-changed))
 ;;   (let* (;; (name (desig:desig-prop-value ?object-desig :name))
 ;;          (old-pose (btr:pose (btr:object btr:*current-bullet-world* ?name)))
