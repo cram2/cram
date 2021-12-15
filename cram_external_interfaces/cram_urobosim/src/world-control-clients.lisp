@@ -29,7 +29,7 @@
 
 (in-package :unreal)
 
-(defparameter *unreal-service-namespaces*
+(defparameter *unreal-service-names*
   '(:attach-object "attach_model_to_parent"
     :change-material "change_material"
     :delete-all "delete_all"
@@ -59,15 +59,15 @@
 (defun srv-key->srv-type (srv-key)
   "Maps the `srv-key' to the service's message type."
   (concatenate 'string *msg-ns* "/"
-               (remove #\_ (string-capitalize (getf *unreal-service-namespaces* srv-key)))))
+               (remove #\_ (string-capitalize (getf *unreal-service-names* srv-key)))))
 
 (defun srv-key->srv-full-name (srv-key)
   "Maps the `srv-key' to the service's full name as <service-namespace>/<service-name>."
   (concatenate 'string *srv-ns* "/"
-               (or (getf *unreal-service-namespaces* srv-key)
+               (or (getf *unreal-service-names* srv-key)
                    (error "Service for key ~a can't be resolved, try one of ~a"
                           srv-key
-                          *unreal-service-namespaces*))))
+                          *unreal-service-names*))))
 
 (defun get-service (service-key)
   (declare (type keyword service-key))
@@ -76,10 +76,10 @@
   (unless (eq (roslisp:node-status) :RUNNING)
     (roslisp-utilities:startup-ros))
   (let ((service (gethash service-key *unreal-services*))
-        (service-name (getf *unreal-service-namespaces* service-key)))
+        (service-name (getf *unreal-service-names* service-key)))
     (unless service-name
-      (error "Service ~a is unknown, try one of these:~%~a"
-             service-key *unreal-service-namespaces*))
+      (error "Service for ~a is unknown, try one of these:~%~a"
+             service-key *unreal-service-names*))
     (if (and service (roslisp:persistent-service-ok service))
         service
         (setf (gethash service-key *unreal-services*)
@@ -90,6 +90,7 @@
                  :service-type (srv-key->srv-type service-key))))))
 
 (defun close-services ()
+  "Shuts down and cleans up all persistent `*unreal-services*'."
   (loop for service being the hash-values in *unreal-services*
         do (roslisp:close-persistent-service service))
   (setf *unreal-services* (make-hash-table)))
@@ -97,6 +98,7 @@
 (roslisp-utilities:register-ros-cleanup-function close-services)
 
 (defun reset-world ()
+  "Calls service to reset the Unreal world."
   (roslisp:call-persistent-service (get-service :reset-world)
     (roslisp:make-request 'world_control_msgs-srv:resetlevel :id "0"))
   ;; Resetting takes a moment in unreal
