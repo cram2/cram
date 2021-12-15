@@ -40,7 +40,7 @@
            (type cl-transforms:pose pose))
   (setf pose (ensure-stripped-pose pose))
   (let ((service (get-service :spawn-object)))
-    (roslisp:with-fields (success etype)
+    (roslisp:with-fields (id name success etype)
         (roslisp:call-persistent-service
          service
          (roslisp:make-request
@@ -52,10 +52,9 @@
           (:mobility :physics_properties) mobility 
           (:gravity :physics_properties) gravity
           (:mass :physics_properties) mass
-          ;; -- default values
           ;; makes the object movable by the robot
           (:generate_overlap_events :physics_properties) T
-          ;; creates the tag CramObject;type,OBJECTTYPE
+          ;; creates the tag CramObject;type,OBJECT-TYPE;
           :tags (vector (roslisp:make-message
                          'world_control_msgs-msg:Tag
                          :type "CramObject"
@@ -76,8 +75,9 @@
                                 object-name)
               (set-object-pose object-name pose))
             (roslisp:ros-error (unreal spawn-object)
-    "Spawning object failed. Check if the asset ~a exists in the Unreal project files."
-                               (string object-type)))))))
+                               "Spawning ~a failed. Check if asset exists in Unreal project files."
+                               (string object-type))))
+      id)))
 
 (defun set-object-pose (object-name pose)
   (declare (type (or symbol keyword string) object-name)
