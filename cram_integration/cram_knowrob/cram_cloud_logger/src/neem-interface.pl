@@ -32,6 +32,10 @@ ros_logger_stop :-     ros_logger_pid(PID),
         [process(KillPID)]),process_wait(KillPID, _),
     process_wait(PID, _),
     process_create(path(rosnode),['cleanup'],
-        [stdin(pipe(In)), detached(true), process(TLPID)]), 
+        [stdin(pipe(In)), detached(true), process(TLPID)]),
     writeln(In,'y'),flush_output(In), process_wait(TLPID, _),
     print_message(informational,'Topic Logger stopped').
+
+
+
+%test_tf_query :- ask([triple('http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#Action_DCJBWPIE',dul:'hasTimeInterval',_O), triple(_O, soma:'hasIntervalBegin', _T2)]),time_scope(=<(_T2), >=(_T2), QScope),writeln(_T2),tf_get_pose('base_footprint', ['map',Position,Orientation], QScope, _),!.
