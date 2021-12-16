@@ -80,6 +80,8 @@
 (defparameter *popcorn-pot-handle-right-horizontal-grasp* '(:popcorn-pot-1 . ((-0.128 -0.004 0.0309)(-0.707 0.0d0 0.0d0 0.707))))
 (defparameter *popcorn-pot-handle-left-horizontal-grasp* '(:popcorn-pot-1 . ((0.1315 0.0114 0.031)(0.0d0 0.707 -0.707 0.0d0))))
 
+(defparameter *with-logging* T)
+
 (defun initialize ()
   (sb-ext:gc :full t)
 
@@ -119,6 +121,9 @@
   (initialize)
   (when cram-projection:*projection-environment*
     (spawn-objects))
+
+   (when *with-logging*
+     (ccl::start-episode))
 
   (park-robot)
 
@@ -329,5 +334,8 @@
   (park-robot)
   
   (finalize)
+
+  (when *with-logging*
+    (ccl::start-episode))
   
   cpl:*current-path*)
