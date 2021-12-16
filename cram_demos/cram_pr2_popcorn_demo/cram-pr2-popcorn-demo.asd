@@ -69,7 +69,8 @@
                cram-pr2-description
                cram-fetch-deliver-plans
                cram-mobile-cut-pour-plans
-               cram-urdf-environment-manipulation)
+               cram-urdf-environment-manipulation
+               cram-cloud-logger)
 
   :components
   ((:module "src"
