@@ -68,4 +68,4 @@ ros_logger_stop :-     ros_logger_pid(PID),
 
 
 
-test_tf_query :- ask([triple('http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#Action_DCJBWPIE',dul:'hasTimeInterval',_O), triple(_O, soma:'hasIntervalBegin', _T2)]),time_scope(=<(_T2), >=(_T2), QScope),writeln(_T2),tf_get_pose('base_footprint', ['map',Position,Orientation], QScope, _),!.
+%test_tf_query :- ask([triple('http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#Action_DCJBWPIE',dul:'hasTimeInterval',_O), triple(_O, soma:'hasIntervalBegin', _T2)]),time_scope(=<(_T2), >=(_T2), QScope),writeln(_T2),tf_get_pose('base_footprint', ['map',Position,Orientation], QScope, _),!.
