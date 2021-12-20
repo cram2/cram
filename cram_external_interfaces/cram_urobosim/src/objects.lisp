@@ -124,12 +124,13 @@
           'world_control_msgs-srv:getmodelpose
           :id (string object-name)))
       (if success
-          (pose-tf<->pose-unreal (cl-transforms-stamped:from-msg pose))
+          (cl-transforms-stamped:from-msg pose)
           (progn (roslisp:ros-error (unreal get-object-pose)
                                     "Pose unkown for the object with ID ~a."
                                     (string object-name))
                  NIL)))))
-  
+
+
 (defun attach-object () (error "Not implemented."))
 (defun change-material () (error "Not implemented."))
 (defun delete-all () (error "Not implemented."))
@@ -140,3 +141,14 @@
 (defun spawn-constraint () (error "Not implemented."))
 (defun spawn-mesh () (error "Not implemented."))
 (defun spawn-map () (error "Not implemented."))
+
+
+;;;;;;;;;;;;;;; UTILS ;;;;;;;;;;;;;;;
+
+(defun ensure-stripped-pose (pose)
+  (declare (type cl-transforms:pose pose))
+  "Strips pose of it's stamp and ensures it to be in the world's *fixed-frame*."
+  (if (typep pose 'cl-transforms-stamped:pose-stamped)
+      (cl-transforms-stamped:pose-stamped->pose
+       (cram-tf:ensure-pose-in-frame pose cram-tf:*fixed-frame*))
+      pose))
