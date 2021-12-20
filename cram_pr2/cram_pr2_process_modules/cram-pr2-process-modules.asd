@@ -40,7 +40,7 @@
                cram-common-designators
                cram-language ; for with-real-robot
                ;; cram-knowrob-world-state
-               cram-urobosim
+               cram-robosherlock
                cram-giskard
                cram-joint-states ; for joint state monitoring pm
                ;; cram-nav-pcontroller
