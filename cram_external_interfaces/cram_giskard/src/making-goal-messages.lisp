@@ -309,7 +309,7 @@
          . ,tool-frame)
         ("bar_length"
          . ,bar-length)
-        ("root"
+        ("root_link"
          . ,root-link))))))
 
 (defun make-cartesian-constraint (root-frame tip-frame goal-pose
