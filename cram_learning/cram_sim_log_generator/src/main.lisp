@@ -82,7 +82,7 @@
   ;; (setf cram-tf:*tf-broadcasting-enabled* t)
   ;; (setf cram-urdf-projection-reasoning::*projection-checks-enabled* nil)
   ;; (setq roslisp::*debug-stream* nil)
-  ;; (pr2-pms:with-real-robot (demo::park-robot))
+  ;; (pr2-unreal-pms:with-unreal-robot (demo::park-robot))
   (setf cram-urdf-environment-manipulation::*detect-gripper-slip* NIL)
   
   ;; Demo loop
@@ -95,7 +95,7 @@
         ((common-fail:high-level-failure (e)
            (roslisp:ros-warn (pp-plans demo) "Failure happened: ~a~%Skipping..." e)
            (return)))
-      (pr2-pms:with-real-robot (demo::setting-demo objects)))
+      (pr2-unreal-pms:with-unreal-robot (demo::setting-demo objects)))
 
     (push ccl::*retry-numbers* *main-result*)
     (when logging-enabled (ccl:stop-episode))

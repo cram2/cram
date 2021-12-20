@@ -36,7 +36,7 @@
                :cram-json-prolog
                :roslisp
                :cram-pr2-pick-place-demo
-               :cram-pr2-process-modules
+               :cram-pr2-unreal-process-modules
                :cram-pr2-description
                :cram-ralf-costmaps
                :cram-urdf-projection
