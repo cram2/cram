@@ -1,11 +1,13 @@
+os: linux
+dist: bionic
+language: generic
+
 branches:
   only:
     - master
 
-language: lisp
-
 env:
-  matrix:
+  jobs:
     #- LISP=abcl
     #- LISP=allegro
     - LISP=sbcl
@@ -17,9 +19,10 @@ env:
     #- LISP=cmucl
     #- LISP=ecl
 
-matrix:
+jobs:
   allow_failures:
     - env: LISP=ccl32
+    - env: LISP=sbcl32
 
 install:
   - curl -L https://github.com/luismbo/cl-travis/raw/master/install.sh | sh

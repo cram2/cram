@@ -9,6 +9,7 @@
   ;;(add-logging-function-for-action-designator-parameter 'send-arm-action-parameter :arm)
   ;;(add-logging-function-for-action-designator-parameter 'send-gripper-action-parameter :gripper)
   (add-logging-function-for-action-designator-parameter 'send-grasp-action-parameter :grasp)
+  (add-logging-function-for-action-designator-parameter 'send-container-object-action-parameter :container-object)
   ;;(add-logging-function-for-action-designator-parameter 'send-left-pose-stamped-list-action-parameter :left-poses)
   ;;(add-logging-function-for-action-designator-parameter 'send-right-pose-stamped-list-action-parameter :right-poses)
   ;;(add-logging-function-for-action-designator-parameter 'send-location-action-parameter :location)

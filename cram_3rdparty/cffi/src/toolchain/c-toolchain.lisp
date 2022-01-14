@@ -116,7 +116,7 @@
        (setf (symbol-value sym)
              (if normalizep (normalize-flags linkset val) val))))
     (setf *ld* *cc*
-          *ld-exe-flags* `(,@*cc-flags* #-darwin "-Wl,--export-dynamic")
+          *ld-exe-flags* `(,@*cc-flags* #-(or sunos darwin) "-Wl,--export-dynamic")
           *ld-dll-flags* (list* #+darwin "-dynamiclib" ;; -bundle ?
                                 #-darwin "-shared"
                                 *cc-flags*))))
@@ -171,11 +171,19 @@
      (destructuring-bind (sym &optional normalizep) param
        (setf (symbol-value sym)
              (if normalizep (normalize-flags sbcl-home val) val))))
-    (unless (featurep :sb-linkable-runtime)
-      (setf *linkkit-start* nil *linkkit-end* nil))
     (setf *ld* *cc* ;; !
           *ld-dll-flags* (list* #+darwin "-dynamiclib" #-darwin "-shared"
                                 *cc-flags*))))
+
+;;; Taken from sb-grovel
+(defun split-cflags (string)
+  (remove-if (lambda (flag)
+               (zerop (length flag)))
+             (loop
+               for start = 0 then (if end (1+ end) nil)
+               for end = (and start (position #\Space string :start start))
+               while start
+               collect (subseq string start end))))
 
 (defun default-toolchain-parameters ()
   ;; The values below are legacy guesses from previous versions of CFFI.
@@ -196,17 +204,17 @@
               #+(or cygwin (not windows)) "cc"
               "gcc")
           *cc-flags*
-          (or (getenv "CFLAGS")
-              (append
-               arch-flags
-               ;; For MacPorts
-               #+darwin (list "-I" "/opt/local/include/")
-               ;; ECL internal flags
-               #+ecl (parse-command-flags c::*cc-flags*)
-               ;; FreeBSD non-base header files
-               #+freebsd (list "-I" "/usr/local/include/")))
+          (append
+           arch-flags
+           ;; For MacPorts
+           #+darwin (list "-I" "/opt/local/include/")
+           ;; ECL internal flags
+           #+ecl (parse-command-flags c::*cc-flags*)
+           ;; FreeBSD non-base header files
+           #+freebsd (list "-I" "/usr/local/include/")
+           (split-cflags (getenv "CFLAGS")))
           *ld* *cc*
-          *ld-exe-flags* `(,@arch-flags #-darwin "-Wl,--export-dynamic")
+          *ld-exe-flags* `(,@arch-flags #-(or sunos darwin) "-Wl,--export-dynamic")
           *ld-dll-flags* (list* #+darwin "-dynamiclib" ;; -bundle ?
                                 #-darwin "-shared"
                                 *cc-flags*)
@@ -246,9 +254,9 @@ is bound to a temporary file name, then atomically renaming that temporary file 
   (with-temporary-output (output-file)
     (apply 'invoke `(,@builder ,output-file ,@args))))
 
-(defun cc-compile (output-file inputs)
+(defun cc-compile (output-file inputs &optional cflags)
   (apply 'invoke-builder (list *cc* "-o") output-file
-         "-c" (append *cc-flags* #-windows '("-fPIC") inputs)))
+         "-c" (append *cc-flags* cflags #-windows '("-fPIC") inputs)))
 
 (defun link-executable (output-file inputs)
   (apply 'invoke-builder (list *ld* "-o") output-file
@@ -284,7 +292,8 @@ is bound to a temporary file name, then atomically renaming that temporary file 
              ;; ,@`("libtool" "--mode=link" ,*cc* ,@*cc-flags* "-static" "-o" ,output-file)
              ;; "Solution": never link .a's into further .a's, only link .o's into .a's,
              ;; which implied changes that are now the case in ASDF 3.2.0.
-             #+bsd ,@`("ar" "rcs" ,output-file) ;; NB: includes darwin
+             #+darwin ,@`("libtool" "-static" "-o" ,output-file)
+             #+(:and bsd (:not darwin)) ,@`("ar" "rcs" ,output-file)
              #+linux ,@`("ar" "rcsDT" ,output-file)
              #+windows ,@`("lib" "-nologo" ,(strcat "-out:" (native-namestring output-file)))
              ,@inputs))
@@ -339,7 +348,7 @@ is bound to a temporary file name, then atomically renaming that temporary file 
         ((:dll :shared-library) (link-shared-library output inputs))))))
 
 (defclass c-file (source-file)
-  ((cflags :initarg :cflags :initform :default)
+  ((cflags :initarg :cflags :initform nil)
    (type :initform "c")))
 
 (defmethod output-files ((o compile-op) (c c-file))
@@ -354,7 +363,7 @@ is bound to a temporary file name, then atomically renaming that temporary file 
 (defmethod perform ((o compile-op) (c c-file))
   (let ((i (first (input-files o c))))
     (destructuring-bind (.o .so) (output-files o c)
-      (cc-compile .o (list i))
+      (cc-compile .o (list i) (slot-value c 'cflags))
       (link-shared-library .so (list .o)))))
 
 (defmethod perform ((o load-op) (c c-file))
@@ -364,8 +373,7 @@ is bound to a temporary file name, then atomically renaming that temporary file 
 (setf (find-class 'asdf::c-file) (find-class 'c-file))
 
 (defclass o-file (source-file)
-  ((cflags :initarg :cflags :initform :default)
-   (type :initform (bundle-pathname-type :object)))
+  ((type :initform (bundle-pathname-type :object)))
   (:documentation "class for pre-compile object components"))
 
 (defmethod output-files ((op compile-op) (c o-file))

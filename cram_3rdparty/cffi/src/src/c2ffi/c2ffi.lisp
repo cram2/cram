@@ -57,7 +57,7 @@
 (defun local-arch ()
   (strcat (local-cpu) (local-vendor) (local-os) (local-environment)))
 
-(defparameter *known-archs*
+(defparameter *target-archs*
   '("i686-pc-linux-gnu"
     "x86_64-pc-linux-gnu"
     "i686-pc-windows-msvc"
@@ -68,7 +68,7 @@
     "x86_64-unknown-freebsd"))
 
 (defvar *c2ffi-executable* "c2ffi")
-
+(defvar *c2ffi-extra-arguments* (list))
 (defvar *trace-c2ffi* nil)
 
 (defun c2ffi-executable-available? ()
@@ -86,11 +86,13 @@
                                         :error-output error-output
                                         :ignore-error-status ignore-error-status))))
 
-(defun generate-spec-with-c2ffi (input-header-file output-spec-path
+(defun generate-spec-using-c2ffi (input-header-file output-spec-path
                                  &key arch sys-include-paths ignore-error-status)
   "Run c2ffi on `INPUT-HEADER-FILE`, outputting to `OUTPUT-FILE` and
 `MACRO-OUTPUT-FILE`, optionally specifying a target triple `ARCH`."
+  (format *debug-io* "; cffi/c2ffi is generating ~S~%" output-spec-path)
   (uiop:with-temporary-file (:pathname tmp-macro-file
+                             :type "h"
                              :keep *trace-c2ffi*)
     nil ; workaround for an UIOP bug; delme eventually (attila, 2016-01-27).
     :close-stream
@@ -105,10 +107,13 @@
       ;; get hold of their value. This is a kludge and eventually we could/should
       ;; support generating cffi-grovel files, and in grovel mode not rely
       ;; on this kludge anymore.
-      (when (run-program* *c2ffi-executable* (list* (namestring input-header-file)
-                                                    "--driver" "null"
-                                                    "--macro-file" (namestring tmp-macro-file)
-                                                    (append arch sys-include-paths))
+      (when (run-program* *c2ffi-executable* (append
+                                              (list "--driver" "null"
+                                                    "--macro-file" (namestring tmp-macro-file))
+                                              arch
+                                              sys-include-paths
+                                              *c2ffi-extra-arguments*
+                                              (list (namestring input-header-file)))
                           :output *standard-output*
                           :ignore-error-status ignore-error-status)
         ;; Write a tmp header file that #include's the original input file and
@@ -116,14 +121,18 @@
         ;; final, second pass.
         (uiop:with-temporary-file (:stream tmp-include-file-stream
                                    :pathname tmp-include-file
+                                   :type "h"
                                    :keep *trace-c2ffi*)
           (format tmp-include-file-stream "#include \"~A\"~%" input-header-file)
           (format tmp-include-file-stream "#include \"~A\"~%" tmp-macro-file)
           :close-stream
           ;; Invoke c2ffi again to generate the final output.
-          (run-program* *c2ffi-executable* (list* (namestring tmp-include-file)
-                                                  "--output" (namestring output-spec-path)
-                                                  (append arch sys-include-paths))
+          (run-program* *c2ffi-executable* (append
+                                            (list "--output" (namestring output-spec-path))
+                                            arch
+                                            sys-include-paths
+                                            *c2ffi-extra-arguments*
+                                            (list (namestring tmp-include-file)))
                         :output *standard-output*
                         :ignore-error-status ignore-error-status))))))
 
@@ -146,32 +155,51 @@
         (when errorp
           (error "c2ffi spec file not found for base name ~S" base-name)))))
 
-(defun ensure-spec-file-exists (header-file-path &key exclude-archs sys-include-paths version)
-  (multiple-value-bind
-        (h-name m-name)
-      (find-local-spec header-file-path nil)
-    (if h-name
-        (values h-name m-name)
-        (let ((local-arch (local-arch)))
-          (unless (c2ffi-executable-available?)
-            (error "No spec found for ~S on arch '~A' and c2ffi not found"
-                   header-file-path local-arch))
-          (generate-spec-with-c2ffi header-file-path
-                                    (spec-path header-file-path
-                                               :arch local-arch
-                                               :version version)
-                                    :arch local-arch
-                                    :sys-include-paths sys-include-paths)
-          ;; also run c2ffi for other architectures, but tolerate failure
-          (dolist (arch *known-archs*)
-            (unless (or (string= local-arch arch)
-                        (member arch exclude-archs :test #'string=))
-              (unless (generate-spec-with-c2ffi header-file-path
-                                                (spec-path header-file-path
-                                                           :arch arch
-                                                           :version version)
-                                                :arch arch
-                                                :sys-include-paths sys-include-paths
-                                                :ignore-error-status t)
-                (warn "Failed to generate spec for other arch: ~S" arch))))
-          (find-local-spec header-file-path)))))
+(defun ensure-spec-file-is-up-to-date (header-file-path
+                                       &key exclude-archs sys-include-paths version)
+  (let ((spec-path (find-local-spec header-file-path nil)))
+    (flet ((regenerate-spec-file ()
+             (let ((local-arch (local-arch)))
+               (unless (c2ffi-executable-available?)
+                 (error "No spec found for ~S on arch '~A' and the c2ffi executable was not found"
+                        header-file-path local-arch))
+               (generate-spec-using-c2ffi header-file-path
+                                         (spec-path header-file-path
+                                                    :arch local-arch
+                                                    :version version)
+                                         :arch local-arch
+                                         :sys-include-paths sys-include-paths)
+               ;; Try to run c2ffi for other architectures, but tolerate failure
+               (dolist (arch *target-archs*)
+                 (unless (or (string= local-arch arch)
+                             (member arch exclude-archs :test #'string=))
+                   (unless (generate-spec-using-c2ffi header-file-path
+                                                     (spec-path header-file-path
+                                                                :arch arch
+                                                                :version version)
+                                                     :arch arch
+                                                     :sys-include-paths sys-include-paths
+                                                     :ignore-error-status t)
+                     (warn "Failed to generate spec for other arch: ~S" arch))))
+               (find-local-spec header-file-path))))
+      (if (and spec-path
+               (not (zerop (with-input-from-file (s spec-path)
+                             (file-length s))))
+               (uiop:timestamp< (file-write-date header-file-path)
+                                (file-write-date spec-path)))
+          spec-path            ; it's up to date, just return it as is
+          (restart-case
+              (regenerate-spec-file)
+            (touch-old-copy ()
+              :report (lambda (stream)
+                        (format stream "Update the modification time of the out-of-date copy ~S" spec-path))
+              ;; Make it only be visible when the spec file exists (but it's out of date)
+              :test (lambda (condition)
+                      (declare (ignore condition))
+                      (not (null spec-path)))
+              ;; Update the last modification time. Yes, it's convoluted and wasteful,
+              ;; but I can't see any other way.
+              (with-staging-pathname (tmp-file spec-path)
+                (copy-file spec-path tmp-file))
+              ;; The return value of RESTART-CASE
+              spec-path))))))

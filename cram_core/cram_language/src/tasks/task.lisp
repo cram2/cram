@@ -514,8 +514,9 @@
   (assert (thread-local-binding-p 'sb-impl::*deadline*))
   ;; (setf sb-impl::*deadline* (+ (get-internal-real-time)
   ;;                              (seconds-to-internal-time new)))
-  ;; (setf sb-impl::*deadline-seconds* new)
-  (setf sb-impl::*deadline*
+  ;; (setf sb-impl::*deadline-seconds* new))
+
+   (setf sb-impl::*deadline*
         (sb-impl::make-deadline
          (+ (get-internal-real-time)
             (seconds-to-internal-time new))
@@ -761,18 +762,16 @@
   (propagate-event task (make-event :evaporate reason sync))
   (setf (slot-value task 'result) result)
   (change-status task final-status))
-
-
 ;;;; Misc
 
-;; (defun log-gc-event ()
-;;   (let ((sb-impl::*deadline* nil)
-;;         (sb-impl::*deadline-seconds* nil))    
-;;     (log-event
-;;       (:context "GC")
-;;       (:display "new dynamic usage: ~10:D bytes" (sb-kernel:dynamic-usage))
-;;       (:tags :gc))))
-
+(defun log-gc-event ()
+  ;; (let ((sb-impl::*deadline* nil)
+  ;;       (sb-impl::*deadline-seconds* nil))    
+  ;;   (log-event
+  ;;     (:context "GC")
+  ;;     (:display "new dynamic usage: ~10:D bytes" (sb-kernel:dynamic-usage))
+  ;;     (:tags :gc)))
+  )
 ;;; FIXME: enabling it resulted regularly in whole-image deadlocks on
 ;;; SBCL 1.0.38, Linux x86-32 when running the test suite with
 ;;; +LOG-VERY-VERBOSE+. So let's better not enable it by default.
