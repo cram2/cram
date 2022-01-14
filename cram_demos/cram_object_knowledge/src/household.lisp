@@ -43,8 +43,11 @@
   (<- (man-int:object-type-direct-subtype :household-item :milk))
   (<- (man-int:object-type-direct-subtype :household-item :cereal))
   (<- (man-int:object-type-direct-subtype :household-item :bowl))
-
+  (<- (man-int:object-type-direct-subtype :food :weisswurst))
+  (<- (man-int:object-type-direct-subtype :household-item :bread))
+  
   (<- (man-int:object-type-direct-subtype :cutlery :knife))
+  (<- (man-int:object-type-direct-subtype :cutlery :big-knife))
   (<- (man-int:object-type-direct-subtype :cutlery :fork))
   (<- (man-int:object-type-direct-subtype :cutlery :spoon))
 
@@ -54,6 +57,9 @@
 
 (defmethod man-int:get-action-gripping-effort :heuristics 20
     ((object-type (eql :household-item)))
+  50)
+(defmethod man-int:get-action-gripping-effort :heuristics 20
+    ((object-type (eql :food)))
   50)
 (defmethod man-int:get-action-gripping-effort :heuristics 20
     ((object-type (eql :milk)))
@@ -66,6 +72,9 @@
 
 (defmethod man-int:get-action-gripper-opening :heuristics 20
     ((object-type (eql :household-item)))
+  0.10)
+(defmethod man-int:get-action-gripper-opening :heuristics 20
+    ((object-type (eql :food)))
   0.10)
 (defmethod man-int:get-action-gripper-opening :heuristics 20
     ((object-type (eql :cutlery)))
@@ -111,7 +120,7 @@
                                  )))
 
   (<- (orientation-matters ?object-type)
-    (member ?object-type (:knife :fork :spoon :cutlery :spatula))))
+    (member ?object-type (:knife :fork :spoon :cutlery :spatula :weisswurst :bread :big-knife))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; CUTLERY ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -129,6 +138,16 @@
   :2nd-pregrasp-offsets `(0.0 0.0 ,*cutlery-pregrasp-z-offset*)
   :lift-translation `(0.0 0.0 ,*cutlery-pregrasp-z-offset*)
   :2nd-lift-translation `(0.0 0.0 ,*cutlery-pregrasp-z-offset*))
+
+;; front grasp
+(man-int:def-object-type-to-gripper-transforms '(:cutlery :fork :knife :spoon)
+    '(:left :right) :front
+  :grasp-translation `(-0.03 0.0 0.0)
+  :grasp-rot-matrix man-int:*y-across-x-grasp-rotation*
+  :pregrasp-offsets `(-0.03 0.0 0.0)
+  :2nd-pregrasp-offsets `(-0.03 0.0 0.0)
+  :lift-translation `(-0.03 0.0 0.0)
+  :2nd-lift-translation `(-0.03 0.0 0.0))
 
 ;; BOTTOM grasp
 ;; Bottom grasp is commented out because the robot grasps the spoon through the
@@ -403,7 +422,7 @@
   :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
   :pregrasp-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
   :2nd-pregrasp-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
-  :lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
+    :lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
   :2nd-lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*))
 (man-int:def-object-type-to-gripper-transforms :bowl '(:left :right) :top-front
   :grasp-translation `(,*bowl-grasp-x-offset* 0.0d0 ,*bowl-grasp-z-offset*)
@@ -427,6 +446,112 @@
   :lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
   :2nd-lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Weisswurst ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(defparameter *weisswurst-grasp-z-offset* 0.0 ;; 0.015
+              "in meters") ; because TCP is not at the edge
+(defparameter *weisswurst-pregrasp-z-offset* 0.18 "in meters")
+(defparameter *weisswurst-pregrasp-xy-offset* 0.10 "in meters")
+
+;; TOP grasp
+(man-int:def-object-type-to-gripper-transforms '(:weisswurst)
+    '(:left :right) :top
+  :grasp-translation `(0.0 0.0 ,*weisswurst-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,*weisswurst-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,*weisswurst-pregrasp-z-offset*)
+  :lift-translation `(0.0 0.0 ,*weisswurst-pregrasp-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*weisswurst-pregrasp-z-offset*))
+
+;; Left-TOP grasp
+(man-int:def-object-type-to-gripper-transforms '(:weisswurst)
+    '(:left :right) :left-top
+  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*)
+
+;; Right-TOP grasp
+(man-int:def-object-type-to-gripper-transforms '(:weisswurst)
+    '(:left :right) :right-top
+  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*)
+
+;; left hold-hold
+(man-int:def-object-type-to-gripper-transforms '(:weisswurst)
+    '(:left :right) :left-hold
+  :grasp-translation `(0.04 0.0 ,*weisswurst-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
+  :pregrasp-offsets `(0.04 0.0 ,*weisswurst-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.04 0.0 ,*weisswurst-pregrasp-z-offset*)
+  :lift-translation `(0.04 0.0 ,*weisswurst-pregrasp-z-offset*)
+  :2nd-lift-translation `(0.04 0.0 ,*weisswurst-pregrasp-z-offset*))
+
+
+;; right-hold
+(man-int:def-object-type-to-gripper-transforms '(:weisswurst)
+    '(:left :right) :right-hold
+  :grasp-translation `(-0.04 0.0 ,*weisswurst-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation*
+  :pregrasp-offsets `(-0.04 0.0 ,*weisswurst-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(-0.04 0.0 ,*weisswurst-pregrasp-z-offset*)
+  :lift-translation `(-0.04 0.0 ,*weisswurst-pregrasp-z-offset*)
+  :2nd-lift-translation `(-0.04 0.0 ,*weisswurst-pregrasp-z-offset*))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;; BREAD;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(defparameter *bread-grasp-z-offset* 0.0 ;; 0.015
+              "in meters") ; because TCP is not at the edge
+(defparameter *bread-pregrasp-z-offset* 0.18 "in meters")
+(defparameter *bread-pregrasp-xy-offset* 0.10 "in meters")
+
+
+;; Left-TOP grasp
+(man-int:def-object-type-to-gripper-transforms '(:bread)
+    '(:left :right) :left-top
+  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*)
+
+;; right-TOP grasp
+(man-int:def-object-type-to-gripper-transforms '(:bread)
+    '(:left :right) :right-top
+  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*)
+
+;; left hold
+(man-int:def-object-type-to-gripper-transforms '(:bread)
+    '(:left :right) :left-hold
+  :grasp-translation `(0.1 0.0 ,*bread-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
+  :pregrasp-offsets `(0.1 0.0 ,*bread-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.1 0.0 ,*bread-pregrasp-z-offset*)
+  :lift-translation `(0.1 0.0 ,*bread-pregrasp-z-offset*)
+  :2nd-lift-translation `(0.1 0.0 ,*bread-pregrasp-z-offset*))
+
+;; right-hold
+(man-int:def-object-type-to-gripper-transforms '(:bread)
+    '(:left :right) :right-hold
+  :grasp-translation `(-0.1 0.0 ,*bread-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation*
+  :pregrasp-offsets `(-0.1 0.0 ,*bread-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(-0.1 0.0 ,*bread-pregrasp-z-offset*)
+  :lift-translation `(-0.1 0.0 ,*bread-pregrasp-z-offset*)
+  :2nd-lift-translation `(-0.1 0.0 ,*bread-pregrasp-z-offset*))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;; BIG-KNIFE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *big-knife-grasp-z-offset* -0.020 ;; 0.015
+              "in meters") ; because TCP is not at the edge
+(defparameter *big-knife-pregrasp-z-offset* 0.25 "in meters")
+(defparameter *big-knife-pregrasp-xy-offset* 0.10 "in meters")
+
+;; TOP grasp
+(man-int:def-object-type-to-gripper-transforms '(:big-knife)
+    '(:left :right) :front
+  :grasp-translation `(0.0 0.06 ,*cutlery-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.06 ,*cutlery-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 0.06 ,*cutlery-pregrasp-z-offset*)
+  :lift-translation `(0.0 0.06 ,*cutlery-pregrasp-z-offset*)
+  :2nd-lift-translation `(0.0 0.06 ,*cutlery-pregrasp-z-offset*))
 
 
 
