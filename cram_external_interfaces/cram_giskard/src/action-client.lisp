@@ -32,7 +32,7 @@
 (defun make-giskard-action-client ()
   (actionlib-client:make-simple-action-client
    'giskard-action
-   "giskardpy/command" "giskard_msgs/MoveAction"
+   "giskard/command" "giskard_msgs/MoveAction"
    120))
 
 (roslisp-utilities:register-ros-init-function make-giskard-action-client)
@@ -76,7 +76,7 @@
                             (roslisp:msg-slot-value
                              result
                              :error_codes))))
-      (full-update-collisiono-scene))
+      (full-update-collision-scene))
 
     ;; check if the goal was reached, if not, throw a failure
     (when check-goal-function
