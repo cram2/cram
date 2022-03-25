@@ -432,10 +432,6 @@ On platforms where ECL's dynamic FFI is not supported (ie. when
 @code{:dffi} is not present in @code{*features*}),
 @code{cffi:load-foreign-library} does not work and you must use ECL's
 own @code{ffi:load-foreign-library} with a constant string argument.
-@item
-Does not support the @code{:long-long} type natively.
-@item
-Unicode support is not enabled by default.
 @end itemize
 
 @subheading Lispworks
@@ -1852,13 +1848,16 @@ respectively.
 @ForeignType{:uint32}
 @ForeignType{:int64}
 @ForeignType{:uint64}
+@ForeignType{:size}
+@ForeignType{:ssize}
+@ForeignType{:intptr}
+@ForeignType{:uintptr}
+@ForeignType{:ptrdiff}
+@ForeignType{:offset}
 
 Foreign integer types of specific sizes, corresponding to the C types
 defined in @code{stdint.h}.
 
-@c @ForeignType{:size}
-@c @ForeignType{:ssize}
-@c @ForeignType{:ptrdiff}
 @c @ForeignType{:time}
 
 @c Foreign integer types corresponding to the standard C types (without
@@ -2530,7 +2529,7 @@ CFFI-USER> (code-char (mem-aref * :char 5))
 @Macro{defbitfield name-and-options &body masks}
 
 masks ::= [docstring] @{ (symbol value) @}* @*
-name-and-options ::= name | (name &optional (base-type :int))
+name-and-options ::= name | (name &optional (base-type :int)) @*
 
 @subheading Arguments and Values
 
@@ -2582,7 +2581,7 @@ which is @code{:int} by default.
   ;; @lispcmt{etc@dots{}}
 
 CFFI> (foreign-bitfield-symbols 'open-flags #b1101)
-@result{} (:RDONLY :WRONLY :NONBLOCK :APPEND)
+@result{} (:WRONLY :NONBLOCK :APPEND)
 
 CFFI> (foreign-bitfield-value 'open-flags '(:rdwr :creat))
 @result{} 514   ; #x0202
@@ -2614,8 +2613,7 @@ CFFI> (unix-open "/tmp/foo" '(:wronly :creat) #o644)
 @subheading Syntax
 @Macro{defcstruct name-and-options &body doc-and-slots @res{} name}
 
-name-and-options ::= structure-name | (structure-name &key size)
-
+name-and-options ::= structure-name | (structure-name &key size) @*
 doc-and-slots ::= [docstring] @{ (slot-name slot-type &key count offset) @}*
 
 @subheading Arguments and Values
@@ -2824,8 +2822,8 @@ you should use @ref{define-foreign-type}.
 @subheading Syntax
 @Macro{defcenum name-and-options &body enum-list}
 
-enum-list ::= [docstring] @{ keyword | (keyword value) @}*
-name-and-options ::= name | (name &optional (base-type :int))
+enum-list ::= [docstring] @{ keyword | (keyword value) @}* @*
+name-and-options ::= name | (name &optional (base-type :int) &key allow-undeclared-values) @*
 
 @subheading Arguments and Values
 
@@ -2838,6 +2836,10 @@ A documentation string, ignored.
 
 @item base-type
 A symbol denoting a foreign type.
+
+@item allow-undeclared-values
+Whether to pass through integer values that were not explicitly declared
+in the enum when translating from foreign memory.
 
 @item keyword
 A keyword symbol.
@@ -2858,6 +2860,14 @@ Keywords will be automatically converted to values and vice-versa when
 being passed as arguments to or returned from foreign functions,
 respectively. The same applies to any other situations where an object
 of an @code{enum} type is expected.
+
+If a value should be translated to lisp that is not declared in the
+enum, an error will be signalled. You can elide this error and instead
+make it pass the original enum value by specifying
+@var{allow-undeclared-values}. This can be useful for very large
+enumerations of which we only care about a subset of values, or for
+enumerations that should allow for client or vendor extensions that we
+cannot know about.
 
 Types defined with @code{defcenum} canonicalize to @var{base-type}
 which is @code{:int} by default.
@@ -3081,7 +3091,7 @@ list of symbols that correspond to @var{value} in @var{type}.
   (flag-b 2)
   (flag-c 4))
 
-CFFI> (foreign-bitfield-symbols 'boolean #b101)
+CFFI> (foreign-bitfield-symbols 'flags #b101)
 @result{} (FLAG-A FLAG-C)
 @end lisp
 
@@ -3765,8 +3775,9 @@ pointer.  The return value is not used.
 
 @table @var
 @item vars
-A list with each element a symbol, or list of length two with the
-first element @code{:pointer} and the second a symbol.
+A list with binding descriptors; each is either a symbol, or list with
+up to 3 elements: an optional new name to bind, an optional symbol 
+@code{:pointer} and finally the required slot symbol.
 
 @item ptr
 A foreign pointer to a structure.
@@ -3779,11 +3790,14 @@ A list of forms to be executed.
 @end table
 
 @subheading Description
-The @code{with-foreign-slots} macro creates local symbol macros for each
-var in @var{vars} to reference foreign slots in @var{ptr} of @var{type}.
-If the var is a list starting with @code{:pointer}, it will bind the
-pointer to the slot (rather than the value). It is similar to Common
-Lisp's @code{with-slots} macro.
+The @code{with-foreign-slots} macro establishes a lexical environment for
+referring to the foreign slots of @var{type} addressed by @var{ptr}.
+Like Common Lisp's @code{with-slots} macro, each var in @var{vars} may
+be a symbol naming a slot, or a list @code{(name slot)} which creates a 
+binding to a slot with a different name.
+Prefixing the slot name with @code{:pointer} creates a binding to a
+foreign pointer that addresses the slot rather than its value.  Both
+@code{(:pointer slot)} and @code{(name :pointer slot)} are acceptable.
 
 @subheading Examples
 @lisp
@@ -3805,9 +3819,9 @@ CFFI> (with-foreign-object (time :int)
               (foreign-funcall "time" :pointer (null-pointer) :int))
         (foreign-funcall "gmtime" :pointer time (:pointer (:struct tm))))
 @result{} #<A Mac Pointer #x102A30>
-CFFI> (with-foreign-slots ((sec min hour mday mon year) * (:struct tm))
+CFFI> (with-foreign-slots ((sec min hour (day-of-month mday) mon year) * (:struct tm))
         (format nil "~A:~A:~A, ~A/~A/~A"
-                hour min sec (+ 1900 year) mon mday))
+                hour min sec (+ 1900 year) mon day-of-month))
 @result{} "7:22:47, 2005/8/2"
 @end lisp
 
@@ -4653,7 +4667,7 @@ CFFI> (pointer-eq (null-pointer) (null-pointer))
 @anchor{with-foreign-objects}
 @Macro{with-foreign-objects (bindings) &body body}
 
-bindings ::= @{(var type &optional count)@}*
+bindings ::= @{(var type &optional count)@}* @*
 
 @subheading Arguments and Values
 
@@ -5024,7 +5038,7 @@ CFFI> (with-foreign-pointer-as-string (str 255)
 @anchor{with-foreign-strings}
 @Macro{with-foreign-strings (bindings) &body body}
 
-var-or-vars ::= var | (var &optional octet-size-var)
+var-or-vars ::= var | (var &optional octet-size-var) @*
 bindings ::= @{(var-or-vars string &rest args)@}*
 
 @subheading Arguments and Values
@@ -5054,12 +5068,6 @@ foreign string in octets including the null terminator.
 CFFI> (with-foreign-string (foo "12345")
         (foreign-funcall "strlen" :pointer foo :int))
 @result{} 5
-
-CFFI> (let ((array (coerce #(84 117 114 97 110 103 97)
-                           '(array (unsigned-byte 8)))))
-        (with-foreign-string (foreign-string array)
-          (foreign-string-to-lisp foreign-string)))
-@result{} "Turanga"
 @end lisp
 
 @subheading See Also
@@ -5133,7 +5141,7 @@ Dictionary
 @Macro{defcvar name-and-options type &optional documentation @res{} lisp-name}
 
 @var{name-and-options} ::= name | (name &key read-only (library :default)) @*
-@var{name} ::= lisp-name [foreign-name] | foreign-name [lisp-name]
+@var{name} ::= lisp-name [foreign-name] | foreign-name [lisp-name] @*
 
 @subheading Arguments and Values
 
@@ -5257,6 +5265,8 @@ Dictionary
 * defcfun::
 * foreign-funcall::
 * foreign-funcall-pointer::
+* foreign-funcall-varargs::
+* foreign-funcall-pointer-varargs::
 * translate-camelcase-name::
 * translate-name-from-foreign::
 * translate-name-to-foreign::
@@ -5280,9 +5290,9 @@ Dictionary
 @Macro{defcfun name-and-options return-type &body [docstring] arguments [&rest] @
                @res{} lisp-name}
 
-@var{name-and-options} ::= name | (name &key library convention) @*
+@var{name-and-options} ::= @var{name} | (@var{name} &key @var{library} @var{convention}) @*
 @var{name} ::= @var{lisp-name} [@var{foreign-name}] | @var{foreign-name} [@var{lisp-name}] @*
-@var{arguments} ::= @{ (arg-name arg-type) @}* @*
+@var{arguments} ::= @{ (@var{arg-name} @var{arg-type}) @}* @*
 
 @subheading Arguments and Values
 
@@ -5387,7 +5397,9 @@ CFFI> (with-foreign-pointer-as-string (s 100)
 
 @subheading See Also
 @seealso{foreign-funcall} @*
-@seealso{foreign-funcall-pointer}
+@seealso{foreign-funcall-pointer} @*
+@seealso{foreign-funcall-varargs} @*
+@seealso{foreign-funcall-pointer-varargs}
 
 
 @c ===================================================================
@@ -5399,8 +5411,8 @@ CFFI> (with-foreign-pointer-as-string (s 100)
 @subheading Syntax
 @Macro{foreign-funcall name-and-options &rest arguments @res{} return-value}
 
-arguments ::= @{ arg-type arg @}* [return-type]
-name-and-options ::= name | ( name &key library convention)
+@var{arguments} ::= @{ @var{arg-type} @var{arg} @}* [@var{return-type}] @*
+@var{name-and-options} ::= @var{name} | (@var{name} &key @var{library} @var{convention}) @*
 
 @subheading Arguments and Values
 
@@ -5500,13 +5512,13 @@ CFFI> (foreign-funcall "printf" :string (format nil "%s: %d.~%")
 @c FOREIGN-FUNCALL-POINTER
 
 @page
-@node foreign-funcall-pointer,  translate-camelcase-name, foreign-funcall, Functions
+@node foreign-funcall-pointer, foreign-funcall-varargs, foreign-funcall, Functions
 @heading foreign-funcall-pointer
 @subheading Syntax
 @Macro{foreign-funcall-pointer pointer options &rest arguments @res{} return-value}
 
-arguments ::= @{ arg-type arg @}* [return-type]
-options ::= ( &key convention )
+@var{arguments} ::= @{ @var{arg-type} @var{arg} @}* [@var{return-type}] @*
+@var{options} ::= (&key @var{convention}) @*
 
 @subheading Arguments and Values
 
@@ -5561,10 +5573,119 @@ CFFI> (foreign-funcall-pointer (foreign-symbol-pointer "abs") ()
 
 
 @c ===================================================================
+@c FOREIGN-FUNCALL-VARARGS
+
+@page
+@node foreign-funcall-varargs, foreign-funcall-pointer-varargs, foreign-funcall-pointer, Functions
+@heading foreign-funcall-varargs
+@subheading Syntax
+@Macro{foreign-funcall-varargs name-and-options (fixed-arguments) &rest arguments @res{} return-value}
+
+@var{fixed-arguments} ::= @{ @var{arg-type} @var{arg} @}* [@var{return-type}] @*
+@var{arguments} ::= @{ @var{arg-type} @var{arg} @}* [@var{return-type}] @*
+@var{name-and-options} ::= @var{name} | (@var{name} &key @var{library} @var{convention}) @*
+
+@subheading Arguments and Values
+
+@table @var
+@item name
+A Lisp string.
+
+@item arg-type
+A foreign type.
+
+@item arg
+An argument of type @var{arg-type}.
+
+@item return-type
+A foreign type, @code{:void} by default.
+
+@item return-value
+A lisp object.
+
+@item library
+A lisp symbol; not evaluated.
+
+@item convention
+One of @code{:cdecl} (default) or @code{:stdcall}.
+@end table
+
+@subheading Description
+The @code{foreign-funcall-varargs} macro is the main primitive for
+calling foreign variadic functions. It behaves similarily to
+@code{foreign-funcall} except @code{fixed-arguments} are distinguished
+from the remaining arguments.
+
+@subheading Examples
+
+@lisp
+CFFI> (with-foreign-pointer-as-string (s 100)
+        (setf (mem-ref s :char) 0)
+        (foreign-funcall-varargs
+         "sprintf" (:pointer s :string) "%.2f")
+         :double (coerce pi 'double-float) :int))
+@result{} 3.14
+@end lisp
+
+
+@c ===================================================================
+@c FOREIGN-FUNCALL-POINTER-VARARGS
+
+@page
+@node foreign-funcall-pointer-varargs, translate-camelcase-name, foreign-funcall-varargs, Functions
+@heading foreign-funcall-pointer-varargs
+@subheading Syntax
+@Macro{foreign-funcall-pointer-varargs pointer options (fixed-arguments) &rest arguments @res{} return-value}
+
+@var{fixed-arguments} ::= @{ @var{arg-type} @var{arg} @}* [@var{return-type}] @*
+@var{arguments} ::= @{ @var{arg-type} @var{arg} @}* [@var{return-type}] @*
+@var{options} ::= (&key @var{convention}) @*
+
+@subheading Arguments and Values
+
+@table @var
+@item pointer
+A foreign pointer.
+
+@item arg-type
+A foreign type.
+
+@item arg
+An argument of type @var{arg-type}.
+
+@item return-type
+A foreign type, @code{:void} by default.
+
+@item return-value
+A lisp object.
+
+@item convention
+One of @code{:cdecl} (default) or @code{:stdcall}.
+@end table
+
+@subheading Description
+The @code{foreign-funcall-pointer-varargs} macro is the main primitive
+for calling foreign variadic functions. It behaves similarily to
+@code{foreign-funcall-pointer} except @code{fixed-arguments} are
+distinguished from the remaining arguments.
+
+@subheading Examples
+
+@lisp
+CFFI> (with-foreign-pointer-as-string (s 100)
+        (setf (mem-ref s :char) 0)
+        (foreign-funcall-pointer-varargs
+         (foreign-symbol-pointer "sprintf") () (:pointer s :string "%.2f")
+         :double (coerce pi 'double-float) :int))
+@result{} 3.14
+@end lisp
+
+
+@c ===================================================================
 @c TRANSLATE-CAMELCASE-NAME
 
 @page
-@node translate-camelcase-name, translate-name-from-foreign, foreign-funcall-pointer, Functions
+@node translate-camelcase-name, translate-name-from-foreign, foreign-funcall-pointer-varargs, Functions
 @heading translate-camelcase-name
 @subheading Syntax
 @Function{translate-camelcase-name name &key upper-initial-p special-words @res{} return-value}
@@ -5947,8 +6068,8 @@ CFFI> (let ((lib (load-foreign-library '(:framework "OpenGL"))))
 
 @Macro{define-foreign-library name-and-options @{ load-clause @}* @res{} name}
 
-name-and-options ::= name | (name &key convention search-path)
-load-clause ::= (feature library &key convention search-path)
+name-and-options ::= name | (name &key canary convention search-path) @*
+load-clause ::= (feature library &key convention search-path) @*
 
 @subheading Arguments and Values
 
@@ -5961,6 +6082,16 @@ A feature expression.
 
 @item library
 A library designator.
+
+@item canary
+A string denoting a foreign symbol that will be searched in core
+before attempting to load the library. If that symbol is found, the
+library is assumed to be preloaded (either statically or dynamically
+linked) and @code{load-foreign-library} only marks the library as
+loaded.
+
+Some implementations (Clisp, ECL, SBCL) natively support static
+linking, sometimes referred to as a @emph{link kit}.
 
 @item convention
 One of @code{:cdecl} (default) or @code{:stdcall}
@@ -6193,16 +6324,18 @@ is then searched in @code{*darwin-framework-directories*}, and loaded
 when found.
 
 @item :or
-Each remaining list element, itself a library designator, is loaded in
+Each remaining list element, itself a @dfn{library designator}, is loaded in
 order, until one succeeds.
 
 @item :default
 The name is transformed according to the platform's naming convention
-to shared libraries, and the resultant string is loaded as a library
-designator.  For example, on @sc{unix}, the name is suffixed with
+to shared libraries, and the resultant string is loaded as a @dfn{library
+designator}.  For example, on @sc{unix}, the name is suffixed with
 @file{.so}.
 @end table
 @end enumerate
+
+If the library is already loaded it will be reloaded.
 
 If the load fails, signal a @code{load-foreign-library-error}.
 
@@ -6369,8 +6502,8 @@ CFFI> (callback sum)
 @subheading Syntax
 @Macro{defcallback name-and-options return-type arguments &body body @res{} name}
 
-name-and-options ::= name | (name &key convention)
-arguments ::= (@{ (arg-name arg-type) @}*)
+name-and-options ::= name | (name &key convention) @*
+arguments ::= (@{ (arg-name arg-type) @}*) @*
 
 @subheading Arguments and Values
 
@@ -6519,6 +6652,7 @@ necessary calls to the C compiler and resulting file management.
 * Groveller Syntax::            How grovel files should look like.
 * Groveller ASDF Integration::  ASDF components for grovel files.
 * Groveller Implementation Notes:: Implementation notes.
+* Wrapper for Inline/Static Functions and Macros:: Wrapper
 @end menu
 
 @node Groveller Syntax, Groveller ASDF Integration, The Groveller, The Groveller
@@ -6571,6 +6705,13 @@ either @code{integer} (the default) or @code{double-float}. If
 @var{c-names} are unknown. If @var{lisp-name} is a keyword, the actual
 constant will be a symbol of the same name interned in the current
 package.
+@end deffn
+
+@deffn {Grovel Form} feature lisp-feature-name c-name &key feature-list
+
+Adds @var{lisp-feature-name} to the list @var{feature-list} if the @var{c-name}
+string is known to the C preprocessor. @var{feature-list} defaults
+to @code{cl:*features*}.
 @end deffn
 
 @deffn {Grovel Form} define name &optional value
@@ -6740,7 +6881,7 @@ written by @cffi{}-Grovel; if your specification file is
 @cffi{} definitions needed by the rest of your project.
 @xref{Groveller Syntax}.
 
-@node Groveller Implementation Notes,  , Groveller ASDF Integration, The Groveller
+@node Groveller Implementation Notes,  Wrapper for Inline/Static Functions and Macros, Groveller ASDF Integration, The Groveller
 @section Implementation Notes
 
 @cffi{}-Grovel will generate many files that not only architecture-specific,
@@ -6768,6 +6909,89 @@ between the implementations running on a given system.}
 
 @c TODO: document the new wrapper stuff.
 
+@node Wrapper for Inline/Static Functions and Macros,  , Groveller Implementation Notes, The Groveller
+@section Wrapper for Inline/Static Functions and Macros
+
+In a shared library, information in static/inlined functions and
+macros are already removed during the compilation.  Wrapper file
+enables to write an uninlined function wrapping the call to them.
+
+A wrapper file compilation/loading proceeds as follows: 
+Unlike groveller which generates C code that emits lisp files
+containing cffi definitions, it generates C code, compiles it as a
+shared library, loads the library, generate the cffi definitions (as
+lisp code) and then loads the lisp code.
+
+It has asdf integration similar to groveller. 
+
+@lisp
+(defsystem "example-software"
+  :defsystem-depends-on ("cffi-grovel")
+  :depends-on ("cffi")
+  :serial t
+  :components
+  ((:file "package")
+   (:cffi-grovel-file "example-grovelling")
+   (:cffi-wrapper-file "example-wrappers")  ;; <<--- this part
+   (:file "example")))
+@end lisp
+
+@deffn {Wrapper Form} defwrapper name-and-options return-type &rest args
+@end deffn
+
+@example
+static inline int foo(int i) @{
+  return 1+i;
+@};
+#define bar(i) (1+(i))
+@end example
+
+@lisp
+(in-package :mypackage)
+(defwrapper ("foo" foo) :int
+  (i :int))
+(defwrapper ("bar" bar) :int
+  (i :int))
+@end lisp
+
+Other forms are similar to grovel files.
+
+@deffn {Wrapper Form} progn &rest forms
+
+Processes a list of forms. Useful for conditionalizing several
+forms. For example:
+@end deffn
+
+@lisp
+#+freebsd
+(progn
+  (constant (ev-enable "EV_ENABLE"))
+  (constant (ev-disable "EV_DISABLE")))
+@end lisp
+
+@deffn {Wrapper Form} include &rest files
+
+Include the specified files (specified as strings) in the generated C
+source code.
+@end deffn
+
+@deffn {Wrapper Form} in-package symbol
+
+Set the package to be used for the final Lisp output.
+@end deffn
+
+@deffn {Wrapper Form} flags &rest flags
+
+Adds @var{cc-flags} to the command line arguments used for the C compiler
+invocation.
+@end deffn
+
+@deffn {Wrapper Form} proclaim &rest proclaimations
+@end deffn
+@deffn {Wrapper Form} declaim &rest declaimations
+@end deffn
+
+
 
 @c ===================================================================
 @c CHAPTER: Static Linking
@@ -6775,13 +6999,21 @@ between the implementations running on a given system.}
 @node Static Linking, Limitations, The Groveller, Top
 @chapter Static Linking
 
-On recent enough versions of supported implementations (currently,
-GNU CLISP 2.49, CMUCL 2015-11, and SBCL 1.2.17), and with a recent
-enough ASDF (3.1.2 or later), you can create a statically linked
-Lisp executable image that includes all the C extensions
-(wrappers and any other objects output by @code{compile-op})
-as well as your Lisp code --- or a standalone application executable.
-This makes it easier to deliver your code as a single file.
+On recent enough versions of supported implementations (currently, GNU
+CLISP 2.49 or later, CMUCL 2015-11 or later, and SBCL 1.2.17 or later,
+except SBCL 2.0.4), and with a recent enough ASDF (3.1.2 or later),
+you can create a statically linked Lisp executable image (or a
+standalone application executable) that includes all the C extensions
+defined via @ref{The Groveller}'s @code{:cffi-wrapper-file} ASDF
+components (and any other such objects output by
+@code{asdf:compile-op}), as well as those defined by @code{:c-file} or
+@code{:o-file} ASDF components, and your Lisp code.  This makes it
+easier to deliver your code as a single file.
+
+Note that the resulting binary will typically still depend on any
+shared libraries loaded via @xref{load-foreign-library} or
+@xref{use-foreign-library} as well as core libraries such as
+@code{libc}.
 
 To dump a statically linked executable image, use:
 
