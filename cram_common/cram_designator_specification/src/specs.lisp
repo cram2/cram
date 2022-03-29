@@ -231,9 +231,15 @@
 
   (<- (%property ?designator (?keyword-key ?name))
     (lisp-pred typep ?designator desig:object-designator)
-    (member ?keyword-key (:name :urdf-name))
+    (member ?keyword-key (:name))
     (property-member (?keyword-key ?name) ?designator)
     (assert-type ?name symbol "OBJECT SPEC:PROPERTY"))
+
+  (<- (%property ?designator (?keyword-key ?name))
+    (lisp-pred typep ?designator desig:object-designator)
+    (member ?keyword-key (:urdf-name))
+    (property-member (?keyword-key ?name) ?designator)
+    (assert-type ?name (or symbol string) "OBJECT SPEC:PROPERTY"))
 
   (<- (%property ?designator (:part-of ?environment-or-robot))
     (lisp-pred typep ?designator desig:object-designator)

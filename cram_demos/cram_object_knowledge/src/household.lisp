@@ -60,7 +60,7 @@
   20)
 (defmethod man-int:get-action-gripping-effort :heuristics 20
     ((object-type (eql :cereal)))
-  30)
+  45)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -329,7 +329,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; cereal ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *cereal-grasp-z-offset* 0.04 "in meters")
-(defparameter *cereal-grasp-xy-offset* 0.03 "in meters")
+(defparameter *cereal-grasp-side-z-offset* 0.0 "in meters")
+(defparameter *cereal-grasp-xy-offset* 0.015 "in meters")
 (defparameter *cereal-pregrasp-z-offset* 0.05 "in meters")
 (defparameter *cereal-pregrasp-xy-offset* 0.15 "in meters")
 (defparameter *cereal-postgrasp-xy-offset* 0.40 "in meters")
@@ -349,7 +350,7 @@
 ;; FRONT grasp table
 (man-int:def-object-type-to-gripper-transforms
     '(:cereal :breakfast-cereal) '(:left :right) :front
-  :grasp-translation `(,*cereal-grasp-xy-offset* 0.0d0 ,*cereal-grasp-z-offset*)
+  :grasp-translation `(,*cereal-grasp-xy-offset* 0.0d0 ,*cereal-grasp-side-z-offset*)
   :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
   :pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 ,*cereal-pregrasp-z-offset*)
   :2nd-pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 0.0)
@@ -360,7 +361,7 @@
 (man-int:def-object-type-to-gripper-transforms
     '(:cereal :breakfast-cereal) '(:left :right) :front
   :location-type :shelf
-  :grasp-translation `(,*cereal-grasp-xy-offset* 0.0d0 ,*cereal-grasp-z-offset*)
+  :grasp-translation `(,*cereal-grasp-xy-offset* 0.0d0 ,*cereal-grasp-side-z-offset*)
   :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
   :pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 ,*cereal-pregrasp-z-offset*)
   :2nd-pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 0.0)
@@ -370,7 +371,7 @@
 ;; BACK grasp table
 (man-int:def-object-type-to-gripper-transforms
     '(:cereal :breakfast-cereal) '(:left :right) :back
-  :grasp-translation `(,(- *cereal-grasp-xy-offset*) 0.0d0 ,*cereal-grasp-z-offset*)
+  :grasp-translation `(,(- *cereal-grasp-xy-offset*) 0.0d0 ,*cereal-grasp-side-z-offset*)
   :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation*
   :pregrasp-offsets `(,(- *cereal-pregrasp-xy-offset*) 0.0 ,*cereal-pregrasp-z-offset*)
   :2nd-pregrasp-offsets `(,(- *cereal-pregrasp-xy-offset*) 0.0 0.0)
@@ -381,7 +382,7 @@
 (man-int:def-object-type-to-gripper-transforms
     '(:cereal :breakfast-cereal) '(:left :right) :back
   :location-type :shelf
-  :grasp-translation `(,(- *cereal-grasp-xy-offset*) 0.0d0 ,*cereal-grasp-z-offset*)
+  :grasp-translation `(,(- *cereal-grasp-xy-offset*) 0.0d0 ,*cereal-grasp-side-z-offset*)
   :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation*
   :pregrasp-offsets `(,(- *cereal-pregrasp-xy-offset*) 0.0 ,*cereal-pregrasp-z-offset*)
   :2nd-pregrasp-offsets `(,(- *cereal-pregrasp-xy-offset*) 0.0 0.0)
@@ -554,7 +555,6 @@
 
 (defun make-location-in-oven-right-drawer (?object-type ?environment-name)
   (desig:a location
-           ;; (side front)
            (in (desig:an object
                          (type drawer)
                          (urdf-name oven-area-area-right-drawer-main)
@@ -562,6 +562,7 @@
                          (part-of ?environment-name)
                          (level topmost)))
            (side front)
+           (range 0.1)
            (orientation support-aligned)
            (for (desig:an object (type ?object-type)))))
 
@@ -688,7 +689,7 @@
                     (location ?other-object-location))))
     (desig:a location
              (right-of ?other-object-designator)
-             ;; (behind ?other-object-designator)
+             (behind ?other-object-designator)
              (near ?other-object-designator)
              (for (desig:an object (type ?object-type))))))
 
@@ -955,7 +956,7 @@
 
 (man-int:def-object-type-in-other-object-transform :cup :drawer
   :dish-washer-drawer-left-flipped-around-x
-  :attachment-translation `(0.03 -0.19 0.22)
+  :attachment-translation `(0.05 -0.19 0.22)
   :attachment-rot-matrix man-int:*rotation-around-x-180-matrix*)
 
 (man-int:def-object-type-in-other-object-transform :cup :drawer
@@ -965,5 +966,5 @@
 
 (man-int:def-object-type-in-other-object-transform :spoon :drawer
   :dish-washer-drawer-center
-  :attachment-translation `(0.03 0.0 0.03)
+  :attachment-translation `(0.04 0.0 0.03)
   :attachment-rot-matrix man-int:*identity-matrix*)

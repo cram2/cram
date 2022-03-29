@@ -76,7 +76,7 @@
                             (roslisp:msg-slot-value
                              result
                              :error_codes))))
-      (full-update-collisiono-scene))
+      (full-update-collision-scene))
 
     ;; check if the goal was reached, if not, throw a failure
     (when check-goal-function

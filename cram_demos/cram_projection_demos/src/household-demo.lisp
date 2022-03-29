@@ -29,6 +29,8 @@
 
 (in-package :demos)
 
+;;;;;; THE STUFF BELOW IS FOR HOUSEHOLD-DEMO-RANDOM
+
 (defparameter *object-spawning-poses*
   '("sink_area_surface"
     (:breakfast-cereal . ((0.2 -0.15 0.1) (0 0 0 1)))
@@ -45,29 +47,6 @@
     (:spoon . ((-0.78 1.5 0.86) (0 0 0 1)))
     (:milk . ((-0.75 1.7 0.95) (0 0 0.7071 0.7071))))
   "Absolute poses on kitchen_island.")
-
-(defparameter *demo-object-spawning-poses*
-  '((:bowl
-     "sink_area_left_middle_drawer_main"
-     ((0.10 -0.1505 -0.062256) (0 0 -1 0)))
-    (:cup
-     "sink_area_left_bottom_drawer_main"
-     ((0.11 0.12 -0.0547167) (0 0 -1 0)))
-    (:spoon
-     ;; "oven_area_area_middle_upper_drawer_main"
-     "sink_area_left_upper_drawer_main"
-     ((0.125 0 -0.0136) (0 -0.053938 -0.998538 -0.003418)))
-    ;; So far only this orientation works
-    (:breakfast-cereal
-     "oven_area_area_right_drawer_board_3_link"
-     ((0.123 -0.03 0.11) (0.0087786 0.005395 -0.838767 -0.544393)))
-    ;; ((:breakfast-cereal . ((1.398 1.490 1.2558) (0 0 0.7071 0.7071)))
-    ;; (:breakfast-cereal . ((1.1 1.49 1.25) (0 0 0.7071 0.7071)))
-    (:milk
-     ;; "iai_fridge_main_middle_level"
-     ;; ((0.10355 0.022 0.094) (0.00939 -0.00636 -0.96978 -0.2437))
-     "iai_fridge_door_shelf1_bottom"
-     ((-0.01 -0.05 0.094) (0 0 0 1)))))
 
 (defparameter *delivery-poses-relative*
   `((:bowl
@@ -101,26 +80,6 @@
               (0.0 0.0 -0.9 0.7)))
     (:breakfast-cereal . ((-0.78 0.8 0.95) (0 0 0.6 0.4)))))
 
-(defparameter *cleaning-deliver-poses*
-  `((:bowl . ((1.45 -0.4 1.0) (0 0 0 1)))
-    (:cup . ((1.45 -0.4 1.0) (0 0 0 1)))
-    (:spoon . ((1.45 -0.4 1.0) (0 0 0 1)))
-    (:milk . ((1.2 -0.5 0.8) (0 0 1 0)))
-    (:breakfast-cereal . ((1.15 -0.5 0.8) (0 0 1 0)))))
-
-(defparameter *object-grasping-arms*
-  '(;; (:breakfast-cereal . :right)
-    ;; (:cup . :left)
-    ;; (:bowl . :right)
-    ;; (:spoon . :right)
-    ;; (:milk . :right)
-    ))
-
-(defparameter *object-cad-models*
-  '(;; (:cup . "cup_eco_orange")
-    ;; (:bowl . "edeka_red_bowl")
-    ))
-
 (defparameter *object-colors*
   '((:spoon . "black")
     (:breakfast-cereal . "yellow")
@@ -128,12 +87,65 @@
     (:bowl . "red")
     (:cup . "red")))
 
-(defparameter *object-grasps*
-  '((:spoon . :top)
-    (:breakfast-cereal . :front)
-    (:milk . :front)
-    (:cup . :top)
-    (:bowl . :top)))
+(defparameter *object-cad-models*
+  '(;; (:cup . "cup_eco_orange")
+    ;; (:bowl . "edeka_red_bowl")
+    ))
+
+;;;;;; END OF HOUSEHOLD-DEMO-RANDOM STUFF
+
+
+(defparameter *demo-object-spawning-poses*
+  '((:bowl
+     "sink_area_left_middle_drawer_main"
+     ((0.10 -0.0505 -0.062256) (0 0 -1 0)))
+    (:cup
+     ;; "sink_area_left_bottom_drawer_main"
+     ;; ((0.11 0.12 -0.0547167) (0 0 -1 0))
+     "kitchen_island_left_upper_drawer_main"
+     ((0.11 0.08 -0.026367) (0 0 -1 0)))
+    (:spoon
+     ;; "oven_area_area_middle_upper_drawer_main"
+     "sink_area_left_upper_drawer_main"
+     ((0.125 0 -0.0136) (0 -0.053938 -0.998538 -0.003418)))
+    ;; So far only this orientation works
+    (:breakfast-cereal
+     "oven_area_area_right_drawer_board_3_link"
+     ((0.123 -0.03 0.11) (0.0087786 0.005395 -0.838767 -0.544393)))
+    ;; ((:breakfast-cereal . ((1.398 1.490 1.2558) (0 0 0.7071 0.7071)))
+    ;; (:breakfast-cereal . ((1.1 1.49 1.25) (0 0 0.7071 0.7071)))
+    (:milk
+     ;; "iai_fridge_main_middle_level"
+     ;; ((0.10355 0.022 0.094) (0.00939 -0.00636 -0.96978 -0.2437))
+     "iai_fridge_door_shelf1_bottom"
+     ((-0.01 -0.05 0.094) (0 0 0 1)))))
+
+
+
+;; (defparameter *cleaning-deliver-poses*
+;;   `((:bowl . ((1.45 -0.4 1.0) (0 0 0 1)))
+;;     (:cup . ((1.45 -0.4 1.0) (0 0 0 1)))
+;;     (:spoon . ((1.45 -0.4 1.0) (0 0 0 1)))
+;;     (:milk . ((1.2 -0.5 0.8) (0 0 1 0)))
+;;     (:breakfast-cereal . ((1.15 -0.5 0.8) (0 0 1 0)))))
+
+;; (defparameter *object-grasping-arms*
+;;   '((:breakfast-cereal . :right)
+;;     (:cup . :left)
+;;     (:bowl . :right)
+;;     (:spoon . :right)
+;;     (:milk . :right)))
+
+
+
+
+
+;; (defparameter *object-grasps*
+;;   '((:spoon . :top)
+;;     (:breakfast-cereal . :front)
+;;     (:milk . :front)
+;;     (:cup . :top)
+;;     (:bowl . :top)))
 
 
 
@@ -328,7 +340,10 @@
         0.0
         (btr:joint-state (btr:get-environment-object)
                          "sink_area_trash_drawer_main_joint")
-        0)
+        0.0
+        (btr:joint-state (btr:get-environment-object)
+                         "kitchen_island_left_upper_drawer_main_joint")
+        0.0)
   (btr-belief::publish-environment-joint-state
    (btr:joint-states (btr:get-environment-object)))
 
