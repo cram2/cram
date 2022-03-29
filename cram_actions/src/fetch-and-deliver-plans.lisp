@@ -217,98 +217,105 @@ retries with different search location or robot base location."
   (setf ?search-location (desig:reset ?search-location))
   (setf ?robot-location (desig:reset ?robot-location))
 
-  (cpl:with-failure-handling
-      ((desig:designator-error (e)
-         (roslisp:ros-warn (fd-plans search-for-object)
-                           "Desig ~a could not be resolved: ~a~%Propagating up."
-                           ?search-location e)
-         (cpl:fail 'common-fail:searching-failed
-                   :description "Search location designator could not be resolved.")))
+  (cpl:with-retry-counters ((designator-broke-retries 1))
+    (cpl:with-failure-handling
+        ((desig:designator-error (e)
+           (cpl:do-retry designator-broke-retries
+             (roslisp:ros-warn (fd-plans search-for-object)
+                               "Desig ~a could not be resolved: ~a~%Retrying."
+                               ?search-location e)
+             (setf ?search-location (desig:reset ?search-location))
+             (cpl:retry))
+           (roslisp:ros-warn (fd-plans search-for-object)
+                             "Desig ~a could not be resolved: ~a~%Propagating up."
+                             ?search-location e)
+           (cpl:fail 'common-fail:searching-failed
+                     :description "Search location designator could not be resolved.")))
 
-    ;; take new `?search-location' sample if a failure happens and retry
-    (cpl:with-retry-counters ((outer-search-location-retries 3))
-      (cpl:with-failure-handling
-          (((or common-fail:object-nowhere-to-be-found
-                desig:designator-error) (e)
-             (common-fail:retry-with-loc-designator-solutions
-                 ?search-location
-                 outer-search-location-retries
-                 (:error-object-or-string e
-                  :warning-namespace (fd-plans search-for-object)
-                  :reset-designators (list ?robot-location)
-                  :rethrow-failure 'common-fail:searching-failed
-                  :distance-threshold 0.1)
-               (roslisp:ros-warn (fd-plans search-for-object)
-                                 "Search is about to give up. Retrying~%"))))
+      ;; take new `?search-location' sample if a failure happens and retry
+      (cpl:with-retry-counters ((outer-search-location-retries 3))
+        (cpl:with-failure-handling
+            (((or common-fail:object-nowhere-to-be-found
+                  desig:designator-error) (e)
+               (common-fail:retry-with-loc-designator-solutions
+                   ?search-location
+                   outer-search-location-retries
+                   (:error-object-or-string e
+                    :warning-namespace (fd-plans search-for-object)
+                    :reset-designators (list ?robot-location)
+                    :rethrow-failure 'common-fail:searching-failed
+                    :distance-threshold 0.1)
+                 (roslisp:ros-warn (fd-plans search-for-object)
+                                   "Search is about to give up. Retrying~%"))))
 
-        ;; if the going action fails, pick another `?robot-location' sample and retry
-        (cpl:with-retry-counters ((robot-location-retries 4))
-          (cpl:with-failure-handling
-              (((or common-fail:navigation-goal-in-collision
-                    common-fail:looking-high-level-failure
-                    common-fail:perception-low-level-failure) (e)
-                 (costmap:reset-costmap-cache)
-                 (common-fail:retry-with-loc-designator-solutions
-                     ?robot-location
-                     robot-location-retries
-                     (:error-object-or-string e
-                      :warning-namespace (fd-plans search-for-object)
-                      :reset-designators (list ?search-location ?robot-location)
-                      :rethrow-failure 'common-fail:object-nowhere-to-be-found)
-                   ;; go up with torso to look from higher up
-                   (let ((?goal `(cpoe:torso-at :upper-limit)))
-                     (exe:perform (desig:an action
-                                            (type moving-torso)
-                                            (joint-angle upper-limit)
-                                            (goal ?goal)))))))
+          ;; if the going action fails, pick another `?robot-location' sample and retry
+          (cpl:with-retry-counters ((robot-location-retries 4))
+            (cpl:with-failure-handling
+                (((or common-fail:navigation-goal-in-collision
+                      common-fail:looking-high-level-failure
+                      common-fail:perception-low-level-failure) (e)
+                   (costmap:reset-costmap-cache)
+                   (common-fail:retry-with-loc-designator-solutions
+                       ?robot-location
+                       robot-location-retries
+                       (:error-object-or-string e
+                        :warning-namespace (fd-plans search-for-object)
+                        :reset-designators (list ?search-location ?robot-location)
+                        :rethrow-failure 'common-fail:object-nowhere-to-be-found)
+                     ;; go up with torso to look from higher up
+                     (let ((?goal `(cpoe:torso-at :upper-limit)))
+                       (exe:perform (desig:an action
+                                              (type moving-torso)
+                                              (joint-angle upper-limit)
+                                              (goal ?goal)))))))
 
-            ;; navigate
-            (exe:perform (desig:an action
-                                   (type navigating)
-                                   (location ?robot-location)))
+              ;; navigate
+              (exe:perform (desig:an action
+                                     (type navigating)
+                                     (location ?robot-location)))
 
-            (cpl:with-retry-counters ((move-torso-retries 1))
-              (cpl:with-failure-handling
-                  ((common-fail:perception-low-level-failure (e)
-                     (cpl:do-retry move-torso-retries
-                       (roslisp:ros-warn (pick-and-place perceive) "~a" e)
-                       ;; if a failure happens, try to go with the torso a bit more down
-                       (let ((?goal `(cpoe:torso-at :middle)))
-                         (exe:perform (desig:an action
-                                                (type moving-torso)
-                                                (joint-angle middle)
-                                                (goal ?goal))))
-                       (cpl:retry))))
+              (cpl:with-retry-counters ((move-torso-retries 1))
+                (cpl:with-failure-handling
+                    ((common-fail:perception-low-level-failure (e)
+                       (cpl:do-retry move-torso-retries
+                         (roslisp:ros-warn (pick-and-place perceive) "~a" e)
+                         ;; if a failure happens, try to go with the torso a bit more down
+                         (let ((?goal `(cpoe:torso-at :middle)))
+                           (exe:perform (desig:an action
+                                                  (type moving-torso)
+                                                  (joint-angle middle)
+                                                  (goal ?goal))))
+                         (cpl:retry))))
 
-                ;; if perception action fails, try another `?search-location' and retry
-                (cpl:with-retry-counters ((search-location-retries 1))
-                  (cpl:with-failure-handling
-                      (((or common-fail:perception-low-level-failure
-                            common-fail:looking-high-level-failure) (e)
-                         (common-fail:retry-with-loc-designator-solutions
-                             ?search-location
-                             search-location-retries
-                             (:error-object-or-string e
-                              :warning-namespace (fd-plans search-for-object)
-                              :reset-designators (list ?robot-location)))))
+                  ;; if perception action fails, try another `?search-location' and retry
+                  (cpl:with-retry-counters ((search-location-retries 1))
+                    (cpl:with-failure-handling
+                        (((or common-fail:perception-low-level-failure
+                              common-fail:looking-high-level-failure) (e)
+                           (common-fail:retry-with-loc-designator-solutions
+                               ?search-location
+                               search-location-retries
+                               (:error-object-or-string e
+                                :warning-namespace (fd-plans search-for-object)
+                                :reset-designators (list ?robot-location)))))
 
-                    (let (;; (?goal `(cpoe:looking-at ,?search-location))
-                          )
+                      (let ( ;; (?goal `(cpoe:looking-at ,?search-location))
+                            )
+                        (exe:perform (desig:an action
+                                               (type turning-towards)
+                                               (target ?search-location)
+                                               ;; (goal ?goal)
+                                               )))
                       (exe:perform (desig:an action
-                                             (type turning-towards)
-                                             (target ?search-location)
-                                             ;; (goal ?goal)
-                                             )))
-                    (exe:perform (desig:an action
-                                           (type perceiving)
-                                           (object ?object-designator)))))))))))))
+                                             (type perceiving)
+                                             (object ?object-designator))))))))))))))
 
 
 
 (defun fetch (&key
                 ((:object ?object-designator))
-                ((:arms ?arms))
-                ((:grasps ?grasps))
+                ((:arms ?all-arms))
+                ((:grasps ?all-grasps))
                 ((:robot-location ?pick-up-robot-location))
                 ((:look-location ?look-location))
                 pick-up-action
@@ -316,7 +323,7 @@ retries with different search location or robot base location."
                 object-hand
               &allow-other-keys)
   (declare (type desig:object-designator ?object-designator)
-           (type list ?arms ?grasps)
+           (type list ?all-arms ?all-grasps)
            ;; ?pick-up-robot-location should not be NULL at the beginning
            ;; but can become NULL during execution of the plan
            (type (or desig:location-designator null) ?pick-up-robot-location)
@@ -388,7 +395,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                  ;; (goal ?goal)
                                  )))
 
-        (cpl:with-retry-counters ((regrasping-retries 1))
+        (cpl:with-retry-counters ((regrasping-retries 2))
           (cpl:with-failure-handling
               ((common-fail:gripper-low-level-failure (e)
                  (roslisp:ros-warn (fd-plans fetch) "Misgrasp happened: ~a~%" e)
@@ -411,7 +418,8 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                            (object ?object-designator)))))
 
 
-              (let ((?arm (cut:lazy-car ?arms)))
+              (let* ((?arms ?all-arms)
+                     (?arm (cut:lazy-car ?arms)))
                 ;; if picking up fails, try another arm
                 (cpl:with-retry-counters ((arm-retries 1))
                   (cpl:with-failure-handling
@@ -427,9 +435,10 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                               :rethrow-failure 'common-fail:object-unreachable)
                            (setf ?arm (cut:lazy-car ?arms)))))
 
-                    (let ((?grasp (cut:lazy-car ?grasps)))
+                    (let* ((?grasps ?all-grasps)
+                           (?grasp (cut:lazy-car ?grasps)))
                       ;; if picking up fails, try another grasp orientation
-                      (cpl:with-retry-counters ((grasp-retries 4))
+                      (cpl:with-retry-counters ((grasp-retries 5))
                         (cpl:with-failure-handling
                             (((or common-fail:manipulation-low-level-failure
                                   common-fail:object-unreachable
@@ -560,7 +569,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                                    (location ?target-robot-location)))
 
             ;; take a new `?target-location' sample if a failure happens
-            (cpl:with-retry-counters ((target-location-retries 2))
+            (cpl:with-retry-counters ((target-location-retries 4))
               (cpl:with-failure-handling
                   (((or common-fail:looking-high-level-failure
                         common-fail:object-unreachable

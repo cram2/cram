@@ -371,7 +371,9 @@
                  (and (object-designator-from-name-or-type ?for-obj ?for-obj-name)
                       (btr:object ?world ?for-obj-name)
                       (btr:%object ?world ?for-obj-name ?for-object-instance)
-                      (lisp-fun btr:calculate-bb-dims ?for-object-instance ?dimensions)
+                      (lisp-fun btr:calculate-bb-dims ?for-object-instance
+                                :initial-pose t
+                                ?dimensions)
                       (lisp-fun cl-transforms:z ?dimensions ?height)
                       (lisp-fun / ?height 2 ?offset)
                       (lisp-fun + ?highest-z ?offset ?resulting-z))

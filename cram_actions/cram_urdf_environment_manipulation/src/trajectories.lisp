@@ -31,7 +31,7 @@
 
 (defparameter *drawer-handle-grasp-x-offset* -0.005 "in meters")
 (defparameter *drawer-handle-pregrasp-x-offset-open* 0.05 "in meters")
-(defparameter *drawer-handle-pregrasp-x-offset-close* -0.03 "in meters")
+(defparameter *drawer-handle-pregrasp-x-offset-close* -0.0 "in meters")
 (defparameter *drawer-handle-retract-offset* 0.05 "in meters")
 (defparameter *door-handle-retract-offset* 0.05 "in meters")
 
