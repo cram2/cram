@@ -33,7 +33,7 @@
 
 (in-package :btr)
 
-(defvar *robot-model-alpha* nil)
+(defvar *robot-model-alpha* 0.7)
 
 (defgeneric urdf-make-collision-shape (geometry &optional color compound))
 
