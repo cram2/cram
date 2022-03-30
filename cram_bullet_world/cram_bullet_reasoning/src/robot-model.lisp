@@ -336,13 +336,9 @@ Otherwise, the attachment is only used as information but does not affect the wo
                                                      (when (and (cl-urdf:visual link)
                                                                 (cl-urdf:material
                                                                  (cl-urdf:visual link)))
-                                                       (let ((urdf-color
-                                                               (cl-urdf:color
-                                                                (cl-urdf:material
-                                                                 (cl-urdf:visual link)))))
-                                                         (when urdf-color
-                                                           (setf (nth 3 urdf-color) 0.5)
-                                                           urdf-color)))
+                                                       (cl-urdf:color
+                                                        (cl-urdf:material
+                                                         (cl-urdf:visual link))))
                                                      (let ((some-gray (/ (+ (random 5) 3) 10.0)))
                                                        (list some-gray some-gray some-gray
                                                              (or *robot-model-alpha* 1.0)))))
