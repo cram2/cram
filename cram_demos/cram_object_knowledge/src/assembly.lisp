@@ -49,7 +49,6 @@
   (<- (man-int:object-type-direct-subtype :assembly-item :nut)))
 
 (def-fact-group attachmend-knowledge (man-int:unidirectional-attachment)
-
   (<- (man-int:unidirectional-attachment ?attachment-type)
     (member ?attachment-type (:horizontal-attachment :vertical-attachment))))
 

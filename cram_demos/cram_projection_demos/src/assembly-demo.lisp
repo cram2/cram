@@ -251,6 +251,49 @@
 
     objects))
 
+
+(defun transport (?object-type ?object-location-property
+                  ?other-object-type ?other-object-location-property
+                  ?attachment-type
+                  ?wooden-plate)
+  (let* ((?env-name
+           (rob-int:get-environment-name))
+         (?object-location
+           (if (eq ?object-location-property :bolt)
+               (desig:a location
+                        (on (desig:an object
+                                      (type counter-top)
+                                      (urdf-name kitchen-island-surface)
+                                      (part-of ?env-name)))
+                        (range-invert 0.9)
+                        (side right)
+                        (side front))
+               (desig:a location
+                        (on ?wooden-plate)
+                        (side front)
+                        ?object-location-property)))
+         (?other-object-location
+           (desig:a location
+                    (on ?wooden-plate)
+                    (side front)
+                    ?other-object-location-property))
+         (?object
+           (desig:an object
+                     (type ?object-type)
+                     (location ?object-location)))
+         (?other-object
+           (desig:an object
+                     (type ?other-object-type)
+                     (location ?other-object-location))))
+    (exe:perform
+     (desig:an action
+               (type transporting)
+               (object ?object)
+               (target (desig:a location
+                                (on ?other-object)
+                                (for ?object)
+                                (attachments (?attachment-type))))))))
+
 ;;; ASSEMBLY STEPS:
 ;;; (1)  put chassis on holder (bump inwards)
 ;;; (2)  put bottom wing on chassis
@@ -295,17 +338,17 @@
                                                  (side front)
                                                  (range 0.3))))))
              ;; 1
-             (go-transport :chassis '(:side :left) :holder-plane-horizontal '(:range 0.3)
-                           :horizontal-attachment
-                           wooden-plate)
+             (transport :chassis '(:side :left) :holder-plane-horizontal '(:range 0.3)
+                        :horizontal-attachment
+                        wooden-plate)
              ;; 2
-             (go-transport :bottom-wing '(:side :right) :chassis '(:range 0.3)
-                           :wing-attachment
-                           wooden-plate)
+             (transport :bottom-wing '(:side :right) :chassis '(:range 0.3)
+                        :wing-attachment
+                        wooden-plate)
              ;; 3
-             (go-transport :underbody '(:side :right) :bottom-wing '(:range 0.3)
-                           :body-attachment
-                           wooden-plate)
+             (transport :underbody '(:side :right) :bottom-wing '(:range 0.3)
+                        :body-attachment
+                        wooden-plate)
 
              ;; we put the underbody on the bottom-wing but by doing that
              ;; we also put it on the rear-wing.
@@ -316,91 +359,48 @@
              (btr:attach-object :underbody :rear-wing)
 
              ;; 4
-             (go-transport :upper-body '(:side :right) :underbody '(:range 0.3)
-                           :body-on-body
-                           wooden-plate)
+             (transport :upper-body '(:side :right) :underbody '(:range 0.3)
+                        :body-on-body
+                        wooden-plate)
              ;; 5
-             (go-transport :bolt '(:side :right) :upper-body '(:range 0.3)
-                           :rear-thread
-                           wooden-plate)
+             (transport :bolt '(:side :right) :upper-body '(:range 0.3)
+                        :rear-thread
+                        wooden-plate)
              ;; 6
-             (go-transport :top-wing '(:side :left) :upper-body '(:range 0.3)
-                           :wing-attachment
-                           wooden-plate)
+             (transport :top-wing '(:side :left) :upper-body '(:range 0.3)
+                        :wing-attachment
+                        wooden-plate)
              ;; 7
-             (go-transport :bolt :bolt :top-wing '(:range 0.3)
-                           :middle-thread
-                           wooden-plate)
+             (transport :bolt :bolt :top-wing '(:range 0.3)
+                        :middle-thread
+                        wooden-plate)
              ;; 8
-             (go-transport :window '(:side :left) :top-wing '(:range 0.3)
-                           :window-attachment
-                           wooden-plate)
+             (transport :window '(:side :left) :top-wing '(:range 0.3)
+                        :window-attachment
+                        wooden-plate)
              ;; 9
-             (go-transport :bolt :bolt :window '(:range 0.3)
-                           :window-thread
-                           wooden-plate)
+             (transport :bolt :bolt :window '(:range 0.3)
+                        :window-thread
+                        wooden-plate)
 
              ;; 10
-             (go-transport :top-wing  '(:range 0.3) :holder-plane-vertical '(:side :left)
-                           ;; or `((,(- *base-x* 0.00) 1.45 0) (0 0 0 1))
-                           :vertical-attachment
-                           wooden-plate)
+             (transport :top-wing  '(:range 0.3) :holder-plane-vertical '(:side :left)
+                        ;; or `((,(- *base-x* 0.00) 1.45 0) (0 0 0 1))
+                        :vertical-attachment
+                        wooden-plate)
 
              ;; 11
-             (go-transport :propeller '(:side :left) :motor-grill '(:side :left)
-                           ;; or `((,(- *base-x* 0.15) 1.8 0) (0 0 0 1))
-                           :propeller-attachment
-                           wooden-plate)
+             (transport :propeller '(:side :left) :motor-grill '(:side :left)
+                        ;; or `((,(- *base-x* 0.15) 1.8 0) (0 0 0 1))
+                        :propeller-attachment
+                        wooden-plate)
 
              ;; 12
-             (go-transport :bolt :bolt :propeller '(:side :left)
-                           ;; or `((,*base-x* 1.85 0) (0 0 0 1))
-                           :propeller-thread
-                           wooden-plate))
+             (transport :bolt :bolt :propeller '(:side :left)
+                        ;; or `((,*base-x* 1.85 0) (0 0 0 1))
+                        :propeller-thread
+                        wooden-plate))
         (setf btr:*visibility-threshold* old-visibility)))))
-
-
-(defun go-transport (?object-type ?object-location-property
-                     ?other-object-type ?other-object-location-property
-                     ?attachment-type
-                     ?wooden-plate)
-  (let* ((?env-name
-           (rob-int:get-environment-name))
-         (?object-location
-           (if (eq ?object-location-property :bolt)
-               (desig:a location
-                        (on (desig:an object
-                                      (type counter-top)
-                                      (urdf-name kitchen-island-surface)
-                                      (part-of ?env-name)))
-                        (range-invert 0.9)
-                        (side right)
-                        (side front))
-               (desig:a location
-                        (on ?wooden-plate)
-                        (side front)
-                        ?object-location-property)))
-         (?other-object-location
-           (desig:a location
-                    (on ?wooden-plate)
-                    (side front)
-                    ?other-object-location-property))
-         (?object
-           (desig:an object
-                     (type ?object-type)
-                     (location ?object-location)))
-         (?other-object
-           (desig:an object
-                     (type ?other-object-type)
-                     (location ?other-object-location))))
-    (exe:perform
-     (desig:an action
-               (type transporting)
-               (object ?object)
-               (target (desig:a location
-                                (on ?other-object)
-                                (for ?object)
-                                (attachments (?attachment-type))))))))
 
 
 #+boxy-action-examples

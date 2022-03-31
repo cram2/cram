@@ -338,14 +338,16 @@
 (defparameter *cereal-small-lift-z-offset* 0.06 "in meters")
 
 ;; TOP grasp
-(man-int:def-object-type-to-gripper-transforms
-    '(:cereal :breakfast-cereal) '(:left :right) :top
-  :grasp-translation `(0.0d0 0.0d0 ,*cereal-grasp-z-offset*)
-  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
-  :pregrasp-offsets *lift-offset*
-  :2nd-pregrasp-offsets *lift-offset*
-  :lift-translation *lift-offset*
-  :2nd-lift-translation *lift-offset*)
+;; Grasping the cereal from the top makes it impossible to place in on the top shelf.
+;; This would not be a problem with projection-based reasoning but we don't use it much.
+;; (man-int:def-object-type-to-gripper-transforms
+;;     '(:cereal :breakfast-cereal) '(:left :right) :top
+;;   :grasp-translation `(0.0d0 0.0d0 ,*cereal-grasp-z-offset*)
+;;   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+;;   :pregrasp-offsets *lift-offset*
+;;   :2nd-pregrasp-offsets *lift-offset*
+;;   :lift-translation *lift-offset*
+;;   :2nd-lift-translation *lift-offset*)
 
 ;; FRONT grasp table
 (man-int:def-object-type-to-gripper-transforms
@@ -677,6 +679,7 @@
                     (location ?other-object-location))))
     (desig:a location
              (right-of ?other-object-designator)
+             (threshold 0.8)
              (near ?other-object-designator)
              (for (desig:an object (type ?object-type)))
              (orientation support-aligned))))
