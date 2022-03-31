@@ -271,10 +271,18 @@
             poses)
     (btr:add-object btr:*current-bullet-world*
                     :box-item
-                    :small-shelf-collision-box
+                    :small-shelf-dish-washer-tabs-collision-box
                     (cdr (find :dish-washer-tabs poses :key #'car))
                     :mass 0.0
-                    :size '(0.15 0.2 0.1)
+                    :size '(0.15 0.1 0.1)
+                    :color '(0 0 0)
+                    :item-type :collision-thingy)
+    (btr:add-object btr:*current-bullet-world*
+                    :box-item
+                    :small-shelf-balea-bottle-collision-box
+                    (cdr (find :balea-bottle poses :key #'car))
+                    :mass 0.0
+                    :size '(0.15 0.1 0.1)
                     :color '(0 0 0)
                     :item-type :collision-thingy))
 
@@ -282,7 +290,8 @@
                                      :start-x-offset 0.05
                                      :minimal-color 0.6)
 
-  (btr:remove-object btr:*current-bullet-world* :small-shelf-collision-box)
+  (btr:remove-object btr:*current-bullet-world* :small-shelf-dish-washer-tabs-collision-box)
+  (btr:remove-object btr:*current-bullet-world* :small-shelf-balea-bottle-collision-box)
   ;; (btr:simulate btr:*current-bullet-world* 50)
   )
 
@@ -455,7 +464,7 @@
                                     (type basket)
                                     (name b)))
                       (for ?dish-washer-tabs-desig)
-                      (attachments (  ; in-basket-front
+                      (attachments (in-basket-front
                                     in-basket-back))))
            (?target-location-robot-dish-washer-tabs
              (case ?robot-name
