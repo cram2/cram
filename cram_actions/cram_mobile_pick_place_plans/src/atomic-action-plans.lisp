@@ -309,11 +309,19 @@ With a continuous motion planner one could have fluent arch trajectories etc.
      (make-instance 'cram-plan-occasions-events:robot-state-changed))
     (roslisp:ros-info (pick-place release) "Retract grasp in knowledge base")
     (cram-occasions-events:on-event
-     (make-instance 'cpoe:object-detached-robot
-       :arm ?left-or-right
-       :object-name (if ?object-designator
-                        (desig:desig-prop-value ?object-designator :name)
-                        NIL)))))
+     (if (listp ?left-or-right)
+         (mapc (lambda (gripper)
+                 (make-instance 'cpoe:object-detached-robot
+                   :arm gripper
+                   :object-name (if ?object-designator
+                                    (desig:desig-prop-value ?object-designator :name)
+                                    NIL)))
+               ?left-or-right)
+         (make-instance 'cpoe:object-detached-robot
+           :arm ?left-or-right
+           :object-name (if ?object-designator
+                            (desig:desig-prop-value ?object-designator :name)
+                            NIL))))))
 
 (defun grip (&key
                ((:gripper ?left-or-right))
