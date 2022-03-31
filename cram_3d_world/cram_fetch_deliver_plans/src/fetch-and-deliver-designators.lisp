@@ -103,10 +103,10 @@ the `look-pose-stamped'."
     ;; location of the object that we are trying to access
     (once (or (spec:property ?object-designator (:location ?object-location-desig))
               (equal ?object-location-desig nil)))
-    ;; arm
-    (-> (spec:property ?action-designator (:arm ?arm))
+    ;; arms
+    (-> (spec:property ?action-designator (:arms ?arms))
         (true)
-        (man-int:robot-free-hand ?robot ?arm))
+        (setof ?arm (man-int:robot-free-hand ?robot ?arm) ?arms))
     ;; distance
     (once (or (spec:property ?action-designator (:distance ?distance))
               (equal ?distance NIL)))
@@ -115,13 +115,15 @@ the `look-pose-stamped'."
                                                       ?some-robot-location))
                    (desig:current-designator ?robot-location ?robot-location))
               (desig:designator :location ((:reachable-for ?robot)
-                                           (:arm ?arm)
+                                           ;; reachability costmap doesn't support
+                                           ;; the ARM property right now
+                                           ;; (:arm ?arm)
                                            (:object ?object-designator))
                                 ?robot-location)))
     (desig:designator :action ((:type ?action-type)
                                (:object ?object-designator)
                                (:object-location ?object-location-desig)
-                               (:arm ?arm)
+                               (:arms ?arms)
                                (:distance ?distance)
                                (:robot-location ?robot-location))
                       ?resolved-action-designator))
@@ -180,7 +182,6 @@ the `look-pose-stamped'."
     ;; arms
     (-> (spec:property ?action-designator (:arms ?arms))
         (true)
-        ;; (equal ?arms NIL)
         (setof ?arm (man-int:robot-free-hand ?robot ?arm) ?arms))
     ;; grasps
     (-> (spec:property ?action-designator (:grasps ?grasps))
