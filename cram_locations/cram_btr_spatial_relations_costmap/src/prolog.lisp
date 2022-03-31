@@ -268,14 +268,6 @@
 
   ;;;;;;;;;;;;; LEFT-OF etc. for bullet objects or locations ;;;;;;;;;;;;;;;;;;
   ;; uses make-potential-field-cost-function to resolve the designator
-  (<- (potential-field-costmap ?edge ?relation ?reference-pose ?supp-obj-pose ?costmap)
-    (relation-axis-and-pred ?edge ?relation ?axis ?pred)
-    (instance-of field-generator ?field-generator-id)
-    (costmap:costmap-add-function
-     ?field-generator-id
-     (make-potential-field-cost-function ?axis ?reference-pose ?supp-obj-pose ?pred)
-     ?costmap))
-  ;;
   (<- (costmap:desig-costmap ?designator ?costmap)
     (or (desig:desig-prop ?designator (:left-of ?ref-designator))
         (desig:desig-prop ?designator (:right-of ?ref-designator))
@@ -311,7 +303,16 @@
                   (lisp-fun get-closest-edge ?reference-pose ?supp-obj-pose ?supp-obj-dims ?edge))
                  (and (equal ?edge :front)
                       (lisp-fun cl-transforms:make-identity-pose ?supp-obj-pose)))))
-    (potential-field-costmap ?edge ?relation ?reference-pose ?supp-obj-pose ?costmap)
+    ;; position
+    (once (or (desig:desig-prop ?designator (:threshold ?threshold))
+              (symbol-value *potential-field-threshold* ?threshold)))
+    (relation-axis-and-pred ?edge ?relation ?axis ?pred)
+    (instance-of field-generator ?field-generator-id)
+    (costmap:costmap-add-function
+     ?field-generator-id
+     (make-potential-field-cost-function ?axis ?reference-pose ?supp-obj-pose ?pred ?threshold)
+     ?costmap)
+    ;; orientation
     (once (or (desig:desig-prop ?designator (:orientation ?orientation-type))
               (equal ?orientation-type :random)))
     (generate-orientations ?orientation-type ?supporting-rigid-body ?reference-pose ?costmap))
