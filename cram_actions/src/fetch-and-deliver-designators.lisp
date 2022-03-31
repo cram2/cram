@@ -115,8 +115,6 @@ the `look-pose-stamped'."
                                                       ?some-robot-location))
                    (desig:current-designator ?robot-location ?robot-location))
               (desig:designator :location ((:reachable-for ?robot)
-                                           ;; reachability costmap doesn't support
-                                           ;; the ARM property right now
                                            ;; (:arm ?arm)
                                            (:object ?object-designator))
                                 ?robot-location)))
