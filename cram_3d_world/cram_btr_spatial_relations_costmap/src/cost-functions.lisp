@@ -31,6 +31,9 @@
 
 (in-package :btr-spatial-cm)
 
+(defparameter *potential-field-threshold* 0.2
+  "Costmap grid cells that have value below the threshold will be set to 0.")
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;; NEAR and FAR calculations
 
 (defun get-aabb-min-length (object)
@@ -331,7 +334,8 @@ The function returns one of the following keys: :front, :back, :left, :right."
              :front :right))))))
 
 (defun make-potential-field-cost-function (axis ref-pose supp-pose pred
-                                           &optional (threshold 0.2d0))
+                                           &optional (threshold
+                                                      *potential-field-threshold*))
   "This function is used for resolving spatial relations such as left-of, behind etc.
    Returns a lambda function which for any (x y) gives a value in [0; 1].
    `axis' is either :x (for relations in-front-of and behind) or :y (for left and right).
