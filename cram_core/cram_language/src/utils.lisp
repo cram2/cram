@@ -79,6 +79,7 @@
   (/ (float a 1.0d0) (float b 1.0d0)))
 
 (defun sleep* (seconds)
+   (common-lisp:sleep seconds)
   ;; (let ((seconds (coerce seconds 'double-float)))
   ;;   (declare (double-float seconds))
   ;;   #+nil (declare (optimize speed))
