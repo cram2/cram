@@ -66,8 +66,10 @@
   (<- (infer-move-base ?action-designator ?move-base)
     ;; infer if we should move the base at all or not
     ;; we shouldn't move the base if we're getting something of our own back
+    ;; or if we're putting something on our own back
     (-> (and (or (spec:property ?action-designator (:type :reaching))
-                 (spec:property ?action-designator (:type :grasping)))
+                 (spec:property ?action-designator (:type :grasping))
+                 (spec:property ?action-designator (:type :putting)))
              (or (spec:property ?action-designator (:location ?location-designator))
                  (and (spec:property ?action-designator
                                      (:object ?some-object-designator))
@@ -259,11 +261,16 @@
                       ?resolved-action-designator))
 
 
-  (<- (desig:action-grounding ?action-designator (release ?action-designator))
+  (<- (desig:action-grounding ?action-designator (release ?resolved-action-designator))
     (spec:property ?action-designator (:type :releasing))
-    (spec:property ?action-designator (:gripper ?_))
-    (once (or (spec:property ?action-designator (:object ?_))
-              (true))))
+    (once (or (spec:property ?action-designator (:gripper ?gripper))
+              (setof ?arm (rob-int:arm ?robot ?arm) ?gripper)))
+    (once (or (spec:property ?action-designator (:object ?object))
+              (equal ?object NIL)))
+    (desig:designator :action ((:type :releasing)
+                               (:gripper ?gripper)
+                               (:object ?object))
+                      ?resolved-action-designator))
 
   (<- (desig:action-grounding ?action-designator (grip ?action-designator))
     (spec:property ?action-designator (:type :gripping))

@@ -43,7 +43,7 @@
                cram-designators
                cram-occasions-events
                cram-executive
-               cram-utilities ; for cut:var-value of prolog stuff and equalize-lists
+               cram-utilities ; for cut:var-value, cut:force-ll, equalize-lists
 
                cram-tf
                cram-plan-occasions-events

@@ -202,8 +202,11 @@
     ;; take object-pose from action-designator :target otherwise from object-designator pose
     (-> (spec:property ?action-designator (:target ?location-designator))
         (and (desig:current-designator ?location-designator ?current-loc-desig)
-             ;; if the location designator has ATTACHMENTS property,
-             ;; split it into a list of locations with ATTACHMENT property
+             ;; If the location designator has ATTACHMENTS property,
+             ;; split it into a list of locations with ATTACHMENT property.
+             ;; Although a location with attachments can be resolved,
+             ;; we need to know exactly which attachment we're using
+             ;; to build the correct trajectory.
              (-> (desig:desig-prop ?current-loc-desig (:attachments ?_))
                  (and (lisp-fun split-attachments-desig ?current-loc-desig
                                 ?list-of-current-loc-desig-split)
