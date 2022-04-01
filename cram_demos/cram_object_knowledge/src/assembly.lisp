@@ -299,8 +299,8 @@
   :attachment-rot-matrix  man-int:*rotation-around-x+90-matrix*)
 
 (man-int:def-object-type-in-other-object-transform :top-wing :holder-plane-vertical :vertical-attachment
-  :attachment-translation `(0.025 0 0.183)
-  :attachment-rot-matrix man-int:*rotation-around-z-180-and-x+90-matrix*)
+  :attachment-translation `(-0.035 0 0.16)
+  :attachment-rot-matrix man-int:*rotation-around-z-90-then-x+90-matrix*)
 
 (defmethod man-int:get-z-offset-for-placing-with-dropping ((object (eql :bolt)) other-object attachment)
   0.015)

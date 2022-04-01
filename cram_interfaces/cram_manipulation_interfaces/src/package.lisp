@@ -115,7 +115,7 @@
    #:*rotation-around-z-90-matrix*
    #:*rotation-around-z+90-matrix*
    #:*rotation-around-x+90-matrix*
-   #:*rotation-around-z-180-and-x+90-matrix*
+   #:*rotation-around-z-90-then-x+90-matrix*
    #:*identity-matrix*
    #:*rotation-around-x-180-matrix*
    #:*rotation-around-y-180-matrix*
