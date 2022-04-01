@@ -116,7 +116,7 @@
      ((,*holder-plane-vertical-rad-x*
        ,(- 1.0 *holder-plane-vertical-rad-y*)
        ,*holder-plane-vertical-rad-z*)
-      (0 0 0 1)))
+      (0 0 1 0)))
     (:holder-top-wing
      :holder-top-wing
      ,*yellow-plastic*
