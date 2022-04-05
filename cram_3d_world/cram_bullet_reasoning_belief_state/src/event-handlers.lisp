@@ -182,10 +182,7 @@ If there is no other method with 1 as qualifier, this method will be executed al
     ;; with the supporting objects. do not destroy the normal attachments,
     ;; as those are attachments to the supported objects and we want the
     ;; supported objects to still stay with our grasped object
-    (mapcar (lambda (other-object-name)
-              (btr:detach-object
-               btr-object (btr:object btr:*current-bullet-world* other-object-name)))
-            (btr:get-loose-attached-objects btr-object))
+    (btr:remove-loose-attachment-for btr-object)
     ;; now attach to the robot-object
     (when btr-object
       ;; if the object is already attached to some other robot link
