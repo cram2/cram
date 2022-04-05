@@ -248,6 +248,23 @@
   :lift-translation *lift-offset*
   :2nd-lift-translation *lift-offset*)
 
+(man-int:def-object-type-to-gripper-transforms :cup '(:left :right) :top2
+  :grasp-translation `(0.0d0 ,(- *cup-top-grasp-x-offset*) ,*cup-top-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+;; BOTTOM grasp
+(man-int:def-object-type-to-gripper-transforms :cup '(:left :right) :bottom
+  :grasp-translation `(0.0d0 0.0d0 ,(- *cup-grasp-z-offset*))
+  :grasp-rot-matrix man-int:*-z-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,(- *lift-z-offset*))
+  :2nd-pregrasp-offsets `(0.0 0 ,(- *lift-z-offset*))
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
 ;; SIDE grasp
 (man-int:def-object-type-to-gripper-transforms :cup '(:left :right) :left-side
   :grasp-translation `(0.0d0 ,(- *cup-grasp-xy-offset*) ,*cup-grasp-z-offset*)
@@ -268,7 +285,7 @@
 ;; BACK grasp
 (man-int:def-object-type-to-gripper-transforms :cup '(:left :right) :back
   :grasp-translation `(,*cup-grasp-xy-offset* 0.0d0 ,*cup-grasp-z-offset*)
-  :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation*
+  :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation-2*
   :pregrasp-offsets `(,(- *cup-pregrasp-xy-offset*) 0.0 ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(,(- *cup-pregrasp-xy-offset*) 0.0 0.0)
   :lift-translation *lift-offset*
@@ -338,16 +355,14 @@
 (defparameter *cereal-small-lift-z-offset* 0.06 "in meters")
 
 ;; TOP grasp
-;; Grasping the cereal from the top makes it impossible to place in on the top shelf.
-;; This would not be a problem with projection-based reasoning but we don't use it much.
-;; (man-int:def-object-type-to-gripper-transforms
-;;     '(:cereal :breakfast-cereal) '(:left :right) :top
-;;   :grasp-translation `(0.0d0 0.0d0 ,*cereal-grasp-z-offset*)
-;;   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
-;;   :pregrasp-offsets *lift-offset*
-;;   :2nd-pregrasp-offsets *lift-offset*
-;;   :lift-translation *lift-offset*
-;;   :2nd-lift-translation *lift-offset*)
+(man-int:def-object-type-to-gripper-transforms
+    '(:cereal :breakfast-cereal) '(:left :right) :top
+  :grasp-translation `(0.0d0 0.0d0 ,*cereal-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
 
 ;; FRONT grasp table
 (man-int:def-object-type-to-gripper-transforms
@@ -672,16 +687,21 @@
 ;;;;;;;;;; w.r.t. other object
 
 (defun make-location-right-of-other-object (?object-type ?other-object-type
-                                            ?other-object-location)
+                                            ?other-object-location
+                                            ?environment-name)
   (let ((?other-object-designator
           (desig:an object
                     (type ?other-object-type)
                     (location ?other-object-location))))
     (desig:a location
              (right-of ?other-object-designator)
-             (threshold 0.8)
+             (threshold 0.9)
              (near ?other-object-designator)
              (for (desig:an object (type ?object-type)))
+             (on (desig:an object
+                           (type counter-top)
+                           (urdf-name dining-area-jokkmokk-table-main)
+                           (part-of ?environment-name)))
              (orientation support-aligned))))
 
 (defun make-location-right-of-behind-other-object (?object-type ?other-object-type
@@ -764,7 +784,8 @@
               (make-location-right-of-other-object
                object-type other-object-type
                (make-location-on-kitchen-island-slots
-                other-object-type environment)))))
+                other-object-type environment)
+               environment))))
         '((:spoon :bowl)
           (:knife :plate)))
 
@@ -862,7 +883,8 @@
               (make-location-right-of-other-object
                object-type other-object-type
                (make-location-on-dining-table-slots
-                other-object-type environment)))))
+                other-object-type environment)
+               environment))))
         '((:spoon :bowl)))
 
 (mapcar (lambda (object-type-and-other-object-type)

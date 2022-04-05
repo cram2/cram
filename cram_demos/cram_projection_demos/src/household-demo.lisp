@@ -92,6 +92,20 @@
     ;; (:bowl . "edeka_red_bowl")
     ))
 
+;; (defparameter *cleaning-deliver-poses*
+;;   `((:bowl . ((1.45 -0.4 1.0) (0 0 0 1)))
+;;     (:cup . ((1.45 -0.4 1.0) (0 0 0 1)))
+;;     (:spoon . ((1.45 -0.4 1.0) (0 0 0 1)))
+;;     (:milk . ((1.2 -0.5 0.8) (0 0 1 0)))
+;;     (:breakfast-cereal . ((1.15 -0.5 0.8) (0 0 1 0)))))
+
+;; (defparameter *object-grasping-arms*
+;;   '((:breakfast-cereal . :right)
+;;     (:cup . :left)
+;;     (:bowl . :right)
+;;     (:spoon . :right)
+;;     (:milk . :right)))
+
 ;;;;;; END OF HOUSEHOLD-DEMO-RANDOM STUFF
 
 
@@ -111,7 +125,7 @@
     ;; So far only this orientation works
     (:breakfast-cereal
      "oven_area_area_right_drawer_board_3_link"
-     ((0.123 -0.03 0.11) (0.0087786 0.005395 -0.838767 -0.544393)))
+     ((0.10 -0.03 0.11) (0.0087786 0.005395 -0.838767 -0.544393)))
     ;; ((:breakfast-cereal . ((1.398 1.490 1.2558) (0 0 0.7071 0.7071)))
     ;; (:breakfast-cereal . ((1.1 1.49 1.25) (0 0 0.7071 0.7071)))
     (:milk
@@ -120,34 +134,9 @@
      "iai_fridge_door_shelf1_bottom"
      ((-0.01 -0.05 0.094) (0 0 0 1)))))
 
-
-
-;; (defparameter *cleaning-deliver-poses*
-;;   `((:bowl . ((1.45 -0.4 1.0) (0 0 0 1)))
-;;     (:cup . ((1.45 -0.4 1.0) (0 0 0 1)))
-;;     (:spoon . ((1.45 -0.4 1.0) (0 0 0 1)))
-;;     (:milk . ((1.2 -0.5 0.8) (0 0 1 0)))
-;;     (:breakfast-cereal . ((1.15 -0.5 0.8) (0 0 1 0)))))
-
-;; (defparameter *object-grasping-arms*
-;;   '((:breakfast-cereal . :right)
-;;     (:cup . :left)
-;;     (:bowl . :right)
-;;     (:spoon . :right)
-;;     (:milk . :right)))
-
-
-
-
-
-;; (defparameter *object-grasps*
-;;   '((:spoon . :top)
-;;     (:breakfast-cereal . :front)
-;;     (:milk . :front)
-;;     (:cup . :top)
-;;     (:bowl . :top)))
-
-
+(defparameter *object-grasps*
+  '((:cup . (:left-side :right-side :back :front))
+    (:breakfast-cereal . (:front :back))))
 
 
 (defun spawn-objects-on-sink-counter (&key
@@ -422,8 +411,7 @@
 
 
 
-(defun household-demo (&optional (object-list '(:bowl :spoon :cup
-                                                :breakfast-cereal :milk)))
+(defun household-demo (&optional (object-list '(:bowl :breakfast-cereal :milk :cup :spoon)))
   (urdf-proj:with-simulated-robot
 
     (initialize)
@@ -449,11 +437,13 @@
     ;;    :spawning-poses-relative *delivery-poses-relative*))
 
     (dolist (?object-type object-list)
-      (exe:perform
-       (desig:an action
-                 (type transporting)
-                 (object (desig:an object (type ?object-type)))
-                 (context table-cleaning))))))
+      (let ((?grasps (cdr (assoc ?object-type *object-grasps*))))
+        (exe:perform
+         (desig:an action
+                   (type transporting)
+                   (object (desig:an object (type ?object-type)))
+                   (context table-cleaning)
+                   (grasps ?grasps)))))))
 
 
 
