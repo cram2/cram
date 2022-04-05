@@ -33,7 +33,7 @@
 
 (in-package :btr)
 
-(defparameter *mesh-files*
+(defvar *mesh-files*
   '((:mug "package://cram_bullet_reasoning/resource/mug.stl" t)
     (:mug-compound "package://cram_bullet_reasoning/resource/mug_compound.dae" t)
     (:plate "package://cram_bullet_reasoning/resource/plate.stl" nil)
@@ -128,16 +128,14 @@ The name in the list is a keyword that is created by lispifying the filename."
 ;;;;;;;;;;;;;;;;;;;;;;;;;; ATTACHMENTS ;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod attach-object ((other-object item) (object item)
-                          &key attachment-type loose
-                          skip-removing-loose link grasp)
+                          &key attachment-type loose link grasp)
   "Attaches `object' to `other-object': adds an attachment to the
 attached-objects lists of each other. `attachment-type' is a keyword
 that specifies the type of attachment. `loose' specifies if the attachment
 is bidirectional (nil) or unidirectional (t). In bidirectional
 attachments both objects are attached to each other. In unidirectional/loose
 attachments, one object is properly attached, and the other one is
-loosely attached. `skip-removing-loose' should be T for attaching more objects
-unidirectional. See `attach-object' above."
+loosely attached."
   (declare (ignore link grasp)) ;; used in robot-model.lisp
   (when (equal (name object) (name other-object))
     (warn "Cannot attach an object to itself: ~a" (name object))
@@ -163,11 +161,9 @@ unidirectional. See `attach-object' above."
                   Deleting old attachment."
                  (name object) (name other-object))
            (btr:detach-object other-object object))))))
-  (unless skip-removing-loose
-    (remove-loose-attachment-for object))
   (let ((object-collision-information
           ;; Since robot objects are not in the attached-objects
-          ;; list of items, this has to be copied manuelly:
+          ;; list of items, this has to be copied manually:
           (if (and (get-robot-object)
                    (object-attached (get-robot-object) object))
               (get-collision-information object (get-robot-object))
@@ -190,17 +186,14 @@ unidirectional. See `attach-object' above."
 (defmethod attach-object ((other-objects list) (object item)
                           &key attachment-type loose)
   "Will be used if an attachment should be made from one item to more
-than one item. If `loose' T the other attachments have to be made with
-`skip-removing-loose' as T to prevent removing loose attachments between
-the element before in `other-objects' and `object'."
+than one item."
   (if other-objects
       (progn
         (attach-object (first other-objects) object
                        :attachment-type attachment-type :loose loose)
         (mapcar (lambda (obj)
                   (attach-object obj object
-                                 :attachment-type attachment-type :loose loose
-                                 :skip-removing-loose T))
+                                 :attachment-type attachment-type :loose loose))
                 (cdr other-objects)))
       (warn "Trying to attach an object to a NIL.")))
 
@@ -208,7 +201,7 @@ the element before in `other-objects' and `object'."
   "Removes item names from the given arguments in the corresponding
 `attached-objects' lists of the given items."
   (when (equal (name object) (name other-object))
-    (warn "Cannot attach an object to itself: ~a" (name object))
+    (warn "Cannot detach an object from itself: ~a" (name object))
     (return-from detach-object))
   (flet ((get-attachment-object (elem)
            (attachment-object (car (second elem)))))

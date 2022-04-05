@@ -90,7 +90,7 @@
            ros-household-object execute open close ;; reach-ik-solution
            attached attached-objects object-attached
            attach-object detach-object detach-all-objects detach-all-from-link
-           get-loose-attached-objects
+           get-loose-attached-objects remove-loose-attachment-for
            link-attached-object-names object-name-attached-links
            item-dimensions
            add-objects-to-mesh-list
