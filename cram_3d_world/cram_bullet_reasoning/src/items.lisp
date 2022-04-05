@@ -258,44 +258,41 @@ it is possible to change the pose of its attachments when its pose changes."
                 (setf already-moved '()))))
         (call-next-method))))
 
-(flet ((object-directly-attached-p (object other-object)
-         (with-slots (attached-objects) object
-           (find (btr:name other-object)
-                 (mapcar #'car attached-objects)
-                 :test #'equalp))))
-  
-  (defmethod object-attached ((object item) (other-object item)
-                              &key checked-attached-objects-of)
+(defmethod object-attached ((object item) (other-object item)
+                            &key checked-attached-objects-of)
+  (flet ((object-directly-attached-p (object other-object)
+           (with-slots (attached-objects) object
+             (find (btr:name other-object)
+                   (mapcar #'car attached-objects)
+                   :test #'equalp))))
     (with-slots (attached-objects) object
-      (cond (;; If the `other-object' is directly attached to `object'
-             ;; return T.
-             (object-directly-attached-p object other-object)
-             (return-from object-attached T))
-            (t
-             ;; Otherwise, it will be checked if `other-object' is
-             ;; attached to any attached object of `object' meaning
-             ;; that an indirect attachment might exist e.g.:
-             ;;    `object' <-> another-object <-> `other-object'
-             (let ((checked-all-attachments T))
-               (loop for attachment in attached-objects do
-                 (unless (find (car attachment)
-                               checked-attached-objects-of
-                               :test #'equalp)
-                   (setf checked-all-attachments NIL)
-                   (when (object-attached
-                          (btr:object
-                           btr:*current-bullet-world*
-                           (car attachment))
-                          other-object
-                          :checked-attached-objects-of
-                          (append checked-attached-objects-of
-                                  (list (btr:name object))))
-                     (return-from object-attached T))))
-               ;; If all attached objects were checked and no indirect
-               ;; attachment from `other-object' to `object' were found,
-               ;; return NIL.
-               (when checked-all-attachments
-                 (return-from object-attached NIL))))))))
+      (cond
+        ;; If `other-object' is directly attached to `object', return T.
+        ((object-directly-attached-p object other-object)
+         (return-from object-attached T))
+        ;; Otherwise, it will be checked if `other-object' is
+        ;; attached to any attached object of `object' meaning
+        ;; that an indirect attachment might exist e.g.:
+        ;;    `object' <-> another-object <-> `other-object'
+        (t
+         (let ((checked-all-attachments T))
+           (loop for attachment in attached-objects do
+             (unless (find (car attachment)
+                           checked-attached-objects-of
+                           :test #'equalp)
+               (setf checked-all-attachments NIL)
+               (when (object-attached
+                      (btr:object btr:*current-bullet-world* (car attachment))
+                      other-object
+                      :checked-attached-objects-of
+                      (append checked-attached-objects-of
+                              (list (btr:name object))))
+                 (return-from object-attached T))))
+           ;; If all attached objects were checked and no indirect
+           ;; attachment from `other-object' to `object' were found,
+           ;; return NIL.
+           (when checked-all-attachments
+             (return-from object-attached NIL))))))))
 
 ;;;;;;;;;;;;;;;;;;;;; SPAWNING MESH AND PRIMITIVE-SHAPED ITEMS ;;;;;;;;;;;;
 
