@@ -114,6 +114,7 @@
    ;; standard-rotations
    #:*rotation-around-z-90-matrix*
    #:*rotation-around-z+90-matrix*
+   #:*rotation-around-z+180-matrix*
    #:*rotation-around-x+90-matrix*
    #:*rotation-around-z-90-then-x+90-matrix*
    #:*identity-matrix*

@@ -187,7 +187,7 @@
     (:propeller
      :propeller
      ,*yellow-plane*
-     ((0.075 1.10 0) (0 0 0 1)))
+     ((0.075 1.13 0) ,man-int:*rotation-around-z-90-list*))
     (:front-wheel-1
      :front-wheel
      ,*black-plane*

@@ -230,20 +230,20 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;; PROPELLER ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter *propeller-grasp-x-offset* 0.013)
+(defparameter *propeller-grasp-x-offset* -0.03)
 (defparameter *propeller-grasp-y-offset* 0.0)
-(defparameter *propeller-grasp-z-offset* 0.003)
+(defparameter *propeller-grasp-z-offset* 0.01)
 
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms :propeller '(:left :right) :top
   :grasp-translation `(,*propeller-grasp-x-offset*
                        ,*propeller-grasp-y-offset*
-                       ,(- *propeller-grasp-z-offset*))
-  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
-  :pregrasp-offsets *default-lift-offsets*
-  :2nd-pregrasp-offsets *default-lift-offsets*
-  :lift-translation *default-lift-offsets*
-  :2nd-lift-translation *default-lift-offsets*)
+                       ,*propeller-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets '(0 0 0.02)
+  :2nd-pregrasp-offsets '(0 0 0.02)
+  :lift-translation '(0 0 0.02)
+  :2nd-lift-translation '(0 0 0.02))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; BOLT ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -288,7 +288,7 @@
 
 (man-int:def-object-type-in-other-object-transform :propeller :motor-grill :propeller-attachment
   :attachment-translation `(0.0 0.0 0.002)
-  :attachment-rot-matrix man-int:*identity-matrix*)
+  :attachment-rot-matrix man-int:*rotation-around-z+180-matrix*)
 
 (man-int:def-object-type-in-other-object-transform :front-wheel :chassis :left-wheel-attachment
   :attachment-translation `(-0.0 -0.15 0.00)
