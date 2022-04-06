@@ -275,7 +275,8 @@ around `axis' by `angle-max' in steps of 0.1 rad."
              (cl-transforms-stamped:stamp joint-to-gripper)
              (cl-transforms:rotate rotation (cl-transforms:translation
                                              joint-to-gripper))
-             (cl-transforms:q* rotation (cl-tf:rotation joint-to-gripper)))))))
+             (cl-transforms:q* rotation (cl-transforms:rotation
+                                         joint-to-gripper)))))))
 
 (defun get-container-to-gripper-transform (object-name
                                            arm
@@ -349,10 +350,10 @@ So normally (0 1 0) or (0 0 1).
         0))))))
 
 (defun get-revolute-axis (object-name object-environment)
-  (cl-tf:rotate
-   (cl-tf:rotation
+  (cl-transforms:rotate
+   (cl-transforms:rotation
     (cl-urdf:origin
      (cl-urdf:from-joint
       (get-handle-link object-name object-environment))))
-   (cl-tf:make-3d-vector 0 0 1)))
+   (cl-transforms:make-3d-vector 0 0 1)))
 
