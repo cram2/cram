@@ -29,6 +29,7 @@
 (in-package :spatial-cm-tests)
 
 (defun setup-test ()
+  (roslisp-utilities:startup-ros)
   (coe:clear-belief)
   (setf cram-tf:*tf-default-timeout* 2.0)
   (setf prolog:*break-on-lisp-errors* t)
