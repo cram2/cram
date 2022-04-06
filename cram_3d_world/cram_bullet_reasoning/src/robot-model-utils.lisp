@@ -277,7 +277,7 @@ or other objects to which current object is attached."
                          ;; remove all items which are indirectly
                          ;; attached between each other
                          (colliding-objects-without-robot-and-indirect-attached-objects
-                           (remove-if 
+                           (remove-if
                             (lambda (object)
                               (some (lambda (attachment)
                                       (btr:object-attached
