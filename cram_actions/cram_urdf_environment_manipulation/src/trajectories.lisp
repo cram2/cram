@@ -119,8 +119,7 @@ The parameters are analog to the ones of `get-action-trajectory'."
        (make-prismatic-trajectory object-transform arm action-type grasp-pose opening-distance))
       (:container-revolute
        (make-revolute-trajectory object-transform arm action-type grasp-pose opening-distance
-                                 (get-revolute-axis object-name)
-                                 (get-revolute-invert object-name)))
+                                 (get-revolute-axis object-name object-environment)))
       (T (error "Unsupported container-type: ~a." object-type)))))
 
 
@@ -176,7 +175,7 @@ frame of the robot's end effector as the child (eg. `cram-tf:*robot-left-tool-fr
 
 (defun make-revolute-trajectory (object-transform arm action-type
                                  grasp-pose opening-angle
-                                 axis invert)
+                                 axis)
   "Return a list of `man-int::traj-segment' representing a trajectory to open a
 container with revolute joints.
 `object-transform' should have `cram-tf:*robot-base-frame*'
@@ -191,8 +190,7 @@ frame of the robot's end effector as the child (eg. `cram-tf:*robot-left-tool-fr
            (type keyword action-type)
            (type cl-transforms-stamped:transform-stamped grasp-pose)
            (type number opening-angle))
-  (let* ((traj-poses (get-revolute-traj-poses grasp-pose :angle-max opening-angle
-                                                         :axis axis :invert invert))
+  (let* ((traj-poses (get-revolute-traj-poses grasp-pose :angle-max opening-angle :axis axis))
          (last-traj-pose (car (last traj-poses))))
     (mapcar
      (lambda (label transforms)
@@ -258,8 +256,7 @@ frame of the robot's end effector as the child (eg. `cram-tf:*robot-left-tool-fr
 (defun get-revolute-traj-poses (joint-to-gripper
                                 &key
                                   (axis (cl-transforms:make-3d-vector 0 0 1))
-                                  angle-max
-                                  (invert nil))
+                                  angle-max)
   "Return a list of stamped transforms from of the gripper-frame in the joint-frame rotated
 around `axis' by `angle-max' in steps of 0.1 rad."
   (declare (type cl-transforms-stamped:transform-stamped joint-to-gripper)
@@ -278,17 +275,7 @@ around `axis' by `angle-max' in steps of 0.1 rad."
              (cl-transforms-stamped:stamp joint-to-gripper)
              (cl-transforms:rotate rotation (cl-transforms:translation
                                              joint-to-gripper))
-             (apply 'cl-transforms:euler->quaternion
-                    (3d-vector->keyparam-list
-                     (cl-transforms:v+
-                      (apply 'cl-transforms:make-3d-vector
-                             (cl-transforms:quaternion->euler
-                              (cl-transforms:rotation joint-to-gripper) :just-values t))
-                      (cl-transforms:v*
-                       axis
-                       (if invert
-                           (- angle)
-                           angle))))))))))
+             (cl-transforms:q* rotation (cl-tf:rotation joint-to-gripper)))))))
 
 (defun get-container-to-gripper-transform (object-name
                                            arm
@@ -298,7 +285,7 @@ around `axis' by `angle-max' in steps of 0.1 rad."
 `object-name' is the name of a container in the `btr-environment'.
 `arm' denotes which arm's gripper should be used (eg. :left or :right).
 `handle-axis' is the axis on which the handle lies when looked at from the front in form of a vector.
-So normally (1 0 0) or (0 0 1).
+So normally (0 1 0) or (0 0 1).
 `btr-environment' is the name of the environment in which the container is located (eg. :KITCHEN)."
   (declare (type (or string symbol) object-name)
            (type keyword arm)
@@ -361,28 +348,11 @@ So normally (1 0 0) or (0 0 1).
         0
         0))))))
 
-(defun get-revolute-axis (object-name)
-  (let ((name-exception
-          (alexandria:switch ((roslisp-utilities:rosify-underscores-lisp-name
-                               object-name)
-                              :test 'equal)
-            ("oven_area_oven_main"
-             (cl-transforms:make-3d-vector 0 1 0))
-            ("sink_area_dish_washer_main"
-             (cl-transforms:make-3d-vector 0 1 0)))))
-    (if name-exception
-        name-exception
-        (cl-transforms:make-3d-vector 0 0 1))))
+(defun get-revolute-axis (object-name object-environment)
+  (cl-tf:rotate
+   (cl-tf:rotation
+    (cl-urdf:origin
+     (cl-urdf:from-joint
+      (get-handle-link object-name object-environment))))
+   (cl-tf:make-3d-vector 0 0 1)))
 
-(defun get-revolute-invert (object-name)
-  (let ((name-exception
-          (alexandria:switch ((roslisp-utilities:rosify-underscores-lisp-name
-                               object-name)
-                              :test 'equal)
-            ("oven_area_oven_main"
-             T)
-            ("sink_area_dish_washer_main"
-             T))))
-    (if name-exception
-        name-exception
-        NIL)))
