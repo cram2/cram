@@ -634,11 +634,7 @@ if it is on the sign side of the axis. "
          ;; This is only correct if supp-obj is rotated only around Z axis, i.e.
          ;; it is parallel to the floor
          (supp-angle
-           (* 2 (acos (cl-transforms:w (cl-transforms:orientation supp-obj-pose))))))
-    ;; acos only gives values between 0 and pi
-    ;; checks the sign of the cos to see what sign the angle should have
-    (when (< (cl-transforms:z (cl-transforms:orientation supp-obj-pose)) 0)
-      (setf supp-angle (- (* 2 pi) supp-angle)))
+           (cram-tf:angle-around-map-z (cl-transforms:orientation supp-obj-pose))))
     (+ supp-angle angle-in-supp)))
 
 (defun make-supporting-obj-aligned-orientations-generator (supp-obj-dims supp-obj-pose
