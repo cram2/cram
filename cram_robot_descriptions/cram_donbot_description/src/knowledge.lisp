@@ -31,8 +31,8 @@
 
 (defparameter *tcp-in-ee-pose*
   (cl-transforms:make-pose
-   (cl-transforms:make-3d-vector 0 0 0.2581d0)
-   (cl-transforms:make-quaternion 0 0 -0.7071067811849626d0 -0.7071067811881324d0)))
+   (cl-transforms:make-3d-vector 0 0 0.2211)
+   (cl-transforms:make-quaternion 0 0 0.7071067811849626d0 0.7071067811881324d0)))
 
 (defparameter *standard-to-donbot-gripper-transform*
   (cl-transforms-stamped:make-identity-transform))
@@ -248,7 +248,7 @@
                                            costmap:visibility-costmap-size)
   (<- (costmap:costmap-padding :iai-donbot 0.5))
   (<- (costmap:costmap-manipulation-padding :iai-donbot 0.5))
-  (<- (costmap:costmap-in-reach-distance :iai-donbot 1.125))
+  (<- (costmap:costmap-in-reach-distance :iai-donbot 1.25))
   (<- (costmap:costmap-reach-minimal-distance :iai-donbot 0.1))
   (<- (costmap:orientation-samples :iai-donbot 1))
   (<- (costmap:orientation-sample-step :iai-donbot 0.3))
