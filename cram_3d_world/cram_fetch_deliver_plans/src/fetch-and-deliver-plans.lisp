@@ -563,7 +563,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                   :rethrow-failure 'common-fail:delivering-failed))))
 
         ;; take a new `?target-robot-location' sample if a failure happens
-        (cpl:with-retry-counters ((relocation-for-ik-retries 10))
+        (cpl:with-retry-counters ((relocation-for-ik-retries 15))
           (cpl:with-failure-handling
               (((or common-fail:navigation-goal-in-collision
                     common-fail:object-undeliverable
