@@ -26,14 +26,16 @@
   <group if="$(arg upload_robot)">
     <group if="$(arg pr2)">
       <param name="robot_description"
-             command="$(find xacro)/xacro.py
+             command="$(find xacro)/xacro
                       '$(find pr2_description)/robots/pr2.urdf.xacro'" />
     </group>
     <group if="$(arg boxy)">
       <include file="$(find iai_boxy_description)/launch/upload_boxy.launch" />
     </group>
     <group if="$(arg donbot)">
-      <include file="$(find iai_donbot_description)/launch/upload_with_refills_finger.launch" />
+      <param name="robot_description"
+             command="$(find xacro)/xacro
+                      '$(find cram_projection_demos)/resource/robots/iai_donbot.urdf.xacro'" />
     </group>
     <group if="$(arg kukabot)">
       <include file="$(find iai_kmr_iiwa_description)/launch/upload_kmr_iiwa.launch" />
@@ -56,18 +58,18 @@
   <!-- environment URDFs -->
   <group if="$(arg household)">
     <param name="kitchen_description"
-           command="$(find xacro)/xacro.py
+           command="$(find xacro)/xacro
                     '$(find iai_kitchen)/urdf_obj/iai_kitchen_python.urdf.xacro'"/>
   </group>
   <group if="$(arg retail)">
     <group if="$(arg kukabot)">
       <param name="kitchen_description"
-             command="$(find xacro)/xacro.py
+             command="$(find xacro)/xacro
                       '$(find cram_projection_demos)/resource/retail/full_store.urdf.xacro'"/>
     </group>
     <group unless="$(arg kukabot)">
       <param name="kitchen_description"
-             command="$(find xacro)/xacro.py
+             command="$(find xacro)/xacro
                       '$(find iai_refills_lab)/urdf/dm_room.urdf.xacro'"/>
     </group>
   </group>
