@@ -374,6 +374,16 @@
   :lift-translation `(0.0 0.0 ,*cereal-lift-z-offset*)
   :2nd-lift-translation `(0.0 0.0 ,*cereal-lift-z-offset*))
 
+;; FRONT grasp table flipped because Donbot has an eye on his hand
+(man-int:def-object-type-to-gripper-transforms
+    '(:cereal :breakfast-cereal) '(:left :right) :front-flipped
+  :grasp-translation `(,*cereal-grasp-xy-offset* 0.0d0 ,*cereal-grasp-side-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-z-grasp-rotation-2*
+  :pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 ,*cereal-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 0.0)
+  :lift-translation `(0.0 0.0 ,*cereal-lift-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*cereal-lift-z-offset*))
+
 ;; FRONT grasp shelf
 (man-int:def-object-type-to-gripper-transforms
     '(:cereal :breakfast-cereal) '(:left :right) :front
@@ -390,6 +400,16 @@
     '(:cereal :breakfast-cereal) '(:left :right) :back
   :grasp-translation `(,(- *cereal-grasp-xy-offset*) 0.0d0 ,*cereal-grasp-side-z-offset*)
   :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation*
+  :pregrasp-offsets `(,(- *cereal-pregrasp-xy-offset*) 0.0 ,*cereal-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(,(- *cereal-pregrasp-xy-offset*) 0.0 0.0)
+  :lift-translation `(0.0 0.0 ,*cereal-lift-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*cereal-lift-z-offset*))
+
+;; BACK grasp table flipped because Donbot has an eye on his hand
+(man-int:def-object-type-to-gripper-transforms
+    '(:cereal :breakfast-cereal) '(:left :right) :back-flipped
+  :grasp-translation `(,(- *cereal-grasp-xy-offset*) 0.0d0 ,*cereal-grasp-side-z-offset*)
+  :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation-2*
   :pregrasp-offsets `(,(- *cereal-pregrasp-xy-offset*) 0.0 ,*cereal-pregrasp-z-offset*)
   :2nd-pregrasp-offsets `(,(- *cereal-pregrasp-xy-offset*) 0.0 0.0)
   :lift-translation `(0.0 0.0 ,*cereal-lift-z-offset*)
