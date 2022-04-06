@@ -385,19 +385,16 @@
 
              ;; 10
              (transport :top-wing  '(:range 0.3) :holder-plane-vertical '(:side :left)
-                        ;; or `((,(- *base-x* 0.00) 1.45 0) (0 0 0 1))
                         :vertical-attachment
                         wooden-plate)
 
              ;; 11
              (transport :propeller '(:side :left) :motor-grill '(:side :left)
-                        ;; or `((,(- *base-x* 0.15) 1.8 0) (0 0 0 1))
                         :propeller-attachment
                         wooden-plate)
 
              ;; 12
              (transport :bolt :bolt :propeller '(:side :left)
-                        ;; or `((,*base-x* 1.85 0) (0 0 0 1))
                         :propeller-thread
                         wooden-plate))
         (setf btr:*visibility-threshold* old-visibility)))))

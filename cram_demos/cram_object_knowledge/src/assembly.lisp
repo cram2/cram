@@ -183,15 +183,15 @@
   :2nd-lift-translation *default-lift-offsets*)
 
 ;; SIDE grasp (for picking it up with the whole airplane later)
-(man-int:def-object-type-to-gripper-transforms :top-wing :left :right-side
-  :grasp-translation `(,(- *top-wing-grasp-x-offset*)
-                       ,(- *top-wing-grasp-y-offset*)
-                       ,*top-wing-grasp-z-offset*)
-  :grasp-rot-matrix man-int:*-y-across-x-grasp-rotation*
-  :pregrasp-offsets `(0 ,(- *default-z-offset*) ,*default-z-offset*)
-  :2nd-pregrasp-offsets `(0 ,(- *default-z-offset*) 0.0)
-  :lift-translation *default-lift-offsets*
-  :2nd-lift-translation *default-lift-offsets*)
+;; (man-int:def-object-type-to-gripper-transforms :top-wing :left :right-side
+;;   :grasp-translation `(,(- *top-wing-grasp-x-offset*)
+;;                        ,(- *top-wing-grasp-y-offset*)
+;;                        ,*top-wing-grasp-z-offset*)
+;;   :grasp-rot-matrix man-int:*-y-across-x-grasp-rotation*
+;;   :pregrasp-offsets `(0 ,(- *default-z-offset*) ,*default-z-offset*)
+;;   :2nd-pregrasp-offsets `(0 ,(- *default-z-offset*) 0.0)
+;;   :lift-translation *default-lift-offsets*
+;;   :2nd-lift-translation *default-lift-offsets*)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; WINDOW ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -86,9 +86,7 @@
                              (intern (format nil "~a-1" object-type) :keyword)
                              object-type
                              :pose (cdr (assoc object-type
-                                               ;; *demo-object-spawning-poses*
-                                               spawning-poses-absolute
-                                               ))))
+                                               spawning-poses-absolute))))
                           object-types)))
     ;; stabilize world
     ;; (btr:simulate btr:*current-bullet-world* 100)
