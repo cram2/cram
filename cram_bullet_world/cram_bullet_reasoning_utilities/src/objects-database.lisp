@@ -59,6 +59,7 @@
   (<- (%scenario-object-color :spatula  (0.1 0.1 0.1)))
   (<- (%scenario-object-color :pancake-maker (0.15 0.15 0.15)))
   (<- (%scenario-object-color :breakfast-cereal (0.5 0.5 0.21)))
+  (<- (%scenario-object-color :milk (0.12 0.22 0.42)))
   (<- (%scenario-object-color :visualization-box (1.0 0.0 0.0 0.5)))
 
   ;; Object type shapes
