@@ -247,14 +247,16 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; BOLT ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defparameter *bolt-lift-z-offset* 0.03)
+
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms :bolt '(:left :right) :top
   :grasp-translation `(0.0 0.0 0.008)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
-  :pregrasp-offsets *default-lift-offsets*
-  :2nd-pregrasp-offsets *default-lift-offsets*
-  :lift-translation *default-lift-offsets*
-  :2nd-lift-translation *default-lift-offsets*)
+  :pregrasp-offsets `(0.0 0.0 ,*bolt-lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,*bolt-lift-z-offset*)
+  :lift-translation `(0.0 0.0 ,*bolt-lift-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*bolt-lift-z-offset*))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -270,7 +272,7 @@
   0.02)
 
 (man-int:def-object-type-in-other-object-transform :bottom-wing :chassis :wing-attachment
-  :attachment-translation `(0.0 -0.025 0.0)
+  :attachment-translation `(0.0 -0.025 0.005)
   :attachment-rot-matrix man-int:*identity-matrix*)
 
 (defmethod man-int:get-z-offset-for-placing-with-dropping ((object (eql :bottom-wing))
@@ -303,7 +305,7 @@
   :attachment-rot-matrix man-int:*rotation-around-z-90-then-x+90-matrix*)
 
 (defmethod man-int:get-z-offset-for-placing-with-dropping ((object (eql :bolt)) other-object attachment)
-  0.015)
+  0.02)
 
 (man-int:def-object-type-in-other-object-transform :bolt :upper-body :rear-thread
   :attachment-translation `(-0.0525 0.0 -0.025)
@@ -335,6 +337,6 @@
   :attachment-rot-matrix man-int:*identity-matrix*)
 
 (man-int:def-object-type-in-other-object-transform :bolt :propeller :propeller-thread
-  :attachment-translation `(0.0 0.0 -0.02)
+  :attachment-translation `(0.0 0.0 -0.005)
   :attachment-rot-matrix man-int:*identity-matrix*)
 
