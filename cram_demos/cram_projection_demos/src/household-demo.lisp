@@ -29,86 +29,6 @@
 
 (in-package :demos)
 
-;;;;;; THE STUFF BELOW IS FOR HOUSEHOLD-DEMO-RANDOM
-
-(defparameter *object-spawning-poses*
-  '("sink_area_surface"
-    (:breakfast-cereal . ((0.2 -0.15 0.1) (0 0 0 1)))
-    (:cup . ((0.2 -0.35 0.1) (0 0 0 1)))
-    (:bowl . ((0.18 -0.55 0.1) (0 0 0 1)))
-    (:spoon . ((0.15 -0.4 -0.05) (0 0 0 1)))
-    (:milk . ((0.07 -0.35 0.1) (0 0 0 1))))
-  "Relative poses on sink area")
-
-(defparameter *object-placing-poses*
-  '((:breakfast-cereal . ((-0.78 0.9 0.95) (0 0 1 0)))
-    (:cup . ((-0.79 1.35 0.9) (0 0 0.7071 0.7071)))
-    (:bowl . ((-0.76 1.19 0.88) (0 0 0.7071 0.7071)))
-    (:spoon . ((-0.78 1.5 0.86) (0 0 0 1)))
-    (:milk . ((-0.75 1.7 0.95) (0 0 0.7071 0.7071))))
-  "Absolute poses on kitchen_island.")
-
-(defparameter *delivery-poses-relative*
-  `((:bowl
-     "kitchen_island_surface"
-     ((0.24 -0.5 0.0432199478149414d0)
-      (0.0 0.0 0.33465 0.94234)))
-    (:cup
-     "kitchen_island_surface"
-     ((0.21 -0.20 0.06)
-      (0.0 0.0 0.33465 0.94234)))
-    (:spoon
-     "kitchen_island_surface"
-     ((0.26 -0.32 0.025)
-      (0.0 0.0 1 0)))
-    (:milk
-     "kitchen_island_surface"
-     ((0.25 0 0.0983174006144206d0)
-      (0.0 0.0 -0.9 0.7)))
-    (:breakfast-cereal
-     "kitchen_island_surface"
-     ((0.32 -0.9 0.1) (0 0 0.6 0.4)))))
-
-(defparameter *delivery-poses*
-  `((:bowl . ((-0.8399440765380859d0 1.2002920786539713d0 0.8932199478149414d0)
-              (0.0 0.0 0.33465 0.94234)))
-    (:cup . ((-0.8908212025960287d0 1.4991984049479166d0 0.9027448018391927d0)
-             (0.0 0.0 0.33465 0.94234)))
-    (:spoon . ((-0.8409400304158529d0 1.38009208679199219d0 0.8673268000284831d0)
-               (0.0 0.0 1 0)))
-    (:milk . ((-0.8495257695515951d0 1.6991498311360678d0 0.9483174006144206d0)
-              (0.0 0.0 -0.9 0.7)))
-    (:breakfast-cereal . ((-0.78 0.8 0.95) (0 0 0.6 0.4)))))
-
-(defparameter *object-colors*
-  '((:spoon . "black")
-    (:breakfast-cereal . "yellow")
-    (:milk . "blue")
-    (:bowl . "red")
-    (:cup . "red")))
-
-(defparameter *object-cad-models*
-  '(;; (:cup . "cup_eco_orange")
-    ;; (:bowl . "edeka_red_bowl")
-    ))
-
-;; (defparameter *cleaning-deliver-poses*
-;;   `((:bowl . ((1.45 -0.4 1.0) (0 0 0 1)))
-;;     (:cup . ((1.45 -0.4 1.0) (0 0 0 1)))
-;;     (:spoon . ((1.45 -0.4 1.0) (0 0 0 1)))
-;;     (:milk . ((1.2 -0.5 0.8) (0 0 1 0)))
-;;     (:breakfast-cereal . ((1.15 -0.5 0.8) (0 0 1 0)))))
-
-;; (defparameter *object-grasping-arms*
-;;   '((:breakfast-cereal . :right)
-;;     (:cup . :left)
-;;     (:bowl . :right)
-;;     (:spoon . :right)
-;;     (:milk . :right)))
-
-;;;;;; END OF HOUSEHOLD-DEMO-RANDOM STUFF
-
-
 (defparameter *demo-object-spawning-poses*
   '((:bowl
      "sink_area_left_middle_drawer_main"
@@ -136,94 +56,10 @@
 
 (defparameter *object-grasps*
   '((:cup . (:left-side :right-side :back :front))
+    ;; PR2 cannot grasp the cereal from the top on the oven shelf
+    ;; (Boxy can though.)
     (:breakfast-cereal . (:front :back))))
 
-
-(defun spawn-objects-on-sink-counter (&key
-                                        (object-types
-                                         '(:breakfast-cereal
-                                           :cup
-                                           :bowl
-                                           :spoon
-                                           :milk))
-                                        (spawning-poses-relative
-                                         *object-spawning-poses*)
-                                        (random
-                                         NIL))
-  ;; make sure mesh paths are known, kill old objects and destroy all attachments
-  (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo")
-  (btr-utils:kill-all-objects)
-  (btr:detach-all-objects (btr:get-robot-object))
-  (btr:detach-all-objects (btr:get-environment-object))
-
-  ;; spawn objects
-  (let* ((spawning-poses-absolute
-           (make-poses-relative spawning-poses-relative))
-         (objects
-           (mapcar
-            (lambda (object-type)
-              (let* (;; generate object name of form :TYPE-1
-                     (object-name
-                       (intern (format nil "~a-1" object-type) :keyword))
-                     ;; spawn object in Bullet World at default pose
-                     (object
-                       (btr-utils:spawn-object object-name object-type))
-                     ;; calculate new pose: either random or from input list
-                     (object-pose
-                       (if random
-                           ;; generate a pose on a surface
-                           (let* ((aabb-z
-                                    (cl-transforms:z
-                                     (cl-bullet:bounding-box-dimensions
-                                      (btr:aabb object)))))
-                             (cram-tf:translate-pose
-                              (desig:reference
-                               (if (eq object-type :spoon)
-                                   (desig:a location
-                                            (in (desig:an object
-                                                          (type drawer)
-                                                          (urdf-name
-                                                           sink-area-left-upper-drawer-main)
-                                                          (part-of iai-kitchen)))
-                                            (side front)
-                                            (range 0.2)
-                                            (range-invert 0.12))
-                                   (desig:a location
-                                            (on (desig:an object
-                                                          (type counter-top)
-                                                          (urdf-name sink-area-surface)
-                                                          (part-of iai-kitchen)))
-                                            ;; below only works for knowrob sem-map
-                                            ;; (centered-with-padding 0.1)
-                                            (side left)
-                                            (side front))))
-                              :z (/ aabb-z 2.0)))
-                           ;; take the pose from the function input list
-                           (cdr (assoc object-type spawning-poses-absolute))))
-                     ;; rotate new pose randomly around Z
-                     (rotated-object-pose
-                       (cram-tf:rotate-pose object-pose
-                                            :z (/ (* 2 pi) (random 10.0)))))
-                ;; move object to calculated pose on surface
-                (btr-utils:move-object object-name rotated-object-pose)
-                ;; return object
-                object))
-                   object-types)))
-
-    ;; make sure generated poses are stable, especially important for random ones
-    ;; TDOO: if unstable, call itself
-
-     ;; attach spoon to the drawer
-    (when (btr:object btr:*current-bullet-world* :spoon-1)
-      (btr:attach-object (btr:get-environment-object)
-                         (btr:object btr:*current-bullet-world* :spoon-1)
-                         :link "sink_area_left_upper_drawer_main"))
-
-    ;; stabilize world
-    (btr:simulate btr:*current-bullet-world* 100)
-
-    ;; return list of BTR objects
-    objects))
 
 (defun attach-object-to-the-world (object-type spawning-poses-relative)
   (when spawning-poses-relative
@@ -233,8 +69,6 @@
                        :link (second (find object-type
                                            spawning-poses-relative
                                            :key #'car)))))
-
-
 
 (defun spawn-objects-on-fixed-spots (&key
                                        (spawning-poses-relative
@@ -262,7 +96,6 @@
 
   (mapcar (alexandria:rcurry #'attach-object-to-the-world spawning-poses-relative)
           object-types))
-
 
 
 (defun park-robot ()
@@ -351,6 +184,206 @@
   (sb-ext:gc :full t))
 
 
+(defun household-demo (&optional (object-list '(:bowl :breakfast-cereal :milk :cup :spoon)))
+  (urdf-proj:with-simulated-robot
+
+    (initialize)
+    (setf btr:*visibility-threshold* 0.7)
+    (when cram-projection:*projection-environment*
+      (spawn-objects-on-fixed-spots
+       :object-types object-list
+       :spawning-poses-relative *demo-object-spawning-poses*))
+    (park-robot)
+
+    ;; set the table
+    (dolist (?object-type object-list)
+      (exe:perform
+       (desig:an action
+                 (type transporting)
+                 (object (desig:an object (type ?object-type)))
+                 (context table-setting))))
+
+    ;; clean up
+    ;; (when cram-projection:*projection-environment*
+    ;;   (spawn-objects-on-fixed-spots
+    ;;    :object-types object-list
+    ;;    :spawning-poses-relative *delivery-poses-relative*))
+
+    (dolist (?object-type object-list)
+      (let ((?grasps (cdr (assoc ?object-type *object-grasps*))))
+        (exe:perform
+         (desig:an action
+                   (type transporting)
+                   (object (desig:an object (type ?object-type)))
+                   (context table-cleaning)
+                   (grasps ?grasps)))))))
+
+
+
+
+;;;;;; THE STUFF BELOW IS FOR HOUSEHOLD-DEMO-RANDOM
+
+(defparameter *object-spawning-poses*
+  '("sink_area_surface"
+    (:breakfast-cereal . ((0.2 -0.15 0.1) (0 0 0 1)))
+    (:cup . ((0.2 -0.35 0.1) (0 0 0 1)))
+    (:bowl . ((0.18 -0.55 0.1) (0 0 0 1)))
+    (:spoon . ((0.15 -0.4 -0.05) (0 0 0 1)))
+    (:milk . ((0.07 -0.35 0.1) (0 0 0 1))))
+  "Relative poses on sink area")
+
+(defparameter *object-placing-poses*
+  '((:breakfast-cereal . ((-0.78 0.9 0.95) (0 0 1 0)))
+    (:cup . ((-0.79 1.35 0.9) (0 0 0.7071 0.7071)))
+    (:bowl . ((-0.76 1.19 0.88) (0 0 0.7071 0.7071)))
+    (:spoon . ((-0.78 1.5 0.86) (0 0 0 1)))
+    (:milk . ((-0.75 1.7 0.95) (0 0 0.7071 0.7071))))
+  "Absolute poses on kitchen_island.")
+
+(defparameter *delivery-poses-relative*
+  `((:bowl
+     "kitchen_island_surface"
+     ((0.24 -0.5 0.0432199478149414d0)
+      (0.0 0.0 0.33465 0.94234)))
+    (:cup
+     "kitchen_island_surface"
+     ((0.21 -0.20 0.06)
+      (0.0 0.0 0.33465 0.94234)))
+    (:spoon
+     "kitchen_island_surface"
+     ((0.26 -0.32 0.025)
+      (0.0 0.0 1 0)))
+    (:milk
+     "kitchen_island_surface"
+     ((0.25 0 0.0983174006144206d0)
+      (0.0 0.0 -0.9 0.7)))
+    (:breakfast-cereal
+     "kitchen_island_surface"
+     ((0.32 -0.9 0.1) (0 0 0.6 0.4)))))
+
+(defparameter *delivery-poses*
+  `((:bowl . ((-0.8399440765380859d0 1.2002920786539713d0 0.8932199478149414d0)
+              (0.0 0.0 0.33465 0.94234)))
+    (:cup . ((-0.8908212025960287d0 1.4991984049479166d0 0.9027448018391927d0)
+             (0.0 0.0 0.33465 0.94234)))
+    (:spoon . ((-0.8409400304158529d0 1.38009208679199219d0 0.8673268000284831d0)
+               (0.0 0.0 1 0)))
+    (:milk . ((-0.8495257695515951d0 1.6991498311360678d0 0.9483174006144206d0)
+              (0.0 0.0 -0.9 0.7)))
+    (:breakfast-cereal . ((-0.78 0.8 0.95) (0 0 0.6 0.4)))))
+
+(defparameter *object-colors*
+  '((:spoon . "black")
+    (:breakfast-cereal . "yellow")
+    (:milk . "blue")
+    (:bowl . "red")
+    (:cup . "red")))
+
+(defparameter *object-cad-models*
+  '(;; (:cup . "cup_eco_orange")
+    ;; (:bowl . "edeka_red_bowl")
+    ))
+
+;; (defparameter *cleaning-deliver-poses*
+;;   `((:bowl . ((1.45 -0.4 1.0) (0 0 0 1)))
+;;     (:cup . ((1.45 -0.4 1.0) (0 0 0 1)))
+;;     (:spoon . ((1.45 -0.4 1.0) (0 0 0 1)))
+;;     (:milk . ((1.2 -0.5 0.8) (0 0 1 0)))
+;;     (:breakfast-cereal . ((1.15 -0.5 0.8) (0 0 1 0)))))
+
+;; (defparameter *object-grasping-arms*
+;;   '((:breakfast-cereal . :right)
+;;     (:cup . :left)
+;;     (:bowl . :right)
+;;     (:spoon . :right)
+;;     (:milk . :right)))
+
+(defun spawn-objects-on-sink-counter (&key
+                                        (object-types
+                                         '(:breakfast-cereal
+                                           :cup
+                                           :bowl
+                                           :spoon
+                                           :milk))
+                                        (spawning-poses-relative
+                                         *object-spawning-poses*)
+                                        (random
+                                         NIL))
+  ;; make sure mesh paths are known, kill old objects and destroy all attachments
+  (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo")
+  (btr-utils:kill-all-objects)
+  (btr:detach-all-objects (btr:get-robot-object))
+  (btr:detach-all-objects (btr:get-environment-object))
+
+  ;; spawn objects
+  (let* ((spawning-poses-absolute
+           (make-poses-relative spawning-poses-relative))
+         (objects
+           (mapcar
+            (lambda (object-type)
+              (let* (;; generate object name of form :TYPE-1
+                     (object-name
+                       (intern (format nil "~a-1" object-type) :keyword))
+                     ;; spawn object in Bullet World at default pose
+                     (object
+                       (btr-utils:spawn-object object-name object-type))
+                     ;; calculate new pose: either random or from input list
+                     (object-pose
+                       (if random
+                           ;; generate a pose on a surface
+                           (let* ((aabb-z
+                                    (cl-transforms:z
+                                     (cl-bullet:bounding-box-dimensions
+                                      (btr:aabb object)))))
+                             (cram-tf:translate-pose
+                              (desig:reference
+                               (if (eq object-type :spoon)
+                                   (desig:a location
+                                            (in (desig:an object
+                                                          (type drawer)
+                                                          (urdf-name
+                                                           sink-area-left-upper-drawer-main)
+                                                          (part-of iai-kitchen)))
+                                            (side front)
+                                            (range 0.2)
+                                            (range-invert 0.12))
+                                   (desig:a location
+                                            (on (desig:an object
+                                                          (type counter-top)
+                                                          (urdf-name sink-area-surface)
+                                                          (part-of iai-kitchen)))
+                                            ;; below only works for knowrob sem-map
+                                            ;; (centered-with-padding 0.1)
+                                            (side left)
+                                            (side front))))
+                              :z (/ aabb-z 2.0)))
+                           ;; take the pose from the function input list
+                           (cdr (assoc object-type spawning-poses-absolute))))
+                     ;; rotate new pose randomly around Z
+                     (rotated-object-pose
+                       (cram-tf:rotate-pose object-pose
+                                            :z (/ (* 2 pi) (random 10.0)))))
+                ;; move object to calculated pose on surface
+                (btr-utils:move-object object-name rotated-object-pose)
+                ;; return object
+                object))
+                   object-types)))
+
+    ;; make sure generated poses are stable, especially important for random ones
+    ;; TDOO: if unstable, call itself
+
+     ;; attach spoon to the drawer
+    (when (btr:object btr:*current-bullet-world* :spoon-1)
+      (btr:attach-object (btr:get-environment-object)
+                         (btr:object btr:*current-bullet-world* :spoon-1)
+                         :link "sink_area_left_upper_drawer_main"))
+
+    ;; stabilize world
+    (btr:simulate btr:*current-bullet-world* 100)
+
+    ;; return list of BTR objects
+    objects))
+
 (defun household-demo-random (&optional
                                 (random
                                  nil)
@@ -407,52 +440,6 @@
     (finalize)
 
    cpl:*current-path*))
-
-
-
-
-(defun household-demo (&optional (object-list '(:bowl :breakfast-cereal :milk :cup :spoon)))
-  (urdf-proj:with-simulated-robot
-
-    (initialize)
-    (setf btr:*visibility-threshold* 0.7)
-    (when cram-projection:*projection-environment*
-      (spawn-objects-on-fixed-spots
-       :object-types object-list
-       :spawning-poses-relative *demo-object-spawning-poses*))
-    (park-robot)
-
-    ;; set the table
-    (dolist (?object-type object-list)
-      (exe:perform
-       (desig:an action
-                 (type transporting)
-                 (object (desig:an object (type ?object-type)))
-                 (context table-setting))))
-
-    ;; clean up
-    ;; (when cram-projection:*projection-environment*
-    ;;   (spawn-objects-on-fixed-spots
-    ;;    :object-types object-list
-    ;;    :spawning-poses-relative *delivery-poses-relative*))
-
-    (dolist (?object-type object-list)
-      (let ((?grasps (cdr (assoc ?object-type *object-grasps*))))
-        (exe:perform
-         (desig:an action
-                   (type transporting)
-                   (object (desig:an object (type ?object-type)))
-                   (context table-cleaning)
-                   (grasps ?grasps)))))))
-
-
-
-
-
-
-
-
-
 
 
 
