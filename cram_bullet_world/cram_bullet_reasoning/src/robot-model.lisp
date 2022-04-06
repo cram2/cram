@@ -155,6 +155,12 @@
                                         (car (cdr (assoc (name other-object) attached-objects
                                                          :test #'equal))))))))
 
+(defmethod object-attached ((object object) (other-object robot-object) &key)
+  "Robot objects cannot be attached to anything.
+Things get attached to robot objects, not the other way around.
+So this function just returns NIL."
+  NIL)
+
 (defmethod attach-object ((robot-object robot-object) (obj object)
                           &key link loose grasp &allow-other-keys)
   "Adds `obj' to the set of attached objects of `robot-object'.
