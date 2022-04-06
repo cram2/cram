@@ -58,7 +58,7 @@
   '((:cup . (:left-side :right-side :back :front))
     ;; PR2 cannot grasp the cereal from the top on the oven shelf
     ;; (Boxy can though.)
-    (:breakfast-cereal . (:front :back))))
+    (:breakfast-cereal . (:front :back :front-flipped :back-flipped))))
 
 
 (defun attach-object-to-the-world (object-type spawning-poses-relative)
@@ -207,7 +207,7 @@
     ;;    :object-types object-list
     ;;    :spawning-poses-relative *delivery-poses-relative*))
 
-    (dolist (?object-type object-list)
+    (dolist (?object-type (reverse object-list))
       (let ((?grasps (cdr (assoc ?object-type *object-grasps*))))
         (exe:perform
          (desig:an action

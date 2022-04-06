@@ -130,7 +130,7 @@
                            :mass 0.0
                            :color color)))
 
-(defun spawn-objects-on-big-shelf ()
+(defun spawn-objects-on-big-shelf (&optional (minimal-color 0.0))
   (let ((type-and-pose-list
           (make-poses-relative-multiple *big-shelf-poses* "shelf_1_")))
     (mapcar (lambda (type-and-pose)
@@ -139,7 +139,9 @@
                  type
                  pose
                  (+ (random 3) 1)
-                 (list (random 1.0) (random 1.0) (random 1.0))
+                 (list (cut:random-with-minimum 1.0 minimal-color)
+                       (cut:random-with-minimum 1.0 minimal-color)
+                       (cut:random-with-minimum 1.0 minimal-color))
                 :x
                 0.13)))
             type-and-pose-list)))
@@ -251,7 +253,7 @@
                                  (btr:remove-object
                                   btr:*current-bullet-world* name)))))))
 
-(defun spawn-objects-on-small-shelf ()
+(defun spawn-objects-on-small-shelf (&optional (minimal-color 0.0))
   (sb-ext:gc :full t)
   (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))
   (btr:clear-costmap-vis-object)
@@ -288,7 +290,7 @@
 
   (spawn-random-box-objects-on-shelf "shelf_2_base"
                                      :start-x-offset 0.05
-                                     :minimal-color 0.6)
+                                     :minimal-color minimal-color)
 
   (btr:remove-object btr:*current-bullet-world* :small-shelf-dish-washer-tabs-collision-box)
   (btr:remove-object btr:*current-bullet-world* :small-shelf-balea-bottle-collision-box)
@@ -367,8 +369,8 @@
     (if (eql (rob-int:get-environment-name) :store)
         (spawn-objects-on-real-small-shelf)
         (progn
-          (spawn-objects-on-small-shelf)
-          (spawn-objects-on-big-shelf)))
+          (spawn-objects-on-small-shelf 0.6)
+          (spawn-objects-on-big-shelf 0.6)))
     (unless (or (eql (rob-int:get-robot-name) :iai-donbot)
                 (eql (rob-int:get-robot-name) :kmr-iiwa))
       (spawn-basket))
@@ -446,7 +448,7 @@
                                     (owl-name "donbot_tray")
                                     (urdf-name plate)))
                       (for ?dish-washer-tabs-desig)
-                      (attachments (donbot-tray-front donbot-tray-back))))
+                      (attachments (donbot-tray-back donbot-tray-front))))
            (?target-location-kukabot-tray-dish-washer-tabs
              (desig:a location
                       (on (desig:an object
@@ -456,16 +458,15 @@
                                     (owl-name "kukabot_tray")
                                     (urdf-name base-link)))
                       (for ?dish-washer-tabs-desig)
-                      (attachments (;; kukabot-tray-front
-                                    kukabot-tray-back))))
+                      (attachments (kukabot-tray-back kukabot-tray-front))))
            (?target-location-basket-dish-washer-tabs
              (desig:a location
                       (on (desig:an object
                                     (type basket)
                                     (name b)))
                       (for ?dish-washer-tabs-desig)
-                      (attachments (in-basket-front
-                                    in-basket-back))))
+                      (attachments (in-basket-back
+                                    in-basket-front))))
            (?target-location-robot-dish-washer-tabs
              (case ?robot-name
                (:iai-donbot
@@ -484,7 +485,8 @@
                    (type transporting)
                    (object ?dish-washer-tabs-desig)
                    (target ?target-location-robot-dish-washer-tabs)
-                   (grasps (back)))))
+                   ;; (grasps (back))
+                   )))
       (cpl:with-failure-handling
           ((cpl:simple-plan-failure (e)
              (declare (ignore e))
@@ -494,7 +496,8 @@
                    (type transporting)
                    (object ?balea-bottle-desig)
                    (target ?target-location-shelf-balea-bottle)
-                   (grasps (back)))))
+                   ;; (grasps (back))
+                   )))
       (cpl:with-failure-handling
           ((cpl:simple-plan-failure (e)
              (declare (ignore e))
@@ -504,6 +507,7 @@
                    (type transporting)
                    (object ?dish-washer-tabs-desig)
                    (target ?target-location-shelf-dish-washer-tabs)
+                   ;; vvv donbot tries to grasp through itself otherwise
                    (grasps (back)))))
 
       ;; look at separators
