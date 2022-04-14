@@ -40,6 +40,10 @@ storing axes of a coordinate frame for visualizing poses.")
 (defparameter *vis-axis-alpha* 1.0 "Color alpha value of frame visualization.")
 (defparameter *costmap-z* 0.005)
 (defparameter *costmap-tilt* (cl-transforms:make-quaternion 0 0 0 1))
+(defparameter *costmap-sample-dims*
+  (cl-transforms:make-3d-vector
+   0.02 0.02 0.02)
+  "Half extents in meters.")
 
 (defun add-debug-window (world)
   (sb-thread:with-mutex (*debug-window-lock*)
@@ -145,8 +149,8 @@ storing axes of a coordinate frame for visualizing poses.")
               :pose (cl-transforms:make-pose
                      point
                      (cl-transforms:make-identity-rotation))
-              :collision-shape (make-instance 'colored-sphere-shape
-                                 :radius 0.05
+              :collision-shape (make-instance 'colored-box-shape
+                                 :half-extents *costmap-sample-dims*
                                  :color '(1.0 0.0 0.0 0.5))))
       (when *debug-window*
         (push *current-costmap-sample* (gl-objects *debug-window*))))))
