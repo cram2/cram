@@ -247,11 +247,21 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; BOLT ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter *bolt-lift-z-offset* 0.03)
+(defparameter *bolt-lift-z-offset* 0.02)
 
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms :bolt '(:left :right) :top
-  :grasp-translation `(0.0 0.0 0.008)
+  :grasp-translation `(0.0 0.0 0.023)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets *default-lift-offsets*
+  :2nd-pregrasp-offsets *default-lift-offsets*
+  :lift-translation *default-lift-offsets*
+  :2nd-lift-translation *default-lift-offsets*)
+
+;; TOP grasp for placing on propeller is shorter because propeller is very high
+(man-int:def-object-type-to-gripper-transforms :bolt '(:left :right) :top
+  :location-type :propeller
+  :grasp-translation `(0.0 0.0 0.023)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets `(0.0 0.0 ,*bolt-lift-z-offset*)
   :2nd-pregrasp-offsets `(0.0 0.0 ,*bolt-lift-z-offset*)
@@ -331,6 +341,11 @@
 (man-int:def-object-type-in-other-object-transform :window :top-wing :window-attachment
   :attachment-translation `(0.0 -0.0525 0.0075)
   :attachment-rot-matrix man-int:*rotation-around-z+90-matrix*)
+
+(defmethod man-int:get-z-offset-for-placing-with-dropping ((object (eql :window))
+                                                           (other-object (eql :top-wing))
+                                                           (attachment (eql :window-attachment)))
+  0.005)
 
 (man-int:def-object-type-in-other-object-transform :bolt :window :window-thread
   :attachment-translation `(-0.0125 0.0 -0.02)
