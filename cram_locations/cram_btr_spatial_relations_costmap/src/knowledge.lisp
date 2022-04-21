@@ -118,7 +118,7 @@
   (<- (%paddings-list :sink-area-surface :table-setting
                       (0.03d0 0.03d0 0.03d0 0.03d0)))
   (<- (%paddings-list :dining-area-jokkmokk-table-main :table-setting
-                      (0.1d0 0.1d0 0.1d0 0.1d0)))
+                      (0.03d0 0.03d0 0.03d0 0.03d0)))
   (<- (paddings-list ?environment-object-name :table-setting ?paddings-list)
     (setof ?object-name (%paddings-list ?object-name :table-setting ?_)
            ?defined-paddings-list-objects)
