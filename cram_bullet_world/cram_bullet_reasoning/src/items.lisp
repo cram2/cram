@@ -33,6 +33,8 @@
 
 (in-package :btr)
 
+(defvar *item-model-alpha* 1.0)
+
 (defvar *mesh-files*
   '((:mug "package://cram_bullet_reasoning/resource/mug.stl" t)
     (:mug-compound "package://cram_bullet_reasoning/resource/mug_compound.dae" t)
@@ -307,7 +309,7 @@ it is possible to change the pose of its attachments when its pose changes."
                (make-instance 'convex-hull-mesh-shape
                  :points (physics-utils:3d-model-vertices scaled-mesh)
                  :faces (physics-utils:3d-model-faces scaled-mesh)
-                 :color color
+                 :color (apply-alpha-value color)
                  :disable-face-culling disable-face-culling)))
 
             ((or string symbol)
