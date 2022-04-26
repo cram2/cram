@@ -763,16 +763,3 @@ Only one joint state changes in this situation, so only one joint state is updat
   (with-slots (urdf) obj
     (setf (link-pose obj (cl-urdf:name (cl-urdf:root-link urdf)))
           new-value)))
-
-(defmacro with-alpha (alpha &body body)
-  `(let ((*robot-model-alpha* ,alpha))
-     ,@body))
-
-(defun apply-alpha-value (color)
-  (if (= (length color) 4)
-      (destructuring-bind (r g b a) color
-        (list r g b (or *robot-model-alpha* a)))
-      (if (= (length color) 3)
-          (destructuring-bind (r g b) color
-            (list r g b (or *robot-model-alpha* 1.0)))
-          (error "Color of an object has to be a list of 3 or 4 values"))))
