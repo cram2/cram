@@ -309,7 +309,7 @@ it is possible to change the pose of its attachments when its pose changes."
                (make-instance 'convex-hull-mesh-shape
                  :points (physics-utils:3d-model-vertices scaled-mesh)
                  :faces (physics-utils:3d-model-faces scaled-mesh)
-                 :color (apply-alpha-value color)
+                 :color (apply-alpha-value color *item-model-alpha*)
                  :disable-face-culling disable-face-culling)))
 
             ((or string symbol)
