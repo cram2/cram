@@ -57,7 +57,9 @@
     (cl-transforms:transform ee-T-map map-P-tcp)))
 (defparameter *tcp-in-ee-pose*
   (cl-transforms:make-pose
-   (cl-transforms:make-3d-vector 0.150575d0 0 0)
+   ;; The X should've been 0.150575d0, but the grasping frame is defined
+   ;; on Tiago in such a shitty way that have to use a custom offset :/
+   (cl-transforms:make-3d-vector 0.24d0 0 0)
    (cl-transforms-stamped:make-quaternion 0.7071054825100438d0
                                           -1.2986782349788673d-6
                                           1.298673464711353d-6
@@ -80,9 +82,9 @@
   (cl-transforms:make-transform
    (cl-transforms:make-identity-vector)
    (cl-transforms:matrix->quaternion
-    #2A((0  0 -1)
-        (0  1  0)
-        (1  0  0)))))
+    #2A((0 1 0)
+        (0 0 1)
+        (1 0 0)))))
 
 (def-fact-group tiago-metadata (robot-odom-frame
                                 robot-base-frame robot-base-link
@@ -218,33 +220,29 @@
                  "gripper_right_right_finger_link"
                  "gripper_right_tool_link"))
 
-  (<- (arm-joints :tiago-dual :left
-                  "arm_left_1_joint"
-                  "arm_left_2_joint"
-                  "arm_left_3_joint"
-                  "arm_left_4_joint"
-                  "arm_left_5_joint"
-                  "arm_left_6_joint"
-                  "arm_left_7_joint"))
-  (<- (arm-joints :tiago-dual :right
-                  "arm_right_1_joint"
-                  "arm_right_2_joint"
-                  "arm_right_3_joint"
-                  "arm_right_4_joint"
-                  "arm_right_5_joint"
-                  "arm_right_6_joint"
-                  "arm_right_7_joint"))
+  (<- (arm-joints :tiago-dual :left ("arm_left_1_joint"
+                                     "arm_left_2_joint"
+                                     "arm_left_3_joint"
+                                     "arm_left_4_joint"
+                                     "arm_left_5_joint"
+                                     "arm_left_6_joint"
+                                     "arm_left_7_joint")))
+  (<- (arm-joints :tiago-dual :right ("arm_right_1_joint"
+                                      "arm_right_2_joint"
+                                      "arm_right_3_joint"
+                                      "arm_right_4_joint"
+                                      "arm_right_5_joint"
+                                      "arm_right_6_joint"
+                                      "arm_right_7_joint")))
 
-  (<- (hand-links :tiago-dual :left
-                  "gripper_left_link"
-                  "gripper_left_left_finger_link"
-                  "gripper_left_right_finger_link"
-                  "gripper_left_tool_link"))
-  (<- (hand-links :tiago-dual :right
-                  "gripper_right_link"
-                  "gripper_right_left_finger_link"
-                  "gripper_right_right_finger_link"
-                  "gripper_right_tool_link"))
+  (<- (hand-links :tiago-dual :left ("gripper_left_link"
+                                     "gripper_left_left_finger_link"
+                                     "gripper_left_right_finger_link"
+                                     "gripper_left_tool_link")))
+  (<- (hand-links :tiago-dual :right ("gripper_right_link"
+                                      "gripper_right_left_finger_link"
+                                      "gripper_right_right_finger_link"
+                                      "gripper_right_tool_link")))
 
   (<- (hand-link :tiago-dual :left ?link)
     (bound ?link)
@@ -362,6 +360,8 @@
   (<- (costmap:costmap-padding :tiago-dual 0.27))
   (<- (costmap:costmap-manipulation-padding :tiago-dual 0.3))
   ;; This is the length of the outstretched arm from base center to fingertip
+  ;; But shorten it slightly (10-20cm):
+  ;; the robot will rarely reach with an outstretched arm
   #+calculate-arm-length-from-bullet-with-this-function
   (defun calculate-arm-length-from-bullet (robot-name arm-name)
   (let* ((base-frame
@@ -388,7 +388,7 @@
            (cl-transforms:copy-3d-vector base-P-tcp-origin :z 0.0))
          (length (cl-transforms:v-norm projected-on-the-floor)))
     length))
-  (<- (costmap:costmap-in-reach-distance :tiago-dual 1.136))
+  (<- (costmap:costmap-in-reach-distance :tiago-dual 0.85))
   (<- (costmap:costmap-reach-minimal-distance :tiago-dual 0.2))
   (<- (costmap:orientation-samples :tiago-dual 1))
   (<- (costmap:orientation-sample-step :tiago-dual 0.3))
