@@ -4,6 +4,7 @@
   <arg name="boxy" default="false" />
   <arg name="donbot" default="false" />
   <arg name="kukabot" default="false" />
+  <arg name="tiago" default="false" />
 
   <!-- choose environment -->
   <arg name="household" default="false" />
@@ -39,6 +40,12 @@
     </group>
     <group if="$(arg kukabot)">
       <include file="$(find iai_kmr_iiwa_description)/launch/upload_kmr_iiwa.launch" />
+    </group>
+    <group if="$(arg tiago)">
+      <include file="$(find tiago_dual_description)/robots/upload.launch">
+        <arg name="end_effector_left" value="pal-gripper" />
+        <arg name="end_effector_right" value="pal-gripper" />
+      </include>
     </group>
   </group>
 
