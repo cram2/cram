@@ -4,6 +4,9 @@ import urdf_parser_py.urdf  # from urdfdom_py
 import kdl_parser_py.urdf  # from kdl_parser_py
 import tf2_kdl
 import math
+import os         # for suppress_stderr
+import sys        # for suppress_stderr
+from contextlib import contextmanager   # for suppress_stderr
 
 # ======================== Hacks (TBF) ===============================================================
 def hacky_urdf_parser_fix(urdf_str):
@@ -29,6 +32,16 @@ def hacky_urdf_parser_fix(urdf_str):
             fixed_urdf += line + '\n'
     return fixed_urdf
 
+@contextmanager
+def suppress_stderr():
+    """The URDF parser spits too much Unknown Tag, so need to muffle it."""
+    with open(os.devnull, "w") as devnull:
+        old_stdout = sys.stderr
+        sys.stderr = devnull
+        try:
+            yield
+        finally:
+            sys.stderr = old_stdout
 
 # ================================= API ===================================================
 def calculate_ik(base_link, tip_link, seed_joint_state, goal_transform_geometry_msg, log_fun):
@@ -41,7 +54,8 @@ def calculate_ik(base_link, tip_link, seed_joint_state, goal_transform_geometry_
     """
     robot_urdf_string = rospy.get_param('robot_description')
     robot_urdf_string_fixed = hacky_urdf_parser_fix(robot_urdf_string)
-    urdf_obj = urdf_parser_py.urdf.URDF.from_xml_string(robot_urdf_string_fixed)
+    with suppress_stderr():
+        urdf_obj = urdf_parser_py.urdf.URDF.from_xml_string(robot_urdf_string_fixed)
     _, kdl_tree = kdl_parser_py.urdf.treeFromUrdfModel(urdf_obj)
     kdl_chain = kdl_tree.getChain(base_link, tip_link)
 
