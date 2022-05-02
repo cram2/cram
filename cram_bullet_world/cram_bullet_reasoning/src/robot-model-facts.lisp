@@ -68,13 +68,24 @@
     (%link-pose ?robot ?name ?pose))
 
   (<- (head-pointing-at ?w ?robot-name ?pose)
-    (cram-robot-interfaces:robot ?robot-name)
-    (cram-robot-interfaces:robot-neck-links ?robot-name ?pan-link ?tilt-link)
-    (cram-robot-interfaces:robot-neck-joints ?robot-name ?pan-joint ?tilt-joint)
+    (rob-int:robot ?robot-name)
+    (rob-int:robot-neck-links ?robot-name ?pan-link ?tilt-link)
+    (rob-int:robot-neck-joints ?robot-name ?pan-joint ?tilt-joint)
+    (rob-int:robot-neck-pan-joint-forward-facing-axis-sign
+     ?robot-name ?pan-axis ?pan-sign)
+    (rob-int:robot-neck-tilt-joint-forward-facing-axis-sign
+     ?robot-name ?tilt-axis ?tilt-sign)
+    (rob-int:joint-lower-limit ?robot-name ?pan-joint ?pan-lower-limit)
+    (rob-int:joint-upper-limit ?robot-name ?pan-joint ?pan-upper-limit)
+    (rob-int:joint-lower-limit ?robot-name ?tilt-joint ?tilt-lower-limit)
+    (rob-int:joint-upper-limit ?robot-name ?tilt-joint ?tilt-upper-limit)
     (bullet-world ?w)
     (%object ?w ?robot-name ?robot)
     (lisp-fun calculate-pan-tilt
               ?robot ?pan-link ?tilt-link ?pose
+              ?pan-axis ?pan-sign ?tilt-axis ?tilt-sign
+              ?pan-lower-limit ?pan-upper-limit
+              ?tilt-lower-limit ?tilt-upper-limit
               (?pan-pos ?tilt-pos))
     (lisp-fun set-joint-state ?robot ?pan-joint ?pan-pos ?_)
     (lisp-fun set-joint-state ?robot ?tilt-joint ?tilt-pos ?_))
