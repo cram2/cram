@@ -559,18 +559,27 @@
 
 (man-int:def-object-type-in-other-object-transform :dish-washer-tabs :basket
   :in-basket-front
-  :attachment-translation `(0.15 0.15 -0.02
-                                 )
+  :attachment-translation `(0.15 0.15 -0.02)
   :attachment-rot-matrix '(( 0  0  1)
                            ( 0  1  0)
                            (-1  0  0)))
 
 (man-int:def-object-type-in-other-object-transform :dish-washer-tabs :basket
   :in-basket-back
-  :attachment-translation `(0.15
-                            0.15 ;; -0.15
-                            -0.02
-                            )
+  :attachment-translation `(0.15 0.15 -0.02)
+  :attachment-rot-matrix '(( 0  0 -1)
+                           ( 0 -1  0)
+                           (-1  0  0)))
+(man-int:def-object-type-in-other-object-transform :dish-washer-tabs :basket
+  :in-basket-other-front
+  :attachment-translation `(0.15 -0.15 -0.02)
+  :attachment-rot-matrix '(( 0  0  1)
+                           ( 0  1  0)
+                           (-1  0  0)))
+
+(man-int:def-object-type-in-other-object-transform :dish-washer-tabs :basket
+  :in-basket-other-back
+  :attachment-translation `(0.15 -0.15 -0.02)
   :attachment-rot-matrix '(( 0  0 -1)
                            ( 0 -1  0)
                            (-1  0  0)))
