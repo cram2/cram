@@ -177,8 +177,9 @@
     (desig:current-designator ?location-designator ?current-location-designator)
     (spec:property ?current-location-designator (:of ?object-designator))
     (desig:current-designator ?object-designator ?current-object-designator)
-    (spec:property ?current-object-designator (:location ?object-location))
-    (man-int:location-always-reachable ?object-location))
+    (once (or (and (spec:property ?current-object-designator (:location ?object-location))
+                   (man-int:location-always-reachable ?object-location))
+              (object-is-a-robot ?current-object-designator))))
 
   (<- (location-certain ?some-location-designator)
     (desig:loc-desig? ?some-location-designator)
@@ -275,7 +276,14 @@
                           (and (rob-int:robot-tool-frame ?robot ?arm ?tool-frame)
                                (symbol-value cram-tf:*fixed-frame* ?parent-frame)
                                (lisp-fun cram-tf:frame-to-transform-in-frame
-                                         ?tool-frame ?parent-frame
+                                         ?link ?parent-frame
+                                         ?map-t-ee)
+                               (rob-int:tcp-in-ee-pose ?robot ?ee-p-tcp-not-stamped)
+                               (lisp-fun cram-tf:pose->transform-stamped
+                                         ?link ?tool-frame 0.0 ?ee-p-tcp-not-stamped
+                                         ?ee-t-tcp)
+                               (lisp-fun cram-tf:apply-transform
+                                         ?map-t-ee ?ee-t-tcp
                                          ?map-t-gripper)
                                (lisp-fun get-object-type-to-gripper-transform
                                          ?other-object-type ?other-object-name
