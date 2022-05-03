@@ -117,56 +117,148 @@
                                        :element-type 'float
                                        :initial-element 0.0)))
 
-(defun calculate-pan-tilt (robot pan-link tilt-link pose)
-  "Calculates values for the pan and tilt joints so that they pose on
-  `pose'. Returns (LIST PAN-VALUE TILT-VALUE)
-Used in desig-check-to-see of btr-visibility-costmap.
-Should it be taken out and made PR2-specific?"
-  (let* ((pan-transform
-           (cl-transforms:reference-transform (link-pose robot pan-link)))
-         (tilt-transform
-           (cl-transforms:reference-transform (link-pose robot tilt-link)))
-         (pose-trans
-           (etypecase pose
-             (cl-transforms:3d-vector
-              (cl-transforms:make-transform
-               pose (cl-transforms:make-quaternion 0 0 0 1)))
-             (cl-transforms:pose (cl-transforms:reference-transform pose))
-             (cl-transforms:transform pose)))
-         (pose-in-pan
-           (cl-transforms:transform*
-            (cl-transforms:transform-inv pan-transform)
-            pose-trans))
-         (pose-in-tilt
-           (cl-transforms:transform*
-            (cl-transforms:transform-inv tilt-transform)
-            pose-trans))
-         (pan-joint
-           (cl-urdf:from-joint (gethash pan-link (cl-urdf:links (urdf robot)))))
-         (pan-joint-name
-           (cl-urdf:name pan-joint))
-         (pan-joint-axis-sign
-           (cl-transforms:z (cl-urdf:axis pan-joint)))
-         (tilt-joint
-           (cl-urdf:from-joint (gethash tilt-link (cl-urdf:links (urdf robot)))))
-         (tilt-joint-name
-           (cl-urdf:name tilt-joint))
-         (tilt-joint-axis-sign
-           (cl-transforms:y (cl-urdf:axis tilt-joint))))
-    (list
-     (* pan-joint-axis-sign
-        (+ (joint-state robot pan-joint-name)
-           (if (= (cl-transforms:x (cl-transforms:translation pose-in-pan)) 0)
-               0.0
-               (atan (cl-transforms:y (cl-transforms:translation pose-in-pan))
-                     (cl-transforms:x (cl-transforms:translation pose-in-pan))))))
-     (* tilt-joint-axis-sign
-        (+ (joint-state robot tilt-joint-name)
-           (if (= (cl-transforms:x (cl-transforms:translation pose-in-tilt)) 0)
-               0.0
-               (atan (- (cl-transforms:z (cl-transforms:translation pose-in-tilt)))
-                     (+ (expt (cl-transforms:y (cl-transforms:translation pose-in-tilt)) 2)
-                        (expt (cl-transforms:x (cl-transforms:translation pose-in-tilt)) 2)))))))))
+(defun calculate-pan-tilt (robot pan-link tilt-link pose
+                           &optional
+                             (pan-forward-axis 'cl-transforms:x)
+                             (pan-forward-sign +1)
+                             (tilt-forward-axis 'cl-transforms:x)
+                             (tilt-forward-sign -1)
+                             (pan-lower-limit nil) (pan-upper-limit nil)
+                             (tilt-lower-limit nil) (tilt-upper-limit nil))
+  "Calculates values for the pan and tilt joints so that they point at `pose'.
+Returns a list: (pan-angle tilt-angle).
+Used in visibility costmap calculations and in projection."
+  (flet ((non-zero-unit-vector (3d-vector)
+           (cond ((/= (cl-transforms:x 3d-vector) 0)
+                  'cl-transforms:x)
+                 ((/= (cl-transforms:y 3d-vector) 0)
+                  'cl-transforms:y)
+                 ((/= (cl-transforms:z 3d-vector) 0)
+                  'cl-transforms:z))))
+    (let* ((map-T-pan-link
+             (cl-transforms:reference-transform (link-pose robot pan-link)))
+           (map-T-tilt-link
+             (cl-transforms:reference-transform (link-pose robot tilt-link)))
+           (map-T-look-pose
+             (etypecase pose
+               (cl-transforms:3d-vector
+                (cl-transforms:make-transform
+                 pose (cl-transforms:make-quaternion 0 0 0 1)))
+               (cl-transforms:pose
+                (cl-transforms:reference-transform pose))
+               (cl-transforms:transform
+                pose)))
+           (pan-link-T-look-pose     ; pan-link-T-map * map-T-look-pose
+             (cl-transforms:transform*
+              (cl-transforms:transform-inv map-T-pan-link)
+              map-T-look-pose))
+           (tilt-link-T-look-pose   ; tilt-link-T-map * map-T-look-pose
+             (cl-transforms:transform*
+              (cl-transforms:transform-inv map-T-tilt-link)
+              map-T-look-pose))
+
+           (pan-joint
+             (cl-urdf:from-joint
+              (gethash pan-link (cl-urdf:links (urdf robot)))))
+           (pan-joint-name
+             (cl-urdf:name pan-joint))
+           (pan-joint-axis
+             (cl-urdf:axis pan-joint))
+           (pan-joint-rotational-axis
+             (non-zero-unit-vector pan-joint-axis))
+           (pan-joint-forward-facing-axis
+             pan-forward-axis)
+           (pan-joint-forward-facing-sign
+             pan-forward-sign)
+           (pan-joint-other-axis
+             (car
+              (remove pan-joint-forward-facing-axis
+                      (remove pan-joint-rotational-axis
+                              (list 'cl-transforms:x
+                                    'cl-transforms:y
+                                    'cl-transforms:z)))))
+           (pan-joint-axis-sign
+             (funcall pan-joint-rotational-axis pan-joint-axis))
+
+           (tilt-joint
+             (cl-urdf:from-joint
+              (gethash tilt-link (cl-urdf:links (urdf robot)))))
+           (tilt-joint-name
+             (cl-urdf:name tilt-joint))
+           (tilt-joint-axis
+             (cl-urdf:axis tilt-joint))
+           (tilt-joint-rotational-axis
+             (non-zero-unit-vector tilt-joint-axis))
+           (tilt-joint-forward-facing-axis
+             tilt-forward-axis)
+           (tilt-joint-forward-facing-sign
+             tilt-forward-sign)
+           (tilt-joint-other-axis
+             (car
+              (remove tilt-joint-forward-facing-axis
+                      (remove tilt-joint-rotational-axis
+                              (list 'cl-transforms:x
+                                    'cl-transforms:y
+                                    'cl-transforms:z)))))
+           (tilt-joint-axis-sign
+             (funcall tilt-joint-rotational-axis tilt-joint-axis))
+
+           (pan-link-T-look-pose-translation
+             (cl-transforms:translation pan-link-T-look-pose))
+           (pan-link-T-look-pose-forward-facing-axis
+             (funcall pan-joint-forward-facing-axis
+                      pan-link-T-look-pose-translation))
+           (pan-link-T-look-pose-other-axis
+             (funcall pan-joint-other-axis
+                      pan-link-T-look-pose-translation))
+
+           (tilt-link-T-look-pose-translation
+             (cl-transforms:translation tilt-link-T-look-pose))
+           (tilt-link-T-look-pose-forward-facing-axis
+             (funcall tilt-joint-forward-facing-axis
+                      tilt-link-T-look-pose-translation))
+           (tilt-link-T-look-pose-other-axis
+             (funcall tilt-joint-other-axis
+                      tilt-link-T-look-pose-translation))
+           (tilt-link-T-look-pose-rotational-axis
+             (funcall tilt-joint-rotational-axis
+                      tilt-link-T-look-pose-translation))
+
+           (pan-angle
+             (cl-transforms:normalize-angle
+              (+ (joint-state robot pan-joint-name)
+                 (atan (* pan-joint-axis-sign
+                          pan-joint-forward-facing-sign
+                          pan-link-T-look-pose-other-axis)
+                       pan-link-T-look-pose-forward-facing-axis))))
+           (tilt-angle
+             (cl-transforms:normalize-angle
+              (+ (joint-state robot tilt-joint-name)
+                 (atan (* tilt-joint-axis-sign
+                          tilt-joint-forward-facing-sign
+                          tilt-link-T-look-pose-other-axis)
+                       (+ (expt tilt-link-T-look-pose-rotational-axis 2)
+                          (expt tilt-link-T-look-pose-forward-facing-axis 2))))))
+
+           (cropped-pan-angle
+             (if (and pan-lower-limit pan-upper-limit)
+                 (if (< pan-angle pan-lower-limit)
+                     pan-lower-limit
+                     (if (> pan-angle pan-upper-limit)
+                         pan-upper-limit
+                         pan-angle))
+                 pan-angle))
+           (cropped-tilt-angle
+             (if (and tilt-lower-limit tilt-upper-limit)
+                 (if (< tilt-angle tilt-lower-limit)
+                     tilt-lower-limit
+                     (if (> tilt-angle tilt-upper-limit)
+                         tilt-upper-limit
+                         tilt-angle))
+                 tilt-angle)))
+
+      (values (list cropped-pan-angle cropped-tilt-angle)
+              (list pan-angle tilt-angle)))))
 
 (defun looking-in-direction-p (robot camera-frame
                                angle-horizontal angle-vertical
