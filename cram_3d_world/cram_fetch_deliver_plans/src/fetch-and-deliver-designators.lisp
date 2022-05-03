@@ -77,13 +77,16 @@ the `look-pose-stamped'."
     (desig:current-designator ?some-location-designator ?location-designator)
     ;; robot-location
     (-> (man-int:location-always-reachable ?location-designator)
-        (lisp-fun cram-tf:robot-current-pose ?robot-rotated-pose)
-        (lisp-fun calculate-robot-navigation-goal-towards-target ?location-designator
-              ?robot-rotated-pose))
+        (and (lisp-fun cram-tf:robot-current-pose ?robot-rotated-pose)
+             (equal ?target-always-reachable T))
+        (and (lisp-fun calculate-robot-navigation-goal-towards-target ?location-designator
+                       ?robot-rotated-pose)
+             (equal ?target-always-reachable NIL)))
     (desig:designator :location ((:pose ?robot-rotated-pose)) ?robot-location)
     (desig:designator :action ((:type :turning-towards)
                                (:target ?location-designator)
-                               (:robot-location ?robot-location))
+                               (:robot-location ?robot-location)
+                               (:target-always-reachable ?target-always-reachable))
                       ?resolved-action-designator))
 
 

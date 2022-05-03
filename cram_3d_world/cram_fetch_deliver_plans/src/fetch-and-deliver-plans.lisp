@@ -57,6 +57,7 @@ if yes, perform GOING action while ignoring failures."
 (defun turn-towards (&key
                        ((:target ?look-target))
                        ((:robot-location ?robot-location))
+                       target-always-reachable
                      &allow-other-keys)
   (declare (type desig:location-designator ?look-target ?robot-location))
   "Perform a LOOKING action, if looking target twists the neck,
@@ -81,9 +82,10 @@ turn the robot base such that it looks in the direction of target and look again
              (roslisp:ros-warn (pp-plans turn-towards) "~a~%Turning around." e)
              (cpl:do-retry turn-around-retries
                (cpl:par
-                 (exe:perform (desig:an action
-                                        (type navigating)
-                                        (location ?robot-location)))
+                 (unless target-always-reachable
+                   (exe:perform (desig:an action
+                                          (type navigating)
+                                          (location ?robot-location))))
                  (let ((?goal `(cpoe:looking-at :forward)))
                    (exe:perform (desig:an action
                                           (type looking)
@@ -91,7 +93,9 @@ turn the robot base such that it looks in the direction of target and look again
                                           (goal ?goal)))))
                (cpl:retry))
              (roslisp:ros-warn (pp-plans turn-towards) "Turning around didn't work :'(~%")
-             (cpl:fail 'common-fail:looking-high-level-failure)))
+             (roslisp:ros-warn (pp-plans turn-towards) "Ignoring the failure, not propagating up.")
+             ;; (cpl:fail 'common-fail:looking-high-level-failure)
+             (return)))
         (let (;; (?goal `(cpoe:looking-at ,?look-target))
               )
           (exe:perform (desig:an action
