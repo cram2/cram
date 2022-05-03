@@ -419,11 +419,9 @@ Store found pose into designator or throw error if good pose not found."
                     (right-poses-2
                       (desig:desig-prop-value action-referenced :right-grasp-poses))
                     (left-poses-3
-                      (or (desig:desig-prop-value action-referenced :left-open-poses)
-                          (desig:desig-prop-value action-referenced :left-close-poses)))
+                      (desig:desig-prop-value action-referenced :left-manipulate-poses))
                     (right-poses-3
-                      (or (desig:desig-prop-value action-referenced :right-open-poses)
-                          (desig:desig-prop-value action-referenced :right-close-poses)))
+                      (desig:desig-prop-value action-referenced :right-manipulate-poses))
                     (left-poses-4
                       (desig:desig-prop-value action-referenced :left-retract-poses))
                     (right-poses-4
