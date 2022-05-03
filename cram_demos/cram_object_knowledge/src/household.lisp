@@ -439,11 +439,42 @@
 (man-int:def-object-type-to-gripper-transforms :bowl '(:left :right) :top
   :grasp-translation `(,(- *bowl-grasp-x-offset*) 0.0d0 ,*bowl-grasp-z-offset*)
   :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+(man-int:def-object-type-to-gripper-transforms :bowl '(:left :right) :top-front
+  :grasp-translation `(,*bowl-grasp-x-offset* 0.0d0 ,*bowl-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+(man-int:def-object-type-to-gripper-transforms :bowl '(:left :right) :top-left
+  :grasp-translation `(0.0d0 ,*bowl-grasp-x-offset* ,*bowl-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+(man-int:def-object-type-to-gripper-transforms :bowl '(:left :right) :top-right
+  :grasp-translation `(0.0d0 ,(- *bowl-grasp-x-offset*) ,*bowl-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+;; TOP grasp drawer
+(man-int:def-object-type-to-gripper-transforms :bowl '(:left :right) :top
+  :location-type :drawer
+  :grasp-translation `(,(- *bowl-grasp-x-offset*) 0.0d0 ,*bowl-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
   :pregrasp-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
   :2nd-pregrasp-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
   :lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
   :2nd-lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*))
 (man-int:def-object-type-to-gripper-transforms :bowl '(:left :right) :top-front
+  :location-type :drawer
   :grasp-translation `(,*bowl-grasp-x-offset* 0.0d0 ,*bowl-grasp-z-offset*)
   :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
   :pregrasp-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
@@ -451,6 +482,7 @@
   :lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
   :2nd-lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*))
 (man-int:def-object-type-to-gripper-transforms :bowl '(:left :right) :top-left
+  :location-type :drawer
   :grasp-translation `(0.0d0 ,*bowl-grasp-x-offset* ,*bowl-grasp-z-offset*)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
@@ -458,6 +490,7 @@
   :lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
   :2nd-lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*))
 (man-int:def-object-type-to-gripper-transforms :bowl '(:left :right) :top-right
+  :location-type :drawer
   :grasp-translation `(0.0d0 ,(- *bowl-grasp-x-offset*) ,*bowl-grasp-z-offset*)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
