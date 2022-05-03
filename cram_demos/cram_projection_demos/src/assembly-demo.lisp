@@ -32,6 +32,7 @@
 (defparameter *plate-x* -1.1115)
 (defparameter *plate-y* 1.6)
 (defparameter *plate-z* 0.8626)
+(defparameter *original-plate-z* 0.8626)
 
 (defparameter *plate-rad-x* 0.36)
 (defparameter *plate-rad-y* 0.60)
@@ -314,6 +315,51 @@
 ;;; * screw nut onto wheel
 ;;; * screw bottom body
 (defun assembly-demo ()
+  (when (eq (rob-int:get-robot-name) :tiago-dual)
+    (let ((kitchen-island-offset -0.2))
+      (btr-belief:vary-kitchen-urdf `(("kitchen_island_footprint_joint"
+                                       ((-1.365d0 0.59d0 ,kitchen-island-offset) (0 0 0 1)))))
+      (setf *plate-z* (+ *plate-z* kitchen-island-offset))
+      (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
+      (assert
+       (cut:force-ll
+        (prolog `(and
+                  (btr:bullet-world ?w)
+                  ,@(when btr-belief:*spawn-debug-window*
+                      '((btr:debug-window ?w)))
+                  (btr:assert ?w (btr:object :static-plane :floor ((0 0 0) (0 0 0 1))
+                                                           :normal (0 0 1) :constant 0
+                                                           :collision-mask (:default-filter)))
+                  (-> (rob-int:environment-name ?environment-name)
+                      (btr:assert ?w (btr:object :urdf ?environment-name
+                                                 ((0 0 0) (0 0 0 1))
+                                                 :collision-group :static-filter
+                                                 :collision-mask (:default-filter
+                                                                  :character-filter)
+                                                 ,@(when rob-int:*environment-urdf*
+                                                     `(:urdf ,rob-int:*environment-urdf*))
+                                                 :compound T))
+                      (warn "ROB-INT:ENVIRONMENT-NAME was not defined. ~
+                         Have you loaded an environment knowledge package?"))
+                  (-> (rob-int:robot ?robot)
+                      (and (btr:assert ?w (btr:object :urdf ?robot ((0 0 0) (0 0 0 1))
+                                                      ;; :color (0.9 0.9 0.9 1.0)
+                                                      :urdf ,rob-int:*robot-urdf*))
+                           (-> (rob-int:robot-joint-states ?robot :arm :left :park ?left-joint-states)
+                               (assert (btr:joint-state ?world ?robot ?left-joint-states))
+                               (true))
+                           (-> (rob-int:robot-joint-states ?robot :arm :right :park ?right-joint-states)
+                               (assert (btr:joint-state ?world ?robot ?right-joint-states))
+                               (true))
+                           (rob-int:robot-torso-link-joint ?robot ?_ ?torso-joint)
+                           (rob-int:joint-lower-limit ?robot ?torso-joint ?lower-limit)
+                           (rob-int:joint-upper-limit ?robot ?torso-joint ?upper-limit)
+                           (lisp-fun btr-belief::average ?lower-limit ?upper-limit ?average-joint-value)
+                           (assert (btr:joint-state ?world ?robot
+                                                    ((?torso-joint ?average-joint-value)))))
+                      (warn "ROB-INT:ROBOT was not defined. ~
+                         Have you loaded a robot package?"))))))))
+
   (urdf-proj:with-projected-robot
     ;;(setf cram-robosherlock::*no-robosherlock-mode* t)
     (spawn-assembly-objects)
@@ -397,6 +443,7 @@
              (transport :bolt :bolt :propeller '(:side :left)
                         :propeller-thread
                         wooden-plate))
+        (setf *plate-z* *original-plate-z*)
         (setf btr:*visibility-threshold* old-visibility)))))
 
 
