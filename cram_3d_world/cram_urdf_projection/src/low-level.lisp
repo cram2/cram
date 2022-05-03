@@ -184,7 +184,9 @@
                                  ?tilt-link
                                  ?pan-joint ?tilt-joint
                                  ?pan-lower-limit ?pan-upper-limit
-                                 ?tilt-lower-limit ?tilt-upper-limit)
+                                 ?tilt-lower-limit ?tilt-upper-limit
+                                 ?pan-forward-axis ?pan-forward-sign
+                                 ?tilt-forward-axis ?tilt-forward-sign)
       (car
        (prolog:prolog
         '(and
@@ -194,45 +196,48 @@
           (rob-int:joint-lower-limit ?robot ?pan-joint ?pan-lower-limit)
           (rob-int:joint-upper-limit ?robot ?pan-joint ?pan-upper-limit)
           (rob-int:joint-lower-limit ?robot ?tilt-joint ?tilt-lower-limit)
-          (rob-int:joint-upper-limit ?robot ?tilt-joint ?tilt-upper-limit))))
+          (rob-int:joint-upper-limit ?robot ?tilt-joint ?tilt-upper-limit)
+          (rob-int:robot-neck-pan-joint-forward-facing-axis-sign ?robot
+           ?pan-forward-axis ?pan-forward-sign)
+          (rob-int:robot-neck-tilt-joint-forward-facing-axis-sign ?robot
+           ?tilt-forward-axis ?tilt-forward-sign))))
 
-    (let* ((pose-in-world
-             (cram-tf:ensure-pose-in-frame
-              pose-stamped
-              cram-tf:*fixed-frame*
-              :use-zero-time t))
-           (pan-tilt-angles
-             (btr:calculate-pan-tilt
-              (btr:get-robot-object) ?pan-link ?tilt-link pose-in-world))
-           (pan-angle
-             (first pan-tilt-angles))
-           (tilt-angle
-             (second pan-tilt-angles))
-           (cropped-pan-angle
-             (if (< pan-angle ?pan-lower-limit)
-                 ?pan-lower-limit
-                 (if (> pan-angle ?pan-upper-limit)
-                     ?pan-upper-limit
-                     pan-angle)))
-           (cropped-tilt-angle
-             (if (< tilt-angle ?tilt-lower-limit)
-                 ?tilt-lower-limit
-                 (if (> tilt-angle ?tilt-upper-limit)
-                     ?tilt-upper-limit
-                     tilt-angle))))
+    (multiple-value-bind (cropped-angles original-angles)
 
-      (prolog:prolog
-       `(and (btr:bullet-world ?w)
-             (rob-int:robot ?robot)
-             (btr:%object ?w ?robot ?robot-object)
-             (assert ?world
-                     (btr:joint-state
-                      ?robot ((,?pan-joint ,cropped-pan-angle)
-                              (,?tilt-joint ,cropped-tilt-angle))))))
-      (unless (and (< (abs (- pan-angle cropped-pan-angle)) 0.00001)
-                   (< (abs (- tilt-angle cropped-tilt-angle)) 0.00001))
-        (cpl:fail 'common-fail:ptu-goal-not-reached
-                  :description "Look action wanted to twist the neck")))))
+        (btr:calculate-pan-tilt
+         (btr:get-robot-object)
+         ?pan-link ?tilt-link
+         (cram-tf:ensure-pose-in-frame
+          pose-stamped
+          cram-tf:*fixed-frame*
+          :use-zero-time t)
+         ?pan-forward-axis ?pan-forward-sign
+         ?tilt-forward-axis ?tilt-forward-sign
+         ?pan-lower-limit ?pan-upper-limit
+         ?tilt-lower-limit ?tilt-upper-limit)
+
+      (let ((cropped-pan-angle
+              (first cropped-angles))
+            (cropped-tilt-angle
+              (second cropped-angles))
+            (pan-angle
+              (first original-angles))
+            (tilt-angle
+              (second original-angles)))
+
+        (prolog:prolog
+         `(and (btr:bullet-world ?w)
+               (rob-int:robot ?robot)
+               (btr:%object ?w ?robot ?robot-object)
+               (assert ?world
+                       (btr:joint-state
+                        ?robot ((,?pan-joint ,cropped-pan-angle)
+                                (,?tilt-joint ,cropped-tilt-angle))))))
+
+        (unless (and (< (abs (- pan-angle cropped-pan-angle)) 0.00001)
+                 (< (abs (- tilt-angle cropped-tilt-angle)) 0.00001))
+          (cpl:fail 'common-fail:ptu-goal-not-reached
+                    :description "Look action wanted to twist the neck"))))))
 
 (defun get-neck-ik (ee-link cartesian-pose base-link joint-names)
   (cut:with-vars-strictly-bound (?camera-resampling-step
