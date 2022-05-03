@@ -199,7 +199,8 @@
     (member ?object-desig-key (:object
                                :in :on :above
                                :left-of :right-of :in-front-of :behind
-                               :far-from :near))
+                               :far-from :near
+                               :of))
     (property-member (?object-desig-key ?value) ?designator)
     (assert-type ?value desig:object-designator "LOCATION SPEC:PROPERTY"))
 
