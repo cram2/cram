@@ -45,6 +45,6 @@
    #:map-double-matrix-into #:double-matrix-transpose #:double-matrix-product
    #:m.+ #:m.- #:m.* #:m./ #:m+ #:m- #:m* #:m/
    ;; functions
-   #:determinant #:gauss
+   #:determinant #:gauss #:average
    ;; geometry
    #:2d-point #:polygon #:point-in-polygon #:degrees->radians #:radians->degrees))
