@@ -677,31 +677,38 @@ inverse joint transform of parent's from-joint and try again."
   (with-slots (urdf links joint-states) obj
     (let* ((joint (gethash joint-name (cl-urdf:joints urdf)))
            (parent (and joint (cl-urdf:parent joint))))
-      (cond ((and parent (gethash (cl-urdf:name parent) links))
-             (cl-transforms:transform->pose
-              (cl-transforms:transform*
-               (cl-transforms:reference-transform current-pose)
-               (cl-transforms:reference-transform (pose (gethash (cl-urdf:name parent) links))))))
-            ((and parent (cl-urdf:from-joint parent))
-             ;; walk the tree up
-             (let* ((parent-joint (cl-urdf:from-joint parent))
-                    (parent-joint-name (cl-urdf:name parent-joint)))
-               (find-parent-pose
-                obj parent-joint-name
-                (cl-transforms:transform->pose
-                 (cl-transforms:transform*
-                  (cl-transforms:reference-transform
-                   (cl-urdf:origin parent-joint))
-                  (joint-transform
-                   parent-joint
-                   (or (joint-state obj parent-joint-name)
-                       0.0))
-                  (cl-transforms:reference-transform current-pose))))))
-            (t ;; We are at the root. Return the object's inverse pose
-             ;; multiplied with current-pose
+      (cond
+        ;; parent has a physical link
+        ((and parent (gethash (cl-urdf:name parent) links))
+         (cl-transforms:transform->pose
+          ;; map-T-parent = map-T-grandparent * grandparent-T-parent
+          (cl-transforms:transform*
+           (cl-transforms:reference-transform (pose (gethash (cl-urdf:name parent) links)))
+           (cl-transforms:reference-transform current-pose))))
+        ;; parent has no physical link but there is a grandparent
+        ((and parent (cl-urdf:from-joint parent))
+         ;; walk the tree up
+         (let* ((parent-joint (cl-urdf:from-joint parent))
+                (parent-joint-name (cl-urdf:name parent-joint)))
+           (find-parent-pose
+            obj parent-joint-name
+            ;; grandpa-link-T-pa-link =
+            ;;   grandpa-link-T-pa-joint * joint-state * pa-joint-T-pa-link
+            (cl-transforms:transform->pose
              (cl-transforms:transform*
-              (cl-transforms:reference-transform (pose obj))
-              (cl-transforms:reference-transform current-pose)))))))
+              (cl-transforms:reference-transform
+               (cl-urdf:origin parent-joint))
+              (joint-transform
+               parent-joint
+               (or (joint-state obj parent-joint-name)
+                   0.0))
+              (cl-transforms:reference-transform current-pose))))))
+        ;; We are at the root. Return the object's inverse pose
+        ;; multiplied with current-pose
+        (t
+         (cl-transforms:transform*
+          (cl-transforms:reference-transform (pose obj))
+          (cl-transforms:reference-transform current-pose)))))))
 
 (defmethod link-pose ((obj robot-object) name)
   ;; We need to handle two different cases here. One is when we have a
