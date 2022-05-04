@@ -177,8 +177,8 @@
                     (cl-transforms-stamped:make-vector-stamped
                      cram-tf:*robot-base-frame* 0.0
                      (cl-transforms:make-3d-vector 0 0 1)))))
-   :joint-constraints (list (make-simple-joint-constraint joint-state-left)
-                            (make-simple-joint-constraint joint-state-right))
+   :joint-constraints (list (make-joint-constraint joint-state-left)
+                            (make-joint-constraint joint-state-right))
    :collisions (list ;; (make-avoid-all-collision)
                      )))
 
