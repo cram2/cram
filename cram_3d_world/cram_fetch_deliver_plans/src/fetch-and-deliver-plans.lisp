@@ -148,16 +148,15 @@ if yes, relocate and retry, if no collisions, open or close container."
                                     :new-description `((:arm ,?arm)))))
 
       ;; if opening- / closing-container fails, relocate
-      (cpl:with-retry-counters ((relocation-retries 10))
+      (cpl:with-retry-counters ((relocation-retries 50))
         (cpl:with-failure-handling
-            (((or common-fail:navigation-goal-in-collision
-                  common-fail:environment-unreachable
-                  common-fail:manipulation-low-level-failure) (e)
+            (((or common-fail:environment-unreachable) (e)
                (common-fail:retry-with-loc-designator-solutions
                    ?manipulate-robot-location-with-arm
                    relocation-retries
                    (:error-object-or-string e
                     :warning-namespace (fd-plans environment)
+                    :reset-designators (list ?manipulate-robot-location-with-arm)
                     :rethrow-failure 'common-fail:environment-manipulation-impossible)
                  ;; TODO: what if the another arm is holding an object!
                  (exe:perform (desig:an action
@@ -166,15 +165,16 @@ if yes, relocate and retry, if no collisions, open or close container."
                        all-arms)
                  (setf ?arm
                        (cut:lazy-car ?arms))
-                 (setf ?manipulate-robot-location-with-arm
-                       (desig:copy-designator ?manipulate-robot-location
-                                              :new-description `((:arm ,?arm))))
+                 (setf (cadr (find :arm (desig:description ?manipulate-robot-location-with-arm)
+                                   :key #'car))
+                       ?arm)
                  (roslisp:ros-info (fd-plans environment) "Relocating..."))))
 
           ;; if opening- / closing-container fails with this arm, try another arm
           (cpl:with-retry-counters ((arm-retries 1))
             (cpl:with-failure-handling
-                (((or common-fail:environment-unreachable
+                (((or common-fail:navigation-goal-in-collision
+                      common-fail:environment-unreachable
                       common-fail:gripper-low-level-failure
                       common-fail:manipulation-low-level-failure
                       desig:designator-error) (e)
@@ -190,9 +190,10 @@ if yes, relocate and retry, if no collisions, open or close container."
                                             (type releasing)))
                      (setf ?arm
                            (cut:lazy-car ?arms))
-                     (setf ?manipulate-robot-location-with-arm
-                           (desig:copy-designator ?manipulate-robot-location
-                                                  :new-description `((:arm ,?arm)))))))
+                     (setf (cadr (find :arm (desig:description ?manipulate-robot-location-with-arm)
+                                       :key #'car))
+                           ?arm)
+                     (desig:reset ?manipulate-robot-location-with-arm))))
 
               ;; navigate, open / close
               (exe:perform (desig:an action
