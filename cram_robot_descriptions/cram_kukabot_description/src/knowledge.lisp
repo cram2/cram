@@ -79,17 +79,18 @@
   (<- (camera-vertical-angle :kmr-iiwa 0.75049)))
 
 
-(def-fact-group donbot-arm-facts (arm-joints arm-links
-                                             hand-links hand-link hand-finger-link
-                                             gripper-joint
-                                             gripper-meter-to-joint-multiplier
-                                             gripper-minimal-position
-                                             gripper-convergence-delta
-                                             standard<-particular-gripper-transform
-                                             end-effector-link
-                                             robot-tool-frame
-                                             tcp-in-ee-pose
-                                             robot-joint-states)
+(def-fact-group kukabot-arm-facts (arm-joints
+                                   arm-links
+                                   hand-links hand-link hand-finger-link
+                                   gripper-joint
+                                   gripper-meter-to-joint-multiplier
+                                   gripper-minimal-position
+                                   gripper-convergence-delta
+                                   standard<-particular-gripper-transform
+                                   end-effector-link
+                                   robot-tool-frame
+                                   tcp-in-ee-pose
+                                   robot-joint-states)
 
   (<- (arm-joints :kmr-iiwa :left ("iiwa_joint_1"
                                    "iiwa_joint_2"
@@ -167,16 +168,17 @@
 
 
 
-(def-fact-group donbot-neck-facts (robot-neck-links robot-neck-joints
-                                                    robot-neck-base-link
-                                                    camera-in-neck-ee-pose
-                                                    neck-camera-z-offset
-                                                    neck-camera-pose-unit-vector-multiplier
-                                                    neck-camera-resampling-step
-                                                    neck-camera-x-axis-limit
-                                                    neck-camera-y-axis-limit
-                                                    neck-camera-z-axis-limit
-                                                    robot-joint-states)
+(def-fact-group kukabot-neck-facts (robot-neck-links
+                                    robot-neck-joints
+                                    robot-neck-base-link
+                                    camera-in-neck-ee-pose
+                                    neck-camera-z-offset
+                                    neck-camera-pose-unit-vector-multiplier
+                                    neck-camera-resampling-step
+                                    neck-camera-x-axis-limit
+                                    neck-camera-y-axis-limit
+                                    neck-camera-z-axis-limit
+                                    robot-joint-states)
 
   (<- (robot-neck-links :kmr-iiwa . ?links)
     (arm-links :kmr-iiwa :left ?links))
@@ -189,8 +191,8 @@
   (<- (camera-in-neck-ee-pose :kmr-iiwa ?pose)
     (symbol-value *ee-p-camera* ?pose))
 
-  (<- (neck-camera-z-offset :kmr-iiwa 0.4))
-  (<- (neck-camera-pose-unit-vector-multiplier :kmr-iiwa 0.6))
+  (<- (neck-camera-z-offset :kmr-iiwa 0.7))
+  (<- (neck-camera-pose-unit-vector-multiplier :kmr-iiwa 0.5))
   (<- (neck-camera-resampling-step :kmr-iiwa 0.2))
   (<- (neck-camera-x-axis-limit :kmr-iiwa 0.5))
   (<- (neck-camera-y-axis-limit :kmr-iiwa 0.5))
@@ -257,13 +259,13 @@
                                            costmap:reachability-orientation-offset
                                            costmap:visibility-orientation-offset
                                            costmap:visibility-costmap-size)
-  (<- (costmap:costmap-padding :kmr-iiwa 0.3))
+  (<- (costmap:costmap-padding :kmr-iiwa 0.5))
   (<- (costmap:costmap-manipulation-padding :kmr-iiwa 0.3))
-  (<- (costmap:costmap-in-reach-distance :kmr-iiwa 1.1))
+  (<- (costmap:costmap-in-reach-distance :kmr-iiwa 1.3))
   (<- (costmap:costmap-reach-minimal-distance :kmr-iiwa 0.1))
-  (<- (costmap:orientation-samples :kmr-iiwa 1))
-  (<- (costmap:orientation-sample-step :kmr-iiwa 0.3))
-  (<- (costmap:reachability-orientation-offset :kmr-iiwa 1.5))
+  (<- (costmap:orientation-samples :kmr-iiwa 3))
+  (<- (costmap:orientation-sample-step :kmr-iiwa 0.7854))
+  (<- (costmap:reachability-orientation-offset :kmr-iiwa 0.0))
   (<- (costmap:visibility-orientation-offset :kmr-iiwa ?offset)
     (costmap:reachability-orientation-offset :kmr-iiwa ?offset))
   (<- (costmap:visibility-costmap-size :kmr-iiwa 2.0)))
