@@ -60,6 +60,34 @@
     ;; (Boxy can though.)
     (:breakfast-cereal . (:front :back :front-flipped :back-flipped))))
 
+(defparameter *furniture-offsets-original-kitchen*
+  '(("sink_area_footprint_joint"
+     ((1.855d0 1.3d0 0.0d0) (0 0 1 0)))
+    ("oven_area_footprint_joint"
+     ((1.855d0 2.47d0 0.0d0) (0 0 1 0)))
+    ("kitchen_island_footprint_joint"
+     ((-1.365d0 0.59d0 0.0d0) (0 0 0 1)))
+    ("fridge_area_footprint_joint"
+     ((1.845d0 -0.73d0 0.0d0) (0 0 1 0)))
+    ("table_area_main_joint"
+     ((-2.4d0 -1.5d0 0.0d0) (0 0 1 0)))
+    ("dining_area_footprint_joint"
+     ((-3.38d0 0.28d0 0.0d0) (0.0d0 0.0d0 0.7071067811848163d0 0.7071067811882787d0)))))
+
+(defparameter *furniture-offsets-offset-kitchen*
+  '(("sink_area_footprint_joint"
+     ((1.855d0 2.9d0 0.0d0) (0 0 1 0)))
+    ("oven_area_footprint_joint"
+     ((1.65d0 0.35d0 0.0d0) (0 0 0.7 0.3)))
+    ("kitchen_island_footprint_joint"
+     ((-3.6d0 0.7d0 0.0d0) (0 0 0 1)))
+    ("fridge_area_footprint_joint"
+     ((-1.4d0 3.05d0 0.0d0) (0 0 -0.7 0.7)))
+    ("table_area_main_joint"
+     ((0.95d0 -0.95d0 0.0d0) (0 0 0.3 0.7)))
+    ("dining_area_footprint_joint"
+     ((-2.5d0 -0.55d0 0.0d0) (0 0 0 1)))))
+
 
 (defun attach-object-to-the-world (object-type spawning-poses-relative)
   (when spawning-poses-relative
@@ -182,9 +210,15 @@
   (sb-ext:gc :full t))
 
 
-(defun household-demo (&optional (object-list '(:bowl :breakfast-cereal :milk :cup :spoon)))
+(defun household-demo (&key (object-list '(:bowl :breakfast-cereal :milk :cup :spoon))
+                         varied-kitchen)
   (urdf-proj:with-simulated-robot
 
+    (if varied-kitchen
+        (btr-belief:vary-kitchen-urdf *furniture-offsets-offset-kitchen*)
+        (btr-belief:vary-kitchen-urdf *furniture-offsets-original-kitchen*))
+    (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
+    (btr-belief:spawn-world)
     (initialize)
     (setf btr:*visibility-threshold* 0.7)
     (when cram-projection:*projection-environment*
@@ -215,6 +249,13 @@
                    (object (desig:an object (type ?object-type)))
                    (context table-cleaning)
                    (grasps ?grasps)))))))
+
+
+
+
+
+
+
 
 
 
