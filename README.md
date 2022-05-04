@@ -9,14 +9,16 @@ The core packages of CRAM are implemented in Common Lisp (with a little bit of C
 
 ----
 ### Workspace Installation
-Note: The script *cram-install.sh* is currently used to install the roslisp_repl, since the apt-get pkg has not yet been updated. In the installation script, you can see that the *ros_emacs_utils* pkg is built in a separate *catkin_workspace*, this is due the catkin install command, which is important for roslisp_repl and slime.
-  * `sudo apt-get install python3-rosinstall python3-wstool python3-catkin-tools`
-  * `wget https://raw.githubusercontent.com/cram2/cram/noetic/cram-install.sh`
-  * `chmod +x cram-install.sh`
-  * `./cram-install.sh`
-  * OPTIONAL: `echo "source ~/roscram/cram_ws/devel/setup.bash" >> ~/.bashrc`  For sourcing automaticly
-  * OPTIONAL: `echo "alias repl='rosrun roslisp_repl roslisp_repl'" >> ~/.bashrc`  For starting the repl with `repl` otherwise you have to start it with `rosrun roslisp_repl roslisp_repl`
-
+* `sudo apt install ros-noetic-roslisp-repl`
+* `sudo apt-get install python-rosinstall python-wstool`
+* `cd ~/workspace/ros/src`
+* `wstool init`
+* `wstool merge https://raw.githubusercontent.com/cram2/cram/boxy-noetic/cram-20.04.rosinstall`
+* `wstool update`
+* `cd ~/workspace/ros`
+* `rosdep update`
+* `rosdep install --ignore-src --from-paths src/ -r`
+* `catkin_make`
 
 For ROS noetic and the current packages, one thing needs to be fixed. The package octomap contains a dependency to a ROS2 package, which can be ignored. Open the package.xml of octomap.
 
