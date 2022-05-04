@@ -74,8 +74,8 @@
   ;; (<- (camera-maximal-height :iai-donbot 1.2))
 
   ;; These are values taken from the Kinect's wikipedia page for the 360 variant
-  (<- (camera-horizontal-angle donbot 0.99483))
-  (<- (camera-vertical-angle donbot 0.75049)))
+  (<- (camera-horizontal-angle :iai-donbot 0.99483))
+  (<- (camera-vertical-angle :iai-donbot 0.75049)))
 
 
 (def-fact-group donbot-arm-facts (arm-joints arm-links
