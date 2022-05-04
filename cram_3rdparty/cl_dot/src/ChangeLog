@@ -1,0 +1,123 @@
+2013-01-15  Michael Weber  <mw@foldr.org>
+
+	* cl-dot/lisp: Supply :fontname and :fontsize arguments
+	Patch by Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+	* docs/manual.texi: Updated manual for GitHub move
+
+2009-10-12  Michael Weber  <michaelw@foldr.org>
+
+	* cl-dot.lisp (construct-graph):  Allow directed multi-graphs.
+	Reported by Karol Skocik <karol.skocik@gmail.com>.
+
+2008-11-15  Michael Weber  <michaelw@foldr.org>
+
+	* cl-dot.lisp (graph-object-edges): new generic function
+
+	(construct-graph): Allow GRAPH-OBJECT functions to return
+	sequences instead of lists
+
+	* docs/version.texi: Generate version from Git
+
+2008-11-11  Michael Weber  <michaelw@foldr.org>
+
+	* package.lisp: export *neato-path*
+
+2008-11-09  Michael Weber  <michaelw@foldr.org>
+
+	* Released version 0.8.0
+
+	* cl-dot.lisp (textify,print-key-value): allow labels to be
+	aligned.  Patch adapted from Nikodemus Siivola
+	<nikodemus@random-state.net>.
+
+	* cl-dot.lisp (generate-graph): handle :node and :edge attributes
+	specially.  Patch adapted from Nikodemus Siivola
+	<nikodemus@random-state.net>.
+	(print-key-value): new function, extracted from generate-graph.
+
+	* docs/manual.texi: document accepted attributes
+
+	* docs/manual.texi: new manual
+
+	* COPYING: adjusted years
+
+2008-10-27  Michael Weber  <michaelw@foldr.org>
+
+	* cl-dot.lisp (construct-graph): Save and reuse result of
+	GRAPH-OBJECT- protocol functions
+
+	Otherwise, ephemeral graph nodes get disconnected, which is
+	somewhat unexpected.  Report and patch by YuQian Zhou
+	<yuqianzhou@gmail.com>.
+
+2008-06-16  Michael Weber  <michaelw@foldr.org>
+
+	* Released version 0.7.0
+
+	* cl-dot.lisp: default methods for graph-object- protocol methods
+
+	(dot-graph), doc/index.html: added support for undirected
+	graphs (via neato); patch by Angel Bayloff <bayloff@gmail.com>,
+	slightly edited.
+
+2008-02-17  Michael Weber  <michaelw@foldr.org>
+
+	* Released version 0.6.0
+
+	* cl-dot.lisp: introduced the GRAPH-OBJECT- protocol,
+	moved OBJECT- protocol to deprecated.lisp
+
+	(generate-graph-from-roots): new function
+	(generate-graph): deprecated
+
+	* deprecated.lisp: new file
+	* docs/index.html: documented API changes
+	* examples/: adapted examples to new API
+	* cl-dot.asd: added list-example-old.lisp, deprecated.lisp
+	* README: removed API documentation with pointer to docs directory
+
+2007-11-29  Michael Weber  <michaelw@foldr.org>
+
+	* Released version 0.5.0
+
+	* cl-dot.lisp (dot-graph): add support for CLISP.  Patch by
+	Martin Dengler <martin@martindengler.com>.
+
+2007-11-21  Michael Weber  <michaelw@foldr.org>
+
+	* cl-dot.lisp (dot-graph): add keyword parameter FORMAT
+
+2007-03-02  Michael Weber  <michaelw@foldr.org>
+
+	* cl-dot.lisp (dot-graph): output .ps for LispWorks
+
+2007-02-27  Michael Weber  <michaelw@foldr.org>
+
+	* cl-dot.lisp (dot-graph): removed extra binding
+
+2007-02-26  Michael Weber  <michaelw@foldr.org>
+
+	* Released version 0.4.0
+
+	* cl-dot.lisp (dot-graph): Allegro support (patch by
+	Robert P. Goldman <rpgoldman@yahoo.com>), slightly edited.
+
+	* Released version 0.3.0
+
+	* cl-dot.lisp: *dot-path* for win32;
+	execution support for LispWorks; escape node IDs with TEXTIFY.
+	Original patch by Levente Mészáros, edited by michaelw@foldr.org
+
+	* cl-dot.lisp (generate-dot): Use WITH-STANDARD-IO-SYNTAX for
+	printing dot file.  Patch by Todd Sabin <tsabin@optonline.net>.
+
+	* Released version 0.2.0
+
+	* taken over maintainership from Juho Snellman <jsnell@iki.fi>
+
+	* cl-dot.lisp (generate-graph): changed to a generic function
+	* cl-dot.lisp: various updates
+
+	* docs/index.html: HTML documentation
+
+	* cl-dot.asd: various changes
