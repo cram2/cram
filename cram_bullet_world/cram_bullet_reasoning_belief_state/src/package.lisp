@@ -44,6 +44,7 @@
    ;; belief-state
    #:*spawn-debug-window*
    #:setup-world-database
+   #:spawn-world
    #:vary-kitchen-urdf
    ;; world-state-detecting
    #:world-state-detecting-pm
