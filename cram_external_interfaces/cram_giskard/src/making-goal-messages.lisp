@@ -57,9 +57,9 @@
    :cmd_seq (vector
              (roslisp:make-message
               'giskard_msgs-msg:movecmd
-              :constraints (make-constraints-vector constraints)
-              :cartesian_constraints (make-constraints-vector cartesian-constraints)
-              :joint_constraints (make-constraints-vector joint-constraints)
+              :constraints (make-constraints-vector (append constraints
+                                                            (list joint-constraints)
+                                                            (list cartesian-constraints)))
               :collisions (make-constraints-vector collisions)))))
 
 (defun make-giskard-goal-multiple (&key
@@ -77,23 +77,25 @@
              (lambda (constraints)
                (roslisp:make-message
                 'giskard_msgs-msg:movecmd
-                :constraints (make-constraints-vector constraints)
-                :cartesian_constraints (make-constraints-vector
-                                        cartesian-constraints)
-                :joint_constraints (make-constraints-vector joint-constraints)
+                :constraints (make-constraints-vector constraints
+                                                      cartesian-constraints
+                                                      joint-constraints)
+                ;; :cartesian_constraints (make-constraints-vector
+                ;;                         cartesian-constraints)
+                ;; :joint_constraints (make-constraints-vector joint-constraints)
                 :collisions (make-constraints-vector collisions)))
              all-constraints)))
 
-(defun cram-name-list->ros-frame-vector (cram-names-list)
-  "@artnie used this function but actually other CRAM users probably don't need it..."
-  (if cram-names-list
-      (make-constraints-vector
-       (mapcar (lambda (symbol)
-                 (roslisp-utilities:rosify-underscores-lisp-name symbol))
-               (if (listp cram-names-list)
-                   cram-names-list
-                   (list cram-names-list))))
-      (vector (roslisp:symbol-code 'giskard_msgs-msg:collisionentry :all))))
+;; (defun cram-name-list->ros-frame-vector (cram-names-list)
+;;   "@artnie used this function but actually other CRAM users probably don't need it..."
+;;   (if cram-names-list
+;;       (make-constraints-vector
+;;        (mapcar (lambda (symbol)
+;;                  (roslisp-utilities:rosify-underscores-lisp-name symbol))
+;;                (if (listp cram-names-list)
+;;                    cram-names-list
+;;                    (list cram-names-list))))
+;;       (vector (roslisp:symbol-code 'giskard_msgs-msg:collisionentry :all))))
 
 (defun get-arm-joint-names-and-positions-list (arm &optional joint-states)
   "Returns a list of two elements: (joint-names joint-positions)"
@@ -168,12 +170,19 @@
    (alist->json-string
     `(("root_link" . ,root-frame)
       ("tip_link" . ,tip-frame)
-      ("root_normal" . ,(to-hash-table root-vector))
-      ("tip_normal" . ,(to-hash-table tip-vector))
-      ,@(when avoid-collisions-not-much
-          `(("weight" . ,(roslisp-msg-protocol:symbol-code
-                          'giskard_msgs-msg:constraint
-                          :weight_above_ca))))))))
+      ("root_normal"
+       . (("message_type" . "geometry_msgs/Vector3Stamped")
+          ("message" . ,(to-hash-table root-vector))))
+      ("tip_normal"
+       . (("message_type" . "geometry_msgs/Vector3Stamped")
+          ("message" . ,(to-hash-table tip-vector))))
+      ,@(if avoid-collisions-not-much
+            `(("weight" . ,(roslisp-msg-protocol:symbol-code
+                           'giskard_msgs-msg:constraint
+                           :weight_above_ca))
+              (("weight" . (roslisp-msg-protocol:symbol-code
+                            'giskard_msgs-msg:constraint
+                            :weight_below_ca)))))))))
 
 (defun make-align-planes-tool-frame-constraint (arm root-vector tip-vector
                                                 &key avoid-collisions-not-much)
@@ -192,7 +201,7 @@
      :avoid-collisions-not-much avoid-collisions-not-much)))
 
 (defun make-pointing-constraint (root-frame tip-frame goal-pose
-                                 &optional pointing-vector)
+                                 &optional pointing-vector weight)
   (declare (type string root-frame tip-frame)
            (type cl-transforms-stamped:pose-stamped goal-pose)
            (type (or cl-transforms-stamped:vector-stamped null) pointing-vector))
@@ -204,9 +213,11 @@
    (alist->json-string
     `(("root_link" . ,root-frame)
       ("tip_link" . ,tip-frame)
-      ("goal_point" . ,(to-hash-table
-                        (cram-tf:pose-stamped->point-stamped
-                         goal-pose)))
+      ("goal_point"
+       . (("message_type" . "geometry_msgs/PointStamped")
+          ("message" . ,(to-hash-table
+                         (cram-tf:pose-stamped->point-stamped
+                          goal-pose)))))
       ,@(when pointing-vector
           `(("pointing_axis" . ,(to-hash-table pointing-vector))))))))
 
@@ -259,11 +270,9 @@
      (roslisp-utilities:rosify-lisp-name open-or-close)
      :parameter_value_pair
      (alist->json-string
-      `(("object_name" . ,(roslisp-utilities:rosify-underscores-lisp-name
-                           (rob-int:get-environment-name)))
-        ("tip_link" . ,tool-frame)
-        ("object_link_name" . ,(roslisp-utilities:rosify-underscores-lisp-name
-                           handle-link))
+      `(("tip_link" . ,tool-frame)
+        ("environment_link" . ,(roslisp-utilities:rosify-underscores-lisp-name
+                                handle-link))
         ,@(when goal-joint-state
             `(("goal_joint_state" . ,goal-joint-state))))))))
 
@@ -285,11 +294,14 @@
      :parameter_value_pair
      (alist->json-string
       `(("tip_grasp_axis"
-         . ,(to-hash-table tip-grasp-axis))
+         . (("message_type" . "geometry_msgs/Vector3Stamped")
+            ("message" . ,(to-hash-table tip-grasp-axis))))
         ("bar_axis"
-         . ,(to-hash-table bar-axis))
+         . (("message_type" . "geometry_msgs/Vector3Stamped")
+            ("message" . ,(to-hash-table bar-axis))))
         ("bar_center"
-         . ,(to-hash-table bar-center))
+         . (("message_type" . "geometry_msgs/PointStamped")
+            ("message" . ,(to-hash-table bar-center))))
         ("tip_link"
          . ,tool-frame)
         ("bar_length"
@@ -311,7 +323,9 @@
    (alist->json-string
     `(("root_link" . ,root-frame)
       ("tip_link" . ,tip-frame)
-      ("goal" . ,(to-hash-table goal-pose))
+      ("goal_pose"
+       . (("message_type" . "geometry_msgs/PoseStamped")
+          ("message" . ,(to-hash-table goal-pose))))
       ,@(when max-velocity
           `(("max_linear_velocity" . ,max-velocity)))
       ,@(when avoid-collisions-much
@@ -319,11 +333,49 @@
                           'giskard_msgs-msg:constraint
                           :weight_below_ca))))))))
 
-(defun make-joint-constraint (joint-state weights)
+(defun make-joint-constraint (joint-state &optional weights)
+"`joint-state' is a list of two elements: (joint-names joint-positions).
+`weights' is a list of the same length as `joint-names' and `joint-positions',
+a keyword, a number or NIL."
   (declare (type list joint-state)
            (type (or list number keyword) weights))
+  (if (and weights (listp weights))
+      (make-joint-constraints-in-multiple-msgs joint-state weights)
+      (make-joint-constraint-list-in-one-msg joint-state weights)))
+
+(defun make-joint-constraint-list-in-one-msg (joint-state &optional weights)
+  (declare (type list joint-state)
+           (type (or null number keyword) weights))
+  "Creates a JointPositionList msg with one fixed weight for all joints.
+`joint-state' is a list of two elements: (joint-names joint-positions).
+`weights' is a list of the same length as `joint-names' and `joint-positions'."
+  (roslisp:make-message
+   'giskard_msgs-msg:constraint
+   :type
+   "JointPositionList"
+   :parameter_value_pair
+   (alist->json-string
+    `(("goal_state" . ,(mapcar (lambda (joint-name joint-position)
+                                 `(,joint-name . ,joint-position))
+                               (first joint-state)
+                               (second joint-state)))
+      ,@(when weights
+          `(("weight" . ,(case weights
+                           (:avoid-collisions-not-much
+                            (roslisp-msg-protocol:symbol-code
+                             'giskard_msgs-msg:constraint
+                             :weight_above_ca))
+                           (t
+                            weights)))))))))
+
+(defun make-joint-constraints-in-multiple-msgs (joint-state weights)
+  (declare (type list joint-state)
+           (type list weights))
   "`joint-state' is a list of two elements: (joint-names joint-positions).
 `weights' is a list of the same length as `joint-names' and `joint-positions'."
+  (unless (eq (length (first joint-state)) (length weights))
+    (error "Making joint constraint failed. Too few weights ~a for joints ~a."
+           weights (first joint-state)))
   (mapcar (lambda (joint-name joint-position weight)
             (roslisp:make-message
              'giskard_msgs-msg:constraint
@@ -336,18 +388,7 @@
                 ("weight" . ,weight)))))
           (first joint-state)
           (second joint-state)
-          (etypecase weights
-            (list
-             weights)
-            ((or number keyword)
-             (make-list (length (first joint-state))
-                        :initial-element (case weights
-                                           (:avoid-collisions-not-much
-                                            (roslisp-msg-protocol:symbol-code
-                                             'giskard_msgs-msg:constraint
-                                             :weight_above_ca))
-                                           (t
-                                            weights)))))))
+          weights))
 
 (defun make-unmovable-joints-constraint (joint-names
                                          &optional (weight
@@ -386,13 +427,16 @@
      :parameter_value_pair
      (alist->json-string
       `(("tip_link" . ,base-link)
-        ("avoidance_hint" . ,(to-hash-table vector))
-        ("max_threshold" . ,threshold)
-        ("max_linear_velocity" . ,max-velocity)
-        ("spring_threshold" . ,(+ threshold spring-offset))
+        ("avoidance_hint"
+         . (("message_type" . "geometry_msgs/Vector3Stamped")
+            ("message" . ,(to-hash-table vector))))
         ("object_name" . ,(roslisp-utilities:rosify-underscores-lisp-name
-                      (rob-int:get-environment-name)))
+                           (rob-int:get-environment-name)))
         ("object_link_name" . ,environment-link)
+        ;; ("root_link" . "map")
+        ("max_linear_velocity" . ,max-velocity)
+        ("max_threshold" . ,threshold)
+        ("spring_threshold" . ,(+ threshold spring-offset))
         ("weight" . ,(roslisp-msg-protocol:symbol-code
                       'giskard_msgs-msg:constraint
                       :weight_collision_avoidance)))))))
@@ -437,38 +481,38 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; NON-JSON CONSTRAINTS ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun make-simple-cartesian-constraint (root-link tip-link pose-stamped)
-  (declare (type string root-link tip-link)
-           (type cl-transforms-stamped:pose-stamped pose-stamped))
-  (list (roslisp:make-message
-         'giskard_msgs-msg:cartesianconstraint
-         :type (roslisp:symbol-code
-                'giskard_msgs-msg:cartesianconstraint
-                :translation_3d)
-         :root_link root-link
-         :tip_link tip-link
-         :goal (cl-transforms-stamped:to-msg pose-stamped))
-        (roslisp:make-message
-         'giskard_msgs-msg:cartesianconstraint
-         :type (roslisp:symbol-code
-                'giskard_msgs-msg:cartesianconstraint
-                :rotation_3d)
-         :root_link root-link
-         :tip_link tip-link
-         :goal (cl-transforms-stamped:to-msg pose-stamped))))
+;; (defun make-simple-cartesian-constraint (root-link tip-link pose-stamped)
+;;   (declare (type string root-link tip-link)
+;;            (type cl-transforms-stamped:pose-stamped pose-stamped))
+;;   (list (roslisp:make-message
+;;          'giskard_msgs-msg:cartesianconstraint
+;;          :type (roslisp:symbol-code
+;;                 'giskard_msgs-msg:cartesianconstraint
+;;                 :translation_3d)
+;;          :root_link root-link
+;;          :tip_link tip-link
+;;          :goal (cl-transforms-stamped:to-msg pose-stamped))
+;;         (roslisp:make-message
+;;          'giskard_msgs-msg:cartesianconstraint
+;;          :type (roslisp:symbol-code
+;;                 'giskard_msgs-msg:cartesianconstraint
+;;                 :rotation_3d)
+;;          :root_link root-link
+;;          :tip_link tip-link
+;;          :goal (cl-transforms-stamped:to-msg pose-stamped))))
 
-(defun make-simple-joint-constraint (joint-state)
-  (declare (type list joint-state))
-  "`joint-state' is a list of two elements: (joint-names joint-positions)."
-  (roslisp:make-message
-   'giskard_msgs-msg:jointconstraint
-   :type (roslisp:symbol-code
-          'giskard_msgs-msg:jointconstraint
-          :joint)
-   :goal_state (roslisp:make-message
-                'sensor_msgs-msg:jointstate
-                :name (apply #'vector (first joint-state))
-                :position (apply #'vector (second joint-state)))))
+;; (defun make-simple-joint-constraint (joint-state)
+;;   (declare (type list joint-state))
+;;   "`joint-state' is a list of two elements: (joint-names joint-positions)."
+;;   (roslisp:make-message
+;;    'giskard_msgs-msg:jointconstraint
+;;    :type (roslisp:symbol-code
+;;           'giskard_msgs-msg:jointconstraint
+;;           :joint)
+;;    :goal_state (roslisp:make-message
+;;                 'sensor_msgs-msg:jointstate
+;;                 :name (apply #'vector (first joint-state))
+;;                 :position (apply #'vector (second joint-state)))))
 
 (defun make-current-joint-state-constraint (arms)
   (let* ((joint-names-and-positions-lists
@@ -477,7 +521,7 @@
            (mapcan #'first joint-names-and-positions-lists))
          (joint-positions
            (mapcan #'second joint-names-and-positions-lists)))
-    (make-simple-joint-constraint (list joint-names joint-positions))))
+    (make-joint-constraint (list joint-names joint-positions))))
 
 (defun make-gripper-joint-state-constraint (arm joint-angle)
   (let ((gripper-joint
@@ -488,16 +532,28 @@
                        (rob-int:gripper-joint ?robot ,arm ?joint)))))))
     (when (cut:is-var gripper-joint)
       (error "[giskard] Robot gripper joint was not defined."))
-    (make-simple-joint-constraint `((,gripper-joint) (,joint-angle)))))
+    (make-joint-constraint `((,gripper-joint) (,joint-angle)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; COLLISIONS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; (defun make-allow-all-collision ()
+;;   (roslisp:make-message
+;;    'giskard_msgs-msg:collisionentry
+;;    :type (roslisp:symbol-code
+;;           'giskard_msgs-msg:collisionentry
+;;           :allow_all_collision)))
 
 (defun make-allow-all-collision ()
   (roslisp:make-message
    'giskard_msgs-msg:collisionentry
    :type (roslisp:symbol-code
           'giskard_msgs-msg:collisionentry
-          :allow_all_collisions)))
+          :allow_collision)
+   :group1 (roslisp-utilities:rosify-underscores-lisp-name
+            (rob-int:get-robot-name))
+   :group2 (roslisp:symbol-code
+            'giskard_msgs-msg:collisionentry
+            :all)))
 
 (defun make-avoid-all-collision (&optional (minimal-distance
                                             *avoid-collisions-distance*))
@@ -506,8 +562,13 @@
    'giskard_msgs-msg:collisionentry
    :type (roslisp:symbol-code
           'giskard_msgs-msg:collisionentry
-          :avoid_all_collisions)
-   :min_dist minimal-distance))
+          :avoid_collision)
+   :distance minimal-distance
+   :group1 (roslisp-utilities:rosify-underscores-lisp-name
+            (rob-int:get-robot-name))
+   :group2 (roslisp:symbol-code
+            'giskard_msgs-msg:collisionentry
+            :all)))
 
 (defun make-allow-robot-links-collision (links body-b &optional body-b-link)
   (declare (type list links)

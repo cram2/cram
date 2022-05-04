@@ -34,7 +34,7 @@
 (defun make-torso-action-goal (joint-angle)
   (declare (type number joint-angle))
   (make-giskard-goal
-   :joint-constraints (make-simple-joint-constraint
+   :joint-constraints (make-joint-constraint
                        `((,cram-tf:*robot-torso-joint*) (,joint-angle)))))
 
 (defun ensure-torso-goal-input (position)
