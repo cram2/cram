@@ -31,7 +31,46 @@
 (defparameter *spawn-debug-window* t
   "If the debug window should be spawned when belief state is set up.")
 
-(defun average (min max) (+ min (/ (- max min) 2)))
+(defun spawn-world ()
+  (assert
+   (cut:force-ll
+    (prolog `(and
+              (btr:bullet-world ?w)
+              ,@(when *spawn-debug-window*
+                  '((btr:debug-window ?w)))
+              (btr:assert ?w (btr:object :static-plane :floor ((0 0 0) (0 0 0 1))
+                                                       :normal (0 0 1) :constant 0
+                                                       :collision-mask (:default-filter)))
+              (-> (rob-int:environment-name ?environment-name)
+                  (btr:assert ?w (btr:object :urdf ?environment-name
+                                             ((0 0 0) (0 0 0 1))
+                                             :collision-group :static-filter
+                                             :collision-mask (:default-filter
+                                                              :character-filter)
+                                             ,@(when rob-int:*environment-urdf*
+                                                 `(:urdf ,rob-int:*environment-urdf*))
+                                             :compound T))
+                  (warn "ROB-INT:ENVIRONMENT-NAME was not defined. ~
+                         Have you loaded an environment knowledge package?"))
+              (-> (rob-int:robot ?robot)
+                  (and (btr:assert ?w (btr:object :urdf ?robot ((0 0 0) (0 0 0 1))
+                                                  ;; :color (0.9 0.9 0.9 1.0)
+                                                  :urdf ,rob-int:*robot-urdf*))
+                       (-> (rob-int:robot-joint-states ?robot :arm :left :park ?left-joint-states)
+                           (assert (btr:joint-state ?world ?robot ?left-joint-states))
+                           (true))
+                       (-> (rob-int:robot-joint-states ?robot :arm :right :park ?right-joint-states)
+                           (assert (btr:joint-state ?world ?robot ?right-joint-states))
+                           (true))
+                       (rob-int:robot-torso-link-joint ?robot ?_ ?torso-joint)
+                       (rob-int:joint-lower-limit ?robot ?torso-joint ?lower-limit)
+                       (rob-int:joint-upper-limit ?robot ?torso-joint ?upper-limit)
+                       (lisp-fun cma:average ?lower-limit ?upper-limit ?average-joint-value)
+                       (assert (btr:joint-state ?world ?robot
+                                                ((?torso-joint ?average-joint-value)))))
+                  (warn "ROB-INT:ROBOT was not defined. ~
+                         Have you loaded a robot package?")))))))
+
 (defun setup-world-database ()
   ;; make a clean world instance
   (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
@@ -80,44 +119,7 @@
               collision))))
 
   ;; spawn the floor, the robot and the environment
-  (assert
-   (cut:force-ll
-    (prolog `(and
-              (btr:bullet-world ?w)
-              ,@(when *spawn-debug-window*
-                  '((btr:debug-window ?w)))
-              (btr:assert ?w (btr:object :static-plane :floor ((0 0 0) (0 0 0 1))
-                                                       :normal (0 0 1) :constant 0
-                                                       :collision-mask (:default-filter)))
-              (-> (rob-int:environment-name ?environment-name)
-                  (btr:assert ?w (btr:object :urdf ?environment-name
-                                             ((0 0 0) (0 0 0 1))
-                                             :collision-group :static-filter
-                                             :collision-mask (:default-filter
-                                                              :character-filter)
-                                             ,@(when rob-int:*environment-urdf*
-                                                 `(:urdf ,rob-int:*environment-urdf*))
-                                             :compound T))
-                  (warn "ROB-INT:ENVIRONMENT-NAME was not defined. ~
-                         Have you loaded an environment knowledge package?"))
-              (-> (rob-int:robot ?robot)
-                  (and (btr:assert ?w (btr:object :urdf ?robot ((0 0 0) (0 0 0 1))
-                                                  ;; :color (0.9 0.9 0.9 1.0)
-                                                  :urdf ,rob-int:*robot-urdf*))
-                       (-> (rob-int:robot-joint-states ?robot :arm :left :park ?left-joint-states)
-                           (assert (btr:joint-state ?world ?robot ?left-joint-states))
-                           (true))
-                       (-> (rob-int:robot-joint-states ?robot :arm :right :park ?right-joint-states)
-                           (assert (btr:joint-state ?world ?robot ?right-joint-states))
-                           (true))
-                       (rob-int:robot-torso-link-joint ?robot ?_ ?torso-joint)
-                       (rob-int:joint-lower-limit ?robot ?torso-joint ?lower-limit)
-                       (rob-int:joint-upper-limit ?robot ?torso-joint ?upper-limit)
-                       (lisp-fun average ?lower-limit ?upper-limit ?average-joint-value)
-                       (assert (btr:joint-state ?world ?robot
-                                                ((?torso-joint ?average-joint-value)))))
-                  (warn "ROB-INT:ROBOT was not defined. ~
-                         Have you loaded a robot package?"))))))
+  (spawn-world)
 
   ;; update robot from TF in case we have a real robot
   (let ((robot-object (btr:get-robot-object)))
