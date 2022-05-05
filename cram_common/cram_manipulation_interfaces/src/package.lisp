@@ -42,7 +42,7 @@
    #:get-object-old-pose
    ;; prolog
    #:object-type-subtype #:object-type-direct-subtype
-   #:robot-free-hand #:joint-state-for-arm-config
+   #:robot-free-hand #:robot-arm-is-also-a-neck #:joint-state-for-arm-config
    #:object-rotationally-symmetric
    #:orientation-matters
    #:unidirectional-attachment

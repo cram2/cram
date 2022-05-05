@@ -97,9 +97,10 @@
     (desig:current-designator ?object-designator ?current-object-desig)
     (spec:property ?current-object-desig (:type ?object-type))
     (spec:property ?current-object-desig (:name ?object-name))
+    (rob-int:robot ?robot)
     (-> (spec:property ?action-designator (:arm ?arm))
         (true)
-        (man-int:robot-free-hand ?_ ?arm))
+        (man-int:robot-free-hand ?robot ?arm))
     (lisp-fun man-int:get-object-transform ?current-object-desig ?object-transform)
 
     ;; infer missing information like ?grasp type, gripping ?maximum-effort, manipulation poses
@@ -157,6 +158,10 @@
         (equal ?left-grasp-poses (?look-pose . ?_))
         (equal ?right-grasp-poses (?look-pose . ?_)))
 
+    (-> (man-int:robot-arm-is-also-a-neck ?robot ?arm)
+        (equal ?robot-arm-is-also-a-neck T)
+        (equal ?robot-arm-is-also-a-neck NIL))
+
     ;; put together resulting action designator
     (desig:designator :action ((:type :picking-up)
                                (:object ?current-object-desig)
@@ -166,6 +171,7 @@
                                (:grasp ?grasp)
                                (:location-type ?location-type)
                                (:look-pose ?look-pose)
+                               (:robot-arm-is-also-a-neck ?robot-arm-is-also-a-neck)
                                (:left-reach-poses ?left-reach-poses)
                                (:right-reach-poses ?right-reach-poses)
                                (:left-grasp-poses ?left-grasp-poses)
@@ -285,6 +291,11 @@
         (equal ?left-put-poses (?look-pose . ?_))
         (equal ?right-put-poses (?look-pose . ?_)))
 
+    (rob-int:robot ?robot)
+    (-> (man-int:robot-arm-is-also-a-neck ?robot ?arm)
+        (equal ?robot-arm-is-also-a-neck T)
+        (equal ?robot-arm-is-also-a-neck NIL))
+
     ;; put together resulting designator
     (desig:designator :action ((:type :placing)
                                (:object ?current-object-designator)
@@ -297,6 +308,7 @@
                                (:gripper-opening ?gripper-opening)
                                (:attachment-type ?placement-location-name)
                                (:look-pose ?look-pose)
+                               (:robot-arm-is-also-a-neck ?robot-arm-is-also-a-neck)
                                (:left-reach-poses ?left-reach-poses)
                                (:right-reach-poses ?right-reach-poses)
                                (:left-put-poses ?left-put-poses)
