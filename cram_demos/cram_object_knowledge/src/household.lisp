@@ -515,7 +515,8 @@
                          (urdf-name sink-area-surface)
                          (owl-name "kitchen_sink_block_counter_top")
                          (part-of ?environment-name)))
-           (side left)))
+           ;; left in the room is right in the sink-area-surface frame
+           (side right)))
 
 (defun make-location-on-sink-left-front (?environment-name)
   (desig:a location
@@ -524,8 +525,8 @@
                          (urdf-name sink-area-surface)
                          (owl-name "kitchen_sink_block_counter_top")
                          (part-of ?environment-name)))
-           (side left)
-           (side front)
+           ;; left-front in map frame is right back in sink-area-surface frame
+           (side (right back))
            (range-invert 0.5)))
 
 (defun make-location-on-sink-middle-front (?environment-name)
@@ -535,8 +536,7 @@
                          (urdf-name sink-area-surface)
                          (owl-name "kitchen_sink_block_counter_top")
                          (part-of ?environment-name)))
-           (side left)
-           (side front)
+           (side (right back))
            (range 0.5)))
 
 (defun make-location-in-sink (?object-type ?environment-name)
@@ -545,7 +545,7 @@
                             (type sink)
                             (urdf-name sink-area-sink)
                             (part-of ?environment-name)))
-           (side right)
+           (side left)
            (for (desig:an object (type ?object-type)))
            ;; the "for" condition for spoon adds a height that is too high to reach
            ;; so adding a little negative z-offset
@@ -560,7 +560,7 @@
                          (urdf-name sink-area-left-upper-drawer-main)
                          (owl-name "drawer_sinkblock_upper_open")
                          (part-of ?environment-name)))
-           (side front)))
+           (side back)))
 
 (defun make-location-in-sink-left-bottom-drawer (?environment-name)
   (desig:a location
@@ -568,7 +568,7 @@
                          (type drawer)
                          (urdf-name sink-area-left-bottom-drawer-main)
                          (part-of ?environment-name)))
-           (side front)))
+           (side back)))
 
 (defun make-location-in-sink-left-middle-drawer (?environment-name)
   (desig:a location
@@ -577,7 +577,7 @@
                          (urdf-name sink-area-left-middle-drawer-main)
                          (owl-name "drawer_sinkblock_middle_open")
                          (part-of ?environment-name)))
-           (side front)))
+           (side back)))
 
 (defun make-location-in-sink-trash-drawer (?object-type ?environment-name)
   (desig:a location
@@ -586,8 +586,7 @@
                             (urdf-name sink-area-trash-drawer-main)
                             (part-of ?environment-name)))
            (z-offset -0.05)
-           (side front)
-           (side right)
+           (side (back left))
            (range 0.2)
            (for (desig:an object (type ?object-type)))))
 
@@ -632,7 +631,7 @@
                          (owl-name "drawer_oven_right_open")
                          (part-of ?environment-name)
                          (level topmost)))
-           (side front)
+           (side back)
            (range 0.1)
            (orientation support-aligned)
            (for (desig:an object (type ?object-type)))))
@@ -667,8 +666,7 @@
                          (owl-name "kitchen_island_counter_top")
                          (part-of ?environment-name)))
            (for (desig:an object (type ?object-type)))
-           (side back)
-           (side right)
+           (side (back right))
            (range-invert 0.5)
            (context table-setting)
            (object-count 3)))
@@ -681,8 +679,7 @@
                          (owl-name "kitchen_island_counter_top")
                          (part-of ?environment-name)))
            (for (desig:an object (type ?object-type)))
-           (side back)
-           (side right)))
+           (side (back right))))
 
 (defun make-cereal-location (?object-type ?environment-name)
   (desig:a location
@@ -695,8 +692,7 @@
                          (owl-name "kitchen_island_counter_top")
                          (part-of ?environment-name)))
            (for (desig:an object (type ?object-type)))
-           (side back)
-           (side right)))
+           (side (back right))))
 
 (defun make-location-in-kitchen-island-left-upper-drawer (?environment-name)
   (desig:a location
@@ -715,7 +711,7 @@
                          (urdf-name dining-area-jokkmokk-table-main)
                          (part-of ?environment-name)))
            (for (desig:an object (type ?object-type)))
-           (side right)
+           (side front)
            (context table-setting)
            (object-count 2)))
 
@@ -725,8 +721,7 @@
                          (type counter-top)
                          (urdf-name dining-area-jokkmokk-table-main)
                          (part-of ?environment-name)))
-           (side back)
-           (side right)))
+           (side (front right))))
 
 (defun make-location-in-center-of-dining-table (?object-type ?environment-name)
   (desig:a location
@@ -736,13 +731,14 @@
                          (part-of ?environment-name)))
            (for (desig:an object (type ?object-type)))
            (range 0.2)
-           (side right)))
+           (side front)))
 
 ;;;;;;;;;; w.r.t. other object
 
 (defun make-location-right-of-other-object (?object-type ?other-object-type
                                             ?other-object-location
-                                            ?environment-name)
+                                            ;; ?environment-name
+                                            )
   (let ((?other-object-designator
           (desig:an object
                     (type ?other-object-type)
@@ -752,10 +748,11 @@
              (threshold 0.9)
              (near ?other-object-designator)
              (for (desig:an object (type ?object-type)))
-             (on (desig:an object
-                           (type counter-top)
-                           (urdf-name dining-area-jokkmokk-table-main)
-                           (part-of ?environment-name)))
+             ;; Don't add the ON property, otherwise the ORIENTATION will mess up
+             ;; (on (desig:an object
+             ;;               (type counter-top)
+             ;;               (urdf-name dining-area-jokkmokk-table-main)
+             ;;               (part-of ?environment-name)))
              (orientation support-aligned))))
 
 (defun make-location-right-of-behind-other-object (?object-type ?other-object-type
@@ -838,8 +835,7 @@
               (make-location-right-of-other-object
                object-type other-object-type
                (make-location-on-kitchen-island-slots
-                other-object-type environment)
-               environment))))
+                other-object-type environment)))))
         '((:spoon :bowl)
           (:knife :plate)))
 
@@ -937,8 +933,7 @@
               (make-location-right-of-other-object
                object-type other-object-type
                (make-location-on-dining-table-slots
-                other-object-type environment)
-               environment))))
+                other-object-type environment)))))
         '((:spoon :bowl)))
 
 (mapcar (lambda (object-type-and-other-object-type)

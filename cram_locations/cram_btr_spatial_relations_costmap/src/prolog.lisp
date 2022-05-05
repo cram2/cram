@@ -167,7 +167,7 @@
     (costmap:costmap-padding ?robot-name ?padding)
     (costmap:costmap-add-function
      environment-free-space
-     (make-aabbs-costmap-generator
+     (make-object-bounding-box-costmap-generator
       ?rigid-bodies :invert t :padding ?padding)
      ?costmap)
     ;; Locations to see and to reach are on the floor, so we can use a
@@ -610,64 +610,88 @@
                   ?costmap))
   ;;
   ;;;;;;;;;;;;;;;;;;;;; SIDE and RANGE relations for ON, IN or ABOVE ;;;;;;;;;
-  (<- (costmap:desig-costmap ?designator ?costmap)
-    (or (and (desig:desig-prop ?designator (:side ?relation))
-             (member ?relation (:left :right :front :back)))
-        (desig:desig-prop ?designator (:range ?range))
-        (desig:desig-prop ?designator (:range-invert ?range-invert)))
-    (or (desig:desig-prop ?designator (:on ?on-object))
-        (desig:desig-prop ?designator (:in ?on-object))
-        (desig:desig-prop ?designator (:above ?on-object)))
-    (not (desig:desig-prop ?designator (:attachment ?_)))
-    (not (desig:desig-prop ?designator (:attachments ?_)))
-    (costmap:costmap ?costmap)
+  (<- (rigid-body-of-location-designator-reference-object ?designator ?rigid-body)
+    (once
+     (or
+      (desig:desig-prop ?designator (:on ?object-designator))
+      (desig:desig-prop ?designator (:in ?object-designator))
+      (desig:desig-prop ?designator (:above ?object-designator))))
     (btr:bullet-world ?world)
     (once
-     (or (and (desig:desig-prop ?on-object (:level ?level))
-              (desig:desig-prop ?on-object (:urdf-name ?urdf-name))
-              (desig:desig-prop ?on-object (:part-of ?environment-name))
-              (btr:%object ?world ?environment-name ?environment-object)
-              (level-rigid-body ?environment-object ?urdf-name ?level nil
-                                ?rigid-body)
-              (lisp-pred identity ?link-rigid-body))
-         (and (desig:desig-prop ?on-object (:level-invert ?level))
-              (desig:desig-prop ?on-object (:urdf-name ?urdf-name))
-              (desig:desig-prop ?on-object (:part-of ?environment-name))
-              (btr:%object ?world ?environment-name ?environment-object)
-              (level-rigid-body ?environment-object ?urdf-name ?level t
-                                ?rigid-body)
-              (lisp-pred identity ?link-rigid-body))
-         (and (desig:desig-prop ?on-object (:urdf-name ?urdf-name))
-              (desig:desig-prop ?on-object (:part-of ?environment-name))
-              (btr:%object ?world ?environment-name ?environment-object)
-              (lisp-fun get-link-rigid-body ?environment-object ?urdf-name
-                        ?rigid-body)
-              (lisp-pred identity ?rigid-body))
-         (and (object-designator-from-name-or-type ?on-object ?object-instance-name)
-              (btr:item-type ?world ?object-instance-name ?_)
-              (btr:%object ?world ?object-instance-name ?rigid-body)
-              (lisp-pred identity ?rigid-body))))
+     (or
+      (and (desig:desig-prop ?object-designator (:level ?level))
+           (desig:desig-prop ?object-designator (:urdf-name ?urdf-name))
+           (desig:desig-prop ?object-designator (:part-of ?environment-name))
+           (btr:%object ?world ?environment-name ?environment-object)
+           (level-rigid-body ?environment-object ?urdf-name ?level nil ?rigid-body)
+           (lisp-pred identity ?rigid-body))
+      (and (desig:desig-prop ?object-designator (:level-invert ?level))
+           (desig:desig-prop ?object-designator (:urdf-name ?urdf-name))
+           (desig:desig-prop ?object-designator (:part-of ?environment-name))
+           (btr:%object ?world ?environment-name ?environment-object)
+           (level-rigid-body ?environment-object ?urdf-name ?level t ?rigid-body)
+           (lisp-pred identity ?rigid-body))
+      (and (desig:desig-prop ?object-designator (:urdf-name ?urdf-name))
+           (desig:desig-prop ?object-designator (:part-of ?environment-name))
+           (btr:%object ?world ?environment-name ?environment-object)
+           (lisp-fun get-link-rigid-body ?environment-object ?urdf-name ?rigid-body)
+           (lisp-pred identity ?rigid-body))
+      (and (object-designator-from-name-or-type ?object-designator ?object-instance-name)
+           (btr:item-type ?world ?object-instance-name ?_)
+           (btr:%object ?world ?object-instance-name ?rigid-body)
+           (lisp-pred identity ?rigid-body)))))
+  ;;
+  ;; SIDE relations
+  (<- (costmap:desig-costmap ?designator ?costmap)
+    (desig:desig-prop ?designator (:side ?relations))
+    (-> (lisp-type ?relations list)
+        (equal ?relations (?relation1 ?relation2))
+        (equal (?relations nil) (?relation1 ?relation2)))
+    (member ?relation1 (:left :right :front :back))
+    (member ?relation2 (:left :right :front :back nil))
+    (not (desig:desig-prop ?designator (:attachment ?_)))
+    (not (desig:desig-prop ?designator (:attachments ?_)))
+    (rigid-body-of-location-designator-reference-object ?designator ?rigid-body)
     (lisp-fun btr:pose ?rigid-body ?object-pose)
-    (-> (desig:desig-prop ?designator (:side ?relation))
-        (and (relation-axis-and-pred ?relation :in-front-of ?axis ?sign)
-             (instance-of side-generator ?side-generator-id)
+    (costmap:costmap ?costmap)
+    (relation-axis-and-pred ?relation1 :in-front-of ?axis ?sign)
+    (instance-of side-generator ?side-generator-id)
+    (costmap:costmap-add-function
+     ?side-generator-id
+     (make-side-costmap-generator ?rigid-body ?axis ?sign)
+     ?costmap)
+    (-> (lisp-pred identity ?relation2)
+        (and (relation-axis-and-pred ?relation2 :in-front-of ?axis2 ?sign2)
+             (instance-of side-generator ?side-generator-id2)
              (costmap:costmap-add-function
-              ?side-generator-id
-              (make-side-costmap-generator ?rigid-body ?axis ?sign)
+              ?side-generator-id2
+              (make-side-costmap-generator ?rigid-body ?axis2 ?sign2)
               ?costmap))
-        (true))
-    (-> (desig:desig-prop ?designator (:range ?range))
-        (and (instance-of range-generator ?range-generator-id)
-             (costmap:costmap-add-function
-              ?range-generator-id
-              (costmap:make-range-cost-function ?object-pose ?range :invert nil)
-              ?costmap))
-        (true))
-    (-> (desig:desig-prop ?designator (:range-invert ?range-invert))
-        (and (instance-of range-generator ?range-generator-another-id)
-             (costmap:costmap-add-function
-              ?range-generator-another-id
-              (costmap:make-range-cost-function ?object-pose ?range-invert :invert t)
-              ?costmap))
-        (true))))
+        (true)))
+  ;; RANGE relation
+  (<- (costmap:desig-costmap ?designator ?costmap)
+    (desig:desig-prop ?designator (:range ?range))
+    (not (desig:desig-prop ?designator (:attachment ?_)))
+    (not (desig:desig-prop ?designator (:attachments ?_)))
+    (rigid-body-of-location-designator-reference-object ?designator ?rigid-body)
+    (lisp-fun btr:pose ?rigid-body ?object-pose)
+    (costmap:costmap ?costmap)
+    (instance-of range-generator ?range-generator-id)
+    (costmap:costmap-add-function
+     ?range-generator-id
+     (costmap:make-range-cost-function ?object-pose ?range :invert nil)
+     ?costmap))
+  ;; RANGE-INVERT relation
+  (<- (costmap:desig-costmap ?designator ?costmap)
+    (desig:desig-prop ?designator (:range-invert ?range-invert))
+    (not (desig:desig-prop ?designator (:attachment ?_)))
+    (not (desig:desig-prop ?designator (:attachments ?_)))
+    (rigid-body-of-location-designator-reference-object ?designator ?rigid-body)
+    (lisp-fun btr:pose ?rigid-body ?object-pose)
+    (costmap:costmap ?costmap)
+    (instance-of range-generator ?range-invert-generator-id)
+    (costmap:costmap-add-function
+     ?range-invert-generator-id
+     (costmap:make-range-cost-function ?object-pose ?range-invert :invert t)
+     ?costmap)))
 

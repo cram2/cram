@@ -164,50 +164,70 @@ reverse sort it"
 
 ;;;;;;;;;;;;;;;;;;;;;;;; COSTMAPS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun make-object-bounding-box-costmap-generator (object)
+(defun make-object-bounding-box-costmap-generator (object &key (invert nil)
+                                                            (padding 0.0d0))
   "This cost function assumes that one of the planes of the object
 is aligned with the horizontal plane,
 i.e. the object is lying flatly on the horizontal surface."
-  (let* ((bounding-box-dims
-           (btr:calculate-bb-dims object))
-         (dimensions-x/2
-           (/ (cl-transforms:x bounding-box-dims) 2))
-         (dimensions-y/2
-           (/ (cl-transforms:y bounding-box-dims) 2))
-         (angle-around-map-z
-           (cram-tf:angle-around-map-z (cl-transforms:orientation (btr:pose object))))
-         (object-position
-           (cl-transforms:origin (btr:pose object)))
-         (center-x
-           (cl-transforms:x object-position))
-         (center-y
-           (cl-transforms:y object-position)))
-
+  (let* ((objects
+           (if (listp object)
+               (cut:force-ll object)
+               (list object)))
+         (centerx-centery-dimx/2-dimy/2-anglez-lists
+           (loop for object in objects
+                 collecting
+                 (let* ((bounding-box-dims
+                          (btr:calculate-bb-dims object))
+                        (dimensions-x/2
+                          (+ (/ (cl-transforms:x bounding-box-dims) 2) padding))
+                        (dimensions-y/2
+                          (+ (/ (cl-transforms:y bounding-box-dims) 2) padding))
+                        (angle-around-map-z
+                          (cram-tf:angle-around-map-z (cl-transforms:orientation
+                                                       (btr:pose object))))
+                        (object-position
+                          (cl-transforms:origin (btr:pose object)))
+                        (center-x
+                          (cl-transforms:x object-position))
+                        (center-y
+                          (cl-transforms:y object-position)))
+                   (list center-x center-y dimensions-x/2 dimensions-y/2
+                         angle-around-map-z)))))
     (lambda (x y)
-      (let* ((point-in-bb-frame-identity-orientation
-               (btr::make-3d-vector
-                (- x center-x)
-                (- y center-y)
-                0))
-             (point-in-bb-frame-bb-orientation
-               (cl-transforms:rotate
-                (cl-transforms:axis-angle->quaternion
-                 (cl-transforms:make-3d-vector 0 0 1)
-                 (- angle-around-map-z))
-                point-in-bb-frame-identity-orientation))
-             (point-in-map-frame
-               (cl-transforms:v+
-                point-in-bb-frame-bb-orientation
-                (cl-transforms:make-3d-vector center-x center-y 0)))
-             (new-x (cl-transforms:x point-in-map-frame))
-             (new-y (cl-transforms:y point-in-map-frame)))
-        (if (and
-             (<= new-x (+ center-x dimensions-x/2))
-             (>= new-x (- center-x dimensions-x/2))
-             (< new-y (+ center-y dimensions-y/2))
-             (> new-y (- center-y dimensions-y/2)))
-            1.0
-            0.0)))))
+      (block nil
+        (dolist (centerx-centery-dimx/2-dimy/2-anglez-list
+                 centerx-centery-dimx/2-dimy/2-anglez-lists
+                 ;; if we reach the end of the list, we return the default 0.0
+                 ;; (or if invert then 1.0), because there was no object
+                 ;; within the bounding boxes of which the costmap sample lies
+                 (if invert 1.0d0 0.0d0))
+          (destructuring-bind (center-x center-y dimensions-x/2 dimensions-y/2
+                               angle-around-map-z)
+              centerx-centery-dimx/2-dimy/2-anglez-list
+           (let* ((point-in-bb-frame-identity-orientation
+                    (btr::make-3d-vector
+                     (- x center-x)
+                     (- y center-y)
+                     0))
+                  (point-in-bb-frame-bb-orientation
+                    (cl-transforms:rotate
+                     (cl-transforms:axis-angle->quaternion
+                      (cl-transforms:make-3d-vector 0 0 1)
+                      (- angle-around-map-z))
+                     point-in-bb-frame-identity-orientation))
+                  (point-in-map-frame
+                    (cl-transforms:v+
+                     point-in-bb-frame-bb-orientation
+                     (cl-transforms:make-3d-vector center-x center-y 0)))
+                  (new-x (cl-transforms:x point-in-map-frame))
+                  (new-y (cl-transforms:y point-in-map-frame)))
+             ;; if the sample lies within the bounding box of at least one object
+             ;; we can break the loop and return 1.0
+             (when (and (<= new-x (+ center-x dimensions-x/2))
+                        (>= new-x (- center-x dimensions-x/2))
+                        (< new-y (+ center-y dimensions-y/2))
+                        (> new-y (- center-y dimensions-y/2)))
+               (return (if invert 0.0 1.0))))))))))
 
 (defun make-object-in-object-bounding-box-costmap-generator (container-object inner-object)
   "Returns a costmap generator, which for any point within
@@ -544,15 +564,22 @@ The function returns one of the following keys: :front, :back, :left, :right."
   "Returns a lambda function which for each (x y) gives 1.0
 if it is on the sign side of the axis. "
   (when obj
-    (let* ((pose-origin (cl-transforms:origin (btr:pose obj)))
-           (bb-x (cl-transforms:x pose-origin))
-           (bb-y (cl-transforms:y pose-origin)))
+    (let* ((map-T-obj (cl-transforms:reference-transform (btr:pose obj)))
+           (obj-T-map (cl-transforms:transform-inv map-T-obj)))
       (lambda (x y)
-        (if (case axis
-              (:x (funcall sign x bb-x))
-              (:y (funcall sign y bb-y)))
-            1.0
-            0.0)))))
+        (let* ((map-T-cm-sample
+                 (cl-transforms:make-pose
+                  (cl-transforms:make-3d-vector x y 0.0)
+                  (cl-transforms:make-identity-rotation)))
+               (obj-T-cm-sample
+                 (cl-transforms:transform obj-T-map map-T-cm-sample))
+               (obj-T-cm-sample-origin
+                 (cl-transforms:origin obj-T-cm-sample)))
+          (if (case axis
+                (:x (funcall sign (cl-transforms:x obj-T-cm-sample-origin) 0))
+                (:y (funcall sign (cl-transforms:y obj-T-cm-sample-origin) 0)))
+              1.0
+              0.0))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; HEIGHT GENERATORS ;;;;;;;;;;;;;;;;;;;;;;;
 
