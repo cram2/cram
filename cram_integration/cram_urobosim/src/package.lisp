@@ -1,6 +1,6 @@
-; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;;;
-;;; Copyright (c) 2016, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;;                     Arthur Niedzwiecki <aniedz@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -28,21 +28,25 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(asdf:defsystem cram-executive
-  :name "cram-executive"
-  :author "Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>"
-  :maintainer "Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>"
-  :licence "BSD"
-  :description "Utility constructs from writing CRAM-based executives."
-  :depends-on (:alexandria
-               :cram-language
-               :cram-designators
-               :cram-process-modules
-               :cram-occasions-events
-               :roslisp)
+(in-package :cl-user)
 
-  :components
-  ((:module "src"
-            :components
-            ((:file "package")
-             (:file "perform" :depends-on ("package"))))))
+(defpackage cram-urobosim
+  (:nicknames #:unreal)
+  (:use #:common-lisp #:cram-prolog)
+  (:export
+   ;; action-client
+   #:call-perceive-action
+   ;; low-level
+   #:detect
+   #:perceive
+   #:pick-up
+   ;; process-module
+   #:urobosim-perception-pm
+   #:urobosim-manipulation-pm
+   ;; world-control-clients
+   #:close-services
+   #:reset-world
+   ;; objects
+   #:spawn-object
+   #:set-object-pose
+   #:delete-object))

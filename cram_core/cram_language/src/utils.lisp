@@ -79,6 +79,7 @@
   (/ (float a 1.0d0) (float b 1.0d0)))
 
 (defun sleep* (seconds)
+   (common-lisp:sleep seconds)
   ;; (let ((seconds (coerce seconds 'double-float)))
   ;;   (declare (double-float seconds))
   ;;   #+nil (declare (optimize speed))
@@ -100,6 +101,7 @@
   ;;           (when (plusp seconds)
   ;;             (go :retry))))))
   )
+
 
 (defmacro mapcar-clean (function list &rest more-lists)
   "Automatically removes all `NIL' entries from a generated list after
