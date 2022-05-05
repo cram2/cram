@@ -70,6 +70,7 @@
   (<- (camera-frame :iai-donbot "rs_camera_depth_optical_frame")) ; realsense, virtual
   (<- (camera-frame :iai-donbot "rs_camera_color_optical_frame")) ; virtual
 
+  ;; The visibility costmap makes no sense for Donbot, as it can move its arm anywhere.
   ;; (<- (camera-minimal-height :iai-donbot 0.5))
   ;; (<- (camera-maximal-height :iai-donbot 1.2))
 
