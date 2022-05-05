@@ -79,7 +79,7 @@
     (if (< x 1.6)
         (if (and (> x -1.0) (> y -1.0) (< y 2.9))
             1.0
-            (if (and (> x -3.0) (> y -0.5) (< y 2.0))
+            (if (and (> x -3.0) (> y -0.5) (< y 2.9))
                 1.0
                 0.0))
         0.0)))
@@ -89,11 +89,11 @@
     (:iai-kitchen
      (if (btr:object btr:*current-bullet-world* :big-wooden-plate)
          (make-iai-kitchen-assembly-restricted-area-cost-function)
-         (if (> (cl-transforms:y
+         (if (> (cl-transforms:x
                  (cl-transforms:origin
                   (btr:pose
                    (btr:rigid-body (btr:get-environment-object)
-                                   :|IAI-KITCHEN.oven_area_area|))))
+                                   :|IAI-KITCHEN.fridge_area|))))
                 0)
              (make-iai-kitchen-household-restricted-area-cost-function)
              (make-iai-kitchen-offset-household-restricted-area-cost-function))))

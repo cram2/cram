@@ -86,7 +86,7 @@
     ("table_area_main_joint"
      ((0.95d0 -0.95d0 0.0d0) (0 0 0.3 0.7)))
     ("dining_area_footprint_joint"
-     ((-2.5d0 -0.55d0 0.0d0) (0 0 0 1)))))
+     ((-2.5d0 -0.55d0 0.0d0) (0 0 1 0)))))
 
 
 (defun attach-object-to-the-world (object-type spawning-poses-relative)
