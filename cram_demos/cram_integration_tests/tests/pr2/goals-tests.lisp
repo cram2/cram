@@ -315,9 +315,12 @@
            (target (a location
                       (pose ?look-pose)))))
       (let* ((?object
-               (urdf-proj::detect
-                (an object
-                    (type breakfast-cereal))))
+
+               (perform
+                (an action
+                    (type perceiving)
+                    (object (an object
+                                (type :breakfast-cereal))))))
              ;; We copy the object here because the original gets changed,
              ;; in a way that referencing the pick up designator doesn't work anymore.
              (?object-copy

@@ -1,6 +1,5 @@
-; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;;;
-;;; Copyright (c) 2016, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -28,21 +27,16 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(asdf:defsystem cram-executive
-  :name "cram-executive"
-  :author "Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>"
-  :maintainer "Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>"
-  :licence "BSD"
-  :description "Utility constructs from writing CRAM-based executives."
-  :depends-on (:alexandria
-               :cram-language
-               :cram-designators
-               :cram-process-modules
-               :cram-occasions-events
-               :roslisp)
+(in-package :unreal)
 
-  :components
-  ((:module "src"
-            :components
-            ((:file "package")
-             (:file "perform" :depends-on ("package"))))))
+(def-fact-group feeding-designators (desig:action-grounding)
+  (<- (desig:action-grounding ?action-designator (spooning
+                                                  ?fetching-location-designator
+                                                  ?delivering-location-designator
+                                                  ))
+    (spec:property ?action-designator (:type :spooning))
+    (spec:property ?action-designator (:location ?some-fetching-location-designator))
+    (desig:current-designator ?some-fetching-location-designator ?fetching-location-designator)
+    (spec:property ?action-designator (:target ?some-delivering-location-designator))
+    (desig:current-designator ?some-delivering-location-designator ?delivering-location-designator)
+    ))
