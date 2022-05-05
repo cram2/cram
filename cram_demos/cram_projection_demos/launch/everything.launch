@@ -9,6 +9,7 @@
   <!-- choose environment -->
   <arg name="household" default="false" />
   <arg name="retail" default="false" />
+  <arg name="storage" default="false" />
 
   <!-- upload or not upload the robot description (in case one is already uploaded) -->
   <arg name="upload_robot" default="true" />
@@ -79,6 +80,11 @@
              command="$(find xacro)/xacro
                       '$(find iai_refills_lab)/urdf/dm_room.urdf.xacro'"/>
     </group>
+  </group>
+  <group if="$(arg storage)">
+    <param name="kitchen_description"
+           command="$(find xacro)/xacro
+                    '$(find cram_projection_demos)/resource/retail/storage.urdf.xacro'"/>
   </group>
 
   <!-- environment state publisher -->
