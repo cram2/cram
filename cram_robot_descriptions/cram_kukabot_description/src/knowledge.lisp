@@ -71,8 +71,9 @@
   ;; (<- (camera-frame :kmr-iiwa "rs_camera_color_optical_frame"))
                                         ; virtual
 
-  ;; (<- (camera-minimal-height :kmr-iiwa 0.5))
-  ;; (<- (camera-maximal-height :kmr-iiwa 1.2))
+  ;; The visibility costmap makes no sense for Kukabot, as it can move its arm anywhere.
+  ;; (<- (camera-minimal-height :kmr-iiwa 0.7))
+  ;; (<- (camera-maximal-height :kmr-iiwa 2.0))
 
   ;; These are values taken from the Kinect's wikipedia page for the 360 variant
   (<- (camera-horizontal-angle :kmr-iiwa 0.99483))
@@ -261,7 +262,7 @@
                                            costmap:visibility-costmap-size)
   (<- (costmap:costmap-padding :kmr-iiwa 0.5))
   (<- (costmap:costmap-manipulation-padding :kmr-iiwa 0.3))
-  (<- (costmap:costmap-in-reach-distance :kmr-iiwa 1.3))
+  (<- (costmap:costmap-in-reach-distance :kmr-iiwa 1.4))
   (<- (costmap:costmap-reach-minimal-distance :kmr-iiwa 0.1))
   (<- (costmap:orientation-samples :kmr-iiwa 3))
   (<- (costmap:orientation-sample-step :kmr-iiwa 0.7854))
