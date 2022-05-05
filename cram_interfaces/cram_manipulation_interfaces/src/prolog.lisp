@@ -106,6 +106,11 @@
     (rob-int:arm ?robot ?arm)
     (not (cpoe:object-in-hand ?_ ?arm)))
 
+  ;; says if the robot's given arm is also the robot's neck
+  (<- (robot-arm-is-also-a-neck ?robot ?arm)
+    (rob-int:arm ?robot ?arm)
+    (rob-int:neck ?robot ?arm))
+
   ;; says if the object or an object to which this object is attached, are in hand
   (<- (object-or-its-reference-in-hand ?some-object-designator ?object-hand)
     (desig:current-designator ?some-object-designator ?object-designator)
