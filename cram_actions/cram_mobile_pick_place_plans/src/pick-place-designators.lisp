@@ -300,6 +300,7 @@
     (desig:designator :action ((:type :placing)
                                (:object ?current-object-designator)
                                (:target ?current-location-designator)
+                               (:target-object-transform ?target-object-transform)
                                (:other-object ?other-object-designator)
                                (:other-object-is-a-robot ?other-object-is-a-robot)
                                (:arm ?arm)
