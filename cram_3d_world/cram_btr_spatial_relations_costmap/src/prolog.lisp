@@ -526,6 +526,7 @@
                            ?link-rigid-body)
                  (lisp-pred identity ?link-rigid-body)
                  (equal ?height-calculation-tag ?original-tag)))))
+  ;;
   ;; the costmap
   (<- (costmap:desig-costmap ?designator ?costmap)
     (or (and (desig:desig-prop ?designator (:in ?object))
@@ -544,6 +545,7 @@
                                     ?height-calculation-tag)
     (lisp-pred identity ?environment-link)
     (costmap:costmap ?costmap)
+    ;; differentiate between locations FOR an object and without the FOR
     (once (or (and (desig:desig-prop ?designator (:for ?for-object))
                    (object-designator-from-name-or-type ?for-object ?for-object-name)
                    (btr:%object ?world ?for-object-name ?for-object-instance)
