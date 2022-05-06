@@ -227,7 +227,8 @@
          (roslisp:ros-warn (pp-plans pick-up)
                            "Manipulation messed up: ~a~%Ignoring."
                            e)
-         (return)))
+         ;; (return)
+         ))
     (let ((?goal `(cpoe:tool-frames-at ,?left-put-poses ,?right-put-poses)))
       (exe:perform
        (desig:an action
