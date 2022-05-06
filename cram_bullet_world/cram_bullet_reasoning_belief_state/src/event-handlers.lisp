@@ -147,6 +147,36 @@ and renames POSE into OLD-POSE."
 
 
 
+
+(defun snap-object-onto-robot (object-type object-name arm grasp)
+  (cut:with-vars-strictly-bound (?ee-frame ?ee-P-tcp ?std-gripper-T-gripper)
+
+      (cut:lazy-car
+       (prolog:prolog
+        `(and
+          (rob-int:robot ?robot)
+          (rob-int:end-effector-link ?robot ,arm ?ee-frame)
+          (rob-int:tcp-in-ee-pose ?robot ?ee-P-tcp)
+          (rob-int:standard<-particular-gripper-transform ?robot ?std-gripper-T-gripper))))
+
+    (let* ((map-T-ee
+             (cl-transforms:reference-transform
+              (btr:link-pose (btr:get-robot-object) ?ee-frame)))
+           (ee-T-gripper
+             (cl-transforms:reference-transform ?ee-P-tcp))
+           (gripper-T-std-gripper
+             (cl-transforms:transform-inv ?std-gripper-T-gripper))
+           (obj-T-std-gripper
+             (man-int:get-object-type-to-gripper-transform
+              object-type object-name arm grasp))
+           (std-gripper-T-obj
+             (cl-transforms:transform-inv obj-T-std-gripper))
+           (map-T-obj
+             (cl-transforms:transform*
+              map-T-ee ee-T-gripper gripper-T-std-gripper std-gripper-T-obj)))
+      (setf (btr:pose (btr:object btr:*current-bullet-world* object-name))
+            (cl-transforms:transform->pose map-T-obj)))))
+
 (defmethod cram-occasions-events:on-event btr-attach-object 2 ((event cpoe:object-attached-robot))
   "2 means this method has to be ordered based on integer qualifiers.
 It could have been 1 but 1 is reserved in case somebody has to be even more urgently
@@ -198,6 +228,13 @@ If there is no other method with 1 as qualifier, this method will be executed al
                                                              :loose t
                                                              :grasp grasp))
                 links grasps)))
+      ;; This is not really necessary, as the object and the gripper should
+      ;; already be perfectly aligned. But if one wanted to test something out
+      ;; without bothering to move the robot, this could be useful.
+      ;; In that case please call the function yourself directly.
+      ;; For environment objects, which are also robot objects,
+      ;; the grasp transform is not defined, so this only works for robot robots.
+      ;; (snap-object-onto-robot (car (btr:item-types btr-object)) btr-object-name arm grasp)
       ;; attach
       (btr:attach-object robot-object btr-object :link link :loose nil :grasp grasp)
       ;; invalidate the pose in the designator
