@@ -83,6 +83,12 @@
     ((:file "package")
      (:file "costmaps" :depends-on ("package"))
      (:file "setup" :depends-on ("package"))
-     (:file "assembly-demo" :depends-on ("package" "setup"))
-     (:file "household-demo" :depends-on ("package" "setup"))
-     (:file "retail-demo" :depends-on ("package" "setup"))))))
+     (:file "utils" :depends-on ("package"))
+     (:file "assembly-demo" :depends-on ("package" "utils"))
+     (:file "household-demo" :depends-on ("package" "utils"))
+     (:file "retail-demo" :depends-on ("package" "utils"))
+     (:file "storage-demo" :depends-on ("package" "utils"
+                                                  ;; for toy parts colors
+                                                  "assembly-demo"
+                                                  ;; for clearing grasps
+                                                  "household-demo"))))))

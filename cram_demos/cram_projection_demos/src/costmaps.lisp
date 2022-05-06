@@ -84,6 +84,12 @@
                 0.0))
         0.0)))
 
+(defun make-storage-restricted-area-cost-function ()
+  (lambda (x y)
+    (if (and (< x 2.6) (> x -2.6) (< y 1.6) (> y -1.6))
+        1.0
+        0.0)))
+
 (defun make-restricted-area-cost-function ()
   (ecase (rob-int:get-environment-name)
     (:iai-kitchen
@@ -100,7 +106,9 @@
     ((or :dm-room :store)
      (make-dm-room-restricted-area-cost-function))
     (:dm-shelves
-     (make-small-retail-restricted-area-cost-function))))
+     (make-small-retail-restricted-area-cost-function))
+    (:storage
+     (make-storage-restricted-area-cost-function))))
 
 (defmethod costmap:costmap-generator-name->score ((name (eql 'restricted-area)))
   5)
