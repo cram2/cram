@@ -118,6 +118,7 @@
 (defparameter *cutlery-grasp-z-offset* -0.015 ;; 0.015
               "in meters") ; because TCP is not at the edge
 (defparameter *cutlery-pregrasp-z-offset* 0.20 "in meters")
+(defparameter *cutlery-shelf-pregrasp-z-offset* 0.07 "in meters")
 (defparameter *cutlery-pregrasp-xy-offset* 0.10 "in meters")
 
 ;; TOP grasp
@@ -129,6 +130,16 @@
   :2nd-pregrasp-offsets `(0.0 0.0 ,*cutlery-pregrasp-z-offset*)
   :lift-translation `(0.0 0.0 ,*cutlery-pregrasp-z-offset*)
   :2nd-lift-translation `(0.0 0.0 ,*cutlery-pregrasp-z-offset*))
+;; TOP grasp shelf
+(man-int:def-object-type-to-gripper-transforms '(:cutlery :fork :knife :spoon)
+    '(:left :right) :top
+  :location-type :shelf
+  :grasp-translation `(0.0 0.0 ,*cutlery-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,*cutlery-shelf-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,*cutlery-shelf-pregrasp-z-offset*)
+  :lift-translation `(0.0 0.0 ,*cutlery-shelf-pregrasp-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*cutlery-shelf-pregrasp-z-offset*))
 
 ;; BOTTOM grasp
 ;; Bottom grasp is commented out because the robot grasps the spoon through the
@@ -431,8 +442,10 @@
 
 ;; (defparameter *edeka-red-bowl-grasp-x-offset* 0.07 "in meters")
 (defparameter *bowl-grasp-x-offset* 0.08 "in meters")
+(defparameter *bowl-tilted-pregrasp-x-offset* 0.08 "in meters")
 ;; (defparameter *edeka-red-bowl-grasp-z-offset* 0.0 "in meters")
 (defparameter *bowl-grasp-z-offset* 0.02 "in meters")
+(defparameter *bowl-tilted-grasp-z-offset* 0.04 "in meters")
 (defparameter *bowl-pregrasp-z-offset* 0.20 "in meters")
 
 ;; TOP grasp
@@ -457,6 +470,16 @@
   :2nd-pregrasp-offsets *lift-offset*
   :lift-translation *lift-offset*
   :2nd-lift-translation *lift-offset*)
+(man-int:def-object-type-to-gripper-transforms :bowl '(:left :right) :top-left-tilted
+  :grasp-translation `(0.0d0 ,*bowl-grasp-x-offset* ,*bowl-tilted-grasp-z-offset*)
+  :grasp-rot-matrix
+  `((0                                    1 0)
+    (,(sin *plate-grasp-roll-offset*)     0 ,(- (cos *plate-grasp-roll-offset*)))
+    (,(- (cos *plate-grasp-roll-offset*)) 0 ,(- (sin *plate-grasp-roll-offset*))))
+  :pregrasp-offsets `(0.0d0 ,*bowl-tilted-pregrasp-x-offset* ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0d0 ,*bowl-tilted-pregrasp-x-offset* ,*lift-z-offset*)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
 (man-int:def-object-type-to-gripper-transforms :bowl '(:left :right) :top-right
   :grasp-translation `(0.0d0 ,(- *bowl-grasp-x-offset*) ,*bowl-grasp-z-offset*)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
@@ -464,6 +487,17 @@
   :2nd-pregrasp-offsets *lift-offset*
   :lift-translation *lift-offset*
   :2nd-lift-translation *lift-offset*)
+(man-int:def-object-type-to-gripper-transforms :bowl '(:left :right) :top-right-tilted
+  :grasp-translation `(0.0d0 ,(- *bowl-grasp-x-offset*) ,*bowl-tilted-grasp-z-offset*)
+  :grasp-rot-matrix
+  `((0 -1 0)
+    (,(- (sin *plate-grasp-roll-offset*)) 0 ,(cos *plate-grasp-roll-offset*))
+    (,(- (cos *plate-grasp-roll-offset*)) 0 ,(- (sin *plate-grasp-roll-offset*))))
+  :pregrasp-offsets `(0.0d0 ,(- *bowl-tilted-pregrasp-x-offset*) ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0d0 ,(- *bowl-tilted-pregrasp-x-offset*) ,*lift-z-offset*)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
 ;; TOP grasp drawer
 (man-int:def-object-type-to-gripper-transforms :bowl '(:left :right) :top
   :location-type :drawer
