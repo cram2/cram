@@ -208,13 +208,7 @@
 
 
 (defun spawn-assembly-objects (&optional (spawning-data *object-spawning-data*))
-  (btr-utils:kill-all-objects)
-  (btr:detach-all-objects (btr:get-robot-object))
-  (btr:detach-all-objects (btr:get-environment-object))
-  ;; detach all items from each other
-  (mapcar #'btr:detach-all-objects
-          (remove-if-not (lambda (obj) (typep obj 'btr:item))
-                         (btr:objects btr:*current-bullet-world*)))
+  (kill-and-detach-all)
   ;; spawn objects at default poses
   (let ((objects
           (mapcar (lambda (object-name-type-pose-list)

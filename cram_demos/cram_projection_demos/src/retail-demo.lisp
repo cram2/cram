@@ -147,21 +147,6 @@
    (cl-transforms:make-quaternion -0.5 0.5 0.5 -0.5))
   "In end-effector frame.")
 
-(defun spawn-object-n-times (type pose times color &optional offset-axis offset)
-  "`offset-axis' can be one of :x, :y or :z."
-  (loop for i from 0 to (1- times)
-        for name = (intern (string-upcase (format nil "~a-~a" type i)) :keyword)
-        do (when offset-axis
-             (setf pose (cram-tf:translate-pose pose offset-axis offset)))
-           ;; if object with name NAME already exists, create a new unique name
-           (when (btr:object btr:*current-bullet-world* name)
-             (setf i (+ i times)
-                   name (intern (string-upcase (format nil "~a-~a" type i))
-                                :keyword)))
-           (btr:add-object btr:*current-bullet-world* :mesh name pose :mesh type
-                           :mass 0.0
-                           :color color)))
-
 (defun spawn-objects-on-big-shelf (&optional (minimal-color 0.0))
   (let ((type-and-pose-list
           (make-poses-relative-multiple *big-shelf-poses* "shelf_1_")))
@@ -288,7 +273,6 @@
 (defun spawn-objects-on-small-shelf (&optional (minimal-color 0.0))
   (sb-ext:gc :full t)
   (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))
-  (btr:clear-costmap-vis-object)
   ;; (btr-utils:kill-all-objects)
   (btr:detach-all-objects (btr:get-robot-object))
   (btr:detach-all-objects (btr:get-environment-object))
@@ -387,9 +371,7 @@
     (if (eql (rob-int:get-robot-name) :kmr-iiwa)
         (setf btr:*visibility-threshold* 0.7)
         (setf btr:*visibility-threshold* 0.5))
-    (btr-utils:kill-all-objects)
-    (btr:detach-all-objects (btr:get-robot-object))
-    (btr:detach-all-objects (btr:get-environment-object))
+    (kill-and-detach-all)
     (let ((?pose (cl-transforms-stamped:make-pose-stamped
                   "map" 0.0
                   (cl-transforms-stamped:make-3d-vector 2 0 0.0d0)

@@ -89,23 +89,14 @@
      ((-2.5d0 -0.55d0 0.0d0) (0 0 1 0)))))
 
 
-(defun attach-object-to-the-world (object-type spawning-poses-relative)
-  (when spawning-poses-relative
-    (btr:attach-object (btr:get-environment-object)
-                       (btr:object btr:*current-bullet-world*
-                                   (intern (format nil "~a-1" object-type) :keyword))
-                       :link (second (find object-type
-                                           spawning-poses-relative
-                                           :key #'car)))))
-
 (defun spawn-objects-on-fixed-spots (&key
                                        (spawning-poses-relative
                                         *demo-object-spawning-poses*)
                                        (object-types
                                         '(:breakfast-cereal :cup :bowl :spoon :milk)))
-  (btr-utils:kill-all-objects)
-  (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo")
-  (btr:detach-all-objects (btr:get-robot-object))
+  ;; clean up
+  (kill-and-detach-all)
+
   ;; spawn objects at default poses
   (let* ((spawning-poses-absolute
            (make-poses-list-relative spawning-poses-relative))
@@ -120,7 +111,14 @@
     ;; (btr:simulate btr:*current-bullet-world* 100)
     objects)
 
-  (mapcar (alexandria:rcurry #'attach-object-to-the-world spawning-poses-relative)
+  ;; attach objects to world
+  (mapcar (lambda (object-type)
+            (btr:attach-object (btr:get-environment-object)
+                               (btr:object btr:*current-bullet-world*
+                                           (intern (format nil "~a-1" object-type) :keyword))
+                               :link (second (find object-type
+                                                   spawning-poses-relative
+                                                   :key #'car))))
           object-types))
 
 
@@ -162,9 +160,7 @@
 
   ;; (setf proj-reasoning::*projection-checks-enabled* t)
 
-  (btr:detach-all-objects (btr:get-robot-object))
-  (btr:detach-all-objects (btr:get-environment-object))
-  (btr-utils:kill-all-objects)
+  (kill-and-detach-all)
   (setf (btr:joint-state (btr:get-environment-object)
                          "sink_area_left_upper_drawer_main_joint")
         0.0
@@ -217,8 +213,20 @@
     (if varied-kitchen
         (btr-belief:vary-kitchen-urdf *furniture-offsets-offset-kitchen*)
         (btr-belief:vary-kitchen-urdf *furniture-offsets-original-kitchen*))
-    (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
-    (btr-belief:spawn-world)
+    (if (> (cl-transforms:x
+            (cl-transforms:origin
+             (btr:pose
+              (btr:rigid-body (btr:get-environment-object)
+                              :|IAI-KITCHEN.fridge_area|))))
+           0)
+        ;; if the fridge is in front of robot, current kitchen is original
+        (when varied-kitchen
+          (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
+          (btr-belief:spawn-world))
+        ;; if the fridge is behind the robot, current kitchen is varied
+        (unless varied-kitchen
+          (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
+          (btr-belief:spawn-world)))
     (initialize)
     (setf btr:*visibility-threshold* 0.7)
     (when cram-projection:*projection-environment*
@@ -349,10 +357,7 @@
                                         (random
                                          NIL))
   ;; make sure mesh paths are known, kill old objects and destroy all attachments
-  (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo")
-  (btr-utils:kill-all-objects)
-  (btr:detach-all-objects (btr:get-robot-object))
-  (btr:detach-all-objects (btr:get-environment-object))
+  (kill-and-detach-all)
 
   ;; spawn objects
   (let* ((spawning-poses-absolute
