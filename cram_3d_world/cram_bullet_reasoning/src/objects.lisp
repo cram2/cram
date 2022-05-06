@@ -549,3 +549,11 @@ recursive function."
                  (remove-loose-attachment-for attached-object)))
       (if (equal (car (last already-visited)) (name object))
           (setf already-visited '())))))
+
+
+(defun get-objects-for-type (object-type)
+  (remove-if-not #'identity
+                 (mapcar (lambda (obj) (when (typep obj 'btr:item)
+                                         (when (eql (first (btr:item-types obj)) object-type)
+                                           obj)))
+                         (btr:objects btr:*current-bullet-world*))))

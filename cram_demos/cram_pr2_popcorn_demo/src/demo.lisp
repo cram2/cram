@@ -220,7 +220,7 @@
 
     ;; Grasping the plate
     (pick-object :ikea-plate '(:left)
-                 *ikea-plate-picking-pose*
+                 *Ikea-plate-picking-pose*
                  :?left-grasp :top)
 
     ;; Putting the plate on the table

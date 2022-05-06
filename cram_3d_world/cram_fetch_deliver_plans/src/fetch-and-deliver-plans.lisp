@@ -444,7 +444,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                     :warning-namespace (fd-plans fetch))
                                  (setf ?grasp (cut:lazy-car ?grasps)))))
 
-                          (let ((?goal
+                          (let* ((?goal
                                    `(cpoe:object-in-hand
                                      ,?more-precise-perceived-object-desig
                                      :left-or-right))
