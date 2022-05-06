@@ -105,6 +105,7 @@
 
 (defparameter *dish-washer-tabs-grasp-x-offset* 0.0 "in meters")
 (defparameter *dish-washer-tabs-grasp-z-offset* 0.0 "in meters")
+(defparameter *dish-washer-tabs-top-grasp-z-offset* 0.05 "in meters")
 (defparameter *dish-washer-tabs-pregrasp-x-offset* 0.10 "in meters") ; 0.3
 (defparameter *dish-washer-tabs-small-lift-z-offset* 0.01 "in meters")
 (defparameter *dish-washer-tabs-lift-z-top-grasp-offset* 0.10 "in meters")
@@ -116,23 +117,23 @@
 (man-int:def-object-type-to-gripper-transforms :dish-washer-tabs '(:left :right) :top
   :grasp-translation `(0.0
                        0.0
-                       ,*dish-washer-tabs-grasp-z-offset*)
+                       ,*dish-washer-tabs-top-grasp-z-offset*)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets `(0.0
                       0.0
-                      ,(+ *dish-washer-tabs-grasp-z-offset*
+                      ,(+ *dish-washer-tabs-top-grasp-z-offset*
                           *dish-washer-tabs-lift-z-top-grasp-offset*))
   :2nd-pregrasp-offsets `(0.0
                           0.0
-                          ,(+ *dish-washer-tabs-grasp-z-offset*
+                          ,(+ *dish-washer-tabs-top-grasp-z-offset*
                               *dish-washer-tabs-small-lift-z-offset*))
   :lift-translation `(0.0
                       0.0
-                      ,(+ *dish-washer-tabs-grasp-z-offset*
+                      ,(+ *dish-washer-tabs-top-grasp-z-offset*
                           *dish-washer-tabs-small-lift-z-offset*))
   :2nd-lift-translation `(0.0
                           0.0
-                          ,(+ *dish-washer-tabs-grasp-z-offset*
+                          ,(+ *dish-washer-tabs-top-grasp-z-offset*
                               *dish-washer-tabs-lift-z-top-grasp-offset*)))
 
 ;; BACK grasp robot
@@ -437,13 +438,14 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; BALEA-BOTTLE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *balea-bottle-grasp-z-offset* 0.0 "in meters")
+(defparameter *balea-bottle-top-grasp-z-offset* 0.05 "in meters")
 (defparameter *balea-bottle-pregrasp-x-offset* 0.10 "in meters")
 
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms :balea-bottle '(:left :right) :top
   :grasp-translation `(0.0
                        0.0
-                       ,*balea-bottle-grasp-z-offset*)
+                       ,*balea-bottle-top-grasp-z-offset*)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets *default-retail-lift-offsets*
   :2nd-pregrasp-offsets *default-retail-lift-offsets*
