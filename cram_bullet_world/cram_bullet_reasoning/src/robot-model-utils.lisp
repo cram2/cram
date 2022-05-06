@@ -226,7 +226,6 @@ Should it be taken out and made PR2-specific?"
      delta)))
 
 
-
 (defun get-robot-object ()
   (object *current-bullet-world* (rob-int:get-robot-name)))
 
