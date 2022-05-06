@@ -41,6 +41,8 @@
    #:update-bullet-transforms
    ;; occasions
    #:object-designator-name
+   ;; event-handlers
+   #:snap-object-onto-robot
    ;; belief-state
    #:*spawn-debug-window*
    #:setup-world-database
