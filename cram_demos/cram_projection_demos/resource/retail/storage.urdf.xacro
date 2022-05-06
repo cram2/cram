@@ -7,7 +7,7 @@
     <color rgba="0.8 0.8 0.8 1"/>
   </material>
 
-  <link name="shelf_origin"/>
+  <link name="storage_origin"/>
 
 
   <!-- WALLS -->
@@ -35,22 +35,22 @@
 
   <xacro:property name="wall_thickness" value="0.2" />
   <xacro:property name="wall_height" value="2.4" />
-  <xacro:property name="room_link" value="shelf_origin" />
+  <xacro:property name="room_link" value="storage_origin" />
   <wall parent="${room_link}" name="back_wall"
         size="6.0 ${wall_thickness} ${wall_height}">
-    <origin xyz="-2.0 -2.0 ${wall_height/2}" rpy="0 0 0"/>
+    <origin xyz="0.0 -2.0 ${wall_height/2}" rpy="0 0 0"/>
   </wall>
   <wall parent="${room_link}" name="left_wall"
         size="${wall_thickness} 4.0 ${wall_height}">
-    <origin xyz="1.0 0.0 ${wall_height/2}" rpy="0 0 0"/>
+    <origin xyz="3.0 0.0 ${wall_height/2}" rpy="0 0 0"/>
   </wall>
   <wall parent="${room_link}" name="front_wall"
         size="6.0 ${wall_thickness} ${wall_height}">
-    <origin xyz="-2.0 2.0 ${wall_height/2}" rpy="0 0 0"/>
+    <origin xyz="0.0 2.0 ${wall_height/2}" rpy="0 0 0"/>
   </wall>
   <wall parent="${room_link}" name="right_wall"
         size="${wall_thickness} 4.0 ${wall_height}">
-    <origin xyz="-5.0 0.0 ${wall_height/2}" rpy="0 0 0"/>
+    <origin xyz="-3.0 0.0 ${wall_height/2}" rpy="0 0 0"/>
   </wall>
 
 
@@ -137,21 +137,21 @@
     </collision>
   </link>
 
-  <link name="board1">
-    <visual>
-      <material name="grey"/>
-      <origin xyz="0 0.25 0"/>
-      <geometry>
-        <box size="2 0.5 0.05"/>
-      </geometry>
-    </visual>
-    <collision>
-      <origin xyz="0 0.25 0"/>
-      <geometry>
-        <box size="2 0.5 0.05"/>
-      </geometry>
-    </collision>
-  </link>
+  <!-- <link name="board1"> -->
+  <!--   <visual> -->
+  <!--     <material name="grey"/> -->
+  <!--     <origin xyz="0 0.25 0"/> -->
+  <!--     <geometry> -->
+  <!--       <box size="2 0.5 0.05"/> -->
+  <!--     </geometry> -->
+  <!--   </visual> -->
+  <!--   <collision> -->
+  <!--     <origin xyz="0 0.25 0"/> -->
+  <!--     <geometry> -->
+  <!--       <box size="2 0.5 0.05"/> -->
+  <!--     </geometry> -->
+  <!--   </collision> -->
+  <!-- </link> -->
 
   <link name="bar2">
     <visual>
@@ -201,21 +201,21 @@
     </collision>
   </link>
 
-  <link name="board3">
-    <visual>
-      <material name="grey"/>
-      <origin xyz="0 0.25 0"/>
-      <geometry>
-        <box size="2 0.5 0.05"/>
-      </geometry>
-    </visual>
-    <collision>
-      <origin xyz="0 0.25 0"/>
-      <geometry>
-        <box size="2 0.5 0.05"/>
-      </geometry>
-    </collision>
-  </link>
+  <!-- <link name="board3"> -->
+  <!--   <visual> -->
+  <!--     <material name="grey"/> -->
+  <!--     <origin xyz="0 0.25 0"/> -->
+  <!--     <geometry> -->
+  <!--       <box size="2 0.5 0.05"/> -->
+  <!--     </geometry> -->
+  <!--   </visual> -->
+  <!--   <collision> -->
+  <!--     <origin xyz="0 0.25 0"/> -->
+  <!--     <geometry> -->
+  <!--       <box size="2 0.5 0.05"/> -->
+  <!--     </geometry> -->
+  <!--   </collision> -->
+  <!-- </link> -->
 
 
   <joint name="board0_to_bar0" type="fixed">
@@ -224,11 +224,11 @@
     <origin xyz="-1 0 0"/>
   </joint>
 
-  <joint name="board1_to_bar1" type="fixed">
-    <parent link="bar1"/>
-    <child link="board1"/>
-    <origin xyz="-1 0 0"/>
-  </joint>
+  <!-- <joint name="board1_to_bar1" type="fixed"> -->
+  <!--   <parent link="bar1"/> -->
+  <!--   <child link="board1"/> -->
+  <!--   <origin xyz="-1 0 0"/> -->
+  <!-- </joint> -->
 
   <joint name="board2_to_bar2" type="fixed">
     <parent link="bar2"/>
@@ -236,11 +236,11 @@
     <origin xyz="-1 0 0"/>
   </joint>
 
-  <joint name="board3_to_bar3" type="fixed">
-    <parent link="bar3"/>
-    <child link="board3"/>
-    <origin xyz="-1 0 0"/>
-  </joint>
+  <!-- <joint name="board3_to_bar3" type="fixed"> -->
+  <!--   <parent link="bar3"/> -->
+  <!--   <child link="board3"/> -->
+  <!--   <origin xyz="-1 0 0"/> -->
+  <!-- </joint> -->
 
 
   <joint name="bar3_to_left_leg" type="fixed">
@@ -273,10 +273,10 @@
     <origin xyz="-2 0 0"/>
   </joint>
 
-  <joint name="left_leg_to_shelf_origin" type="fixed">
-    <parent link="shelf_origin"/>
+  <joint name="left_leg_to_storage_origin" type="fixed">
+    <parent link="storage_origin"/>
     <child link="left_leg"/>
-    <origin xyz="0 -1.5 0"/>
+    <origin xyz="2.0 -0.7 0" rpy="0 0 0.5"/>
   </joint>
 
 
@@ -356,9 +356,9 @@
   </link>
 
   <joint name="origin_to_left_front_leg" type="fixed">
-    <parent link="shelf_origin"/>
+    <parent link="storage_origin"/>
     <child link="left_front_leg"/>
-    <origin xyz="-4 0 0"/>
+    <origin xyz="-2 0 0"/>
   </joint>
 
   <joint name="left_front_to_back" type="fixed">
