@@ -37,15 +37,15 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;; NEAR and FAR calculations
 
 (defun get-aabb-min-length (object)
-  (let ((dims (btr:calculate-bb-dims object)))
+  (let ((dims (btr:calculate-bb-dims object :initial-pose t)))
     (min (cl-transforms:x dims) (cl-transforms:y dims))))
 
 (defun get-aabb-circle-diameter (object)
-  (cl-transforms:x (btr:calculate-bb-dims object)))
+  (cl-transforms:x (btr:calculate-bb-dims object :initial-pose t)))
 
 (defun get-aabb-oval-diameter (object)
   "We assume the radius of the oval is the max of its two radia"
-  (let ((dims (btr:calculate-bb-dims object)))
+  (let ((dims (btr:calculate-bb-dims object :initial-pose t)))
     (max (cl-transforms:x dims) (cl-transforms:y dims))))
 
 (defun calculate-near-costmap-min-radius (ref-obj-size for-obj-size
@@ -627,7 +627,7 @@ if it is on the sign side of the axis. "
                               environment-objects
                               (list environment-objects)))))
          (for-object-height
-           (cl-transforms:z (btr:calculate-bb-dims for-object)))
+           (cl-transforms:z (btr:calculate-bb-dims for-object :initial-pose t)))
          (for-object-z
            (+ environment-object-top (/ for-object-height 2))))
     (constantly
