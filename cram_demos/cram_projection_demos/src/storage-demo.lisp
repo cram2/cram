@@ -185,8 +185,7 @@
                                                                (part-of ?environment-name)))
                                                  (side left)
                                                  (for (desig:an object
-                                                                (type ?object-type)))
-                                                 (orientation axis-aligned)))
+                                                                (type ?object-type)))))
                                 (grasps ?grasps))))))))
 
         (setf btr:*visibility-threshold* old-visibility)))))
