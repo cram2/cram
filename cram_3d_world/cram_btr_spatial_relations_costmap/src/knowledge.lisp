@@ -48,8 +48,10 @@
   (<- (%item-type-shape :mug :complex))
   (<- (%item-type-shape :plate :circle))
   (<- (%item-type-shape :fork :rectangle))
+  (<- (%item-type-shape :spoon :rectangle))
   (<- (%item-type-shape :knife :rectangle))
   (<- (%item-type-shape :pancake-maker :circle))
+  (<- (%item-type-shape :cup :circle))
   (<- (%item-type-shape :spatula :rectangle))
   ;;
   (<- (item-type-shape ?type ?shape)
@@ -83,7 +85,7 @@
   (<- (object-type-padding-size :knife 0.005d0))
   (<- (object-type-padding-size :pancake-maker 0.018d0))
   (<- (object-type-padding-size :spatula 0.01d0))
-  (<- (object-type-padding-size :cup 0.1d0))
+  (<- (object-type-padding-size :cup 0.0d0))
   ;;
   (<- (padding-size ?world ?object-name ?padding)
     (btr:item-type ?world ?object-name ?object-type)
