@@ -115,4 +115,10 @@
            timeline-current-world-state timeline-lookup
            holds-in-world with-timeline
            ;; simple-sem-map
-           #:*mesh-path-whitelist*))
+           #:*mesh-path-whitelist*
+           ;; textures
+           #:*static-plane-texture*
+           #:*static-plane-gray-texture*
+           #:*static-plane-gray-thin-texture*
+           #:*static-plane-black-inverted-texture*
+           #:*static-plane-texture-64x64))
