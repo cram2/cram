@@ -225,7 +225,8 @@
                                        :color color))))))
 
 (defmethod add-object ((world bt-world) (type (eql :static-plane)) name pose
-                       &key normal constant (collision-mask '(:default-filter)))
+                       &key normal constant (collision-mask '(:default-filter))
+                         texture-str texture-size)
   (destructuring-bind (normal-x normal-y normal-z) normal
     (make-object world name
                  (list
@@ -242,12 +243,12 @@
                                        ;; :width 16 :height 16
                                        ;; :texture (texture-str->bitmap
                                        ;;           *static-plane-texture* #\Space)
-                                       :width 32 :height 32
+                                       :width (or texture-size 32)
+                                       :height (or texture-size 32)
                                        :texture (texture-str->bitmap
-                                                 *static-plane-gray-texture*
-                                                 #\Space
-                                                 nil
-                                                 #\g
+                                                 (or texture-str
+                                                     *static-plane-gray-texture*)
+                                                 #\Space nil #\x
                                                  '(0.6 0.6 0.6 1.0))))))))
 
 (defmethod add-object ((world bt-world) (type (eql :sphere)) name pose
