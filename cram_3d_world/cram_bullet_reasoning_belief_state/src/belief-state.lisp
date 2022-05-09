@@ -32,15 +32,20 @@
   "If the debug window should be spawned when belief state is set up.")
 
 (defun spawn-world ()
+  ;; sunset blue sky color
+  (setf bt-vis:*background-color* (list (/ 203 255) (/ 216 255) (/ 223 255) 1))
   (assert
    (cut:force-ll
     (prolog `(and
               (btr:bullet-world ?w)
               ,@(when *spawn-debug-window*
                   '((btr:debug-window ?w)))
-              (btr:assert ?w (btr:object :static-plane :floor ((0 0 0) (0 0 0 1))
-                                                       :normal (0 0 1) :constant 0
-                                                       :collision-mask (:default-filter)))
+              (btr:assert ?w (btr:object :static-plane
+                                         :floor ((0 0 0) (0 0 0 1))
+                                         :normal (0 0 1) :constant 0
+                                         :collision-mask (:default-filter)
+                                         :texture-str ,btr:*static-plane-texture-64x64
+                                         :texture-size 64))
               (-> (rob-int:environment-name ?environment-name)
                   (btr:assert ?w (btr:object :urdf ?environment-name
                                              ((0 0 0) (0 0 0 1))
@@ -117,6 +122,14 @@
                        :geometry box-geometry
                        :origin origin-transform)))
               collision))))
+
+  ;; get rid of Boxy's stupid limit boxes
+  (dolist (to-remove-collision-of-link '("limit_box" "limit_box2"))
+    (when (gethash to-remove-collision-of-link (cl-urdf:links rob-int:*robot-urdf*))
+      (setf (slot-value (gethash to-remove-collision-of-link
+                                 (cl-urdf:links rob-int:*robot-urdf*))
+                        'cl-urdf:collision)
+            nil)))
 
   ;; spawn the floor, the robot and the environment
   (spawn-world)
