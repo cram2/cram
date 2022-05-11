@@ -245,11 +245,12 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
            (type transporting)
            (object ?object)
            (context :table-setting)
-           (grasps (:back :top :front))
+           ;;(grasps (:top ))
            (desig:when ?arm
-             (arms (?arm)))
-             (desig:when ?grasp
-              (grasp ?grasp))
+               (arms (?arm)))
+           ;(:?right-grasp :top)
+           (desig:when ?grasp
+             (grasp ?grasp))
            (target ?deliver-location)
            )))))
 
