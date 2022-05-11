@@ -61,8 +61,14 @@
 (def-fact-group retail-object-type-hierarchy (man-int:object-type-direct-subtype)
   (<- (man-int:object-type-direct-subtype :retail-item ?item-type)
     (member ?item-type (:dish-washer-tabs
-                        :balea-bottle :deodorant :juice-box
-                        :denkmit :dove :heitmann :somat :basket))))
+                        :retail-bottle :deodorant :juice-box
+                        :denkmit :dove :heitmann :somat :basket)))
+  (<- (man-int:object-type-direct-subtype :retail-bottle ?item-type)
+    (member ?item-type (:retail-bottle-round :retail-bottle-flat)))
+  (<- (man-int:object-type-direct-subtype :retail-bottle-round ?item-type)
+    (member ?item-type (:heitmann-citronensaeure :domestos-allzweckreiniger)))
+  (<- (man-int:object-type-direct-subtype :retail-bottle-flat ?item-type)
+    (member ?item-type (:balea-bottle :denkmit-entkalker :kuehne-essig-essenz))))
 
 (def-fact-group attachment-knowledge (man-int:unidirectional-attachment)
   (<- (man-int:unidirectional-attachment ?attachment-type)
@@ -442,18 +448,30 @@
 (defparameter *balea-bottle-pregrasp-x-offset* 0.10 "in meters")
 
 ;; TOP grasp
-(man-int:def-object-type-to-gripper-transforms :balea-bottle '(:left :right) :top
-  :grasp-translation `(0.0
-                       0.0
-                       ,*balea-bottle-top-grasp-z-offset*)
-  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
-  :pregrasp-offsets *default-retail-lift-offsets*
-  :2nd-pregrasp-offsets *default-retail-lift-offsets*
-  :lift-translation *default-retail-lift-offsets*
-  :2nd-lift-translation *default-retail-lift-offsets*)
+;; (man-int:def-object-type-to-gripper-transforms
+;;     '(:balea-bottle
+;;       :denkmit-entkalker
+;;       :heitmann-citronensaeure
+;;       :kuehne-essig-essenz
+;;       :domestos-allzweckreiniger)
+;;     '(:left :right) :top
+;;   :grasp-translation `(0.0
+;;                        0.0
+;;                        ,*balea-bottle-top-grasp-z-offset*)
+;;   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+;;   :pregrasp-offsets *default-retail-lift-offsets*
+;;   :2nd-pregrasp-offsets *default-retail-lift-offsets*
+;;   :lift-translation *default-retail-lift-offsets*
+;;   :2nd-lift-translation *default-retail-lift-offsets*)
 
 ;; BACK grasp
-(man-int:def-object-type-to-gripper-transforms :balea-bottle '(:left :right) :back
+(man-int:def-object-type-to-gripper-transforms
+    '(:balea-bottle
+      :denkmit-entkalker
+      :heitmann-citronensaeure
+      :kuehne-essig-essenz
+      :domestos-allzweckreiniger)
+    '(:left :right) :back
   :grasp-translation `(0.0
                        0.0
                        ,*balea-bottle-grasp-z-offset*)
@@ -468,7 +486,13 @@
   :2nd-lift-translation *default-retail-lift-offsets*)
 
 ;; FRONT grasp
-(man-int:def-object-type-to-gripper-transforms :balea-bottle '(:left :right) :front
+(man-int:def-object-type-to-gripper-transforms
+    '(:balea-bottle
+      :denkmit-entkalker
+      :heitmann-citronensaeure
+      :kuehne-essig-essenz
+      :domestos-allzweckreiniger)
+    '(:left :right) :front
   :grasp-translation `(0.0
                        0.0
                        ,*balea-bottle-grasp-z-offset*)
@@ -478,6 +502,38 @@
                       ,*default-retail-z-offset*)
   :2nd-pregrasp-offsets `(,*balea-bottle-pregrasp-x-offset*
                           0.0
+                          ,*balea-bottle-grasp-z-offset*)
+  :lift-translation *default-retail-lift-offsets*
+  :2nd-lift-translation *default-retail-lift-offsets*)
+
+;; LEFT-SIDE grasp
+(man-int:def-object-type-to-gripper-transforms
+    '(:heitmann-citronensaeure :domestos-allzweckreiniger) '(:left :right) :left-side
+  :grasp-translation `(0.0
+                       0.0
+                       ,*balea-bottle-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*y-across-z-grasp-rotation*
+  :pregrasp-offsets `(0.0
+                      ,*balea-bottle-pregrasp-x-offset*
+                      ,*default-retail-z-offset*)
+  :2nd-pregrasp-offsets `(0.0
+                          ,*balea-bottle-pregrasp-x-offset*
+                          ,*balea-bottle-grasp-z-offset*)
+  :lift-translation *default-retail-lift-offsets*
+  :2nd-lift-translation *default-retail-lift-offsets*)
+
+;; RIGHT-SIDE grasp
+(man-int:def-object-type-to-gripper-transforms
+    '(:heitmann-citronensaeure :domestos-allzweckreiniger) '(:left :right) :right-side
+  :grasp-translation `(0.0
+                       0.0
+                       ,*balea-bottle-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-y-across-z-grasp-rotation*
+  :pregrasp-offsets `(0.0
+                      ,(- *balea-bottle-pregrasp-x-offset*)
+                      ,*default-retail-z-offset*)
+  :2nd-pregrasp-offsets `(0.0
+                          ,(- *balea-bottle-pregrasp-x-offset*)
                           ,*balea-bottle-grasp-z-offset*)
   :lift-translation *default-retail-lift-offsets*
   :2nd-lift-translation *default-retail-lift-offsets*)

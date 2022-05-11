@@ -35,20 +35,32 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def-fact-group household-object-type-hierarchy (man-int:object-type-direct-subtype)
-  (<- (man-int:object-type-direct-subtype :household-item :cutlery))
-  (<- (man-int:object-type-direct-subtype :household-item :plate))
-  (<- (man-int:object-type-direct-subtype :household-item :tray))
-  (<- (man-int:object-type-direct-subtype :household-item :bottle))
-  (<- (man-int:object-type-direct-subtype :household-item :cup))
-  (<- (man-int:object-type-direct-subtype :household-item :milk))
-  (<- (man-int:object-type-direct-subtype :household-item :cereal))
-  (<- (man-int:object-type-direct-subtype :household-item :bowl))
+  (<- (man-int:object-type-direct-subtype :household-item :kitchen-item))
+  (<- (man-int:object-type-direct-subtype :household-item :clothing-item))
+
+  (<- (man-int:object-type-direct-subtype :kitchen-item :cutlery))
+  (<- (man-int:object-type-direct-subtype :kitchen-item :plate))
+  (<- (man-int:object-type-direct-subtype :kitchen-item :tray))
+  (<- (man-int:object-type-direct-subtype :kitchen-item :bottle))
+  (<- (man-int:object-type-direct-subtype :kitchen-item :cup))
+  (<- (man-int:object-type-direct-subtype :kitchen-item :milk))
+  (<- (man-int:object-type-direct-subtype :kitchen-item :cereal))
+  (<- (man-int:object-type-direct-subtype :kitchen-item :bowl))
+
+  (<- (man-int:object-type-direct-subtype :kitchen-item :pot))
+  (<- (man-int:object-type-direct-subtype :kitchen-item :spatula))
 
   (<- (man-int:object-type-direct-subtype :cutlery :knife))
   (<- (man-int:object-type-direct-subtype :cutlery :fork))
   (<- (man-int:object-type-direct-subtype :cutlery :spoon))
 
-  (<- (man-int:object-type-direct-subtype :cereal :breakfast-cereal)))
+  (<- (man-int:object-type-direct-subtype :bowl :bowl-round))
+
+  (<- (man-int:object-type-direct-subtype :cereal :breakfast-cereal))
+
+  (<- (man-int:object-type-direct-subtype :cup :mug))
+
+  (<- (man-int:object-type-direct-subtype :clothing-item :shoe)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -122,8 +134,8 @@
 (defparameter *cutlery-pregrasp-xy-offset* 0.10 "in meters")
 
 ;; TOP grasp
-(man-int:def-object-type-to-gripper-transforms '(:cutlery :fork :knife :spoon)
-    '(:left :right) :top
+(man-int:def-object-type-to-gripper-transforms
+    '(:cutlery :fork :knife :spoon :spatula) '(:left :right) :top
   :grasp-translation `(0.0 0.0 ,*cutlery-grasp-z-offset*)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets `(0.0 0.0 ,*cutlery-pregrasp-z-offset*)
@@ -131,8 +143,8 @@
   :lift-translation `(0.0 0.0 ,*cutlery-pregrasp-z-offset*)
   :2nd-lift-translation `(0.0 0.0 ,*cutlery-pregrasp-z-offset*))
 ;; TOP grasp shelf
-(man-int:def-object-type-to-gripper-transforms '(:cutlery :fork :knife :spoon)
-    '(:left :right) :top
+(man-int:def-object-type-to-gripper-transforms
+    '(:cutlery :fork :knife :spoon :spatula) '(:left :right) :top
   :location-type :shelf
   :grasp-translation `(0.0 0.0 ,*cutlery-grasp-z-offset*)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
@@ -195,6 +207,31 @@
   :2nd-pregrasp-offsets `(0.0 ,(- *plate-pregrasp-y-offset*) ,*plate-2nd-pregrasp-z-offset*)
   :lift-translation *lift-offset*
   :2nd-lift-translation *lift-offset*)
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; POT ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *pot-grasp-x-offset* 0.14 "in meters")
+(defparameter *pot-grasp-z-offset* 0.05 "in meters")
+
+;; SIDE grasp
+(man-int:def-object-type-to-gripper-transforms :pot :left :left-side
+  :grasp-translation `(,*pot-grasp-x-offset* 0.0 ,*pot-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-y-grasp-rotation*
+  :pregrasp-offsets `(0.0 ,*plate-pregrasp-y-offset* ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 ,*plate-pregrasp-y-offset* 0.0)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+(man-int:def-object-type-to-gripper-transforms :pot :right :right-side
+  :grasp-translation `(,(- *pot-grasp-x-offset*) 0.0 ,*pot-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-x-across-y-flipped-grasp-rotation*
+  :pregrasp-offsets `(0.0 ,(- *plate-pregrasp-y-offset*) ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 ,(- *plate-pregrasp-y-offset*) 0.0)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; bottle ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -310,6 +347,148 @@
   :2nd-pregrasp-offsets `(,*cup-pregrasp-xy-offset* 0.0 0.0)
   :lift-translation *lift-offset*
   :2nd-lift-translation *lift-offset*)
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;; mug ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *mug-back-grasp-x-offset* 0.04 "in meters")
+(defparameter *mug-side-grasp-x-offset* 0.02 "in meters")
+(defparameter *mug-top-grasp-y-offset* 0.045 "in meters")
+
+;; FRONT grasp
+(man-int:def-object-type-to-gripper-transforms :mug '(:left :right) :front
+  :grasp-translation `(,(- *cup-grasp-xy-offset*) 0.0d0 ,*cup-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-z-grasp-rotation-2*
+  :pregrasp-offsets `(,*cup-pregrasp-xy-offset* 0.0 ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(,*cup-pregrasp-xy-offset* 0.0 0.0)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+;; BACK grasp -- handle
+(man-int:def-object-type-to-gripper-transforms :mug '(:left :right) :back
+  :grasp-translation `(,(- *mug-back-grasp-x-offset*) 0.0d0 ,*cup-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation-2*
+  :pregrasp-offsets `(,(- *cup-pregrasp-xy-offset*) 0.0 ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(,(- *cup-pregrasp-xy-offset*) 0.0 0.0)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+;; SIDE grasp
+(man-int:def-object-type-to-gripper-transforms :mug '(:left :right) :left-side
+  :grasp-translation `(,*mug-side-grasp-x-offset* ,(- *cup-grasp-xy-offset*) 0.0)
+  :grasp-rot-matrix man-int:*y-across-z-flipped-grasp-rotation*
+  :pregrasp-offsets `(0.0 ,*cup-pregrasp-xy-offset* ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 ,*cup-pregrasp-xy-offset* 0.0)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+(man-int:def-object-type-to-gripper-transforms :mug '(:left :right) :right-side
+  :grasp-translation `(,*mug-side-grasp-x-offset* ,*cup-grasp-xy-offset* 0.0)
+  :grasp-rot-matrix man-int:*-y-across-z-flipped-grasp-rotation*
+  :pregrasp-offsets `(0.0 ,(- *cup-pregrasp-xy-offset*) ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 ,(- *cup-pregrasp-xy-offset*) 0.0)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+;; TOP grasp
+(man-int:def-object-type-to-gripper-transforms :mug '(:left :right) :top
+  :grasp-translation `(,*mug-side-grasp-x-offset* ,(- *mug-top-grasp-y-offset*) 0.0)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+(man-int:def-object-type-to-gripper-transforms :mug '(:left :right) :top2
+  :grasp-translation `(,*mug-side-grasp-x-offset* ,*mug-top-grasp-y-offset* 0.0)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+;; BOTTOM grasp
+(man-int:def-object-type-to-gripper-transforms :mug '(:left :right) :bottom
+  :grasp-translation `(,*mug-side-grasp-x-offset* 0.0d0 0.0)
+  :grasp-rot-matrix man-int:*-z-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,(- *lift-z-offset*))
+  :2nd-pregrasp-offsets `(0.0 0 ,(- *lift-z-offset*))
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;; shoe ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *shoe-top-grasp-x-offset* 0.1 "in meters")
+(defparameter *shoe-top2-grasp-x-offset* 0.05 "in meters")
+(defparameter *shoe-front-grasp-x-offset* 0.07 "in meters")
+(defparameter *shoe-back-grasp-x-offset* 0.03 "in meters")
+(defparameter *shoe-side-grasp-z-offset* 0.03 "in meters")
+
+;; TOP grasp
+(man-int:def-object-type-to-gripper-transforms :shoe '(:left :right) :top
+  :grasp-translation `(,(- *shoe-top-grasp-x-offset*) 0.0d0 ,*cup-top-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+(man-int:def-object-type-to-gripper-transforms :shoe '(:left :right) :top2
+  :grasp-translation `(,(- *shoe-top2-grasp-x-offset*)
+                        ,(- *cup-top-grasp-x-offset*)
+                        ,*cup-top-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+;; SIDE grasp
+(man-int:def-object-type-to-gripper-transforms :shoe '(:left :right) :left-side
+  :grasp-translation `(,(- *shoe-top2-grasp-x-offset*)
+                        ,(- *cup-grasp-xy-offset*)
+                        ,*shoe-side-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*y-across-z-flipped-grasp-rotation*
+  :pregrasp-offsets `(0.0 ,*cup-pregrasp-xy-offset* ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 ,*cup-pregrasp-xy-offset* 0.0)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+(man-int:def-object-type-to-gripper-transforms :shoe '(:left :right) :right-side
+  :grasp-translation `(,(- *shoe-top2-grasp-x-offset*)
+                        ,*cup-grasp-xy-offset*
+                        ,*shoe-side-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-y-across-z-flipped-grasp-rotation*
+  :pregrasp-offsets `(0.0 ,(- *cup-pregrasp-xy-offset*) ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 ,(- *cup-pregrasp-xy-offset*) 0.0)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+;; BACK grasp
+(man-int:def-object-type-to-gripper-transforms :shoe '(:left :right) :back
+  :grasp-translation `(,(- *shoe-back-grasp-x-offset*) 0.0d0 ,*shoe-side-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation*
+  :pregrasp-offsets `(,(- *cup-pregrasp-xy-offset*) 0.0 ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(,(- *cup-pregrasp-xy-offset*) 0.0 0.0)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+;; FRONT grasp
+(man-int:def-object-type-to-gripper-transforms :shoe '(:left :right) :front
+  :grasp-translation `(,(- *shoe-front-grasp-x-offset*) 0.0d0 ,*shoe-side-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
+  :pregrasp-offsets `(,*cup-pregrasp-xy-offset* 0.0 ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(,*cup-pregrasp-xy-offset* 0.0 0.0)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; milk ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -456,6 +635,7 @@
   :2nd-pregrasp-offsets *lift-offset*
   :lift-translation *lift-offset*
   :2nd-lift-translation *lift-offset*)
+
 (man-int:def-object-type-to-gripper-transforms :bowl '(:left :right) :top-front
   :grasp-translation `(,*bowl-grasp-x-offset* 0.0d0 ,*bowl-grasp-z-offset*)
   :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
@@ -463,6 +643,7 @@
   :2nd-pregrasp-offsets *lift-offset*
   :lift-translation *lift-offset*
   :2nd-lift-translation *lift-offset*)
+
 (man-int:def-object-type-to-gripper-transforms :bowl '(:left :right) :top-left
   :grasp-translation `(0.0d0 ,*bowl-grasp-x-offset* ,*bowl-grasp-z-offset*)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
@@ -480,6 +661,7 @@
   :2nd-pregrasp-offsets `(0.0d0 ,*bowl-tilted-pregrasp-x-offset* ,*lift-z-offset*)
   :lift-translation *lift-offset*
   :2nd-lift-translation *lift-offset*)
+
 (man-int:def-object-type-to-gripper-transforms :bowl '(:left :right) :top-right
   :grasp-translation `(0.0d0 ,(- *bowl-grasp-x-offset*) ,*bowl-grasp-z-offset*)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
@@ -531,6 +713,47 @@
   :2nd-pregrasp-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
   :lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
   :2nd-lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;; bowl-round ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *bowl-round-grasp-x-offset* 0.065 "in meters")
+(defparameter *bowl-round-grasp-z-offset* 0.02 "in meters")
+(defparameter *bowl-round-lift-z-offset* 0.04 "in meters")
+
+;; TOP grasp
+(man-int:def-object-type-to-gripper-transforms :bowl-round '(:left :right) :top
+  :grasp-translation `(,(- *bowl-round-grasp-x-offset*) 0.0d0 ,*bowl-round-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,*bowl-round-lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,*bowl-round-lift-z-offset*)
+  :lift-translation `(0.0 0.0 ,*bowl-round-lift-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*bowl-round-lift-z-offset*))
+
+(man-int:def-object-type-to-gripper-transforms :bowl-round '(:left :right) :top-front
+  :grasp-translation `(,*bowl-round-grasp-x-offset* 0.0d0 ,*bowl-round-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,*bowl-round-lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,*bowl-round-lift-z-offset*)
+  :lift-translation `(0.0 0.0 ,*bowl-round-lift-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*bowl-round-lift-z-offset*))
+
+(man-int:def-object-type-to-gripper-transforms :bowl-round '(:left :right) :top-left
+  :grasp-translation `(0.0d0 ,*bowl-round-grasp-x-offset* ,*bowl-round-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,*bowl-round-lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,*bowl-round-lift-z-offset*)
+  :lift-translation `(0.0 0.0 ,*bowl-round-lift-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*bowl-round-lift-z-offset*))
+
+(man-int:def-object-type-to-gripper-transforms :bowl-round '(:left :right) :top-right
+  :grasp-translation `(0.0d0 ,(- *bowl-round-grasp-x-offset*) ,*bowl-round-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,*bowl-round-lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,*bowl-round-lift-z-offset*)
+  :lift-translation `(0.0 0.0 ,*bowl-round-lift-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*bowl-round-lift-z-offset*))
 
 
 
