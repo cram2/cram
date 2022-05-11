@@ -555,7 +555,6 @@ The length, width and height have to be given for the function to work."
                                      :color color))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;; ATTACHMENTS ;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 (defun object-attached-to-robot-p (object)
   (when object
     (assoc (name object) (btr:attached-objects (get-robot-object)))))

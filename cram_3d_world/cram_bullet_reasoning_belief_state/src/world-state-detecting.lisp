@@ -95,47 +95,31 @@ the old object-designator description is enough to create a new one."
 
 
 (defun detect-new-object-pose-from-btr (old-object)
-  ;; (let* ((camera-pose (cdr (assoc '?camera-pose (car
-  ;;                                                (prolog:prolog '(and (btr:bullet-world ?world)
-  ;;                                                                 (cram-robot-interfaces:robot ?robot)
-  ;;                                                                 (cram-robot-interfaces:camera-frame ?robot ?camera-frame)
-  ;;                                                                 (btr:link-pose ?robot ?camera-frame ?camera-pose)))))))
-  ;;        (visible-objects-in-fov (remove-if-not #'identity
-  ;;                                               (mapcar (lambda (obj) (let ((visibility  (btr:calculate-object-visibility
-  ;;                                                                                         btr:*current-bullet-world*
-  ;;                                                                                         camera-pose
-  ;;                                                                                         obj)))
-  ;;                                                                       (if (or (btr:object-visibility-occluding-objects visibility)
-  ;;                                                                               (<= btr:*visibility-threshold* (btr:object-visibility-percentage visibility)))
-  ;;                                                                           obj)))
-  ;;                                   ;;                    (btr::get-objects-for-type (desig:desig-prop-value old-object :type)))))
-  ;;                                                       (btr::get-objects-for-type (desig:desig-prop-value old-object :type)))))
+  (let* ((camera-pose (cdr (assoc '?camera-pose (car
+                                                 (prolog:prolog '(and (btr:bullet-world ?world)
+                                                                  (cram-robot-interfaces:robot ?robot)
+                                                                  (cram-robot-interfaces:camera-frame ?robot ?camera-frame)
+                                                                  (btr:link-pose ?robot ?camera-frame ?camera-pose)))))))
+         (visible-objects-in-fov (remove-if-not #'identity
+                                                (mapcar (lambda (obj) (let ((visibility  (btr:calculate-object-visibility
+                                                                                          btr:*current-bullet-world*
+                                                                                          camera-pose
+                                                                                          obj)))
+                                                                        (if (or (btr:object-visibility-occluding-objects visibility)
+                                                                                (<= btr:*visibility-threshold* (btr:object-visibility-percentage visibility)))
+                                                                            obj)))
+                                    ;;                    (btr::get-objects-for-type (desig:desig-prop-value old-object :type)))))
+                                                        (btr::get-objects-for-type (desig:desig-prop-value old-object :type)))))
     
-  ;;        btr::get-robot-object
+         btr::get-robot-object
          
-  ;;        (object-name (if (desig:desig-prop-value old-object :name)
-  ;;                         (desig:desig-prop-value old-object :name)
-  ;;                         (btr:name (if visible-objects-in-fov
-  ;;                                       (car visible-objects-in-fov)
-  ;;                                       (cpl:fail 'common-fail:perception-object-not-found
-  ;;                                                 :object old-object
-  ;;                                                 :description (format NIL "There is no object with a matching type to ~a in the field of view of the robot" old-object))))))
-  ;;        (object-type
-  ;;          (first (btr:item-types
-  ;;                  (btr:object btr:*current-bullet-world* object-name))))
-  ;;        (map-T-obj
-  ;;          (cram-tf:pose->transform-stamped
-  ;;           cram-tf:*fixed-frame*
-  ;;           (roslisp-utilities:rosify-underscores-lisp-name object-name)
-  ;;           0.0
-  ;;           (btr:pose
-  ;;            (btr:object btr:*current-bullet-world* object-name))))
-  ;;        (map-P-obj
-  ;;          (cram-tf:strip-transform-stamped map-T-obj)))
-
-  ;;   (detect-new-object-pose old-object object-name object-type map-P-obj map-T-obj)))
-  (let* ((object-name
-           (desig:desig-prop-value old-object :name))
+         (object-name (if (desig:desig-prop-value old-object :name)
+                          (desig:desig-prop-value old-object :name)
+                          (btr:name (if visible-objects-in-fov
+                                        (car visible-objects-in-fov)
+                                        (cpl:fail 'common-fail:perception-object-not-found
+                                                  :object old-object
+                                                  :description (format NIL "There is no object with a matching type to ~a in the field of view of the robot" old-object))))))
          (object-type
            (first (btr:item-types
                    (btr:object btr:*current-bullet-world* object-name))))
@@ -150,6 +134,22 @@ the old object-designator description is enough to create a new one."
            (cram-tf:strip-transform-stamped map-T-obj)))
 
     (detect-new-object-pose old-object object-name object-type map-P-obj map-T-obj)))
+  ;; (let* ((object-name
+  ;;          (desig:desig-prop-value old-object :name))
+  ;;        (object-type
+  ;;          (first (btr:item-types
+  ;;                  (btr:object btr:*current-bullet-world* object-name))))
+  ;;        (map-T-obj
+  ;;          (cram-tf:pose->transform-stamped
+  ;;           cram-tf:*fixed-frame*
+  ;;           (roslisp-utilities:rosify-underscores-lisp-name object-name)
+  ;;           0.0
+  ;;           (btr:pose
+  ;;            (btr:object btr:*current-bullet-world* object-name))))
+  ;;        (map-P-obj
+  ;;          (cram-tf:strip-transform-stamped map-T-obj)))
+
+  ;;   (detect-new-object-pose old-object object-name object-type map-P-obj map-T-obj)))
          
 
 
