@@ -57,10 +57,10 @@
   '(( 0  0  1)
     ( 0  1  0)
     (-1  0  0)))
-(defparameter *-x-across-y-grasp-rotation*
-  '(( 0  0  1)
-    ( 0  1  0)
-    (-1  0  0)))
+(defparameter *-x-across-y-flipped-grasp-rotation*
+  '((0  0  1)
+    (0 -1  0)
+    (1  0  0)))
 
 ;; side
 (defparameter *y-across-z-grasp-rotation*
