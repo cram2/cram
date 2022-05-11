@@ -159,7 +159,10 @@
      reachable-from-space
      (costmap:make-range-cost-function ?point ?distance)
      ?cm)
-    (costmap:costmap-add-function
-     reachable-from-weighted
-     (costmap:make-location-cost-function ?pose ?distance)
-     ?cm)))
+    ;; Locations closer to the robot are not necessarily better
+    ;; than the further ones, so commenting this out.
+    ;; (costmap:costmap-add-function
+    ;;  reachable-from-weighted
+    ;;  (costmap:make-location-cost-function ?pose ?distance)
+    ;;  ?cm)
+    ))
