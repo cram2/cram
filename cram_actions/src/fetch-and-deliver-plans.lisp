@@ -607,94 +607,99 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                                    (location ?target-robot-location)))
 
             ;; take a new `?target-location' sample if a failure happens
-            (cpl:with-retry-counters ((target-location-retries 4))
-              (cpl:with-failure-handling
-                  (((or common-fail:looking-high-level-failure
-                        common-fail:object-unreachable
-                        common-fail:high-level-failure) (e)
-                     (roslisp:ros-warn (fd-plans deliver)
-                                       "target-location-retries ~A~%"
-                                       (cpl:get-counter target-location-retries))
-                     (common-fail:retry-with-loc-designator-solutions
-                         ?target-location
-                         target-location-retries
-                         (:error-object-or-string (format NIL "Placing failed: ~a" e)
-                          :warning-namespace (fd-plans deliver)
-                          :reset-designators (list ?target-robot-location)
-                          :rethrow-failure 'common-fail:object-undeliverable)
+            (let ((?reachable-target-location
+                    (desig:copy-designator ?target-location
+                                           :new-description '((:reachable-from :robot)))))
+              (cpl:with-retry-counters ((target-location-retries 4))
+                (cpl:with-failure-handling
+                    (((or common-fail:looking-high-level-failure
+                          common-fail:object-unreachable
+                          common-fail:high-level-failure) (e)
                        (roslisp:ros-warn (fd-plans deliver)
-                                         "Retrying with new placing location ...~%"))))
+                                         "target-location-retries ~A~%"
+                                         (cpl:get-counter target-location-retries))
+                       (common-fail:retry-with-loc-designator-solutions
+                           ?reachable-target-location
+                           target-location-retries
+                           (:error-object-or-string (format NIL "Placing failed: ~a" e)
+                            :warning-namespace (fd-plans deliver)
+                            :reset-designators (list ?target-robot-location)
+                            :rethrow-failure 'common-fail:object-undeliverable)
+                         (roslisp:ros-warn (fd-plans deliver)
+                                           "Retrying with new placing location ...~%"))))
 
-                ;; if target is in hand, we have a handover,
-                ;; so move target hand closer
-                (when target-in-hand
-                  (let ((?goal
-                          (case target-hand
-                            (:left `(cpoe:arms-positioned-at :hand-over nil))
-                            (:right `(cpoe:arms-positioned-at nil :hand-over))
-                            (t `(cpoe:arms-positioned-at nil nil)))))
-                    (exe:perform
-                     (desig:an action
-                               (type positioning-arm)
-                               (desig:when (eql target-hand :left)
-                                 (left-configuration hand-over))
-                               (desig:when (eql target-hand :right)
-                                 (right-configuration hand-over))
-                               (goal ?goal)))
-                    (setf ?target-location (desig:reset ?target-location))))
+                  ;; if target is in hand, we have a handover,
+                  ;; so move target hand closer
+                  (when target-in-hand
+                    (let ((?goal
+                            (case target-hand
+                              (:left `(cpoe:arms-positioned-at :hand-over nil))
+                              (:right `(cpoe:arms-positioned-at nil :hand-over))
+                              (t `(cpoe:arms-positioned-at nil nil)))))
+                      (exe:perform
+                       (desig:an action
+                                 (type positioning-arm)
+                                 (desig:when (eql target-hand :left)
+                                   (left-configuration hand-over))
+                                 (desig:when (eql target-hand :right)
+                                   (right-configuration hand-over))
+                                 (goal ?goal)))
+                      (setf ?reachable-target-location
+                            (desig:reset ?reachable-target-location))))
 
-                ;; look
-                (let (;; (?goal `(cpoe:looking-at ,?target-location))
-                      )
-                  (exe:perform (desig:an action
-                                         (type turning-towards)
-                                         (target ?target-location)
-                                         ;; (goal ?goal)
-                                         )))
+                  ;; look
+                  (let ( ;; (?goal `(cpoe:looking-at ,?target-location))
+                        )
+                    (exe:perform (desig:an action
+                                           (type turning-towards)
+                                           (target ?reachable-target-location)
+                                           ;; (goal ?goal)
+                                           )))
 
-                ;; place
-                (let ((place-action
-                        (or (when place-action
-                              (let* ((referenced-action-desig
-                                       (desig:reference place-action))
-                                     (?arm
-                                       (desig:desig-prop-value referenced-action-desig :arm))
-                                     (?projected-target-location
-                                       (desig:desig-prop-value referenced-action-desig :target)))
-                                (let ((?goal `(cpoe:object-at-location
-                                               ,?object-designator
-                                               ,?projected-target-location)))
-                                  (desig:an action
-                                            (type placing)
-                                            (arm ?arm)
-                                            (object ?object-designator)
-                                            (target ?projected-target-location)
-                                            (goal ?goal)))))
-                            (let ((?goal `(cpoe:object-at-location
-                                           ,?object-designator
-                                           ,?target-location)))
-                              (desig:an action
-                                        (type placing)
-                                        (desig:when ?arm
-                                          (arm ?arm))
-                                        (object ?object-designator)
-                                        (target ?target-location)
-                                        (goal ?goal))))))
+                  ;; place
+                  (let ((place-action
+                          (or (when place-action
+                                (let* ((referenced-action-desig
+                                         (desig:reference place-action))
+                                       (?arm
+                                         (desig:desig-prop-value referenced-action-desig :arm))
+                                       (?projected-target-location
+                                         (desig:desig-prop-value referenced-action-desig :target)))
+                                  (let ((?goal `(cpoe:object-placed
+                                                 ,?object-designator
+                                                 ,?projected-target-location)))
+                                    (desig:an action
+                                              (type placing)
+                                              (arm ?arm)
+                                              (object ?object-designator)
+                                              (target ?projected-target-location)
+                                              (goal ?goal)))))
 
-                  ;; test if the placing trajectory is reachable and not colliding
-                  (setf place-action (desig:current-desig place-action))
-                  (proj-reasoning:check-placing-collisions place-action)
-                  (setf place-action (desig:current-desig place-action))
+                              (let ((?goal `(cpoe:object-placed
+                                             ,?object-designator
+                                             ,?reachable-target-location)))
+                                (desig:an action
+                                          (type placing)
+                                          (desig:when ?arm
+                                            (arm ?arm))
+                                          (object ?object-designator)
+                                          (target ?reachable-target-location)
+                                          (goal ?goal))))))
 
-                  ;; test if the placing pose is a good one -- not falling on the floor
-                  ;; test function throws a high-level-failure if not good pose
-                  (unless target-stable
-                    (proj-reasoning:check-placing-pose-stability
-                     ?object-designator ?target-location))
+                    ;; test if the placing trajectory is reachable and not colliding
+                    (setf place-action (desig:current-desig place-action))
+                    (proj-reasoning:check-placing-collisions place-action)
+                    (setf place-action (desig:current-desig place-action))
 
-                  (exe:perform place-action)
+                    ;; test if the placing pose is a good one -- not falling on the floor
+                    ;; test function throws a high-level-failure if not good pose
+                    (unless target-stable
+                      (proj-reasoning:check-placing-pose-stability
+                       ?object-designator ?reachable-target-location))
 
-                  (desig:current-desig ?object-designator))))))))))
+                    (exe:perform place-action)
+
+                    (desig:current-desig ?object-designator)))))))))))
 
 
 
