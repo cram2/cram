@@ -120,7 +120,7 @@ while ignoring failures; and execute the last pose with propagating the failures
 
               (exe:perform
                (desig:a motion
-                        (type moving-tcp)
+                        (type moving-arm)
                         (desig:when ?left-pose
                           (left-pose ?left-pose))
                         (desig:when ?right-pose
@@ -158,7 +158,7 @@ while ignoring failures; and execute the last pose with propagating the failures
 
       (exe:perform
        (desig:a motion
-                (type moving-tcp)
+                (type moving-arm)
                 (desig:when ?left-pose
                   (left-pose ?left-pose))
                 (desig:when ?right-pose

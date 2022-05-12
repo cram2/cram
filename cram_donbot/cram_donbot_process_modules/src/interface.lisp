@@ -38,7 +38,7 @@
         (desig:desig-prop ?motion-designator (:type :moving-gripper-joint))))
 
   (<- (cpm:matching-process-module ?motion-designator giskard:giskard-pm)
-    (or (desig:desig-prop ?motion-designator (:type :moving-tcp))
+    (or (desig:desig-prop ?motion-designator (:type :moving-arm))
         (desig:desig-prop ?motion-designator (:type :moving-arm-joints))
         (desig:desig-prop ?motion-designator (:type :pulling))
         (desig:desig-prop ?motion-designator (:type :pushing))

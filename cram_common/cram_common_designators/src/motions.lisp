@@ -102,7 +102,7 @@
                                               ?move-base ?prefer-base
                                               ?align-planes-left
                                               ?align-planes-right))
-    (property ?designator (:type :moving-tcp))
+    (property ?designator (:type :moving-arm))
     (once (or (property ?designator (:left-pose ?left-pose))
               (equal ?left-pose nil)))
     (once (or (property ?designator (:right-pose ?right-pose))

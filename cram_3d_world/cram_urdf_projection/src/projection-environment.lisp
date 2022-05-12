@@ -153,5 +153,5 @@
                  cram-tf:*robot-base-frame* 0.0
                  (cl-transforms:make-3d-vector 0.8 0.4 1.0)
                  (cl-transforms:make-identity-rotation))))
-     (desig:a motion (type moving-tcp) (left-pose ?pose)))))
+     (desig:a motion (type moving-arm) (left-pose ?pose)))))
 )
