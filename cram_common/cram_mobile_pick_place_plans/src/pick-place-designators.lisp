@@ -38,15 +38,15 @@
     (cram-tf:pose-stamped->transform-stamped target-pose-in-base child-frame-rosy)))
 
 
-(defun split-attachments-desig (location-designator)
-  (let ((attachments (desig:desig-prop-value location-designator :attachments)))
-    (loop for attachment in attachments
+(defun split-specific-poses-desig (location-designator)
+  (let ((specific-poses (desig:desig-prop-value location-designator ::specific-poses)))
+    (loop for specific-pose in specific-poses
           collecting (desig:make-designator
                       :location
                       ;; cannot equate these guys because they will all end up
                       ;; being the same location designator
-                      `((:attachment ,attachment)
-                        ,@(remove :attachments (desig:properties location-designator)
+                      `((:specific-pose ,specific-pose)
+                        ,@(remove :specific-poses (desig:properties location-designator)
                                   :key #'car))))))
 
 
@@ -202,10 +202,10 @@
     ;; take object-pose from action-designator :target otherwise from object-designator pose
     (-> (spec:property ?action-designator (:target ?location-designator))
         (and (desig:current-designator ?location-designator ?current-loc-desig)
-             ;; if the location designator has ATTACHMENTS property,
-             ;; split it into a list of locations with ATTACHMENT property
-             (-> (desig:desig-prop ?current-loc-desig (:attachments ?_))
-                 (and (lisp-fun split-attachments-desig ?current-loc-desig
+             ;; if the location designator has SPECIFIC-Poses property,
+             ;; split it into a list of locations with SPECIFIC-Pose property
+             (-> (desig:desig-prop ?current-loc-desig (:specific-poses ?_))
+                 (and (lisp-fun split-specific-poses-desig ?current-loc-desig
                                 ?list-of-current-loc-desig-split)
                       (member ?current-location-designator ?list-of-current-loc-desig-split))
                  (equal ?current-location-designator ?current-loc-desig))
@@ -233,7 +233,7 @@
         (equal ?other-object-is-a-robot NIL))
     ;; and the placement can have a specific attachment or not
     (once (or (desig:desig-prop ?current-location-designator
-                                (:attachment ?placement-location-name))
+                                (:specific-pose ?placement-location-name))
               (equal ?placement-location-name NIL)))
     ;; get the type of the placement location, because the trajectory
     ;; might be different depending on the location type
@@ -292,7 +292,7 @@
                                (:grasp ?grasp)
                                (:location-type ?location-type)
                                (:gripper-opening ?gripper-opening)
-                               (:attachment-type ?placement-location-name)
+                               (:specific-pose-type ?placement-location-name)
                                (:look-pose ?look-pose)
                                (:left-reach-poses ?left-reach-poses)
                                (:right-reach-poses ?right-reach-poses)
