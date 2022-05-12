@@ -269,7 +269,7 @@ If there is no other method with 1 as qualifier, this method will be executed al
               ;; it will be attached loose.
               ;; Otherwise, if a link contacting btr-object was found,
               ;; btr-object will be attached to it.
-              (or ;; (mapcar (lambda (item-object)
+              (or ;;-- (mapcar (lambda (item-object)
                   ;;           (when item-object
                   ;;             (btr:attach-object item-object btr-object :loose T)))
                   ;;         contacting-items)
