@@ -1212,13 +1212,13 @@
             (make-location-in-sink-trash-drawer object-type environment)))
         '(:milk :bottle))
 
-(mapcar (lambda (type)
-          (defmethod man-int:get-object-destination :heuristics 20
-              ((object-type (eql type))
-               environment human
-               (context (eql :table-cleaning)))
-            (make-location-on-sink environment object-type)))
-        '(:bowl :plate :cutlery :mug :cup :cereal :breakfast-cereal :milk :bottle))
+;; (mapcar (lambda (type)
+;;           (defmethod man-int:get-object-destination :heuristics 20
+;;               ((object-type (eql type))
+;;                environment human
+;;                (context (eql :table-cleaning)))
+;;             (make-location-on-sink environment object-type)))
+;;         '(:bowl :plate :cutlery :mug :cup :cereal :breakfast-cereal :milk :bottle))
 
 
 ;;;;;;;;;;;;;;;;;; Predefined poses for placing on dish-washer-drawer ;;;;;;;;;;;;;

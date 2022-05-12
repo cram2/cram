@@ -502,7 +502,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                   target-hand
                 &allow-other-keys)
   (declare (type desig:object-designator ?object-designator)
-           (type (or keyword null) ?arm)
+           (type (or list null) ?arm)
            ;; don't pass NULL as ?target-location or ?target-robot-location!
            ;; they can turn NULL during execution but not at the beginning
            (type (or desig:location-designator null) ?target-location ?target-robot-location)
@@ -622,7 +622,9 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                               (let* ((referenced-action-desig
                                        (desig:reference place-action))
                                      (?arm
-                                       (list (desig:desig-prop-value referenced-action-desig :arm)))
+                                       (desig:desig-prop-value
+                                              referenced-action-desig
+                                              :arm))
                                      (?projected-target-location
                                        (desig:desig-prop-value referenced-action-desig :target)))
                                 (desig:an action

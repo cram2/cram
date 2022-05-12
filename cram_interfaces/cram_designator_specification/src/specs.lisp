@@ -130,12 +130,6 @@
 
   (<- (%property ?designator (?keyword-or-list-key ?value))
     (lisp-pred typep ?designator desig:action-designator)
-    ;; HEAD
-    ;; (member ?keyword-or-list-key (:gripper
-    ;;                               :arm :direction :grasp :camera :type
-    ;;                               :context :link :configuration
-    ;;                               :left-configuration :right-configuration
-    ;;                               :collision-mode))
     (member ?keyword-or-list-key (:gripper :arm :direction :grasp
                                   :left-grasp :right-grasp :camera :type
                                   :context :link :configuration :park-arms
