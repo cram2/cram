@@ -40,6 +40,7 @@
 
 (def-fact-group occasions (cpoe:object-in-hand
                            cpoe:object-at-location
+                           cpoe:object-placed
                            cpoe:robot-at-location
                            cpoe:torso-at
                            cpoe:gripper-joint-at
@@ -96,6 +97,10 @@
     (desig:obj-desig? ?object)
     (object-designator-name ?object ?object-name)
     (%object-at-location ?_ ?object-name ?location))
+
+  (<- (cpoe:object-placed ?object ?location)
+    (cpoe:object-at-location ?object ?location)
+    (not (cpoe:object-in-hand ?object)))
 
 
   (<- (cpoe:torso-at ?joint-state)
