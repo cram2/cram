@@ -238,7 +238,7 @@
             ;; arms the object is hold by getting all arms in use and
             ;; checking if these hold one object as specified
             (or (and (setof ?used-arm (cpoe:object-in-hand ?object ?used-arm) ?arm)
-                           ;(man-int:object-in-arms ?arm ?object-designator)
+                           (man-int:object-in-arms ?arm ?object-designator)
                            (man-int:check-arms-for-object ?arm ?object-designator))
                 (and (format "WARNING: :^) KMS Please specify with an arm which ~
                               of the arms should be used.~%")
