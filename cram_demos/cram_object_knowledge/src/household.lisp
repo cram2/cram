@@ -135,7 +135,7 @@
 
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms
-    '(:cutlery :fork :knife :spoon :spatula) '(:left :right) :top
+    '(:cutlery :fork :knife :spoon) '(:left :right) :top
   :grasp-translation `(0.0 0.0 ,*cutlery-grasp-z-offset*)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets `(0.0 0.0 ,*cutlery-pregrasp-z-offset*)
@@ -144,7 +144,7 @@
   :2nd-lift-translation `(0.0 0.0 ,*cutlery-pregrasp-z-offset*))
 ;; TOP grasp shelf
 (man-int:def-object-type-to-gripper-transforms
-    '(:cutlery :fork :knife :spoon :spatula) '(:left :right) :top
+    '(:cutlery :fork :knife :spoon) '(:left :right) :top
   :location-type :shelf
   :grasp-translation `(0.0 0.0 ,*cutlery-grasp-z-offset*)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
@@ -164,6 +164,28 @@
 ;;   :2nd-pregrasp-offsets `(0.0 0.0 ,(- *cutlery-pregrasp-z-offset*))
 ;;   :lift-translation `(0.0 0.0 ,*cutlery-pregrasp-z-offset*)
 ;;   :2nd-lift-translation `(0.0 0.0 ,*cutlery-pregrasp-z-offset*))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;; SPATULA ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *spatula-grasp-z-offset* 0.0 "in meters") ; because TCP is not at the edge
+
+;; TOP grasp
+(man-int:def-object-type-to-gripper-transforms :spatula '(:left :right) :top
+  :grasp-translation `(0.0 0.0 ,*spatula-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,*cutlery-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,*cutlery-pregrasp-z-offset*)
+  :lift-translation `(0.0 0.0 ,*cutlery-pregrasp-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*cutlery-pregrasp-z-offset*))
+;; TOP grasp shelf
+(man-int:def-object-type-to-gripper-transforms :spatula '(:left :right) :top
+  :location-type :shelf
+  :grasp-translation `(0.0 0.0 ,*spatula-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,*cutlery-shelf-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,*cutlery-shelf-pregrasp-z-offset*)
+  :lift-translation `(0.0 0.0 ,*cutlery-shelf-pregrasp-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*cutlery-shelf-pregrasp-z-offset*))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; PLATE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -216,18 +238,18 @@
 (defparameter *pot-grasp-z-offset* 0.05 "in meters")
 
 ;; SIDE grasp
-(man-int:def-object-type-to-gripper-transforms :pot :left :left-side
+(man-int:def-object-type-to-gripper-transforms :pot '(:left :right) :left-side
   :grasp-translation `(,*pot-grasp-x-offset* 0.0 ,*pot-grasp-z-offset*)
   :grasp-rot-matrix man-int:*x-across-y-grasp-rotation*
-  :pregrasp-offsets `(0.0 ,*plate-pregrasp-y-offset* ,*lift-z-offset*)
+  :pregrasp-offsets `(,*plate-pregrasp-y-offset* 0.0 ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(0.0 ,*plate-pregrasp-y-offset* 0.0)
   :lift-translation *lift-offset*
   :2nd-lift-translation *lift-offset*)
 
-(man-int:def-object-type-to-gripper-transforms :pot :right :right-side
+(man-int:def-object-type-to-gripper-transforms :pot '(:left :right) :right-side
   :grasp-translation `(,(- *pot-grasp-x-offset*) 0.0 ,*pot-grasp-z-offset*)
   :grasp-rot-matrix man-int:*-x-across-y-flipped-grasp-rotation*
-  :pregrasp-offsets `(0.0 ,(- *plate-pregrasp-y-offset*) ,*lift-z-offset*)
+  :pregrasp-offsets `(,(- *plate-pregrasp-y-offset*) 0.0 ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(0.0 ,(- *plate-pregrasp-y-offset*) 0.0)
   :lift-translation *lift-offset*
   :2nd-lift-translation *lift-offset*)
@@ -453,7 +475,7 @@
   :grasp-translation `(,(- *shoe-top2-grasp-x-offset*)
                         ,(- *cup-grasp-xy-offset*)
                         ,*shoe-side-grasp-z-offset*)
-  :grasp-rot-matrix man-int:*y-across-z-flipped-grasp-rotation*
+  :grasp-rot-matrix man-int:*y-across-z-grasp-rotation*
   :pregrasp-offsets `(0.0 ,*cup-pregrasp-xy-offset* ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(0.0 ,*cup-pregrasp-xy-offset* 0.0)
   :lift-translation *lift-offset*
@@ -463,7 +485,7 @@
   :grasp-translation `(,(- *shoe-top2-grasp-x-offset*)
                         ,*cup-grasp-xy-offset*
                         ,*shoe-side-grasp-z-offset*)
-  :grasp-rot-matrix man-int:*-y-across-z-flipped-grasp-rotation*
+  :grasp-rot-matrix man-int:*-y-across-z-grasp-rotation*
   :pregrasp-offsets `(0.0 ,(- *cup-pregrasp-xy-offset*) ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(0.0 ,(- *cup-pregrasp-xy-offset*) 0.0)
   :lift-translation *lift-offset*
