@@ -386,7 +386,9 @@
   ;;;;;;;;;;;;;;; spatial relation ON for item objects ;;;;;;;;;;;;;;;;;;;;;;
   (<- (costmap:desig-costmap ?designator ?costmap)
     (desig:desig-prop ?designator (:on ?object))
-    (btr-belief:object-designator-name ?object ?object-instance-name)
+    (not (desig:desig-prop ?designator (:attachment ?_)))
+    (not (desig:desig-prop ?designator (:attachments ?_)))
+    (object-designator-from-name-or-type ?object ?object-instance-name)
     (btr:bullet-world ?world)
     (btr:item-type ?world ?object-instance-name ?_)
     (btr:%object ?world ?object-instance-name ?object-instance)
@@ -402,8 +404,7 @@
   ;;;;;;;;;;;;;;; spatial relation ON for environment objects ;;;;;;;;;;;;;;;;;;;;;;
   (<- (costmap:desig-costmap ?designator ?costmap)
     (desig:desig-prop ?designator (:on ?object))
-    (not (desig:desig-prop ?designator (:attachment ?_)))
-    (not (desig:desig-prop ?designator (:attachments ?_)))
+    (btr-belief:object-designator-name ?object ?object-instance-name)
     (spec:property ?object (:urdf-name ?urdf-name))
     (spec:property ?object (:part-of ?environment-name))
     (btr:bullet-world ?world)

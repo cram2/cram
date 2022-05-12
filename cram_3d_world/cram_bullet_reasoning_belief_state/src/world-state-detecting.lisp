@@ -134,23 +134,6 @@ the old object-designator description is enough to create a new one."
            (cram-tf:strip-transform-stamped map-T-obj)))
 
     (detect-new-object-pose old-object object-name object-type map-P-obj map-T-obj)))
-  ;; (let* ((object-name
-  ;;          (desig:desig-prop-value old-object :name))
-  ;;        (object-type
-  ;;          (first (btr:item-types
-  ;;                  (btr:object btr:*current-bullet-world* object-name))))
-  ;;        (map-T-obj
-  ;;          (cram-tf:pose->transform-stamped
-  ;;           cram-tf:*fixed-frame*
-  ;;           (roslisp-utilities:rosify-underscores-lisp-name object-name)
-  ;;           0.0
-  ;;           (btr:pose
-  ;;            (btr:object btr:*current-bullet-world* object-name))))
-  ;;        (map-P-obj
-  ;;          (cram-tf:strip-transform-stamped map-T-obj)))
-
-  ;;   (detect-new-object-pose old-object object-name object-type map-P-obj map-T-obj)))
-         
 
 
 (defun detect-new-object-pose-from-old-pose (old-object)
