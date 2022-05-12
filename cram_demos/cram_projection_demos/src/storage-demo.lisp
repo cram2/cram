@@ -41,7 +41,7 @@
      (:spatula . ((0.5 0.41 0.03343) (-0.001785 0.01511 0.112743 0.99351)))
      (:bowl-round . ((0.2 0.4 0.05541) (0 0 0 1)))
      (:pot . ((-0.35 0.35 0.106334) (0 0 0 1)))
-     (:fork . ((-0.7 0.41 0.03) (0.051733 -0.02223737 0.91708 0.3947064))))
+     (:fork . ((-0.7 0.41 0.03) (0 0 0.93 0.37))))
 
     ("board2"
      (:bowl . ((-0.8 0.4 0.07655) (0 0 0 1)))
@@ -100,7 +100,9 @@
     (let ((old-visibility btr:*visibility-threshold*))
       (setf btr:*visibility-threshold*
             (case (rob-int:get-robot-name)
-              ((:iai-donbot :kmr-iiwa) 0.5) ; perceiving with an object in hand is hard
+              ;; perceiving with an object in hand is hard, and perceiving the pot
+              ;; even without objects in hand is also too hard
+              ((:iai-donbot :kmr-iiwa) 0.4)
               (t 0.7)))
       (unwind-protect
 
