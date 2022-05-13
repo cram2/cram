@@ -388,4 +388,10 @@
                                (:joint-name ?joint-name)
                                (:joint-angle-threshold ?joint-angle-threshold)
                                (:function ?function))
-                      ?resolved-action-designator)))
+                      ?resolved-action-designator))
+
+
+
+  (<- (desig:action-grounding ?action-designator (wait ?action-designator))
+    (spec:property ?action-designator (:type :waiting))
+    (spec:property ?action-designator (:duration ?_))))

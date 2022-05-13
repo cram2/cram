@@ -490,3 +490,12 @@ equate resulting designator to the original one."
             (joint-angle-threshold ?joint-angle-threshold)
             (desig:when ?function
               (function ?function)))))
+
+
+(defun wait (&key
+               ((:duration ?duration))
+             &allow-other-keys)
+  (exe:perform
+   (desig:a motion
+            (type waiting)
+            (duration ?duration))))
