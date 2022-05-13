@@ -67,7 +67,8 @@
    urdf-proj-grippers
    urdf-proj-arms
    urdf-proj-noop
-   btr-belief:world-state-detecting-pm)
+   btr-belief:world-state-detecting-pm
+   common-desig:wait-pm)
   :startup (progn
              (cram-bullet-reasoning-belief-state:set-tf-from-bullet)
              (cram-bullet-reasoning-belief-state:update-bullet-transforms)
@@ -88,8 +89,7 @@
                        urdf-proj-perception
                        urdf-proj-grippers
                        urdf-proj-arms
-                       urdf-proj-noop
-                       btr-belief:world-state-detecting-pm)))
+                       urdf-proj-noop)))
     (symbol-value cram-projection:*projection-environment* urdf-bullet-projection-environment))
 
   (<- (cpm::projection-running ?pm)
@@ -100,8 +100,7 @@
                        urdf-proj-perception
                        urdf-proj-grippers
                        urdf-proj-arms
-                       urdf-proj-noop
-                       btr-belief:world-state-detecting-pm)))
+                       urdf-proj-noop)))
     (symbol-value cram-projection:*projection-environment* urdf-bullet-projection-environment)))
 
 
