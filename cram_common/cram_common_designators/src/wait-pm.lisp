@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2022, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,12 +27,27 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :pr2-pms)
+(in-package :cram-common-designators)
 
-(defmacro with-real-robot (&body body)
-  `(cram-process-modules:with-process-modules-running
-       (rs:robosherlock-perception-pm  ;; navp:navp-pm
-        pr2-grippers-pm pr2-ptu-pm giskard:giskard-pm joints:joint-state-pm
-        common-desig:wait-pm)
-     (cpl-impl::named-top-level (:name :top-level)
-       ,@body)))
+(cpm:def-process-module wait-pm (motion-designator)
+  (destructuring-bind (command duration)
+      (desig:reference motion-designator)
+    (ecase command
+      (common-desig:wait
+       (sleep duration)))))
+
+;;; Example:
+;; (cram-process-modules:with-process-modules-running
+;;     (common-desig:wait-pm)
+;;   (cpl:top-level
+;;     (cpm:pm-execute-matching
+;;      (desig:a motion (type waiting) (duration 5)))))
+
+
+(def-fact-group wait-matching-pms (cpm:matching-process-module
+                                   cpm:available-process-module)
+
+  (<- (cpm:matching-process-module ?motion-designator wait-pm)
+    (desig:desig-prop ?motion-designator (:type :waiting)))
+
+  (<- (cpm:available-process-module wait-pm)))
