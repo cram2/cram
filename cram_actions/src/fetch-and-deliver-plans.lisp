@@ -510,8 +510,6 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
   "Delivers `?object-designator' to `?target-location', where object is held in `?arm'
 and the robot should stand at `?target-robot-location' when placing the object.
 If a failure happens, try a different `?target-location' or `?target-robot-location'."
-    (roslisp:ros-warn (fd-plans deliver -vanessa)
-                               "is this even called?")
   (setf ?target-location (desig:reset ?target-location))
   (setf ?target-robot-location (desig:reset ?target-robot-location))
 
@@ -556,14 +554,10 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                       :warning-namespace (fd-plans deliver)
                       :reset-designators (list ?target-location)
                       :rethrow-failure 'common-fail:object-undeliverable))))
-(roslisp:ros-warn (fd-plans deliver -vanessa)
-                               "navigating")
             ;; navigate
             (exe:perform (desig:an action
                                    (type navigating)
                                    (location ?target-robot-location)))
-            (roslisp:ros-warn (fd-plans deliver -vanessa)
-                               "take a new target location sample")
 
             ;; take a new `?target-location' sample if a failure happens
             (cpl:with-retry-counters ((target-location-retries 2))
@@ -587,8 +581,6 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                 ;; if target is in hand, we have a handover,
                 ;; so move target hand closer
                 (when target-in-hand
-                  (roslisp:ros-warn (fd-plans deliver -vanessa)
-                               "when target in hand")
                   (let ((?goal
                           (case target-hand
                             (:left `(cpoe:arms-positioned-at :hand-over nil))
@@ -604,9 +596,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                                (goal ?goal)))
                     (setf ?target-location (desig:reset ?target-location))))
 
-                ;; look
-                (roslisp:ros-warn (fd-plans deliver -vanessa)
-                               "look")
+                ;; look is unreachable for EE or is in collision
                 (let (;; (?goal `(cpoe:looking-at ,?target-location))
                       )
                   (exe:perform (desig:an action
@@ -614,8 +604,6 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                                          (target ?target-location)
                                          ;; (goal ?goal)
                                          )))
-                (roslisp:ros-warn (fd-plans deliver -vanessa)
-                               "place")
                ;; place
                 (let ((place-action
                         (or (when place-action
@@ -647,8 +635,9 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
 
                   ;; test if the placing pose is a good one -- not falling on the floor
                   ;; test function throws a high-level-failure if not good pose
-                  (proj-reasoning:check-placing-pose-stability
-                   ?object-designator ?target-location)
+                  (unless target-stable
+                    (proj-reasoning:check-placing-pose-stability
+                     ?object-designator ?target-location))
 
                   (exe:perform place-action)
 
