@@ -534,3 +534,121 @@ correct parent frame: ~a and ~a"
     (cl-transforms-stamped:copy-pose-stamped
      gripper-initial-pose
      :origin (cl-transforms:make-3d-vector offset-object-x object-y-in-base offset-object-z))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;; POUR ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defgeneric get-source-object-in-target-object-transform (source-object-type
+                                                          source-object-name
+                                                          target-object-type
+                                                          target-object-name
+                                                          side grasp)
+  (:documentation "Returns to-T-so for pouring from given `source-object-type'
+into `target-object-type', where the source object is still upright.")
+  (:method (source-object-type source-object-name
+            target-object-type target-object-name
+            side grasp)
+    "Per default we return identity, which makes no sense but gives a hint."
+    (cl-transforms-stamped:make-transform-stamped
+     (roslisp-utilities:rosify-underscores-lisp-name target-object-name)
+     (roslisp-utilities:rosify-underscores-lisp-name source-object-name)
+     0.0
+     (cl-transforms:make-identity-vector)
+     (cl-transforms:make-identity-rotation))
+    #+for-overloaded-methods-use-translate-pose-and-rotate-pose
+    (translate-pose grasp-pose
+                    :x-offset (case grasp
+                                (:front (- *pour-xy-offset*))
+                                (:side 0.0)
+                                (error "can only pour from :side or :front"))
+                    :y-offset (case grasp
+                                (:front 0.0)
+                                (:side (case arm
+                                         (:left *pour-xy-offset*)
+                                         (:right (- *pour-xy-offset*))
+                                         (t (error "arm can only be :left or :right"))))
+                                (error "can only pour from :side or :front"))
+                    :z-offset (+ *bottle-grasp-z-offset*
+                                 *pour-z-offset*))))
+
+(defgeneric get-tilt-angle-for-pouring (source-object-type target-object-type)
+  (:documentation "Returns a vertical tilting angle in radians
+for pouring from given `source-object-type' into `target-object-type'.")
+  (:method (source-object-type target-object-type)
+    "Per default, the robot completely flips the source-object around when tilting,
+such that a 180 degree tilting angle is used per default."
+    pi))
+
+(defgeneric get-wait-duration-for-pouring (source-object-type
+                                           target-object-type
+                                           tilt-angle)
+  (:documentation "Returns a wait duration in seconds
+for pouring from given `source-object-type' into `target-object-type'
+with the given `tilt-angle'.")
+  (:method (source-object-type target-object-type tilt-angle)
+    "Per default, the robot completely flips the source-object around when tilting,
+so we assume that all the source contents drops into the target right away."
+    0))
+
+(defmethod get-action-trajectory :heuristics 20 ((action-type (eql :pouring))
+                                                 arm
+                                                 grasp
+                                                 location
+                                                 objects-acted-on
+                                                 &key tilt-angle side)
+  (let* ((source-object
+           (first objects-acted-on))
+         (source-object-name
+           (desig:desig-prop-value source-object :name))
+         (source-object-type
+           (desig:desig-prop-value source-object :type))
+         (target-object
+           (second objects-acted-on))
+         (target-object-name
+           (desig:desig-prop-value target-object :name))
+         (target-object-type
+           (desig:desig-prop-value target-object :type))
+         (b-T-to
+           (get-object-transform target-object))
+         (to-T-so
+           (get-source-object-in-target-object-transform
+            source-object-type source-object-name
+            target-object-type target-object-name
+            side grasp))
+         (so-T-stdg
+           (get-object-type-to-gripper-transform
+            source-object-type source-object-name arm grasp))
+         (to-T-stdg
+           (reduce #'cram-tf:apply-transform
+                   `(,to-T-so ,so-T-stdg)
+                   :from-end T))
+         (to-T-so-tilts
+           (case grasp
+             (:front (cram-tf:rotate-pose-in-own-frame
+                      to-T-so :y tilt-angle))
+             (:side (case arm
+                      (:left (cram-tf:rotate-pose-in-own-frame
+                              to-T-so :x tilt-angle))
+                      (:right (cram-tf:rotate-pose-in-own-frame
+                               to-T-so :x (- tilt-angle)))
+                      (t (error "arm can only be :left or :right"))))
+             (t (error "can only pour from :side or :front"))))
+         (to-T-stdg-tilts
+           (reduce #'cram-tf:apply-transform
+                   `(,to-T-so-tilts ,so-T-stdg)
+                   :from-end T)))
+
+    (mapcar (lambda (label transforms)
+              (make-traj-segment
+               :label label
+               :poses (mapcar (alexandria:curry #'calculate-gripper-pose-in-map
+                                                b-T-to arm)
+                              transforms)))
+            '(:reaching
+              :tilting-down
+              :tilting-up
+              :retracting)
+            `(,to-T-stdg
+              ,to-T-stdg-tilts
+              ,to-T-stdg
+              ,to-T-stdg))))
