@@ -2,7 +2,7 @@
 
 (defparameter *environment-owl* "'package://iai_semantic_maps/owl/kitchen.owl'")
 (defparameter *environment-owl-individual-name* "'http://knowrob.org/kb/IAI-kitchen.owl#iai_kitchen_room_link'")
-(defparameter *environment-urdf* "'package://iai_kitchen/urdf_obj/iai_kitchen_python.urdf'")
+(defparameter *environment-urdf* "'package://iai_kitchen/urdf_obj/iai_kitchen_popcorn_python.urdf'") ;;TODO This should automatically be read if possible
 (defparameter *environment-urdf-prefix* "'iai_kitchen/'")
 
 (defparameter *agent-owl* "'package://knowrob/owl/robots/PR2.owl'")
@@ -13,6 +13,7 @@
 
 (defun get-parent-folder-path()
   (namestring (physics-utils:parse-uri "package://cram_cloud_logger/src")))
+  
 
 (defun send-load-neem-generation-interface ()
   (let ((path-to-interface-file (concatenate 'string "'"(get-parent-folder-path) "/neem-interface.pl'")))

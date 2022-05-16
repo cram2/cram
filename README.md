@@ -20,6 +20,7 @@ The core packages of CRAM are implemented in Common Lisp (with a little bit of C
 * `rosdep install --ignore-src --from-paths src/ -r`
 * `catkin_make`
 
+
 For ROS noetic and the current packages, one thing needs to be fixed. The package octomap contains a dependency to a ROS2 package, which can be ignored. Open the package.xml of octomap.
 
 * `roscd octomap`
@@ -59,6 +60,7 @@ If changes are made to the code and a **PullRequest** results from it, please ch
   * WIP     
 
 ----
+
 ### Directory
 * **cram_3d_world** Bullet physics engine-based and OpenGl offscreen rendering-based reasoning mechanisms.
 * **cram_3rdparty** 3rd party Lisp liabraries wrapped into ROS packages.

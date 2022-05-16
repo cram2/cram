@@ -95,6 +95,9 @@
     ((object-type (eql :bowl)) grasp)
   :carry-top)
 (defmethod man-int:get-object-type-carry-config :heuristics 20
+    ((object-type (eql :ikea-bowl-ww)) grasp)
+  :carry-top)
+(defmethod man-int:get-object-type-carry-config :heuristics 20
     ((object-type (eql :cup)) (grasp (eql :top)))
   :carry-top)
 (defmethod man-int:get-object-type-carry-config :heuristics 20
@@ -121,6 +124,11 @@
 
   (<- (orientation-matters ?object-type)
     (member ?object-type (:knife :fork :spoon :cutlery :spatula :weisswurst :bread :big-knife))))
+
+(def-fact-group attachment-knowledge (man-int:unidirectional-attachment)
+
+  (<- (man-int:unidirectional-attachment ?attachment-type)
+    (member ?attachment-type (:popcorn-pot-lid-attachment))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; CUTLERY ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -284,6 +292,7 @@
   :lift-translation *lift-offset*
   :2nd-lift-translation *lift-offset*)
 
+
 ;; BACK grasp
 (man-int:def-object-type-to-gripper-transforms :cup '(:left :right) :back
   :grasp-translation `(,*cup-grasp-xy-offset* 0.0d0 ,*cup-grasp-z-offset*)
@@ -422,7 +431,7 @@
   :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
   :pregrasp-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
   :2nd-pregrasp-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
-    :lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
+  :lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
   :2nd-lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*))
 (man-int:def-object-type-to-gripper-transforms :bowl '(:left :right) :top-front
   :grasp-translation `(,*bowl-grasp-x-offset* 0.0d0 ,*bowl-grasp-z-offset*)
@@ -553,7 +562,145 @@
   :lift-translation `(0.0 0.06 ,*cutlery-pregrasp-z-offset*)
   :2nd-lift-translation `(0.0 0.06 ,*cutlery-pregrasp-z-offset*))
 
+;;;;;;;;;;;;;;;;;;;;;;; POPCORN-POT ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; TOP GRASP
+(man-int:def-object-type-to-gripper-transforms :popcorn-pot '(:left :right) :top
+  :grasp-translation `(0.0 0.105 0.025)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 0.08)
+  :2nd-pregrasp-offsets `(0.0 0.0 0.08)
+  :lift-translation `(0.0 0.0 0.02)
+  :2nd-lift-translation `(0.0 0.0 0.02))
+
+(man-int:def-object-type-to-gripper-transforms :popcorn-pot '(:left :right) :left-side
+  :grasp-translation `(0.1315 0.0114 0.031)
+  :grasp-rot-matrix man-int:*x-across-y-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 0.08)
+  :2nd-pregrasp-offsets `(0.0 0.0 0.08)
+  :lift-translation `(0.0 0.0 0.12)
+  :2nd-lift-translation `(0.0 0.0 0.12))
+
+
+(man-int:def-object-type-to-gripper-transforms :popcorn-pot '(:left :right) :right-side
+  :grasp-translation `(-0.128 -0.004 0.0309)
+  :grasp-rot-matrix man-int::*-x-across-y-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 0.08)
+  :2nd-pregrasp-offsets `(0.0 0.0 0.08)
+  :lift-translation `(0.0 0.0 0.12)
+  :2nd-lift-translation `(0.0 0.0 0.12))
+
+
+;;;;;;;;;;;;;;;;;;;;;; POPCORN-POT-LID ;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; TOP GRASP
+(man-int:def-object-type-to-gripper-transforms :popcorn-pot-lid '(:left :right) :top
+  :grasp-translation `(0.0 0.0 0.01)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-translation  `(0.0 0.0 0.01)
+  :2nd-lift-translation  `(0.0 0.0 0.01))
+
+;;;;;;;;;;;;;;;;;;;;;;; IKEA-BOWL-WW ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; TOP GRASP
+(man-int:def-object-type-to-gripper-transforms :ikea-bowl-ww '(:left :right) :top
+  :grasp-translation `(0.0 0.075 0.025)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+;;;;;;;;;;;;;;;;;;;;;;; SALT ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; TOP GRASP
+(man-int:def-object-type-to-gripper-transforms :salt '(:left) :left-side
+  :grasp-translation `(0.0 0.0 0.0)
+  :grasp-rot-matrix man-int:*y-across-z-grasp-rotation*
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+(man-int:def-object-type-to-gripper-transforms :salt '(:right) :right-side
+  :grasp-translation `(0.0 0.0 0.0)
+  :grasp-rot-matrix man-int:*y-across-z-grasp-rotation*
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+;;;;;;;;;;;;;;;;;;;;;;; IKEA-PLATE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; TOP GRASP
+(man-int:def-object-type-to-gripper-transforms :ikea-plate '(:left :right) :top
+  :grasp-translation `(-0.14 0.0 0.025)
+  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+(man-int:def-object-type-to-gripper-transforms :ikea-plate '(:right) :front
+  :grasp-translation `(0.0 0.0 0.0)
+  :grasp-rot-matrix man-int:*-y-across-x-grasp-rotation*
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+(man-int:def-object-type-to-gripper-transforms :ikea-plate '(:left) :front
+  :grasp-translation `(0.0 0.0 0.0)
+  :grasp-rot-matrix man-int:*y-across-x-grasp-rotation*
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform
+    ((object-type (eql :ikea-plate))
+     (arm (eql :left))
+     (grasp (eql :left-side)))
+  '((-0.02 0.02 0.18)(0 0 0 1)))
+
+(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform
+    ((object-type (eql :ikea-plate))
+     (arm (eql :right))
+     (grasp (eql :right-side)))
+  '((-0.02 0.02 0.14)(0 0 0 1)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :popcorn-item)))
+  35)
+
+(defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :popcorn-item)))
+  0.1)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(man-int:def-object-type-in-other-object-transform :popcorn-pot-lid :popcorn-pot :popcorn-pot-lid-attachment
+  :attachment-translation `(0.0 0.0 0.0745)
+  :attachment-rot-matrix man-int:*identity-matrix*)
+
+(defmethod man-int:get-z-offset-for-placing-with-dropping
+    ((other-object (eql :popcorn-pot))
+     (object (eql :popcorn-pot-lid))
+     (attachment (eql :popcorn-pot-lid-attachment)))
+  0.02)
+
+(def-fact-group popcorn-object-type-hierarchy (man-int:object-type-direct-subtype)
+  (<- (man-int:object-type-direct-subtype :popcorn-item :popcorn-pot))
+  (<- (man-int:object-type-direct-subtype :popcorn-item :popcorn-pot-lid))
+  (<- (man-int:object-type-direct-subtype :popcorn-item :ikea-bowl-ww))
+  (<- (man-int:object-type-direct-subtype :popcorn-item :ikea-plate))
+  (<- (man-int:object-type-direct-subtype :popcorn-item :salt)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;; table setting locations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1065,6 +1212,14 @@
             (make-location-in-sink-trash-drawer object-type environment)))
         '(:milk :bottle))
 
+;; (mapcar (lambda (type)
+;;           (defmethod man-int:get-object-destination :heuristics 20
+;;               ((object-type (eql type))
+;;                environment human
+;;                (context (eql :table-cleaning)))
+;;             (make-location-on-sink environment object-type)))
+;;         '(:bowl :plate :cutlery :mug :cup :cereal :breakfast-cereal :milk :bottle))
+
 
 ;;;;;;;;;;;;;;;;;; Predefined poses for placing on dish-washer-drawer ;;;;;;;;;;;;;
 
@@ -1092,3 +1247,7 @@
   :dish-washer-drawer-center
   :attachment-translation `(0.03 0.0 0.03)
   :attachment-rot-matrix man-int:*identity-matrix*)
+
+
+(defmethod man-int:get-arms-for-object-type :heuristics 20 ((object-type (eql :tray)))
+  '(:left :right))
