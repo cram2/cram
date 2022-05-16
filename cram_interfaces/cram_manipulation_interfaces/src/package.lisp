@@ -94,6 +94,10 @@
    #:get-object-placement-transform
    #:def-object-type-in-other-object-transform
    #:get-object-look-from-pose
+   ;;
+   #:get-source-object-in-target-object-transform
+   #:get-tilt-angle-for-pouring
+   #:get-wait-duration-for-pouring
    ;; standard-grasps
    #:*x-across-z-grasp-rotation*
    #:*x-across-z-grasp-rotation-2*

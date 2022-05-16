@@ -64,9 +64,9 @@
   '(("sink_area_footprint_joint"
      ((1.855d0 1.3d0 0.0d0) (0 0 1 0)))
     ("oven_area_footprint_joint"
-     ((1.855d0 2.47d0 0.0d0) (0 0 1 0)))
+     ((1.845d0 2.5d0 0.0d0) (0 0 1 0)))
     ("kitchen_island_footprint_joint"
-     ((-1.365d0 0.59d0 0.0d0) (0 0 0 1)))
+     ((-1.363d0 0.59d0 0.0d0) (0 0 0 1)))
     ("fridge_area_footprint_joint"
      ((1.845d0 -0.73d0 0.0d0) (0 0 1 0)))
     ("table_area_main_joint"
@@ -257,12 +257,6 @@
                    (object (desig:an object (type ?object-type)))
                    (context table-cleaning)
                    (grasps ?grasps)))))))
-
-
-
-
-
-
 
 
 
@@ -486,6 +480,29 @@
    cpl:*current-path*))
 
 
+
+
+;;;;;;;; THE STUFF BELOW IS FOR THE POURING EXPERIMENT
+
+(defun pour-demo ()
+  (spawn-objects-on-fixed-spots
+   :spawning-poses-relative *delivery-poses-relative*)
+  (urdf-proj:with-simulated-robot
+    (pp-plans::add
+     (desig:an object
+               (type milk)
+               (location (desig:a location
+                                  (on (desig:an object
+                                                (type counter-top)
+                                                (urdf-name kitchen-island-surface)
+                                                (part-of iai-kitchen))))))
+     (desig:an object
+               (type bowl)
+               (location (desig:a location
+                                  (on (desig:an object
+                                                (type counter-top)
+                                                (urdf-name kitchen-island-surface)
+                                                (part-of iai-kitchen)))))))))
 
 
 
