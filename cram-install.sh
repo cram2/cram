@@ -3,7 +3,7 @@
 install -d ~/roscram/cram_ws/src
 cd ~/roscram/cram_ws/src
 wstool init
-wstool merge https://raw.githubusercontent.com/cram2/cram/popcorn-noetic/cram-20.04.rosinstall
+wstool merge https://raw.githubusercontent.com/cram2/cram/noetic/cram-20.04.rosinstall
 wstool update
 cd ..
 rosdep update
