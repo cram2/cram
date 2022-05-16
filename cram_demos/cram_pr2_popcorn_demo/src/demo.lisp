@@ -80,7 +80,7 @@
 (defparameter *popcorn-pot-handle-right-horizontal-grasp* '(:popcorn-pot-1 . ((-0.128 -0.004 0.0309)(-0.707 0.0d0 0.0d0 0.707))))
 (defparameter *popcorn-pot-handle-left-horizontal-grasp* '(:popcorn-pot-1 . ((0.1315 0.0114 0.031)(0.0d0 0.707 -0.707 0.0d0))))
 
-(defparameter *with-logging* T)
+(defparameter *with-logging* nil)
 
 (defun initialize ()
   (sb-ext:gc :full t)
