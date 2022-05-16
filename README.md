@@ -13,7 +13,7 @@ The core packages of CRAM are implemented in Common Lisp (with a little bit of C
 * `sudo apt-get install python-rosinstall python-wstool`
 * `cd ~/workspace/ros/src`
 * `wstool init`
-* `wstool merge https://raw.githubusercontent.com/cram2/cram/boxy-noetic/cram-20.04.rosinstall`
+* `wstool merge https://raw.githubusercontent.com/cram2/cram/noetic/cram-20.04.rosinstall`
 * `wstool update`
 * `cd ~/workspace/ros`
 * `rosdep update`
