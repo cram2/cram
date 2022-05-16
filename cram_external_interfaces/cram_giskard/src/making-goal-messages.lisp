@@ -47,8 +47,10 @@
           (apply #'vector (alexandria:flatten entries))
           (apply #'vector (remove NIL entries)))))
 
-(defun make-giskard-goal (&key constraints joint-constraints cartesian-constraints
-                            collisions (goal-type :plan_and_execute))
+(defun make-giskard-goal (&key
+                            constraints joint-constraints cartesian-constraints
+                            collisions
+                            (goal-type :plan_and_execute_and_cut_off_shaking))
   (roslisp:make-message
    'giskard_msgs-msg:MoveGoal
    :type (roslisp:symbol-code 'giskard_msgs-msg:MoveGoal goal-type)
@@ -59,6 +61,28 @@
               :cartesian_constraints (make-constraints-vector cartesian-constraints)
               :joint_constraints (make-constraints-vector joint-constraints)
               :collisions (make-constraints-vector collisions)))))
+
+(defun make-giskard-goal-multiple (&key
+                                     all-constraints
+                                     joint-constraints
+                                     cartesian-constraints
+                                     collisions
+                                     (goal-type
+                                      :plan_and_execute_and_cut_off_shaking))
+  (roslisp:make-message
+   'giskard_msgs-msg:MoveGoal
+   :type (roslisp:symbol-code 'giskard_msgs-msg:MoveGoal goal-type)
+   :cmd_seq (map
+             'vector
+             (lambda (constraints)
+               (roslisp:make-message
+                'giskard_msgs-msg:movecmd
+                :constraints (make-constraints-vector constraints)
+                :cartesian_constraints (make-constraints-vector
+                                        cartesian-constraints)
+                :joint_constraints (make-constraints-vector joint-constraints)
+                :collisions (make-constraints-vector collisions)))
+             all-constraints)))
 
 (defun cram-name-list->ros-frame-vector (cram-names-list)
   "@artnie used this function but actually other CRAM users probably don't need it..."
@@ -142,8 +166,8 @@
    "AlignPlanes"
    :parameter_value_pair
    (alist->json-string
-    `(("root" . ,root-frame)
-      ("tip" . ,tip-frame)
+    `(("root_link" . ,root-frame)
+      ("tip_link" . ,tip-frame)
       ("root_normal" . ,(to-hash-table root-vector))
       ("tip_normal" . ,(to-hash-table tip-vector))
       ,@(when avoid-collisions-not-much
@@ -178,29 +202,41 @@
    "Pointing"
    :parameter_value_pair
    (alist->json-string
-    `(("root" . ,root-frame)
-      ("tip" . ,tip-frame)
+    `(("root_link" . ,root-frame)
+      ("tip_link" . ,tip-frame)
       ("goal_point" . ,(to-hash-table
                         (cram-tf:pose-stamped->point-stamped
                          goal-pose)))
       ,@(when pointing-vector
           `(("pointing_axis" . ,(to-hash-table pointing-vector))))))))
 
+(defun make-head-pointing-constraint (goal-pose)
+  (declare (type cl-transforms-stamped:pose-stamped goal-pose))
+  (let ((camera-frame
+          (cut:var-value
+           '?camera-frame
+           (car (prolog:prolog
+                 `(and (rob-int:robot ?robot)
+                       (rob-int:camera-frame ?robot ?camera-frame)))))))
+    (when (cut:is-var camera-frame)
+      (error "[giskard] Camera frame was not defined."))
+    (make-pointing-constraint
+     (cl-transforms-stamped:frame-id goal-pose)
+     camera-frame
+     goal-pose)))
+
 (defun make-head-pointing-at-hand-constraint (arm)
   (declare (type keyword arm))
-  (let* ((bindings
+  (let ((tool-frame
+          (cut:var-value
+           '?frame
            (car (prolog:prolog
                  `(and (rob-int:robot ?robot)
                        (rob-int:robot-tool-frame ?robot ,arm ?frame)
-                       (rob-int:camera-frame ?robot ?camera-frame)))))
-         (tool-frame
-           (cut:var-value '?frame bindings))
-         (camera-frame
-           (cut:var-value '?camera-frame bindings)))
-    (when (or (cut:is-var tool-frame) (cut:is-var camera-frame))
-      (error "[giskard] Tool frame or camera frame was not defined."))
-    (make-pointing-constraint
-     tool-frame camera-frame
+                       (rob-int:camera-frame ?robot ?camera-frame)))))))
+    (when (cut:is-var tool-frame)
+      (error "[giskard] Tool frame was not defined."))
+    (make-head-pointing-constraint
      (cl-transforms-stamped:pose->pose-stamped
       tool-frame 0.0
       (cl-transforms:make-identity-pose)))))
@@ -225,8 +261,8 @@
      (alist->json-string
       `(("object_name" . ,(roslisp-utilities:rosify-underscores-lisp-name
                            (rob-int:get-environment-name)))
-        ("tip" . ,tool-frame)
-        ("handle_link" . ,(roslisp-utilities:rosify-underscores-lisp-name
+        ("tip_link" . ,tool-frame)
+        ("object_link_name" . ,(roslisp-utilities:rosify-underscores-lisp-name
                            handle-link))
         ,@(when goal-joint-state
             `(("goal_joint_state" . ,goal-joint-state))))))))
@@ -254,11 +290,11 @@
          . ,(to-hash-table bar-axis))
         ("bar_center"
          . ,(to-hash-table bar-center))
-        ("tip"
+        ("tip_link"
          . ,tool-frame)
         ("bar_length"
          . ,bar-length)
-        ("root"
+        ("root_link"
          . ,root-link))))))
 
 (defun make-cartesian-constraint (root-frame tip-frame goal-pose
@@ -277,7 +313,7 @@
       ("tip_link" . ,tip-frame)
       ("goal" . ,(to-hash-table goal-pose))
       ,@(when max-velocity
-          `(("translation_max_velocity" . ,max-velocity)))
+          `(("max_linear_velocity" . ,max-velocity)))
       ,@(when avoid-collisions-much
           `(("weight" . ,(roslisp-msg-protocol:symbol-code
                           'giskard_msgs-msg:constraint
@@ -349,14 +385,14 @@
      "CollisionAvoidanceHint"
      :parameter_value_pair
      (alist->json-string
-      `(("link_name" . ,base-link)
+      `(("tip_link" . ,base-link)
         ("avoidance_hint" . ,(to-hash-table vector))
         ("max_threshold" . ,threshold)
-        ("max_velocity" . ,max-velocity)
+        ("max_linear_velocity" . ,max-velocity)
         ("spring_threshold" . ,(+ threshold spring-offset))
-        ("body_b" . ,(roslisp-utilities:rosify-underscores-lisp-name
+        ("object_name" . ,(roslisp-utilities:rosify-underscores-lisp-name
                       (rob-int:get-environment-name)))
-        ("link_b" . ,environment-link)
+        ("object_link_name" . ,environment-link)
         ("weight" . ,(roslisp-msg-protocol:symbol-code
                       'giskard_msgs-msg:constraint
                       :weight_collision_avoidance)))))))

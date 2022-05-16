@@ -64,8 +64,20 @@ the `look-pose-stamped'."
     (spec:property ?action-designator (:type :navigating))
     (spec:property ?action-designator (:location ?some-location-designator))
     (desig:current-designator ?some-location-designator ?location-designator)
+    ;; Check if robots holds one object with both arms
+    ;; get robot arms and how many arms the robot has
+    (setof ?arm (rob-int:arm ?_ ?arm) ?rob-arms)
+    (length ?rob-arms ?number-of-arms)
+    ;; check if the robot with more than one arm holds only one object
+    (-> (and (cpoe:object-in-hand ?object-designator ?arm ?grasp)
+             (> ?number-of-arms 1)
+             (forall (member ?rob-arm ?rob-arms)
+                     (cpoe:object-in-hand ?object-designator ?rob-arm)))
+        (equal ?park-arms NIL)
+        (equal ?park-arms T))
     (desig:designator :action ((:type :navigating)
-                               (:location ?location-designator))
+                               (:location ?location-designator)
+                               (:park-arms ?park-arms))
                       ?resolved-action-designator))
 
 
@@ -207,8 +219,7 @@ the `look-pose-stamped'."
                                            ;; have to add the visibility
                                            ;; constraint as he reperceives
                                            ;; each time before grasping
-                                           ;; (:visible-for ?robot)
-                                           )
+                                           (:visible-for ?robot))
                                 ?robot-location-designator)))
     ;; if the object is in the hand or its reference object is in the hand
     ;; we need to bring the hand closer to the other hand, e.g., bring to front

@@ -103,6 +103,8 @@
    #:defcfun
    #:foreign-funcall
    #:foreign-funcall-pointer
+   #:foreign-funcall-varargs
+   #:foreign-funcall-pointer-varargs
    #:translate-camelcase-name
    #:translate-name-from-foreign
    #:translate-name-to-foreign
@@ -112,6 +114,7 @@
    #:*foreign-library-directories*
    #:*darwin-framework-directories*
    #:foreign-library
+   #:foreign-library-load-state
    #:foreign-library-name
    #:foreign-library-pathname
    #:foreign-library-type

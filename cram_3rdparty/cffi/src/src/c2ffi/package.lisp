@@ -29,9 +29,11 @@
         #:common-lisp)
   (:import-from :asdf
                 #:cl-source-file
+                #:find-system
                 #:output-file
                 #:output-files
                 #:input-files
+                #:operation-done-p
                 #:perform
                 #:compile-op
                 #:load-op
@@ -39,14 +41,17 @@
                 #:prepare-op
                 #:component-pathname
                 #:component-depends-on
+                #:operation
                 #:downward-operation
+                #:selfward-operation
                 #:load-system
                 #:component-loaded-p)
   (:export
    #:c2ffi-file
-   #:default-ffi-name-transformer
-   #:default-ffi-type-transformer
-   #:change-case-to-readtable-case
    #:camelcased?
    #:camelcase-to-dash-separated
+   #:change-case-to-readtable-case
+   #:default-ffi-name-transformer
+   #:default-ffi-type-transformer
+   #:generate-spec
    #:maybe-camelcase-to-dash-separated))

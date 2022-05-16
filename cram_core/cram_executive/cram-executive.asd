@@ -38,7 +38,8 @@
                :cram-language
                :cram-designators
                :cram-process-modules
-               :cram-occasions-events)
+               :cram-occasions-events
+               :roslisp)
 
   :components
   ((:module "src"

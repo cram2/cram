@@ -36,6 +36,29 @@
            (type symbol handle-link)
            (type (or number null) joint-state)
            (type boolean prefer-base))
+  ;; (make-giskard-goal-multiple
+  ;;  :all-constraints (mapcar
+  ;;                    (lambda (joint-state)
+  ;;                      (list
+  ;;                       (when prefer-base (make-prefer-base-constraint))
+  ;;                       (make-open-or-close-constraint
+  ;;                        open-or-close arm handle-link joint-state)
+  ;;                       (make-base-velocity-constraint
+  ;;                        *base-max-velocity-slow-xy*
+  ;;                        *base-max-velocity-slow-theta*)
+  ;;                       (make-avoid-joint-limits-constraint)
+  ;;                       (make-head-pointing-at-hand-constraint arm)))
+  ;;                    (list (/ joint-state 2) joint-state))
+  ;;  :collisions (make-constraints-vector
+  ;;               ;; (make-avoid-all-collision)
+  ;;               (append
+  ;;                (make-allow-collision-with-environment-attachments)
+  ;;                (list
+  ;;                 (ecase open-or-close
+  ;;                   (:open (make-allow-hand-collision
+  ;;                           (list arm) (rob-int:get-environment-name) handle-link))
+  ;;                   (:close (make-allow-arm-collision
+  ;;                            (list arm) (rob-int:get-environment-name))))))))
   (make-giskard-goal
    :constraints (list
                  (when prefer-base (make-prefer-base-constraint))
@@ -66,13 +89,25 @@
            (type (or number null) joint-angle action-timeout)
            (type boolean prefer-base))
 
-  (call-action
-   :action-goal (make-environment-manipulation-goal
-                 open-or-close arm handle-link joint-angle prefer-base)
-   :action-timeout action-timeout
-   :check-goal-function (lambda (result status)
-                          (declare (ignore result))
-                          (when (or (not status)
-                                    (member status '(:preempted :aborted :timeout)))
-                            (make-instance 'common-fail:manipulation-low-level-failure
-                              :description "Giskard action failed.")))))
+  (if (eq open-or-close :open)
+      (dotimes (i 2)
+        (call-action
+         :action-goal (make-environment-manipulation-goal
+                       open-or-close arm handle-link (/ joint-angle 2.0) prefer-base)
+         :action-timeout action-timeout
+         :check-goal-function (lambda (result status)
+                                (declare (ignore result))
+                                (when (or (not status)
+                                          (member status '(:preempted :aborted :timeout)))
+                                  (make-instance 'common-fail:manipulation-low-level-failure
+                                    :description "Giskard action failed.")))))
+      (call-action
+       :action-goal (make-environment-manipulation-goal
+                     open-or-close arm handle-link joint-angle prefer-base)
+       :action-timeout action-timeout
+       :check-goal-function (lambda (result status)
+                              (declare (ignore result))
+                              (when (or (not status)
+                                        (member status '(:preempted :aborted :timeout)))
+                                (make-instance 'common-fail:manipulation-low-level-failure
+                                  :description "Giskard action failed."))))))

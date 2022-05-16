@@ -62,23 +62,28 @@
 (defparameter *delivery-poses-dining-table-relative*
   `((:bowl
      "dining_area_jokkmokk_table_main"
-     ((-0.46 -0.012 0.7991485595703125d0)
+     ((-0.46 -0.012 0.449148565530777d0 ;; 0.7991485595703125d0
+             )
       (0.0d0 0.0d0 0.4550555463557553d0 0.8904630535462239d0)))
     (:cup
      "dining_area_jokkmokk_table_main"
-     ((-0.283 -0.0975 0.8241376876831055d0)
+     ((-0.283 -0.0975 0.47413769364356995d0 ;; 0.8241376876831055d0
+              )
       (0.0d0 0.0d0 0.9542005181967461d0 0.299167797520156d0)))
     (:spoon
      "dining_area_jokkmokk_table_main"
-     ((-0.46 -0.1816 0.755256716410319d0)
+     ((-0.46 -0.2016 0.4052567223707835d0 ;; 0.755256716410319d0
+             )
       (0 0 0 1)))
     (:milk
      "dining_area_jokkmokk_table_main"
-     ((-0.012 -0.031 0.8362768809000651d0)
+     ((-0.012 -0.031 0.4862768868605296d0 ;; 0.8362768809000651d0
+              )
       (-0.00932157 0.00720728 0.965580536 0.25983724)))
     (:breakfast-cereal
      "dining_area_jokkmokk_table_main"
-     ((-0.012 -0.23 0.850479253133138d0)
+     ((-0.012 -0.23 0.5004792590936025d0 ;; 0.850479253133138d0
+              )
       (-0.0079082 0.00397635 0.08238571 0.9965611543)))))
 
 
@@ -93,7 +98,7 @@
               -1.31627733935602d-4
               0.8862651586532593d0
               -0.46317803859710693d0)))
-    (:spoon . ((-3.1984092712402346d0 -0.14934446016947428d0 0.755256716410319d0)
+    (:spoon . ((-3.1784092712402346d0 -0.14934446016947428d0 0.755256716410319d0)
                (0.02845500223338604d0
                 0.028393128886818886d0
                 0.7164095640182495d0
@@ -232,7 +237,7 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
            (?color (cdr (assoc ?object-type *object-colors*)))
            (?arm (cdr (assoc ?object-type *object-arms*)))
            (?material (cdr (assoc ?object-type *object-materials*)))
-           ;; (?grasp (cdr (assoc ?object-type *object-grasps*)))
+           (?grasp (cdr (assoc ?object-type *object-grasps*)))
            (?object (an object
                         (type ?object-type)
                         ;; (location ?fetch-location)
@@ -245,16 +250,17 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
            (type transporting)
            (object ?object)
            (context :table-setting)
-           ;; (grasps (:back :top :front))
+           ;;(grasps (:top ))
            (desig:when ?arm
-             (arms (?arm)))
-           ;; (desig:when ?grasp
-           ;;   (grasp ?grasp))
+               (arms (?arm)))
+           ;(:?right-grasp :top)
+           (desig:when ?grasp
+             (grasp ?grasp))
            (target ?deliver-location)
            )))))
 
-(defun cleaning-demo (&optional (object-list '(:bowl :spoon :cup
-                                               :milk :breakfast-cereal)))
+(defun cleaning-demo (&optional (object-list '(:breakfast-cereal :milk
+                                               :spoon :cup :bowl)))
   "Cleans up object to the designated locations by iterating over
 `object-list' "
   ;; (setup-for-demo object-list)
@@ -268,11 +274,11 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
 
   (dolist (?object-type object-list)
     (let ((?grasps (when (eq ?object-type :cup)
-                   '(:front :back :left-side :right-side))))
-     (exe:perform
-      (desig:an action
-                (type transporting)
-                (object (desig:an object (type ?object-type)))
-                (context table-cleaning)
-                (desig:when ?grasps
-                  (grasps ?grasps)))))))
+                     '(:front :back :left-side :right-side))))
+      (exe:perform
+       (desig:an action
+                 (type transporting)
+                 (object (desig:an object (type ?object-type)))
+                 (context table-cleaning)
+                 (desig:when ?grasps
+                   (grasps ?grasps)))))))

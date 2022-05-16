@@ -32,11 +32,10 @@
 (defun make-giskard-action-client ()
   (actionlib-client:make-simple-action-client
    'giskard-action
-   "giskardpy/command" "giskard_msgs/MoveAction"
+   "giskard/command" "giskard_msgs/MoveAction"
    120))
 
 (roslisp-utilities:register-ros-init-function make-giskard-action-client)
-
 
 (defun call-action (&key action-goal action-timeout check-goal-function)
   (declare (type giskard_msgs-msg:movegoal action-goal)
@@ -68,6 +67,16 @@
       (:aborted
        (roslisp:ros-warn (giskard cartesian)
                          "Giskard action aborted.~%Result: ~a" result)))
+
+    (when (and result
+               (member (roslisp:symbol-code
+                        'giskard_msgs-msg:moveresult
+                        :unknown_object)
+                       (map 'list #'identity
+                            (roslisp:msg-slot-value
+                             result
+                             :error_codes))))
+      (full-update-collision-scene))
 
     ;; check if the goal was reached, if not, throw a failure
     (when check-goal-function

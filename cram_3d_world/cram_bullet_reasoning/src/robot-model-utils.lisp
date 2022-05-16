@@ -226,7 +226,6 @@ Should it be taken out and made PR2-specific?"
      delta)))
 
 
-
 (defun get-robot-object ()
   (object *current-bullet-world* (rob-int:get-robot-name)))
 
@@ -290,7 +289,8 @@ board or level or shelf in them"
                            (let ((child-name (cl-urdf:name child-link)))
                              (if (or (search "_board" child-name)
                                      (search "_level" child-name)
-                                     (search "_shelf" child-name))
+                                     (search "_shelf" child-name)
+                                     (search "Floor" child-name))
                                  (push child-link levels-found)
                                  (find-levels child-link))))
                            child-links))))

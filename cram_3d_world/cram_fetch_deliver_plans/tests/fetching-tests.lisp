@@ -100,7 +100,7 @@
                   (robot-location (a location
                                      (poses (*valid-robot-pose-towards-island-near-wall*))))))))
   (assert-equal 1 (get-error-count-for-error 'common-fail:fetching-failed))
-  (assert-equal 5 (get-error-count-for-error 'common-fail:perception-object-not-found)))
+  (assert-equal 2 (get-error-count-for-error 'common-fail:perception-object-not-found)))
 
 
 (define-test object-reached-on-second-robot-location-fetch-test
@@ -142,7 +142,7 @@
                                     (poses (*valid-robot-pose-towards-sink-area-surface*)))))))
   (assert-equal 0 (get-error-count-for-error 'common-fail:fetching-failed))
   (assert-equal 1 (get-error-count-for-error 'common-fail:object-unreachable))
-  (assert-equal 4 (get-error-count-for-error 'common-fail:manipulation-goal-in-collision)))
+  (assert-equal 5 (get-error-count-for-error 'common-fail:manipulation-goal-in-collision)))
 
 
 (define-test object-unreachable-with-only-unreachable-arm-fetch-test
@@ -186,7 +186,7 @@
                                     (poses (*valid-robot-pose-towards-island-near-wall*
                                             *valid-robot-pose-towards-sink-area-surface*)))))))
   ;; Can't find in the first location
-  (assert-equal 5 (get-error-count-for-error 'common-fail:perception-object-not-found)))
+  (assert-equal 2 (get-error-count-for-error 'common-fail:perception-object-not-found)))
 
 
 (define-test navigation-pose-invalid-before-perception-fetch-test
@@ -236,5 +236,5 @@
   (assert-equal 1 (get-error-count-for-error 'common-fail:fetching-failed))
   (assert-equal 4 (get-error-count-for-error 'common-fail:manipulation-low-level-failure))
   (assert-equal 2 (get-error-count-for-error 'common-fail:object-unreachable))
-  (assert-equal 1 (get-error-count-for-error 'common-fail:navigation-goal-in-collision))
-  (assert-equal 1 (get-error-count-for-error 'common-fail:navigation-pose-unreachable)))
+  (assert-equal 50 (get-error-count-for-error 'common-fail:navigation-goal-in-collision))
+  (assert-equal 50 (get-error-count-for-error 'common-fail:navigation-pose-unreachable)))

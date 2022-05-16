@@ -130,11 +130,11 @@
 
   (<- (%property ?designator (?keyword-or-list-key ?value))
     (lisp-pred typep ?designator desig:action-designator)
-    (member ?keyword-or-list-key (:gripper
-                                  :arm :direction :grasp :camera :type
-                                  :context :link :configuration
-                                  :left-configuration :right-configuration
-                                  :collision-mode))
+    (member ?keyword-or-list-key (:gripper :arm :direction :grasp
+                                  :left-grasp :right-grasp :camera :type
+                                  :context :link :configuration :park-arms
+                                  :left-configuration :right-configuration :collision-mode))
+
     (property-member (?keyword-or-list-key ?value) ?designator)
     (assert-type ?value (or keyword list) "ACTION SPEC:PROPERTY"))
 
@@ -202,6 +202,12 @@
                                :far-from :near))
     (property-member (?object-desig-key ?value) ?designator)
     (assert-type ?value desig:object-designator "LOCATION SPEC:PROPERTY"))
+
+  (<- (%property ?designator (?location-desig-key ?value))
+    (lisp-pred typep ?designator desig:location-designator)
+    (member ?location-desig-key (:location))
+    (property-member (?location-desig-key ?value) ?designator)
+    (assert-type ?value desig:location-designator "LOCATION SPEC:PROPERTY"))
 
   (<- (%property ?designator (?keyword-key ?value))
     (lisp-pred typep ?designator desig:location-designator)
