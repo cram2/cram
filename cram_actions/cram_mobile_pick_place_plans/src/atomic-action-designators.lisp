@@ -318,7 +318,7 @@
   (<- (desig:action-grounding ?action-designator (look-at ?resolved-action-designator))
     (spec:property ?action-designator (:type :looking))
     (spec:property ?action-designator (:object ?object-designator))
-    (current-designator ?object-designator ?current-object-designator)
+    (desig:current-designator ?object-designator ?current-object-designator)
     (lisp-fun man-int:get-object-pose ?current-object-designator ?pose-stamped)
     ;; (-> (spec:property ?action-designator (:camera ?camera))
     ;;     (equal ?camera :head)

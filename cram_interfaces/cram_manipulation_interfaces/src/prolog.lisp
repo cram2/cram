@@ -1,5 +1,6 @@
 ;;;
 ;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;;               2020, Thomas Lipps    <tlipps@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -82,7 +83,11 @@
     (fail)))
 
 
-(def-fact-group manipulation-knowledge ()
+(def-fact-group manipulation-knowledge (robot-free-hand
+                                        arms-for-object-type
+                                        check-arms-for-object
+                                        check-arms-for-object-type
+                                        object-in-arms)
   ;; most symbolic locations have a reference object
   ;; this predicate finds the reference object of the given location desig
   (<- (location-reference-object ?location-designator ?current-object-designator)
@@ -116,6 +121,40 @@
 
   ;; gives the joint state numbers for the given config,
   ;; taking into consideration if there is an object in hand or not
+
+  (<- (arms-for-object-type ?object-type ?arms)
+    (lisp-fun man-int:get-arms-for-object-type ?object-type ?specific-arms)
+    (equal ?arms ?specific-arms))
+
+  (<- (check-arms-for-object ?arms ?object)
+    (once (spec:property ?object (:type ?object-type))
+          (check-arms-for-object-type ?arms ?object-type)))
+
+  (<- (check-arms-for-object-type ?arms ?object-type)
+    (once (arms-for-object-type ?object-type ?arms-for-object)
+          ;; If there are no specifc arms required return true, else...
+          (-> (equal ?arms-for-object nil)
+              (true)
+              ;; if the object needs more arms as the robot has return true...
+              (-> (and (rob-int:arms ?_ ?usable-arms)
+                       (not (subset ?arms-for-object ?usable-arms)))
+                  (true)
+                  ;; or otherwise check if the given arms are enough. 
+                  (subset ?arms ?arms-for-object)))))
+
+  (<- (object-in-arms ?arms ?object)
+    ;; Get object which is holded by ?arms
+    (and (length ?arms ?num-of-given-arms)
+         (cpoe:object-in-hand ?object ?some-arm)
+         (member ?some-arm ?arms)
+         (-> (> ?num-of-given-arms 1)
+             (and (cpoe:object-in-hand ?other-obj ?other-arm)
+                  (member ?some-arm ?arms)
+                  (not (equal ?some-arm ?other-arm))
+                  (equal ?object ?other-obj))
+             (true))))
+
+
   (<- (joint-state-for-arm-config ?robot ?config ?arm ?joint-state)
     (once
      (or (-> (and (equal ?config :park)
@@ -205,6 +244,15 @@
     (desig:obj-desig? ?desig)
     (lisp-fun get-object-pose-in-map ?desig ?loc)
     (lisp-pred identity ?loc))
+
+(defun symbol-to-prolog-rule (the-symbol &rest parameters)
+  (let ((interned-symbol (find-symbol (string-upcase the-symbol))))
+    (if interned-symbol
+        (cram-utilities:var-value
+         '?result
+         (car (prolog `(,interned-symbol ,@parameters ?result))))
+        the-symbol)))
+
 
   ;; Resolving (a location (of ?some-object))
   (<- (desig:location-grounding ?designator ?pose-stamped)

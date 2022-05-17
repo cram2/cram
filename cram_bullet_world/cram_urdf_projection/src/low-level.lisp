@@ -1134,13 +1134,10 @@ collision by moving its torso and base"
           ;; set the torso to inferred position
           (cond
             ((and left-torso-angle right-torso-angle)
-             (if (eq left-torso-angle right-torso-angle)
-                 (move-torso left-torso-angle)
-                 (cpl:fail 'common-fail:manipulation-pose-unreachable
-                           :description (format nil "In MOVE-TCP goals ~
-                                         for the two arms require different ~
-                                         torso angles."))))
-            (left-torso-angle
+             ;; (when (not (eq left-torso-angle right-torso-angle))
+             ;;   (cpl:fail 'common-fail:manipulation-pose-unreachable
+             ;;             :description (format nil "In MOVE-TCP goals for the two arms ~
+             ;;                                     require different torso angles).")))
              (move-torso left-torso-angle))
             (right-torso-angle
              (move-torso right-torso-angle)))
@@ -1151,10 +1148,11 @@ collision by moving its torso and base"
                            left-base-pose *base-resampling-step*)
                           right-base-pose)
                  (setf (btr:pose (btr:get-robot-object)) left-base-pose)
-                 (cpl:fail 'common-fail:manipulation-pose-unreachable
-                           :description (format nil "In MOVE-TCP goals ~
-                                           for the two arms require different ~
-                                           base-poses."))))
+                 ;; (cpl:fail 'common-fail:manipulation-pose-unreachable 
+                 ;;           :description (format nil "In MOVE-TCP goals ~
+                 ;;                           for the two arms require different ~
+                 ;;                           base-poses."))
+                 ))
             (left-base-pose
              (setf (btr:pose (btr:get-robot-object)) left-base-pose))
             (right-base-pose
