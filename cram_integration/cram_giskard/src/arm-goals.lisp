@@ -89,12 +89,12 @@
                         :left
                         :right)))
      :cartesian-constraints (list (when left-pose
-                                    (make-simple-cartesian-constraint
+                                    (make-cartesian-constraint
                                      pose-base-frame
                                      cram-tf:*robot-left-tool-frame*
                                      left-pose))
                                   (when right-pose
-                                    (make-simple-cartesian-constraint
+                                    (make-cartesian-constraint
                                      pose-base-frame
                                      cram-tf:*robot-right-tool-frame*
                                      right-pose)))
