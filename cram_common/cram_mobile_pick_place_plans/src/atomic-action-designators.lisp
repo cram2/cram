@@ -82,10 +82,10 @@
   (<- (infer-align-planes ?action-designator ?align-planes-left ?align-planes-right)
     ;; infer if we should keep the object in hand upright
     ;; that should currently always happen if we have an object in hand
-    (-> (cpoe:object-in-hand ?_ :left)
+    (-> (cpoe:holding-object ?_ :left)
         (equal ?align-planes-left t)
         (equal ?align-planes-left nil))
-    (-> (cpoe:object-in-hand ?_ :right)
+    (-> (cpoe:holding-object ?_ :right)
         (equal ?align-planes-right t)
         (equal ?align-planes-right nil)))
 
@@ -159,7 +159,7 @@
                         ?prefer-base ?move-base
                         ?align-planes-left ?align-planes-right)
     ;; infer collision-object-b and collision-object-b-link
-    (-> (cpoe:object-in-hand ?object-designator ?_ ?_ ?_)
+    (-> (cpoe:holding-object ?object-designator ?_ ?_ ?_)
         (and (rob-int:robot ?robot)
              (equal ?collision-object-b ?robot)
              (equal ?object-link ?object-name))

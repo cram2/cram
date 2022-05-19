@@ -314,7 +314,7 @@ retries with different search location or robot base location."
                 ((:robot-location ?pick-up-robot-location))
                 ((:look-location ?look-location))
                 pick-up-action
-                object-in-hand
+                holding-object
                 object-hand
               &allow-other-keys)
   (declare (type desig:object-designator ?object-designator)
@@ -366,7 +366,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
 
         ;; if fetch location is in hand, we have a handover,
         ;; so move the source hand closer
-        (when object-in-hand
+        (when holding-object
           (let ((?goal
                   (case object-hand
                     (:left `(cpoe:arms-positioned-at :hand-over nil))
@@ -445,7 +445,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                  (setf ?grasp (cut:lazy-car ?grasps)))))
 
                           (let* ((?goal
-                                   `(cpoe:object-in-hand
+                                   `(cpoe:holding-object
                                      ,?more-precise-perceived-object-desig
                                      :left-or-right))
                                 (pick-up-action
@@ -745,7 +745,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
 
       ;; fetch the object
       (let ((?fetch-goal
-              `(cpoe:object-in-hand
+              `(cpoe:holding-object
                 ,?object-designator :left-or-right)))
         (exe:perform (desig:an action
                                (type fetching)

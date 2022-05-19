@@ -29,9 +29,9 @@
 
 (in-package :kr-assembly)
 
-;;; object-in-hand assert and retract
+;;; holding-object assert and retract
 
-(defmethod cram-occasions-events:on-event object-in-hand ((event cpoe:object-attached-robot))
+(defmethod cram-occasions-events:on-event holding-object ((event cpoe:object-attached-robot))
   (let* (;; (arm (cpoe:event-arm event)) ; <- not needed for knowrob
          ;; (grasp (cpoe:event-grasp event))
          (object-name (cpoe:event-object-name event))
@@ -39,7 +39,7 @@
          (kr-grasp-class (car (get-possible-object-grasps object-name gripper-id))))
     (assert-object-grasped gripper-id object-name "boxy" kr-grasp-class)))
 
-(defmethod cram-occasions-events:on-event object-in-hand ((event cpoe:object-detached-robot))
+(defmethod cram-occasions-events:on-event holding-object ((event cpoe:object-detached-robot))
   (let* (;; (arm (cpoe:event-arm event)) ; <- not needed for knowrob
          (object-designator (cpoe:event-object event))
          (object-name (desig:desig-prop-value object-designator :name))

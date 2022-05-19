@@ -69,10 +69,10 @@ the `look-pose-stamped'."
     (setof ?arm (rob-int:arm ?_ ?arm) ?rob-arms)
     (length ?rob-arms ?number-of-arms)
     ;; check if the robot with more than one arm holds only one object
-    (-> (and (cpoe:object-in-hand ?object-designator ?arm ?grasp)
+    (-> (and (cpoe:holding-object ?object-designator ?arm ?grasp)
              (> ?number-of-arms 1)
              (forall (member ?rob-arm ?rob-arms)
-                     (cpoe:object-in-hand ?object-designator ?rob-arm)))
+                     (cpoe:holding-object ?object-designator ?rob-arm)))
         (equal ?park-arms NIL)
         (equal ?park-arms T))
     (desig:designator :action ((:type :navigating)
@@ -224,15 +224,15 @@ the `look-pose-stamped'."
     ;; if the object is in the hand or its reference object is in the hand
     ;; we need to bring the hand closer to the other hand, e.g., bring to front
     (-> (man-int:object-or-its-reference-in-hand ?object-designator ?object-hand)
-        (equal ?object-in-hand T)
-        (and (equal ?object-in-hand NIL)
+        (equal ?holding-object T)
+        (and (equal ?holding-object NIL)
              (equal ?object-hand NIL)))
     ;; look-location
     (once (or (and (spec:property ?action-designator (:look-location
                                                       ?some-look-loc-desig))
                    (desig:current-designator ?some-look-loc-desig
                                              ?look-location-designator))
-              (-> (or (equal ?object-in-hand NIL) (equal ?object-hand NIL))
+              (-> (or (equal ?holding-object NIL) (equal ?object-hand NIL))
                   (desig:designator :location ((:of ?object-designator))
                                     ?look-location-designator)
                   (and (desig:designator :object ((:part-of ?robot)
@@ -253,7 +253,7 @@ the `look-pose-stamped'."
                                (:robot-location ?robot-location-designator)
                                (:look-location ?look-location-designator)
                                (:pick-up-action ?pick-up-action-designator)
-                               (:object-in-hand ?object-in-hand)
+                               (:holding-object holding-object)
                                (:object-hand ?object-hand))
                       ?resolved-action-designator))
 
@@ -285,7 +285,7 @@ the `look-pose-stamped'."
     ;; also, the target location can be w.r.t. other object, which can be in hand,
     ;; in which case we need to bring the other object hand closer
     (-> (and (man-int:location-reference-object ?location-designator ?target-obj)
-             (cpoe:object-in-hand ?target-obj ?target-hand))
+             (cpoe:holding-object ?target-obj ?target-hand))
         (equal ?target-in-hand T)
         (and (equal ?target-in-hand NIL)
              (equal ?target-hand NIL)))

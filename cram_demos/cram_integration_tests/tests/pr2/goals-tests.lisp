@@ -326,7 +326,7 @@
              (?object-copy
                (desig:copy-designator ?object))
              (?goal
-               `(cpoe:object-in-hand ,?object)))
+               `(cpoe:holding-object ,?object)))
         (perform
          (an action
              (type picking-up)

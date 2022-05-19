@@ -38,7 +38,7 @@
 (defparameter *looking-convergence-delta* 0.01 "In meters")
 (defparameter *looking-convergence-joints-delta* 0.07 "In radians, about 4 deg.")
 
-(def-fact-group occasions (cpoe:object-in-hand
+(def-fact-group occasions (cpoe:holding-object
                            cpoe:object-at-location
                            cpoe:robot-at-location
                            cpoe:torso-at
@@ -54,7 +54,7 @@
   ;; (<- (cpoe:container-state ?container-designator ?distance) ...)
 
   ;; if we want the arm, we get it from the link
-  (<- (cpoe:object-in-hand ?object ?arm ?grasp)
+  (<- (cpoe:holding-object ?object ?arm ?grasp)
     (btr:bullet-world ?world)
     (rob-int:robot ?robot)
     (btr:attached ?world ?robot ?link ?object-name ?grasp)
@@ -68,23 +68,23 @@
   ;; if we only want to know the link and don't care about the arm
   ;; it can be that the arm is not even given in the attachments
   ;; so we need a bit of copy paste here...
-  (<- (cpoe:object-in-hand ?object ?_ ?grasp ?link)
+  (<- (cpoe:holding-object ?object ?_ ?grasp ?link)
     (btr:bullet-world ?world)
     (rob-int:robot ?robot)
     (btr:attached ?world ?robot ?link ?object-name ?grasp)
     (once (and (object-designator-name ?object ?object-name)
                (desig:obj-desig? ?object))))
   ;;
-  (<- (cpoe:object-in-hand ?object ?arm)
-    (cpoe:object-in-hand ?object ?arm ?_))
+  (<- (cpoe:holding-object ?object ?arm)
+    (cpoe:holding-object ?object ?arm ?_))
   ;;
-  (<- (cpoe:object-in-hand ?object)
-    (setof ?object (cpoe:object-in-hand ?object ?_) ?objects)
+  (<- (cpoe:holding-object ?object)
+    (setof ?object (cpoe:holding-object ?object ?_) ?objects)
     (member ?object ?objects))
   ;;
-  (<- (cpoe:object-in-hand ?object :left-or-right)
-    (or (cpoe:object-in-hand ?object :left)
-        (cpoe:object-in-hand ?object :right)))
+  (<- (cpoe:holding-object ?object :left-or-right)
+    (or (cpoe:holding-object ?object :left)
+        (cpoe:holding-object ?object :right)))
 
 
   (<- (cpoe:robot-at-location ?location)

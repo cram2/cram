@@ -119,7 +119,7 @@
                  (left-poses ?left-grasp-poses)
                  (right-poses ?right-grasp-poses)
                  (goal ?goal)))))
-  (let ((?goal `(cpoe:object-in-hand ,?object-designator ,?arm)))
+  (let ((?goal `(cpoe:holding-object ,?object-designator ,?arm)))
     (roslisp:ros-info (pick-place pick-up) "Gripping")
     (when (member :left ?arm)
       (exe:perform

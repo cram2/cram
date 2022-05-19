@@ -29,7 +29,7 @@
 
 (in-package :cram-plan-occasions-events)
 
-(def-fact-group occasions (object-in-hand
+(def-fact-group occasions (holding-object
                            object-at-location robot-at-location
                            torso-at gripper-joint-at gripper-opened gripper-closed
                            arms-positioned-at tool-frames-at
@@ -37,13 +37,13 @@
                            container-state
                            location-reset)
 
-  (<- (object-in-hand ?object ?hand ?grasp ?link)
+  (<- (holding-object ?object ?hand ?grasp ?link)
     (fail))
-  (<- (object-in-hand ?object ?hand ?grasp)
+  (<- (holding-object ?object ?hand ?grasp)
     (fail))
-  (<- (object-in-hand ?object ?hand)
+  (<- (holding-object ?object ?hand)
     (fail))
-  (<- (object-in-hand ?object)
+  (<- (holding-object ?object)
     (fail))
 
   (<- (object-at-location ?object-designator ?location-designator)

@@ -109,15 +109,15 @@
   (<- (robot-free-hand ?robot ?arm)
     (rob-int:robot ?robot)
     (rob-int:arm ?robot ?arm)
-    (not (cpoe:object-in-hand ?_ ?arm)))
+    (not (cpoe:holding-object ?_ ?arm)))
 
   ;; says if the object or an object to which this object is attached, are in hand
   (<- (object-or-its-reference-in-hand ?some-object-designator ?object-hand)
     (desig:current-designator ?some-object-designator ?object-designator)
-    (or (cpoe:object-in-hand ?object-designator ?object-hand)
+    (or (cpoe:holding-object ?object-designator ?object-hand)
         (and (spec:property ?object-designator (:location ?object-location))
              (man-int:location-reference-object ?object-location ?reference-obj)
-             (cpoe:object-in-hand ?reference-obj ?object-hand))))
+             (cpoe:holding-object ?reference-obj ?object-hand))))
 
   ;; gives the joint state numbers for the given config,
   ;; taking into consideration if there is an object in hand or not
@@ -145,10 +145,10 @@
   (<- (object-in-arms ?arms ?object)
     ;; Get object which is holded by ?arms
     (and (length ?arms ?num-of-given-arms)
-         (cpoe:object-in-hand ?object ?some-arm)
+         (cpoe:holding-object ?object ?some-arm)
          (member ?some-arm ?arms)
          (-> (> ?num-of-given-arms 1)
-             (and (cpoe:object-in-hand ?other-obj ?other-arm)
+             (and (cpoe:holding-object ?other-obj ?other-arm)
                   (member ?some-arm ?arms)
                   (not (equal ?some-arm ?other-arm))
                   (equal ?object ?other-obj))
@@ -158,7 +158,7 @@
   (<- (joint-state-for-arm-config ?robot ?config ?arm ?joint-state)
     (once
      (or (-> (and (equal ?config :park)
-                  (cpoe:object-in-hand ?object-designator ?arm ?grasp))
+                  (cpoe:holding-object ?object-designator ?arm ?grasp))
              (and (desig:current-designator ?object-designator ?current-object-desig)
                   (spec:property ?current-object-desig (:type ?object-type))
                   (lisp-fun get-object-type-carry-config ?object-type ?grasp
@@ -208,7 +208,7 @@
     (desig:current-designator ?location-designator ?current-location-designator)
     (desig:desig-prop ?current-location-designator (:on ?object-designator))
     (desig:current-designator ?object-designator ?current-object-designator)
-    (cpoe:object-in-hand ?current-object-designator))
+    (cpoe:holding-object ?current-object-designator))
   ;; Also, a location of an object at a location that is always reachable
   ;; is also always reachable
   (<- (location-always-reachable ?location-designator)
@@ -224,7 +224,7 @@
     (desig:current-designator ?some-location-designator ?location-designator)
     (or (and (location-reference-object ?location-designator ?reference-object)
              (or (object-is-a-robot ?reference-object)
-                 (cpoe:object-in-hand ?reference-object)))
+                 (cpoe:holding-object ?reference-object)))
         (spec:property ?location-designator (:pose ?_))
         (spec:property ?location-designator (:poses ?_))))
 
@@ -317,7 +317,7 @@
                                       ?other-object-transform)
                             (lisp-pred identity ?other-object-transform)))))
         (and (spec:property ?current-other-obj-desig (:name ?other-object-name))
-             (-> (cpoe:object-in-hand ?current-other-obj-desig ?hand ?grasp ?link)
+             (-> (cpoe:holding-object ?current-other-obj-desig ?hand ?grasp ?link)
                  (and (rob-int:robot ?robot)
                       (-> (rob-int:end-effector-link ?robot ?arm ?link)
                           (and (rob-int:robot-tool-frame ?robot ?arm ?tool-frame)

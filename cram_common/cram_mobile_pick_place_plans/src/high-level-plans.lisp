@@ -95,7 +95,7 @@
       (drive-and-pick-up-plan ?updated-object-desig :?arm ?arm))))
 
 (defun drive-and-place-plan (&key (?arm :right) ?target-location)
-  (let* ((?object-designator (get-object-in-hand ?arm))
+  (let* ((?object-designator (holding-object ?arm))
          (?driving-pose (or (when ?target-location (desig:reference ?target-location))
                             (cram-manipulation-interfaces:get-object-pose ?object-designator))))
     (drive-to-reach-pose ?driving-pose :?arm ?arm)
