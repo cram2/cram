@@ -300,7 +300,7 @@
     (-> (man-int:object-is-a-robot ?other-object-designator)
         (equal ?other-object-is-a-robot T)
         (equal ?other-object-is-a-robot NIL))
-    ;; and the placement can have a specific attachment or not
+    ;; and the placement can have a specific-pose or not
     (once (or (desig:desig-prop ?current-location-designator
                                 (:specific-pose ?placement-location-name))
               (equal ?placement-location-name NIL)))

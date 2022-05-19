@@ -184,7 +184,7 @@
                 ((:right-grasp ?right-grasp))
                 location-type
                 ((:gripper-opening ?gripper-opening))
-                ((:attachment-type ?placing-location-name))
+                ((:specific-pose-type ?placing-location-name))
                 ((:look-pose ?look-pose))
                 ((:left-reach-poses ?left-reach-poses))
                 ((:right-reach-poses ?right-reach-poses))
@@ -265,7 +265,7 @@
          (make-instance 'cpoe:object-attached-object
            :object-name (desig:desig-prop-value ?object-designator :name)
            :other-object-name (desig:desig-prop-value ?other-object-designator :name)
-           :attachment-type ?placing-location-name))))
+           :specific-pose-type ?placing-location-name))))
   (roslisp:ros-info (pick-place place) "Opening gripper")
   (let ((?goal `(cpoe:gripper-joint-at ,?arm ,?gripper-opening)))
     (exe:perform

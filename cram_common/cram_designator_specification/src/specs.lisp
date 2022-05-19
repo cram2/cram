@@ -190,7 +190,7 @@
 
   (<- (%property ?designator (?list-key ?list-value))
     (lisp-pred typep ?designator desig:location-designator)
-    (member ?list-key (:poses :attachments))
+    (member ?list-key (:poses :specific-poses))
     (property-member (?list-key ?list-value) ?designator)
     (assert-type ?list-value list "LOCATION SPEC:PROPERTY"))
 
@@ -211,7 +211,7 @@
 
   (<- (%property ?designator (?keyword-key ?value))
     (lisp-pred typep ?designator desig:location-designator)
-    (member ?keyword-key (:arm :attachment))
+    (member ?keyword-key (:arm :specific-pose))
     (property-member (?keyword-key ?value) ?designator)
     (assert-type ?value keyword "LOCATION SPEC:PROPERTY"))
 
