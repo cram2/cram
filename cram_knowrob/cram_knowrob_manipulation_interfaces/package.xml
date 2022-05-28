@@ -16,6 +16,6 @@
   <depend>cl_transforms</depend>
   <depend>cram_manipulation_interfaces</depend>
   <depend>cram_occasions_events</depend>
-  <depend>cram_plan_occasions_events</depend>
+  <depend>cram_common_occasions_events</depend>
   <depend>cram_tf</depend>
 </package>

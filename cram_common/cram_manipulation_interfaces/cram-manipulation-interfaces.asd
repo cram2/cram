@@ -38,7 +38,7 @@
                cram-tf
                cl-transforms-stamped
                cram-robot-interfaces ; for gripper transform calculations
-               cram-plan-occasions-events ; for robot-free-arm
+               cram-common-occasions-events ; for robot-free-arm
                cram-designator-specification ; for location desig resolution
                )
   :components

@@ -43,7 +43,7 @@
                cl-bullet-vis
                cl-opengl
                cram-bullet-reasoning
-               cram-bullet-reasoning-belief-state ; for obj-desig <-> bullet instance
+               cram-bullet-reasoning-world-state ; for obj-desig <-> bullet instance
 )
   :components
   ((:module "src"

@@ -42,7 +42,7 @@
                cram-semantic-map
                cram-bullet-reasoning
                cram-bullet-reasoning-utilities
-               cram-bullet-reasoning-belief-state
+               cram-bullet-reasoning-world-state
                cram-executive
                cram-designators
                cram-prolog

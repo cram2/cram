@@ -45,12 +45,12 @@
                cram-tf                ; for pose conversions
                cram-robot-interfaces ; for reading robot descriptions
                cram-occasions-events ; for on-event for updating TF transformer
-               cram-plan-occasions-events ; for robot-state-changed handler
+               cram-common-occasions-events ; for robot-state-changed handler
                cram-common-designators ; for projection process modules
                cram-common-failures ; for throwing failures in low-level.lisp
 
                cram-bullet-reasoning ; for moving the robot in the bullet world
-               cram-bullet-reasoning-belief-state ; for special projection variable definition
+               cram-bullet-reasoning-world-state ; for special projection variable definition
                                                   ; and world-state-detecting PM
 
                cram-ik-interface

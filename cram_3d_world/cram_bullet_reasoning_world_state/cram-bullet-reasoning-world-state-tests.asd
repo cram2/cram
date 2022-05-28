@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Amar Fayaz <amar@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,36 +27,10 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cram-bullet-reasoning-belief-state)
-
-(defvar *joint-state-pub* nil
-  "Joint state publisher for the environment for RViz (and giskard collision scene)")
-
-(defun init-joint-state-pub ()
-  "Initializes *joint-state-pub* ROS publisher"
-  (setf *joint-state-pub*
-        (roslisp:advertise "kitchen/cram_joint_states"
-                           "sensor_msgs/JointState"))
-  (cpl:sleep 1.0)
-  *joint-state-pub*)
-
-(defun get-joint-state-pub ()
-  (or *joint-state-pub*
-      (init-joint-state-pub)))
-
-(defun destroy-joint-state-pub ()
-  (setf *joint-state-pub* nil))
-
-(roslisp-utilities:register-ros-cleanup-function destroy-joint-state-pub)
-
-
-(defun publish-environment-joint-state (joint-state-hash-table
-                                        &optional (timestamp (roslisp:ros-time)))
-  (let* ((joint-state-list
-           (loop for key being the hash-keys in joint-state-hash-table
-                   using (hash-value value)
-            collect (list key value)))
-         (joint-state-msg
-           (btr:make-joint-state-message
-            joint-state-list :time-stamp timestamp)))
-    (roslisp:publish (get-joint-state-pub) joint-state-msg)))
+(defsystem cram-bullet-reasoning-world-state-tests
+  :depends-on (cram-bullet-reasoning-world-state
+               lisp-unit)
+  :components ((:module "tests"
+                :components
+                ((:file "package")
+                 (:file "event-handlers-tests" :depends-on ("package"))))))

@@ -37,7 +37,7 @@
                cl-transforms
                cram-tf
                cram-occasions-events
-               cram-plan-occasions-events
+               cram-common-occasions-events
                cram-manipulation-interfaces)
   :components
   ((:module "src"

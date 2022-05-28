@@ -47,7 +47,7 @@
                cram-utilities ; for cut:var-value of prolog stuff
 
                cram-tf
-               cram-plan-occasions-events
+               cram-commom-occasions-events
                cram-common-failures
                cram-manipulation-interfaces
                cram-mobile-pick-place-plans

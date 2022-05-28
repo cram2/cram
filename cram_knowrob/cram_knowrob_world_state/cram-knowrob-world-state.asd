@@ -36,7 +36,7 @@
                cram-prolog
                cram-robot-interfaces
                cram-occasions-events
-               cram-plan-occasions-events
+               cram-common-occasions-events
                cram-projection ; for unless cram-proj:*proj-env*
                cram-bullet-reasoning ; for simulating world to fix object pose Z
                cl-transforms

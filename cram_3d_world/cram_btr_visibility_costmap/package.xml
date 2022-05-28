@@ -25,7 +25,7 @@
   <build_depend>cl_bullet_vis</build_depend>
   <build_depend>cl_opengl</build_depend>
   <build_depend>cram_bullet_reasoning</build_depend>
-  <build_depend>cram_bullet_reasoning_belief_state</build_depend>
+  <build_depend>cram_bullet_reasoning_world_state</build_depend>
 
   <run_depend>cram_prolog</run_depend>
   <run_depend>cram_designators</run_depend>
@@ -38,5 +38,5 @@
   <run_depend>cl_bullet_vis</run_depend>
   <run_depend>cl_opengl</run_depend>
   <run_depend>cram_bullet_reasoning</run_depend>
-  <run_depend>cram_bullet_reasoning_belief_state</run_depend>
+  <run_depend>cram_bullet_reasoning_world_state</run_depend>
 </package>

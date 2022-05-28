@@ -36,7 +36,7 @@
                cram-location-costmap
                cram-designators
                cram-bullet-reasoning
-               cram-bullet-reasoning-belief-state)
+               cram-bullet-reasoning-world-state)
   :components
   ((:module "src"
     :components

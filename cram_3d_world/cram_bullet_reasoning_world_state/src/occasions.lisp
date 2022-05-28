@@ -28,7 +28,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cram-bullet-reasoning-belief-state)
+(in-package :cram-bullet-reasoning-world-state)
 
 (defparameter *torso-convergence-delta* 0.01 "In meters")
 (defparameter *gripper-joint-convergence-delta* 0.005 "In meters")

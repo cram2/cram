@@ -27,7 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cram-plan-occasions-events)
+(in-package :cram-common-occasions-events)
 
 (def-fact-group occasions (object-in-hand
                            object-at-location robot-at-location

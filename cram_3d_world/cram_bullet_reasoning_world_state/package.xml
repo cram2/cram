@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>cram_bullet_reasoning_belief_state</name>
+  <name>cram_bullet_reasoning_world_state</name>
   <version>0.7.0</version>
   <description>
-     cram_bullet_reasoning_belief_state
+     cram_bullet_reasoning_world_state
   </description>
   <author>Lorenz Moesenlechner</author>
   <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
@@ -33,7 +33,7 @@
   <depend>cram_tf</depend>
   <depend>cram_common_designators</depend>
   <depend>cram_common_failures</depend>
-  <depend>cram_plan_occasions_events</depend>
+  <depend>cram_common_occasions_events</depend>
   <depend>cram_robot_interfaces</depend>
   <depend>cram_manipulation_interfaces</depend>
 

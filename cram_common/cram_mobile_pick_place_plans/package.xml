@@ -25,5 +25,5 @@
   <depend>cram_common_failures</depend>
   <depend>cram_manipulation_interfaces</depend>
   <depend>cram_robot_interfaces</depend>
-  <depend>cram_plan_occasions_events</depend>
+  <depend>cram_common_occasions_events</depend>
 </package>

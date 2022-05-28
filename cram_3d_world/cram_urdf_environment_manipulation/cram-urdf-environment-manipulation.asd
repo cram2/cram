@@ -44,7 +44,7 @@
                cram-occasions-events
                cram-utilities ; for EQUALIZE-LISTS-OF-LISTS-LENGTHS
 
-               cram-plan-occasions-events ; for CONTAINER-STATE occasion
+               cram-common-occasions-events ; for CONTAINER-STATE occasion
                cram-common-failures
                cram-mobile-pick-place-plans
                cram-robot-interfaces ; for REACHABILITY-DESIGNATOR predicate
@@ -53,7 +53,7 @@
 
                cl-bullet ; for handling BOUNDING-BOX datastructures
                cram-bullet-reasoning
-               cram-bullet-reasoning-belief-state
+               cram-bullet-reasoning-world-state
                cram-bullet-reasoning-utilities
 
                cram-robot-pose-gaussian-costmap

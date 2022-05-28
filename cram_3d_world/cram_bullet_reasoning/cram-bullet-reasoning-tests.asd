@@ -6,7 +6,7 @@
                cram-pr2-description
                cram-robot-interfaces ; for (robot ?robot)
                cram-object-knowledge ; for environemnt name
-               cram-bullet-reasoning-belief-state ; for environment urdf defvar
+               cram-bullet-reasoning-world-state ; for environment urdf defvar
                ;;cram-boxy-description
                roslisp)
   :components ((:module "tests"

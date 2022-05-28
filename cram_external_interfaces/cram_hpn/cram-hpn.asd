@@ -56,7 +56,7 @@
                cram-physics-utils     ; for reading "package://" paths
                cl-bullet ; for handling BOUNDING-BOX datastructures
                cram-bullet-reasoning
-               cram-bullet-reasoning-belief-state
+               cram-bullet-reasoning-world-state
                cram-bullet-reasoning-utilities
                cram-btr-visibility-costmap
                cram-btr-spatial-relations-costmap

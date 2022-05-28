@@ -47,10 +47,10 @@
                cram-robot-interfaces
                cram-common-failures
                cram-common-designators
-               cram-plan-occasions-events
+               cram-common-occasions-events
 
                cram-bullet-reasoning ; also for updating giskard collision scene
-               cram-bullet-reasoning-belief-state ; for *kitchen-parameter*
+               cram-bullet-reasoning-world-state ; for *kitchen-parameter*
 
                cram-joint-states ; for joint-interface to send current joint state
 

@@ -59,7 +59,7 @@
 
                ;; cram_3d_world
                cram-bullet-reasoning
-               cram-bullet-reasoning-belief-state ; for handling events
+               cram-bullet-reasoning-world-state ; for handling events
                cram-urdf-projection ; for with-simulated-robot
                cram-fetch-deliver-plans ; for action desig implementations
                cram-urdf-environment-manipulation ; for action desig implementations

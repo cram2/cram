@@ -26,7 +26,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-bullet-reasoning-belief-state
+(defsystem cram-bullet-reasoning-world-state
   :author "Lorenz Moesenlechner"
   :license "BSD"
 
@@ -48,7 +48,7 @@
                cram-tf
                cram-common-designators ; for world-state-detecting motion
                cram-common-failures ; for world-state-detecting motion
-               cram-plan-occasions-events
+               cram-common-occasions-events
                cram-robot-interfaces
                cram-manipulation-interfaces
 

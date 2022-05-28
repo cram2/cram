@@ -26,7 +26,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :btr-belief)
+(in-package :btr-world)
 
 (def-fact-group world-state-matching-pms (cpm:matching-process-module)
   (<- (cpm:matching-process-module ?motion-designator world-state-detecting-pm)

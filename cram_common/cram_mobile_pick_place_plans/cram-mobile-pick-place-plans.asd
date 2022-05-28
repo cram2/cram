@@ -46,7 +46,7 @@
                cram-utilities ; for cut:var-value of prolog stuff and equalize-lists
 
                cram-tf
-               cram-plan-occasions-events
+               cram-common-occasions-events
                cram-common-failures
                cram-manipulation-interfaces
                cram-robot-interfaces

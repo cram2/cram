@@ -26,7 +26,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cram-plan-occasions-events)
+(in-package :cram-common-occasions-events)
 
 ;;; Note that we do not provide an event for object pose change. The reason
 ;;; is that object changes are essentially object perception events.

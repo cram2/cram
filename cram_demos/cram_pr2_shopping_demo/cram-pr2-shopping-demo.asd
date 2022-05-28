@@ -49,7 +49,7 @@
                cram-tf
 
                cram-bullet-reasoning
-               cram-bullet-reasoning-belief-state
+               cram-bullet-reasoning-world-state
                cram-bullet-reasoning-utilities
 
                cram-location-costmap
