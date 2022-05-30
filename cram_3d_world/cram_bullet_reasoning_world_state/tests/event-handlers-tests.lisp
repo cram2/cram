@@ -111,20 +111,20 @@
                      (cl-transforms:origin (btr:pose (btr:object
                                                       btr:*current-bullet-world*
                                                       obj-name))))
-                    btr-belief:*perception-instability-threshold*))
+                    btr-world:*perception-instability-threshold*))
     (init-env)
     (prolog:prolog `(and (btr:bullet-world ?world)
                          (assert (btr:object ?world :mesh ,obj-name
                                              ,(cram-tf:pose->list spawn-pose)
                                              :mass 0.2 :color (1 0 0) :mesh :bowl))))
-    (btr-belief::stabilize-perceived-object-pose
+    (btr-world::stabilize-perceived-object-pose
      btr:*current-bullet-world* obj-name spawn-pose)
     (assert-true (< (cl-transforms:v-dist
                      (cl-transforms:origin spawn-pose)
                      (cl-transforms:origin (btr:pose (btr:object
                                                       btr:*current-bullet-world*
                                                       obj-name))))
-                    btr-belief:*perception-instability-threshold*))))
+                    btr-world:*perception-instability-threshold*))))
 
 
 (define-test bowl-on-edge-falling-stabilize-test
@@ -310,11 +310,11 @@ Tests if the bowl is stable after correction."
                      (cl-transforms:origin (btr:pose (btr:object
                                                       btr:*current-bullet-world*
                                                       obj-name))))
-                    btr-belief::*perception-instability-threshold*))
-    (btr-belief::check-and-correct-perception-instability :bowl-1 spawn-pose)
+                    btr-world::*perception-instability-threshold*))
+    (btr-world::check-and-correct-perception-instability :bowl-1 spawn-pose)
     (assert-true (< (cl-transforms:v-dist
                      (cl-transforms:origin spawn-pose)
                      (cl-transforms:origin (btr:pose (btr:object
                                                       btr:*current-bullet-world*
                                                       obj-name))))
-                    btr-belief::*perception-instability-threshold*))))
+                    btr-world::*perception-instability-threshold*))))

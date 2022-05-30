@@ -36,7 +36,7 @@
   (setf cram-tf:*tf-default-timeout* 0.5) ; projection tf is very fast
   ;; (setf cram-tf:*tf-broadcasting-enabled* t)
 
-  ;; (btr-belief:setup-world-database)
+  ;; (btr-world:setup-world-database)
   (coe:clear-belief)
 
   (setf prolog:*break-on-lisp-errors* t)

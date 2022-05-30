@@ -43,7 +43,7 @@
 (defun initialize ()
   (sb-ext:gc :full t)
   (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))
-  (setf btr-belief:*spawn-debug-window* t)
+  (setf btr-world:*spawn-debug-window* t)
   (coe:clear-belief)
   (reset-motions-counter))
 

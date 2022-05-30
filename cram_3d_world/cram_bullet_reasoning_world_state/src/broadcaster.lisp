@@ -60,7 +60,7 @@
     (cram-tf:publish-transforms broadcaster)))
 
 (defmethod cram-occasions-events:on-event
-    update-broadcaster ((event cram-plan-occasions-events:robot-state-changed))
+    update-broadcaster ((event cram-common-occasions-events:robot-state-changed))
   (update-bullet-transforms))
 
 (defmethod cram-occasions-events:on-event

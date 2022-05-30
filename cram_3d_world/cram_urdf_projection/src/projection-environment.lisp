@@ -54,9 +54,9 @@
    ;; (cut:*timestamp-function* #'projection-timestamp-function)
    ;; (*projection-clock*
    ;;  (make-instance 'cram-projection:partially-ordered-clock))
-   (cram-bullet-reasoning-belief-state::*object-identifier-to-instance-mappings*
+   (cram-bullet-reasoning-world-state::*object-identifier-to-instance-mappings*
     (alexandria:copy-hash-table
-     cram-bullet-reasoning-belief-state::*object-identifier-to-instance-mappings*))
+     cram-bullet-reasoning-world-state::*object-identifier-to-instance-mappings*))
    (cet:*episode-knowledge*
     cet:*episode-knowledge*))
   :process-module-definitions
@@ -67,10 +67,10 @@
    urdf-proj-grippers
    urdf-proj-arms
    urdf-proj-noop
-   btr-belief:world-state-detecting-pm)
+   btr-world:world-state-detecting-pm)
   :startup (progn
-             (cram-bullet-reasoning-belief-state:set-tf-from-bullet)
-             (cram-bullet-reasoning-belief-state:update-bullet-transforms)
+             (cram-bullet-reasoning-world-state:set-tf-from-bullet)
+             (cram-bullet-reasoning-world-state:update-bullet-transforms)
              (cram-tf:start-publishing-transforms cram-tf:*broadcaster*))
   :shutdown (progn
               (setf *last-timeline* cram-bullet-reasoning:*current-timeline*)
@@ -89,7 +89,7 @@
                        urdf-proj-grippers
                        urdf-proj-arms
                        urdf-proj-noop
-                       btr-belief:world-state-detecting-pm)))
+                       btr-world:world-state-detecting-pm)))
     (symbol-value cram-projection:*projection-environment* urdf-bullet-projection-environment))
 
   (<- (cpm::projection-running ?pm)
@@ -101,7 +101,7 @@
                        urdf-proj-grippers
                        urdf-proj-arms
                        urdf-proj-noop
-                       btr-belief:world-state-detecting-pm)))
+                       btr-world:world-state-detecting-pm)))
     (symbol-value cram-projection:*projection-environment* urdf-bullet-projection-environment)))
 
 

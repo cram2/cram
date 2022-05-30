@@ -170,7 +170,7 @@
   (setf (btr:joint-state (btr:get-environment-object)
                          "sink_area_left_upper_drawer_main_joint")
         0.0)
-  (btr-belief::publish-environment-joint-state
+  (btr-world::publish-environment-joint-state
    (btr:joint-states (btr:get-environment-object)))
 
   (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))

@@ -31,7 +31,7 @@
 (in-package :demo)
 
 (defun init-projection ()
-  (btr-belief:setup-world-database)
+  (btr-world:setup-world-database)
 
   (setf cram-tf:*tf-default-timeout* 2.0)
   (setf cram-tf:*tf-broadcasting-enabled* t)

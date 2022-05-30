@@ -111,7 +111,7 @@
     (or (and (bound ?object-designator)
              (desig:obj-desig? ?object-designator))
         (and (not (bound ?object-designator))
-             (lisp-fun btr-belief::unique-object-designators ?object-designators)
+             (lisp-fun btr-world::unique-object-designators ?object-designators)
              (member ?one-desig-from-chain ?object-designators)
              (desig:current-designator ?one-desig-from-chain ?object-designator)))
     (or (desig:desig-prop ?object-designator (:name ?object-name))
@@ -405,7 +405,7 @@
   ;;;;;;;;;;;;;;; spatial relation ON for environment objects ;;;;;;;;;;;;;;;;;;;;;;
   (<- (costmap:desig-costmap ?designator ?costmap)
     (desig:desig-prop ?designator (:on ?object))
-    (btr-belief:object-designator-name ?object ?object-instance-name)
+    (btr-world:object-designator-name ?object ?object-instance-name)
     (spec:property ?object (:urdf-name ?urdf-name))
     (spec:property ?object (:part-of ?environment-name))
     (btr:bullet-world ?world)

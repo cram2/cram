@@ -50,13 +50,13 @@
     (member ?pm (grippers-pm giskard:giskard-pm))
     (not (cpm:projection-running ?_)))
 
-  (<- (cpm:available-process-module btr-belief:world-state-detecting-pm)))
+  (<- (cpm:available-process-module btr-world:world-state-detecting-pm)))
 
 
 (defmacro with-real-robot (&body body)
   `(cram-process-modules:with-process-modules-running
        (donbot-pm:grippers-pm
         rs:robosherlock-perception-pm giskard:giskard-pm joints:joint-state-pm
-        btr-belief:world-state-detecting-pm)
+        btr-world:world-state-detecting-pm)
      (cpl-impl::named-top-level (:name :top-level)
        ,@body)))

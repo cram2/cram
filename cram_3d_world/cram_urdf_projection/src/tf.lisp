@@ -29,7 +29,7 @@
 (in-package :urdf-proj)
 
 (defmethod cram-occasions-events:on-event
-    update-tf ((event cram-plan-occasions-events:robot-state-changed))
+    update-tf ((event cram-common-occasions-events:robot-state-changed))
   (when (eql cram-projection:*projection-environment*
              'cram-urdf-projection::urdf-bullet-projection-environment)
-    (cram-bullet-reasoning-belief-state:set-tf-from-bullet)))
+    (cram-bullet-reasoning-world-state:set-tf-from-bullet)))

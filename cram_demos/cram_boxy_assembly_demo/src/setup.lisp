@@ -34,7 +34,7 @@
 (defun init-projection ()
   ;; (setf cram-tf:*transformer* (make-instance 'cl-tf2:buffer-client))
 
-  (btr-belief:setup-world-database)
+  (btr-world:setup-world-database)
 
   (setf cram-tf:*tf-default-timeout* 2.0)
 

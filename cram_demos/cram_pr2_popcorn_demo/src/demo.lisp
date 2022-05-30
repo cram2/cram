@@ -99,7 +99,7 @@
         (btr:joint-state (btr:get-environment-object)
                          "iai_popcorn_stove_knob_1_joint")
         0.0)
-  (btr-belief::publish-environment-joint-state
+  (btr-world::publish-environment-joint-state
    (btr:joint-states (btr:get-environment-object)))
 
   (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))

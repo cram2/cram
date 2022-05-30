@@ -190,7 +190,7 @@ objects for debugging."
       (when kitchen-urdf-string
         (setf rob-int:*environment-urdf*
               (cl-urdf:parse-urdf kitchen-urdf-string))))
-    (btr-belief:vary-kitchen-urdf *furniture-offsets-realistic-kitchen-variation*))
+    (btr-world:vary-kitchen-urdf *furniture-offsets-realistic-kitchen-variation*))
 
   (coe:clear-belief)
 

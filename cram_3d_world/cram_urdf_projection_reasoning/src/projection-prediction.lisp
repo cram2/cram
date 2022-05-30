@@ -214,7 +214,7 @@
                                `(progn
                                   (:tag ,task-variable
                                     (btr::restore-world-state world-state world)
-                                    (cram-bullet-reasoning-belief-state::set-tf-from-bullet)
+                                    (cram-bullet-reasoning-world-state::set-tf-from-bullet)
                                     (cpl:with-failure-handling
                                         ((cpl:plan-failure (e)
                                            (roslisp:ros-warn

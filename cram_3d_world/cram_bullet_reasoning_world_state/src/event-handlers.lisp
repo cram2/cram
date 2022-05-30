@@ -97,7 +97,7 @@ and renames POSE into OLD-POSE."
 
 
 
-(defmethod cram-occasions-events:on-event btr-belief ((event cpoe:object-location-changed))
+(defmethod cram-occasions-events:on-event btr-world ((event cpoe:object-location-changed))
   ;; Remove loose attachment between robot and object,
   ;; if the object was placed somewhere else, e. g.:
   ;; the robot has been placing an object on itself
@@ -173,12 +173,12 @@ If there is no other method with 1 as qualifier, this method will be executed al
                                 (rob-int:end-effector-link ?robot ,arm ?ee-link)))))
                    (if (cpoe:event-link event)
                        (cpoe:event-link event)
-                       (error "[BTR-BELIEF OBJECT-ATTACHED] either link or arm ~
+                       (error "[BTR-WORLD OBJECT-ATTACHED] either link or arm ~
                                in object-attached-robot event had to be given..."))))
          (grasp (cpoe:event-grasp event))
          (object-designator (cpoe:event-object-designator event)))
     (when (cut:is-var link)
-      (error "[BTR-BELIEF OBJECT-ATTACHED] Couldn't find robot's EE link."))
+      (error "[BTR-WORLD OBJECT-ATTACHED] Couldn't find robot's EE link."))
     ;; first detach from environment in case it is attached
     (when (and (typep environment-object 'btr:robot-object)
                (btr:object-attached environment-object btr-object))
@@ -226,18 +226,18 @@ If there is no other method with 1 as qualifier, this method will be executed al
                            (get-ee-link first-arm)
                            (if (cpoe:event-link event)
                                (cpoe:event-link event)
-                               (error "[BTR-BELIEF OBJECT-DETACHED] either link or arm ~
+                               (error "[BTR-WORLD OBJECT-DETACHED] either link or arm ~
                                  in object-attached-robot even had to be given...")))))
          (second-link (when second-arm
                         (if (get-ee-link second-arm)
                             (get-ee-link second-arm)
                             (if (cpoe:event-link event)
                                 (cpoe:event-link event)
-                                (error "[BTR-BELIEF OBJECT-DETACHED] either link or arm ~
+                                (error "[BTR-WORLD OBJECT-DETACHED] either link or arm ~
                                   in object-attached-robot even had to be given..."))))))
     (when (and (cut:is-var first-link)
                (cut:is-var second-link))
-      (error "[BTR-BELIEF OBJECT-DETACHED] Couldn't find robot's EE link."))
+      (error "[BTR-WORLD OBJECT-DETACHED] Couldn't find robot's EE link."))
     (if btr-object-name
         ;; if btr-object-name was given, detach it from the robot link
         (let ((btr-object (btr:object btr:*current-bullet-world* btr-object-name)))
@@ -277,7 +277,7 @@ If there is no other method with 1 as qualifier, this method will be executed al
                             (btr:attach-object
                              environment-object btr-object :link link-name))
                           contacting-links)
-                  (roslisp:ros-warn (btr-belief btr-detach-object)
+                  (roslisp:ros-warn (btr-world btr-detach-object)
                                     "Object ~a was detached from robot,
                                      but after falling down it
                                      is in no contact with the

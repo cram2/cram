@@ -53,7 +53,7 @@
         (not (man-int:location-always-reachable ?loc))
         (true))
     (btr:bullet-world ?world)
-    ;; (btr-belief:object-designator-name ?object ?object-name)
+    ;; (btr-world:object-designator-name ?object ?object-name)
     (cram-robot-interfaces:robot ?robot)
     (costmap:costmap ?costmap)
     (visibility-costmap-metadata ?minimal-height ?maximal-height ?resolution ?size)

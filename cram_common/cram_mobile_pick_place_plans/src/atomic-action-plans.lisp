@@ -56,7 +56,7 @@
                      (desig:when ?speed
                        (speed ?speed))))))
     (cram-occasions-events:on-event
-     (make-instance 'cram-plan-occasions-events:robot-state-changed))))
+     (make-instance 'cram-common-occasions-events:robot-state-changed))))
 
 
 (defun go-with-torso (&key
@@ -78,7 +78,7 @@
            (exe:perform
             (desig:a motion (type moving-torso) (joint-angle ?joint-angle)))))
     (cram-occasions-events:on-event
-     (make-instance 'cram-plan-occasions-events:robot-state-changed))))
+     (make-instance 'cram-common-occasions-events:robot-state-changed))))
 
 
 (defun move-arms-in-sequence (&key
@@ -143,7 +143,7 @@ while ignoring failures; and execute the last pose with propagating the failures
                           (align-planes-right ?align-planes-right))))
 
               (cram-occasions-events:on-event
-               (make-instance 'cram-plan-occasions-events:robot-state-changed))))
+               (make-instance 'cram-common-occasions-events:robot-state-changed))))
 
           left-poses right-poses))
 
@@ -181,7 +181,7 @@ while ignoring failures; and execute the last pose with propagating the failures
                   (align-planes-right ?align-planes-right))))
 
       (cram-occasions-events:on-event
-       (make-instance 'cram-plan-occasions-events:robot-state-changed)))))
+       (make-instance 'cram-common-occasions-events:robot-state-changed)))))
 
 (defun manipulate-environment (&key
                                  ((:type ?type))
@@ -235,7 +235,7 @@ With a continuous motion planner one could have fluent arch trajectories etc.
                  (desig:when ?align-planes-right
                    (align-planes-right ?align-planes-right))))
     (cram-occasions-events:on-event
-     (make-instance 'cram-plan-occasions-events:robot-state-changed))))
+     (make-instance 'cram-common-occasions-events:robot-state-changed))))
 
 
 (defun move-arms-into-configuration (&key
@@ -286,7 +286,7 @@ With a continuous motion planner one could have fluent arch trajectories etc.
            ;;             (left-joint-states ?left-configuration))))
            ))
     (cram-occasions-events:on-event
-     (make-instance 'cram-plan-occasions-events:robot-state-changed))))
+     (make-instance 'cram-common-occasions-events:robot-state-changed))))
 
 
 (defun release (&key
@@ -306,7 +306,7 @@ With a continuous motion planner one could have fluent arch trajectories etc.
                    (type opening-gripper)
                    (gripper ?left-or-right))))
     (cram-occasions-events:on-event
-     (make-instance 'cram-plan-occasions-events:robot-state-changed))
+     (make-instance 'cram-common-occasions-events:robot-state-changed))
     (roslisp:ros-info (pick-place release) "Retract grasp in knowledge base")
     (cram-occasions-events:on-event
      (make-instance 'cpoe:object-detached-robot
@@ -350,7 +350,7 @@ In any case, issue ROBOT-STATE-CHANGED event."
                 :grasp ?grasp))
              (desig:current-desig object-designator))))
     (cram-occasions-events:on-event
-     (make-instance 'cram-plan-occasions-events:robot-state-changed))))
+     (make-instance 'cram-common-occasions-events:robot-state-changed))))
 
 (defun open-or-close-gripper (&key
                                 ((:type ?action-type))
@@ -370,7 +370,7 @@ In any case, issue ROBOT-STATE-CHANGED event."
                    (type ?action-type)
                    (gripper ?left-or-right))))
     (cram-occasions-events:on-event
-     (make-instance 'cram-plan-occasions-events:robot-state-changed))))
+     (make-instance 'cram-common-occasions-events:robot-state-changed))))
 
 (defun set-gripper-to-position (&key
                                   ((:gripper ?left-or-right))
@@ -391,7 +391,7 @@ In any case, issue ROBOT-STATE-CHANGED event."
                    (gripper ?left-or-right)
                    (joint-angle ?position))))
     (cram-occasions-events:on-event
-     (make-instance 'cram-plan-occasions-events:robot-state-changed))))
+     (make-instance 'cram-common-occasions-events:robot-state-changed))))
 
 
 (defun look-at (&key
@@ -422,7 +422,7 @@ In any case, issue ROBOT-STATE-CHANGED event."
                      (joint-states ?joint-states)))))
 
     (cram-occasions-events:on-event
-     (make-instance 'cram-plan-occasions-events:robot-state-changed))))
+     (make-instance 'cram-common-occasions-events:robot-state-changed))))
 
 (defun detect (&key
                  ((:object ?object-designator))
@@ -453,7 +453,7 @@ equate resulting designator to the original one."
           (if (listp resulting-designators)
               (mapc (lambda (desig)
                       (cram-occasions-events:on-event
-                       (make-instance 'cram-plan-occasions-events:object-perceived-event
+                       (make-instance 'cram-common-occasions-events:object-perceived-event
                          :object-designator desig
                          :perception-source :whatever))
                       ;; doesn't make sense to equate all these desigs together
@@ -462,7 +462,7 @@ equate resulting designator to the original one."
                     resulting-designators)
               (progn
                 (cram-occasions-events:on-event
-                 (make-instance 'cram-plan-occasions-events:object-perceived-event
+                 (make-instance 'cram-common-occasions-events:object-perceived-event
                    :object-designator resulting-designators
                    :perception-source :whatever))
                 (desig:equate ?object-designator resulting-designator)))
