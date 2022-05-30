@@ -80,7 +80,7 @@ a threshold (if T) to signal a failure.")
                                 (pose ?look-pose))))))
   (cpl:par
     (roslisp:ros-info (env-manip plan) "Opening gripper and reaching")
-    (let ((?goal `(cpoe:gripper-joint-at ,?arm ,?gripper-opening)))
+    (let ((?goal `(ccoe:gripper-joint-at ,?arm ,?gripper-opening)))
       (exe:perform
        (desig:an action
                  (type setting-gripper)
@@ -95,7 +95,7 @@ a threshold (if T) to signal a failure.")
                                e)
              (cpl:do-retry reach-retries
                (cpl:retry))))
-        (let ((?goal `(cpoe:tool-frames-at ,?left-reach-poses ,?right-reach-poses)))
+        (let ((?goal `(ccoe:tool-frames-at ,?left-reach-poses ,?right-reach-poses)))
           (exe:perform
            (desig:an action
                      (type reaching)
@@ -110,7 +110,7 @@ a threshold (if T) to signal a failure.")
                              e)
            (cpl:do-retry grasp-retries
              (cpl:retry))))
-      (let ((?goal `(cpoe:tool-frames-at ,?left-grasp-poses ,?right-grasp-poses)))
+      (let ((?goal `(ccoe:tool-frames-at ,?left-grasp-poses ,?right-grasp-poses)))
         (exe:perform
          (desig:an action
                    (type grasping)
@@ -140,7 +140,7 @@ a threshold (if T) to signal a failure.")
                :pulling
                :pushing))
          (?goal
-           `(cpoe:tool-frames-at ,?left-manipulate-poses ,?right-manipulate-poses))
+           `(ccoe:tool-frames-at ,?left-manipulate-poses ,?right-manipulate-poses))
          (manipulation-action
            (desig:an action
                      (type ?push-or-pull)
@@ -184,8 +184,8 @@ a threshold (if T) to signal a failure.")
   (when (and joint-name)
     (cram-occasions-events:on-event
      (make-instance (if (eq ?type :opening)
-                        'cpoe:container-opening-event
-                        'cpoe:container-closing-event)
+                        'ccoe:container-opening-event
+                        'ccoe:container-closing-event)
        :joint-name joint-name
        :side ?arm
        :environment ?environment-object
@@ -196,7 +196,7 @@ a threshold (if T) to signal a failure.")
                     "Retracting")
   
   (when (eq ?type :opening)
-    (let ((?goal `(cpoe:gripper-opened ,?arm)))
+    (let ((?goal `(ccoe:gripper-opened ,?arm)))
       (exe:perform
        (desig:an action
                  (type releasing)
@@ -211,7 +211,7 @@ a threshold (if T) to signal a failure.")
                            "Manipulation messed up: ~a~%Ignoring."
                            e)
          (return)))
-    (let ((?goal `(cpoe:tool-frames-at ,?left-retract-poses ,?right-retract-poses)))
+    (let ((?goal `(ccoe:tool-frames-at ,?left-retract-poses ,?right-retract-poses)))
       (exe:perform
        (desig:an action
                  (type retracting)

@@ -86,7 +86,7 @@ turn the robot base such that it looks in the direction of target and look again
                  (exe:perform (desig:an action
                                         (type navigating)
                                         (location ?robot-location)))
-                 (let ((?goal `(cpoe:looking-at :forward)))
+                 (let ((?goal `(ccoe:looking-at :forward)))
                    (exe:perform (desig:an action
                                           (type looking)
                                           (direction forward)
@@ -94,7 +94,7 @@ turn the robot base such that it looks in the direction of target and look again
                (cpl:retry))
              (roslisp:ros-warn (pp-plans turn-towards) "Turning around didn't work :'(~%")
              (cpl:fail 'common-fail:looking-high-level-failure)))
-        (let (;; (?goal `(cpoe:looking-at ,?look-target))
+        (let (;; (?goal `(ccoe:looking-at ,?look-target))
               )
           (exe:perform (desig:an action
                                  (type looking)
@@ -125,7 +125,7 @@ if yes, relocate and retry, if no collisions, open or close container."
   ;; Making the containing location accessible before accessing the object
   (when (and ?object-location
              (eq action-type :accessing))
-    (let ((?goal `(cpoe:location-accessible ,?object-location)))
+    (let ((?goal `(ccoe:location-accessible ,?object-location)))
       (exe:perform (desig:an action
                              (type accessing)
                              (location ?object-location)
@@ -149,7 +149,7 @@ if yes, relocate and retry, if no collisions, open or close container."
                  (:error-object-or-string e
                   :warning-namespace (fd-plans environment)
                   :rethrow-failure 'common-fail:environment-manipulation-impossible)
-               (let ((?goal `(cpoe:gripper-opened (:left :right))))
+               (let ((?goal `(ccoe:gripper-opened (:left :right))))
                  (exe:perform (desig:an action
                                         (type opening-gripper)
                                         (gripper (left right))
@@ -166,8 +166,8 @@ if yes, relocate and retry, if no collisions, open or close container."
                   (:accessing
                    (let ((?goal
                            (if ?distance
-                               `(cpoe:container-state ,?object-to-manipulate ,?distance)
-                               `(cpoe:container-state ,?object-to-manipulate :open))))
+                               `(ccoe:container-state ,?object-to-manipulate ,?distance)
+                               `(ccoe:container-state ,?object-to-manipulate :open))))
                      (desig:an action
                                (type opening)
                                (arm ?arm)
@@ -178,8 +178,8 @@ if yes, relocate and retry, if no collisions, open or close container."
                   (:sealing
                    (let ((?goal
                            (if ?distance
-                               `(cpoe:container-state ,?object-to-manipulate ,?distance)
-                               `(cpoe:container-state ,?object-to-manipulate :closed))))
+                               `(ccoe:container-state ,?object-to-manipulate ,?distance)
+                               `(ccoe:container-state ,?object-to-manipulate :closed))))
                      (desig:an action
                                (type closing)
                                (arm ?arm)
@@ -196,7 +196,7 @@ if yes, relocate and retry, if no collisions, open or close container."
   ;; Seal the object containing location after sealing the object
   (when (and ?object-location
              (eq action-type :sealing))
-    (let ((?goal `(cpoe:location-reset ,?object-location)))
+    (let ((?goal `(ccoe:location-reset ,?object-location)))
       (exe:perform (desig:an action
                              (type sealing)
                              (location ?object-location)
@@ -258,7 +258,7 @@ retries with different search location or robot base location."
                       :reset-designators (list ?search-location ?robot-location)
                       :rethrow-failure 'common-fail:object-nowhere-to-be-found)
                    ;; go up with torso to look from higher up
-                   (let ((?goal `(cpoe:torso-at :upper-limit)))
+                   (let ((?goal `(ccoe:torso-at :upper-limit)))
                      (exe:perform (desig:an action
                                             (type moving-torso)
                                             (joint-angle upper-limit)
@@ -275,7 +275,7 @@ retries with different search location or robot base location."
                      (cpl:do-retry move-torso-retries
                        (roslisp:ros-warn (pick-and-place perceive) "~a" e)
                        ;; if a failure happens, try to go with the torso a bit more down
-                       (let ((?goal `(cpoe:torso-at :middle)))
+                       (let ((?goal `(ccoe:torso-at :middle)))
                          (exe:perform (desig:an action
                                                 (type moving-torso)
                                                 (joint-angle middle)
@@ -294,7 +294,7 @@ retries with different search location or robot base location."
                               :warning-namespace (fd-plans search-for-object)
                               :reset-designators (list ?robot-location)))))
 
-                    (let (;; (?goal `(cpoe:looking-at ,?search-location))
+                    (let (;; (?goal `(ccoe:looking-at ,?search-location))
                           )
                       (exe:perform (desig:an action
                                              (type turning-towards)
@@ -369,9 +369,9 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
         (when object-in-hand
           (let ((?goal
                   (case object-hand
-                    (:left `(cpoe:arms-positioned-at :hand-over nil))
-                    (:right `(cpoe:arms-positioned-at nil :hand-over))
-                    (t `(cpoe:arms-positioned-at nil nil)))))
+                    (:left `(ccoe:arms-positioned-at :hand-over nil))
+                    (:right `(ccoe:arms-positioned-at nil :hand-over))
+                    (t `(ccoe:arms-positioned-at nil nil)))))
             (exe:perform
              (desig:an action
                        (type positioning-arm)
@@ -382,7 +382,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                        (goal ?goal)))
             (setf ?look-location (desig:reset ?look-location))))
 
-        (let (;; (?goal `(cpoe:looking-at ,?look-location))
+        (let (;; (?goal `(ccoe:looking-at ,?look-location))
               )
           (exe:perform (desig:an action
                                  (type turning-towards)
@@ -445,7 +445,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                  (setf ?grasp (cut:lazy-car ?grasps)))))
 
                           (let* ((?goal
-                                   `(cpoe:object-in-hand
+                                   `(ccoe:object-in-hand
                                      ,?more-precise-perceived-object-desig
                                      :left-or-right))
                                 (pick-up-action
@@ -583,9 +583,9 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                 (when target-in-hand
                   (let ((?goal
                           (case target-hand
-                            (:left `(cpoe:arms-positioned-at :hand-over nil))
-                            (:right `(cpoe:arms-positioned-at nil :hand-over))
-                            (t `(cpoe:arms-positioned-at nil nil)))))
+                            (:left `(ccoe:arms-positioned-at :hand-over nil))
+                            (:right `(ccoe:arms-positioned-at nil :hand-over))
+                            (t `(ccoe:arms-positioned-at nil nil)))))
                     (exe:perform
                      (desig:an action
                                (type positioning-arm)
@@ -597,7 +597,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                     (setf ?target-location (desig:reset ?target-location))))
 
                 ;; look is unreachable for EE or is in collision
-                (let (;; (?goal `(cpoe:looking-at ,?target-location))
+                (let (;; (?goal `(ccoe:looking-at ,?target-location))
                       )
                   (exe:perform (desig:an action
                                          (type turning-towards)
@@ -696,7 +696,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                            (location ?delivering-location)
                            (goal ?goal))))
   ;; if deliver-location is inside a container, open the container
-  (let ((?goal `(cpoe:location-accessible ,?delivering-location)))
+  (let ((?goal `(ccoe:location-accessible ,?delivering-location)))
     (exe:perform (desig:an action
                            (type accessing)
                            (location ?delivering-location)
@@ -710,7 +710,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                            (goal ?goal))))
 
   ;; if search-location is inside a container, open the container
-  (let ((?goal `(cpoe:location-accessible ,?search-location)))
+  (let ((?goal `(ccoe:location-accessible ,?search-location)))
     (exe:perform (desig:an action
                            (type accessing)
                            (location ?search-location)
@@ -745,7 +745,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
 
       ;; fetch the object
       (let ((?fetch-goal
-              `(cpoe:object-in-hand
+              `(ccoe:object-in-hand
                 ,?object-designator :left-or-right)))
         (exe:perform (desig:an action
                                (type fetching)
@@ -769,7 +769,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
 
         ;; deliver at destination
         (let ((?goal
-                `(cpoe:object-at-location
+                `(ccoe:object-at-location
                   ,?object-designator ,?delivering-location)))
           (exe:perform (desig:an action
                                  (type delivering)
@@ -784,14 +784,14 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                                  (goal ?goal)))))))
 
   ;; reset the fetch location
-  (let ((?goal `(cpoe:location-reset ,?search-location)))
+  (let ((?goal `(ccoe:location-reset ,?search-location)))
     (exe:perform (desig:an action
                            (type sealing)
                            (location ?search-location)
                            (goal ?goal))))
 
   ;; reset the target location
-  (let ((?goal `(cpoe:location-reset ,?delivering-location)))
+  (let ((?goal `(ccoe:location-reset ,?delivering-location)))
     (exe:perform (desig:an action
                            (type sealing)
                            (location ?delivering-location)

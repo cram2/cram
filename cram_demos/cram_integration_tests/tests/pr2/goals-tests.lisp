@@ -74,7 +74,7 @@
             (cl-transforms:make-3d-vector 0.7 0.7 0)
             (cl-transforms:make-identity-rotation)))
          (?goal
-           `(cpoe:robot-at-location ,(a location (pose ?pose))))
+           `(ccoe:robot-at-location ,(a location (pose ?pose))))
          (the-action
            (an action
                (type going)
@@ -93,7 +93,7 @@
 (define-test arms-positioned-goal
   (initialize)
   (let* ((?goal
-           `(cpoe:arms-positioned-at :park :park))
+           `(ccoe:arms-positioned-at :park :park))
          (the-action
            (an action
                (type positioning-arm)
@@ -118,7 +118,7 @@
 (define-test torso-at-goal
   (initialize)
   (let* ((?goal
-           `(cpoe:torso-at :lower-limit))
+           `(ccoe:torso-at :lower-limit))
          (the-action
            (an action
                (type moving-torso)
@@ -137,7 +137,7 @@
 (define-test gripper-joints-at-test
   (initialize)
   (let* ((?goal
-           `(cpoe:gripper-joint-at :left 0.05 0.005))
+           `(ccoe:gripper-joint-at :left 0.05 0.005))
          (the-action
            (an action
                (type setting-gripper)
@@ -157,7 +157,7 @@
 (define-test gripper-opened-test
   (initialize)
   (let* ((?goal
-           `(cpoe:gripper-opened :left 0.01))
+           `(ccoe:gripper-opened :left 0.01))
          (the-action
            (an action
                (type opening-gripper)
@@ -176,7 +176,7 @@
 (define-test gripper-closed-test
   (initialize)
   (let* ((?goal
-           `(cpoe:gripper-closed :left 0.01))
+           `(ccoe:gripper-closed :left 0.01))
          (the-action
            (an action
                (type closing-gripper)
@@ -206,7 +206,7 @@
          (?look-pos
            (a location (pose ?pose)))
          (?goal
-           `(cpoe:looking-at ,?look-pos))
+           `(ccoe:looking-at ,?look-pos))
          (the-action
            (an action
                (type looking)
@@ -229,7 +229,7 @@
                (urdf-name sink-area-left-upper-drawer-main)
                (part-of iai-kitchen)))
          (?goal
-           `(cpoe:container-state ,?container :open))
+           `(ccoe:container-state ,?container :open))
          (the-action
            (an action
                (type opening)
@@ -255,7 +255,7 @@
                (urdf-name sink-area-left-upper-drawer-main)
                (part-of iai-kitchen)))
          (?goal
-           `(cpoe:container-state ,?container :closed))
+           `(ccoe:container-state ,?container :closed))
          (the-action
            (an action
                (type closing)
@@ -281,7 +281,7 @@
   (let* ((?tool-pose
            (btr:link-pose (btr:get-robot-object) cram-tf:*robot-right-tool-frame*))
          (?goal
-           `(cpoe:tool-frames-at nil ,?tool-pose))
+           `(ccoe:tool-frames-at nil ,?tool-pose))
          (the-action
            (an action
                (type reaching)
@@ -326,7 +326,7 @@
              (?object-copy
                (desig:copy-designator ?object))
              (?goal
-               `(cpoe:object-in-hand ,?object)))
+               `(ccoe:object-in-hand ,?object)))
         (perform
          (an action
              (type picking-up)

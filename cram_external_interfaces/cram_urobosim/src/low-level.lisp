@@ -129,7 +129,7 @@
 ;;                                        ((:grasp ?grasp)))
 ;;   "Teleports the object of given name directly into the gripper,
 ;; both in bullet and in unreal."
-;;   (coe:on-event (make-instance 'cpoe:robot-state-changed))
+;;   (coe:on-event (make-instance 'ccoe:robot-state-changed))
 ;;   (let* (;; (name (desig:desig-prop-value ?object-desig :name))
 ;;          (old-pose (btr:pose (btr:object btr:*current-bullet-world* ?name)))
 ;;          (gripper-tool-frame

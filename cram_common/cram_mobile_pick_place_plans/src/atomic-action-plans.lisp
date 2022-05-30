@@ -309,7 +309,7 @@ With a continuous motion planner one could have fluent arch trajectories etc.
      (make-instance 'cram-common-occasions-events:robot-state-changed))
     (roslisp:ros-info (pick-place release) "Retract grasp in knowledge base")
     (cram-occasions-events:on-event
-     (make-instance 'cpoe:object-detached-robot
+     (make-instance 'ccoe:object-detached-robot
        :arm (list ?left-or-right)
        :object-name (if ?object-designator
                         (desig:desig-prop-value ?object-designator :name)
@@ -343,7 +343,7 @@ In any case, issue ROBOT-STATE-CHANGED event."
            (roslisp:ros-info (pick-place grip) "Assert grasp into knowledge base")
            (when object-designator
              (cram-occasions-events:on-event
-              (make-instance 'cpoe:object-attached-robot
+              (make-instance 'ccoe:object-attached-robot
                 :arm ?left-or-right
                 :object-name (desig:desig-prop-value object-designator :name)
                 :object-designator object-designator

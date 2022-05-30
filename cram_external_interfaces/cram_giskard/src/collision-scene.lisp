@@ -399,22 +399,22 @@
   (unless cram-projection:*projection-environment*
     (reset-collision-scene)))
 
-(defmethod coe:on-event giskard-attach-object ((event cpoe:object-attached-robot))
+(defmethod coe:on-event giskard-attach-object ((event ccoe:object-attached-robot))
   (unless cram-projection:*projection-environment*
     (attach-object-to-arm-in-collision-scene
-     (cpoe:event-object-name event)
-     (cpoe:event-arm event)
-     (cpoe:event-link event))))
+     (ccoe:event-object-name event)
+     (ccoe:event-arm event)
+     (ccoe:event-link event))))
 
-(defmethod coe:on-event giskard-detach-object 1 ((event cpoe:object-detached-robot))
+(defmethod coe:on-event giskard-detach-object 1 ((event ccoe:object-detached-robot))
   (unless cram-projection:*projection-environment*
-    (let ((object-name (cpoe:event-object-name event)))
+    (let ((object-name (ccoe:event-object-name event)))
       (if object-name
           ;; if object-name is given, detach given object
           (detach-object-in-collision-scene object-name)
           ;; otherwise detach all objects from the given arm
           (let* ((arm
-                   (cpoe:event-arm event))
+                   (ccoe:event-arm event))
                  (link
                    (if arm
                        (cut:var-value
@@ -423,23 +423,23 @@
                          (prolog:prolog
                           `(and (rob-int:robot ?rob)
                                 (rob-int:end-effector-link ?rob ,arm ?link)))))
-                       (cpoe:event-link event))))
+                       (ccoe:event-link event))))
             (unless (cut:is-var link)
               (mapcar #'detach-object-in-collision-scene
                       (btr:link-attached-object-names
                        (btr:get-robot-object)
                        link))))))))
 
-(defmethod coe:on-event giskard-detach-object-after 3 ((event cpoe:object-detached-robot))
+(defmethod coe:on-event giskard-detach-object-after 3 ((event ccoe:object-detached-robot))
   (unless cram-projection:*projection-environment*
-    (update-object-pose-in-collision-scene (cpoe:event-object-name event))))
+    (update-object-pose-in-collision-scene (ccoe:event-object-name event))))
 
-(defmethod coe:on-event giskard-perceived ((event cpoe:object-perceived-event))
+(defmethod coe:on-event giskard-perceived ((event ccoe:object-perceived-event))
   (unless cram-projection:*projection-environment*
     (add-object-to-collision-scene
-     (desig:desig-prop-value (cpoe:event-object-designator event) :name))))
+     (desig:desig-prop-value (ccoe:event-object-designator event) :name))))
 
-(defmethod cram-occasions-events:on-event giskard-env 3 ((event cpoe:environment-manipulation-event))
+(defmethod cram-occasions-events:on-event giskard-env 3 ((event ccoe:environment-manipulation-event))
   (unless cram-projection:*projection-environment*
     (mapcar (lambda (attachment-info)
               (update-object-pose-in-collision-scene (car attachment-info)))

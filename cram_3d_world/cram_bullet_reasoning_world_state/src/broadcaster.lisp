@@ -64,5 +64,5 @@
   (update-bullet-transforms))
 
 (defmethod cram-occasions-events:on-event
-    update-broadcaster ((event cpoe:object-perceived-event))
+    update-broadcaster ((event ccoe:object-perceived-event))
   (update-bullet-transforms))

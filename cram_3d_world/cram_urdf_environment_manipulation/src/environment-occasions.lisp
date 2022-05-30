@@ -31,13 +31,13 @@
 
 (defparameter *container-state-convergence-delta* 0.1 "In meters or rad.")
 
-(def-fact-group environment-occasions (cpoe:container-state)
+(def-fact-group environment-occasions (ccoe:container-state)
 
-  (<- (cpoe:container-state ?container-designator ?distance)
+  (<- (ccoe:container-state ?container-designator ?distance)
     (symbol-value *container-state-convergence-delta* ?delta)
-    (cpoe:container-state ?container-designator ?distance ?delta))
+    (ccoe:container-state ?container-designator ?distance ?delta))
 
-  (<- (cpoe:container-state ?container-designator ?distance ?delta)
+  (<- (ccoe:container-state ?container-designator ?distance ?delta)
     (spec:property ?container-designator (:urdf-name ?container-name))
     (spec:property ?container-designator (:part-of ?btr-environment))
     (btr:bullet-world ?world)

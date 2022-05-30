@@ -325,7 +325,7 @@
                     :mass 1
                     :length 0.5 :width 0.3 :height 0.18 :handle-height 0.09)
     (coe:on-event
-     (make-instance 'cpoe:object-attached-robot
+     (make-instance 'ccoe:object-attached-robot
        :link left-ee-frame
        :not-loose t
        :grasp :top

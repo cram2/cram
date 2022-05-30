@@ -69,10 +69,10 @@ the `look-pose-stamped'."
     (setof ?arm (rob-int:arm ?_ ?arm) ?rob-arms)
     (length ?rob-arms ?number-of-arms)
     ;; check if the robot with more than one arm holds only one object
-    (-> (and (cpoe:object-in-hand ?object-designator ?arm ?grasp)
+    (-> (and (ccoe:object-in-hand ?object-designator ?arm ?grasp)
              (> ?number-of-arms 1)
              (forall (member ?rob-arm ?rob-arms)
-                     (cpoe:object-in-hand ?object-designator ?rob-arm)))
+                     (ccoe:object-in-hand ?object-designator ?rob-arm)))
         (equal ?park-arms NIL)
         (equal ?park-arms T))
     (desig:designator :action ((:type :navigating)
@@ -285,7 +285,7 @@ the `look-pose-stamped'."
     ;; also, the target location can be w.r.t. other object, which can be in hand,
     ;; in which case we need to bring the other object hand closer
     (-> (and (man-int:location-reference-object ?location-designator ?target-obj)
-             (cpoe:object-in-hand ?target-obj ?target-hand))
+             (ccoe:object-in-hand ?target-obj ?target-hand))
         (equal ?target-in-hand T)
         (and (equal ?target-in-hand NIL)
              (equal ?target-hand NIL)))

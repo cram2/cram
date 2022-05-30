@@ -38,23 +38,23 @@
 (defparameter *looking-convergence-delta* 0.01 "In meters")
 (defparameter *looking-convergence-joints-delta* 0.07 "In radians, about 4 deg.")
 
-(def-fact-group occasions (cpoe:object-in-hand
-                           cpoe:object-at-location
-                           cpoe:robot-at-location
-                           cpoe:torso-at
-                           cpoe:gripper-joint-at
-                           cpoe:gripper-opened
-                           cpoe:gripper-closed
-                           cpoe:arms-positioned-at
-                           cpoe:tool-frames-at
-                           cpoe:looking-at
-                           cpoe:location-reset)
+(def-fact-group occasions (ccoe:object-in-hand
+                           ccoe:object-at-location
+                           ccoe:robot-at-location
+                           ccoe:torso-at
+                           ccoe:gripper-joint-at
+                           ccoe:gripper-opened
+                           ccoe:gripper-closed
+                           ccoe:arms-positioned-at
+                           ccoe:tool-frames-at
+                           ccoe:looking-at
+                           ccoe:location-reset)
 
   ;; This occasion is defined in cram_urdf_environment_manipulation
-  ;; (<- (cpoe:container-state ?container-designator ?distance) ...)
+  ;; (<- (ccoe:container-state ?container-designator ?distance) ...)
 
   ;; if we want the arm, we get it from the link
-  (<- (cpoe:object-in-hand ?object ?arm ?grasp)
+  (<- (ccoe:object-in-hand ?object ?arm ?grasp)
     (btr:bullet-world ?world)
     (rob-int:robot ?robot)
     (btr:attached ?world ?robot ?link ?object-name ?grasp)
@@ -68,58 +68,58 @@
   ;; if we only want to know the link and don't care about the arm
   ;; it can be that the arm is not even given in the attachments
   ;; so we need a bit of copy paste here...
-  (<- (cpoe:object-in-hand ?object ?_ ?grasp ?link)
+  (<- (ccoe:object-in-hand ?object ?_ ?grasp ?link)
     (btr:bullet-world ?world)
     (rob-int:robot ?robot)
     (btr:attached ?world ?robot ?link ?object-name ?grasp)
     (once (and (object-designator-name ?object ?object-name)
                (desig:obj-desig? ?object))))
   ;;
-  (<- (cpoe:object-in-hand ?object ?arm)
-    (cpoe:object-in-hand ?object ?arm ?_))
+  (<- (ccoe:object-in-hand ?object ?arm)
+    (ccoe:object-in-hand ?object ?arm ?_))
   ;;
-  (<- (cpoe:object-in-hand ?object)
-    (setof ?object (cpoe:object-in-hand ?object ?_) ?objects)
+  (<- (ccoe:object-in-hand ?object)
+    (setof ?object (ccoe:object-in-hand ?object ?_) ?objects)
     (member ?object ?objects))
   ;;
-  (<- (cpoe:object-in-hand ?object :left-or-right)
-    (or (cpoe:object-in-hand ?object :left)
-        (cpoe:object-in-hand ?object :right)))
+  (<- (ccoe:object-in-hand ?object :left-or-right)
+    (or (ccoe:object-in-hand ?object :left)
+        (ccoe:object-in-hand ?object :right)))
 
 
-  (<- (cpoe:robot-at-location ?location)
+  (<- (ccoe:robot-at-location ?location)
     (rob-int:robot ?robot)
     (%object-at-location ?_ ?robot ?location))
 
 
-  (<- (cpoe:object-at-location ?object ?location)
+  (<- (ccoe:object-at-location ?object ?location)
     (desig:obj-desig? ?object)
     (object-designator-name ?object ?object-name)
     (%object-at-location ?_ ?object-name ?location))
 
 
-  (<- (cpoe:torso-at ?joint-state)
+  (<- (ccoe:torso-at ?joint-state)
     (symbol-value *torso-convergence-delta* ?torso-delta)
-    (cpoe:torso-at ?joint-state ?torso-delta))
+    (ccoe:torso-at ?joint-state ?torso-delta))
   ;;
-  (<- (cpoe:torso-at ?joint-state ?delta)
+  (<- (ccoe:torso-at ?joint-state ?delta)
     (lisp-type ?joint-state keyword)
     (rob-int:robot ?robot)
     (rob-int:robot-torso-link-joint ?robot ?_ ?joint)
     (rob-int:joint-lower-limit ?robot ?joint ?lower-limit)
     (rob-int:joint-upper-limit ?robot ?joint ?upper-limit)
     (-> (equal ?joint-state :upper-limit)
-        (cpoe:torso-at ?upper-limit ?delta)
+        (ccoe:torso-at ?upper-limit ?delta)
         (-> (equal ?joint-state :lower-limit)
-            (cpoe:torso-at ?lower-limit ?delta)
+            (ccoe:torso-at ?lower-limit ?delta)
             (-> (equal ?joint-state :middle)
                 (and (lisp-fun - ?upper-limit ?lower-limit ?middle-diff)
                      (lisp-fun / ?middle-diff 2 ?middle-half-diff)
                      (lisp-fun + ?lower-limit ?middle-half-diff ?middle)
-                     (cpoe:torso-at ?middle ?delta))
+                     (ccoe:torso-at ?middle ?delta))
                 (fail)))))
   ;;
-  (<- (cpoe:torso-at ?joint-state ?delta)
+  (<- (ccoe:torso-at ?joint-state ?delta)
     (lisp-type ?joint-state number)
     (rob-int:robot ?robot)
     (rob-int:robot-torso-link-joint ?robot ?_ ?torso-joint)
@@ -127,11 +127,11 @@
     (btr:joint-state ?world ?robot ?torso-joint ?torso-joint-state)
     (lisp-pred cram-tf:values-converged ?torso-joint-state ?joint-state ?delta))
 
-  (<- (cpoe:gripper-joint-at ?gripper ?joint-state)
+  (<- (ccoe:gripper-joint-at ?gripper ?joint-state)
     (symbol-value *gripper-joint-convergence-delta* ?gripper-delta)
-    (cpoe:gripper-joint-at ?gripper ?joint-state ?gripper-delta))
+    (ccoe:gripper-joint-at ?gripper ?joint-state ?gripper-delta))
 
-  (<- (cpoe:gripper-joint-at ?gripper ?joint-state ?delta)
+  (<- (ccoe:gripper-joint-at ?gripper ?joint-state ?delta)
     (lisp-type ?gripper keyword)
     (rob-int:robot ?robot)
     (rob-int:gripper-meter-to-joint-multiplier ?robot ?mult)
@@ -140,16 +140,16 @@
     (forall (rob-int:gripper-joint ?robot ?gripper ?gripper-joint)
             (%joint-at ?gripper-joint ?joint-state-mult ?delta-mult)))
 
-  (<- (cpoe:gripper-joint-at ?gripper ?joint-state ?delta)
+  (<- (ccoe:gripper-joint-at ?gripper ?joint-state ?delta)
     (lisp-type ?gripper list)
     (forall (member ?single-gripper ?gripper)
-            (cpoe:gripper-joint-at ?single-gripper ?joint-state ?delta)))
+            (ccoe:gripper-joint-at ?single-gripper ?joint-state ?delta)))
 
-  (<- (cpoe:gripper-opened ?gripper)
+  (<- (ccoe:gripper-opened ?gripper)
     (symbol-value *gripper-joint-convergence-delta* ?gripper-delta)
-    (cpoe:gripper-opened ?gripper ?gripper-delta))
+    (ccoe:gripper-opened ?gripper ?gripper-delta))
 
-  (<- (cpoe:gripper-opened ?gripper ?delta)
+  (<- (ccoe:gripper-opened ?gripper ?delta)
     (lisp-type ?gripper keyword)
     (rob-int:robot ?robot)
     (rob-int:gripper-meter-to-joint-multiplier ?robot ?mult)
@@ -159,16 +159,16 @@
             (and (rob-int:joint-upper-limit ?robot ?gripper-joint ?upper-limit)
                  (%joint-at ?gripper-joint ?upper-limit ?delta-mult))))
 
-  (<- (cpoe:gripper-opened ?gripper ?delta)
+  (<- (ccoe:gripper-opened ?gripper ?delta)
     (lisp-type ?gripper list)
     (forall (member ?single-gripper ?gripper)
-            (cpoe:gripper-opened ?single-gripper ?delta)))
+            (ccoe:gripper-opened ?single-gripper ?delta)))
 
-  (<- (cpoe:gripper-closed ?gripper)
+  (<- (ccoe:gripper-closed ?gripper)
     (symbol-value *gripper-joint-convergence-delta* ?gripper-delta)
-    (cpoe:gripper-closed ?gripper ?gripper-delta))
+    (ccoe:gripper-closed ?gripper ?gripper-delta))
 
-  (<- (cpoe:gripper-closed ?gripper ?delta)
+  (<- (ccoe:gripper-closed ?gripper ?delta)
     (lisp-type ?gripper keyword)
     (rob-int:robot ?robot)
     (rob-int:gripper-meter-to-joint-multiplier ?robot ?mult)
@@ -178,16 +178,16 @@
             (and (rob-int:joint-lower-limit ?robot ?gripper-joint ?lower-limit)
                  (%joint-at ?gripper-joint ?lower-limit ?delta-mult))))
 
-  (<- (cpoe:gripper-closed ?gripper ?delta)
+  (<- (ccoe:gripper-closed ?gripper ?delta)
     (lisp-type ?gripper list)
     (forall (member ?single-gripper ?gripper)
-            (cpoe:gripper-closed ?single-gripper ?delta)))
+            (ccoe:gripper-closed ?single-gripper ?delta)))
 
-  (<- (cpoe:arms-positioned-at ?left-configuration ?right-configuration)
+  (<- (ccoe:arms-positioned-at ?left-configuration ?right-configuration)
     (symbol-value *arm-joints-convergence-delta* ?delta)
-    (cpoe:arms-positioned-at ?left-configuration ?right-configuration ?delta))
+    (ccoe:arms-positioned-at ?left-configuration ?right-configuration ?delta))
   ;;
-  (<- (cpoe:arms-positioned-at ?left-config ?right-config ?delta)
+  (<- (ccoe:arms-positioned-at ?left-config ?right-config ?delta)
     (rob-int:robot ?robot)
     (-> (lisp-pred identity ?left-config)
         (and (man-int:joint-state-for-arm-config ?robot ?left-config :left
@@ -202,7 +202,7 @@
                         ?right-goal-states ?delta))
         (true)))
   ;; For checking other than arm configurations, e.g., neck configuration
-  (<- (cpoe:arms-positioned-at ?effector-type ?effector-name
+  (<- (ccoe:arms-positioned-at ?effector-type ?effector-name
                                ?effector-configuration-name ?delta)
     (rob-int:robot ?robot)
     (rob-int:robot-joint-states ?robot ?effector-type ?effector-name
@@ -212,12 +212,12 @@
                ?effector-joint-states ?delta))
 
 
-  (<- (cpoe:tool-frames-at ?left-poses ?right-poses)
+  (<- (ccoe:tool-frames-at ?left-poses ?right-poses)
     (symbol-value *ee-position-convergence-delta* ?delta-position)
     (symbol-value *ee-rotation-convergence-delta* ?delta-rotation)
-    (cpoe:tool-frames-at ?left-poses ?right-poses ?delta-position ?delta-rotation))
+    (ccoe:tool-frames-at ?left-poses ?right-poses ?delta-position ?delta-rotation))
   ;;
-  (<- (cpoe:tool-frames-at ?left-poses ?right-poses ?delta-pos ?delta-rot)
+  (<- (ccoe:tool-frames-at ?left-poses ?right-poses ?delta-pos ?delta-rot)
     (or (and (lisp-pred identity ?left-poses)
              (lisp-type ?left-poses list))
         (and (lisp-pred identity ?right-poses)
@@ -232,9 +232,9 @@
         (and (lisp-fun last ?right-poses ?right-pose-list)
              (lisp-fun car ?right-pose-list ?right-pose))
         (equal ?right-poses ?right-pose))
-    (cpoe:tool-frames-at ?left-pose ?right-pose ?delta-pos ?delta-rot))
+    (ccoe:tool-frames-at ?left-pose ?right-pose ?delta-pos ?delta-rot))
   ;;
-  (<- (cpoe:tool-frames-at ?left-pose ?right-pose ?delta-pos ?delta-rot)
+  (<- (ccoe:tool-frames-at ?left-pose ?right-pose ?delta-pos ?delta-rot)
     (not (lisp-type ?left-pose cl-transforms-stamped:pose-stamped))
     (not (lisp-type ?right-pose cl-transforms-stamped:pose-stamped))
     (or (lisp-type ?left-pose cl-transforms:pose)
@@ -249,10 +249,10 @@
         (lisp-fun cl-transforms-stamped:pose->pose-stamped ?fixed-frame 0.0
                   ?right-pose ?right-pose-stamped)
         (equal ?right-pose ?right-pose-stamped))
-    (cpoe:tool-frames-at ?left-pose-stamped ?right-pose-stamped
+    (ccoe:tool-frames-at ?left-pose-stamped ?right-pose-stamped
                          ?delta-pos ?delta-rot))
   ;;
-  (<- (cpoe:tool-frames-at ?left-pose-stamped ?right-pose-stamped
+  (<- (ccoe:tool-frames-at ?left-pose-stamped ?right-pose-stamped
                            ?delta-pos ?delta-rot)
     (or (lisp-type ?left-pose-stamped cl-transforms-stamped:pose-stamped)
         (lisp-type ?right-pose-stamped cl-transforms-stamped:pose-stamped))
@@ -279,17 +279,17 @@
         (true)))
 
 
-  (<- (cpoe:looking-at ?location-or-object-or-frame-or-direction-or-pose)
+  (<- (ccoe:looking-at ?location-or-object-or-frame-or-direction-or-pose)
     (symbol-value *looking-convergence-delta* ?delta)
-    (cpoe:looking-at ?location-or-object-or-frame-or-direction-or-pose ?delta))
+    (ccoe:looking-at ?location-or-object-or-frame-or-direction-or-pose ?delta))
   ;;
-  (<- (cpoe:looking-at ?object-designator ?delta)
+  (<- (ccoe:looking-at ?object-designator ?delta)
     (desig:obj-desig? ?object-designator)
     (desig:current-designator ?object-designator ?current-object-desig)
     (lisp-fun man-int:get-object-pose-in-map ?current-object-desig ?object-pose)
-    (cpoe:looking-at ?object-pose ?delta))
+    (ccoe:looking-at ?object-pose ?delta))
   ;;
-  (<- (cpoe:looking-at ?location-designator ?delta)
+  (<- (ccoe:looking-at ?location-designator ?delta)
     (desig:loc-desig? ?location-designator)
     (desig:current-designator ?location-designator ?current-location-designator)
     (desig:designator-groundings ?current-location-designator ?poses)
@@ -300,9 +300,9 @@
     ;; must already be resolved, and perhaps the resolved pose will coincide
     ;; with what the robot is looking at...
     (once (member ?pose ?poses))
-    (cpoe:looking-at ?pose ?delta))
+    (ccoe:looking-at ?pose ?delta))
   ;;
-  (<- (cpoe:looking-at ?frame ?delta)
+  (<- (ccoe:looking-at ?frame ?delta)
     (lisp-type ?frame string)
     (symbol-value cram-tf:*fixed-frame* ?fixed-frame)
     ;; Don't want to use the transformer in goal proving, so just assume TRUE
@@ -316,28 +316,28 @@
     ;;          (lisp-fun cl-transforms-stamped:stamp ?frame-transform ?stamp)
     ;;          (lisp-fun cram-tf:transform->pose-stamped ?fixed-frame ?stamp
     ;;                    ?frame-transform ?frame-pose-stamped)
-    ;;          (cpoe:looking-at ?frame-pose-stamped ?delta))
+    ;;          (ccoe:looking-at ?frame-pose-stamped ?delta))
     ;;     (fail))
     )
   ;;
-  (<- (cpoe:looking-at ?direction ?delta)
+  (<- (ccoe:looking-at ?direction ?delta)
     (lisp-type ?direction keyword)
     (rob-int:robot ?robot)
     ;; btr:looking-in-direction-p needs a vector, here the direction is a keyword
     (or (and (rob-int:robot-pose ?robot :neck ?_ ?direction ?pose-stamped)
-             (cpoe:looking-at ?pose-stamped ?delta))
+             (ccoe:looking-at ?pose-stamped ?delta))
         (and (symbol-value *looking-convergence-joints-delta* ?joints-delta)
-             (cpoe:arms-positioned-at :neck ?_ ?direction ?joints-delta))))
+             (ccoe:arms-positioned-at :neck ?_ ?direction ?joints-delta))))
   ;;
-  (<- (cpoe:looking-at ?pose ?delta)
+  (<- (ccoe:looking-at ?pose ?delta)
     (not (lisp-type ?pose cl-transforms-stamped:pose-stamped))
     (lisp-type ?pose cl-transforms:pose)
     (symbol-value cram-tf:*fixed-frame* ?fixed-frame)
     (lisp-fun cl-transforms-stamped:pose->pose-stamped ?fixed-frame 0.0 ?pose
               ?pose-stamped)
-    (cpoe:looking-at ?pose-stamped ?delta))
+    (ccoe:looking-at ?pose-stamped ?delta))
   ;;
-  (<- (cpoe:looking-at ?pose-stamped-in-map ?delta)
+  (<- (ccoe:looking-at ?pose-stamped-in-map ?delta)
     (lisp-type ?pose-stamped-in-map cl-transforms-stamped:pose-stamped)
     (lisp-fun cl-transforms-stamped:frame-id ?pose-stamped-in-map ?frame)
     (symbol-value cram-tf:*fixed-frame* ?fixed-frame)
@@ -376,7 +376,7 @@
     ;;          (fail)))
     )
 
-  (<- (cpoe:location-reset ?some-location-designator)
+  (<- (ccoe:location-reset ?some-location-designator)
     (desig:loc-desig? ?some-location-designator)
     (desig:current-designator ?some-location-designator ?location-designator)
     (-> (or (spec:property ?location-designator (:in ?some-object-designator))
@@ -387,11 +387,11 @@
                           (man-int:object-is-a-container ?object-designator))
                      (and (equal :above ?tag)
                           (man-int:object-is-a-prismatic-container ?object-designator)))
-                 (cpoe:container-state ?object-designator :close)
+                 (ccoe:container-state ?object-designator :close)
                  (true)))
         (true)))
 
-  (<- (cpoe:location-accessible ?some-location-designator)
+  (<- (ccoe:location-accessible ?some-location-designator)
     (desig:loc-desig? ?some-location-designator)
     (desig:current-designator ?some-location-designator ?location-designator)
     (-> (spec:property ?location-designator (:in ?container-object))
@@ -399,12 +399,12 @@
              (or (desig:desig-prop ?object-designator (:type :robot))
                  (and (rob-int:robot ?robot)
                       (desig:desig-prop ?object-designator (:part-of ?robot)))
-                 (cpoe:container-state ?object-designator :open)))
+                 (ccoe:container-state ?object-designator :open)))
         ;; Above keyword is inaccessible for prismatic containers like drawers
         ;; but not for revolute containers like fridge/oven
         (-> (spec:property ?location-designator (:above ?location-object))
             (or (not (man-int:object-is-a-prismatic-container ?location-object))
-                (cpoe:container-state ?location-object :open))
+                (ccoe:container-state ?location-object :open))
             (true)))))
 
 

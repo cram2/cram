@@ -247,7 +247,7 @@
   
   (roslisp:ros-info (cut-pour slicing) "Assert grasp into knowledge base")
   (cram-occasions-events:on-event
-   (make-instance 'cpoe:object-attached-robot
+   (make-instance 'ccoe:object-attached-robot
      :object-name (desig:desig-prop-value ?object-designator :name)
      :arm ?arm
      :grasp ?grasp))

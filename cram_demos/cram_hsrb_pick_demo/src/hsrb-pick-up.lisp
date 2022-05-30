@@ -45,7 +45,7 @@
         (cl-transforms:make-3d-vector x y 0)
         (cl-transforms:orientation ?object-pose)))))
   ;; update that the robot-state changed otherwise the transformer dosen't update
-  (coe:on-event (make-instance 'cpoe:robot-state-changed)))
+  (coe:on-event (make-instance 'ccoe:robot-state-changed)))
 
 (defun grasp-object (object-name object-type)
   "places the robot in front-/left-/right-/back-side of the object and tries

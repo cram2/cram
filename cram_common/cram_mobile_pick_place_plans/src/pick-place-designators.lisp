@@ -214,17 +214,17 @@
  ;; ;; find in which hand the object is
  ;;    (-> (spec:property ?action-designator (:arm ?arm))
  ;;        (-> (spec:property ?action-designator (:object ?object-designator))
- ;;            (once (or (cpoe:object-in-hand ?object-designator ?arm)
+ ;;            (once (or (ccoe:object-in-hand ?object-designator ?arm)
  ;;                      (format "WARNING: Wanted to place an object ~a with arm ~a, ~
  ;;                               but it's not in the arm.~%"
  ;;                              ?object-designator ?arm)))
- ;;            (cpoe:object-in-hand ?object-designator ?arm))
+ ;;            (ccoe:object-in-hand ?object-designator ?arm))
  ;;        (-> (spec:property ?action-designator (:object ?object-designator))
- ;;            (once (or (cpoe:object-in-hand ?object-designator ?arm)
+ ;;            (once (or (ccoe:object-in-hand ?object-designator ?arm)
  ;;                      (format "WARNING: Wanted to place an object ~a ~
  ;;                               but it's not in any of the hands.~%"
  ;;                              ?object-designator)))
- ;;            (cpoe:object-in-hand ?object-designator ?arm)))
+ ;;            (ccoe:object-in-hand ?object-designator ?arm)))
 
    
  ;; find in which hand the object is
@@ -246,14 +246,14 @@
         (-> (spec:property ?action-designator (:object ?object-designator))
             ;; Find arms which holds the given object
             ;; and check if the arms are holding the given object as specified
-            (or (setof ?used-arm (cpoe:object-in-hand ?object ?used-arm) ?arm)
+            (or (setof ?used-arm (ccoe:object-in-hand ?object ?used-arm) ?arm)
                 (man-int:check-arms-for-object ?arm ?object-designator)
                 (format "WARNING: Wanted to place an object ~a ~
                          but it's not in any of the hands.~%" ?object-designator))
             ;; Find the object the robot is holding and with which
             ;; arms the object is hold by getting all arms in use and
             ;; checking if these hold one object as specified
-            (or (once (and (setof ?used-arm (cpoe:object-in-hand ?object ?used-arm) ?arm)
+            (or (once (and (setof ?used-arm (ccoe:object-in-hand ?object ?used-arm) ?arm)
                            (man-int:object-in-arms ?arm ?object-designator)
                            (man-int:check-arms-for-object ?arm ?object-designator)))
                 (and (format "WARNING: Please specify with an arm which ~
@@ -310,7 +310,7 @@
               (equal ?location-type NIL)))
     ;; ;; infer the grasp type
     ;; (once (or (spec:property ?action-designator (:grasp ?grasp))
-    ;;           (cpoe:object-in-hand ?object-designator ?arm ?grasp)))
+    ;;           (ccoe:object-in-hand ?object-designator ?arm ?grasp)))
 
     ;; calculate trajectory
     (equal ?objects (?current-object-designator

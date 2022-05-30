@@ -31,17 +31,17 @@
 
 ;;; object-in-hand assert and retract
 
-(defmethod cram-occasions-events:on-event object-in-hand ((event cpoe:object-attached-robot))
-  (let* (;; (arm (cpoe:event-arm event)) ; <- not needed for knowrob
-         ;; (grasp (cpoe:event-grasp event))
-         (object-name (cpoe:event-object-name event))
+(defmethod cram-occasions-events:on-event object-in-hand ((event ccoe:object-attached-robot))
+  (let* (;; (arm (ccoe:event-arm event)) ; <- not needed for knowrob
+         ;; (grasp (ccoe:event-grasp event))
+         (object-name (ccoe:event-object-name event))
          (gripper-id "left_gripper")
          (kr-grasp-class (car (get-possible-object-grasps object-name gripper-id))))
     (assert-object-grasped gripper-id object-name "boxy" kr-grasp-class)))
 
-(defmethod cram-occasions-events:on-event object-in-hand ((event cpoe:object-detached-robot))
-  (let* (;; (arm (cpoe:event-arm event)) ; <- not needed for knowrob
-         (object-designator (cpoe:event-object event))
+(defmethod cram-occasions-events:on-event object-in-hand ((event ccoe:object-detached-robot))
+  (let* (;; (arm (ccoe:event-arm event)) ; <- not needed for knowrob
+         (object-designator (ccoe:event-object event))
          (object-name (desig:desig-prop-value object-designator :name))
          (kr-gripper-id "left_gripper"))
     (retract-object-grasped object-name kr-gripper-id)))
@@ -76,7 +76,7 @@
 
 ;; (defclass object-detached (object-connection-event) ())
 
-(defmethod cram-occasions-events:on-event objects-connected ((event cpoe:object-attached-object))
+(defmethod cram-occasions-events:on-event objects-connected ((event ccoe:object-attached-object))
   (let* ((object-designator (event-object event))
          (with-object-designator (event-with-object event))
          (object-name (desig:desig-prop-value object-designator :name))
@@ -98,6 +98,6 @@
        (assert-assemblage :chassis-with-axles-and-seats :seat-snap-in-back
                           object-name with-object-name)))))
 
-(defmethod cram-occasions-events:on-event objects-connected ((event cpoe:object-detached-object))
+(defmethod cram-occasions-events:on-event objects-connected ((event ccoe:object-detached-object))
   (format t "Detached was no implemented for this scenario yet. ~
              The prolog query has to change to accept assemblage description and not ID."))

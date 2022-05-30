@@ -29,10 +29,10 @@
 
 (in-package :kr-world)
 
-(defmethod coe:on-event knowrob-attach-object ((event cpoe:object-attached-robot))
+(defmethod coe:on-event knowrob-attach-object ((event ccoe:object-attached-robot))
   (unless cram-projection:*projection-environment*
     (let* ((object-name
-             (cpoe:event-object-name event))
+             (ccoe:event-object-name event))
            (object-name-string
              (symbol-name object-name))
            (btr-object
@@ -42,7 +42,7 @@
                   (car (prolog:prolog
                         `(and (cram-robot-interfaces:robot ?robot)
                               (cram-robot-interfaces:end-effector-link
-                               ?robot ,(cpoe:event-arm event)
+                               ?robot ,(ccoe:event-arm event)
                                ?ee-link)))))))
       (when (cut:is-var link)
         (error "[KNOWROB OBJECT-ATTACHED] Couldn't find robot's EE link."))
@@ -80,9 +80,9 @@
                        x y z q1 q2 q3 w
                        link)))))))))
 
-(defmethod coe:on-event knowrob-detach-object ((event cpoe:object-detached-robot))
+(defmethod coe:on-event knowrob-detach-object ((event ccoe:object-detached-robot))
   (unless cram-projection:*projection-environment*
-    (let* ((object-name (cpoe:event-object-name event))
+    (let* ((object-name (ccoe:event-object-name event))
            (btr-object (btr:object btr:*current-bullet-world* object-name)))
 
       (unless btr-object

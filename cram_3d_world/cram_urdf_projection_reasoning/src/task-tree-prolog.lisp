@@ -350,6 +350,6 @@
                (task-started-at ,top-level-name ?picking-up-task ?picking-up-start)
                (cram-robot-interfaces:robot ?robot)
                (btr:timeline ?timeline)
-               (coe:holds ?timeline (cpoe:loc ?robot ?pick-location)
+               (coe:holds ?timeline (ccoe:loc ?robot ?pick-location)
                           (coe:at ?picking-up-start)))))))))
 )

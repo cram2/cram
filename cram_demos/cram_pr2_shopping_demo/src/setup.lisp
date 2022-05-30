@@ -204,7 +204,7 @@
                     :length 0.5 :width 0.3 :height 0.18 :handle-height 0.09)
     (let ((basket-desig (desig:an object (type basket) (name b))))
       (coe:on-event
-       (make-instance 'cpoe:object-attached-robot
+       (make-instance 'ccoe:object-attached-robot
          :link "l_wrist_roll_link"
          :not-loose t
          :grasp :top

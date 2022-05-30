@@ -68,8 +68,8 @@ and renames POSE into OLD-POSE."
 
 
 
-(defmethod cram-occasions-events:on-event object-perceived 2 ((event cpoe:object-perceived-event))
-  (let* ((object-data (desig:reference (cpoe:event-object-designator event)))
+(defmethod cram-occasions-events:on-event object-perceived 2 ((event ccoe:object-perceived-event))
+  (let* ((object-data (desig:reference (ccoe:event-object-designator event)))
          (object-name (desig:object-identifier object-data))
          (object-pose (desig:object-pose object-data)))
     (if cram-projection:*projection-environment*
@@ -84,7 +84,7 @@ and renames POSE into OLD-POSE."
         ;; otherwise, spawn a new object in the bullet world
         (register-object-designator-data
          object-data
-         :type (desig:desig-prop-value (cpoe:event-object-designator event) :type)))
+         :type (desig:desig-prop-value (ccoe:event-object-designator event) :type)))
     ;; after having spawned the object,
     ;; correct noise through world state consistency reasoning
     (stabilize-perceived-object-pose btr:*current-bullet-world* object-name object-pose)
@@ -92,25 +92,25 @@ and renames POSE into OLD-POSE."
     (btr:simulate btr:*current-bullet-world* 100)
     ;; update the designator to get the new simulated pose
     (desig:equate
-     (cpoe:event-object-designator event)
-     (detect-new-object-pose-from-btr (cpoe:event-object-designator event)))))
+     (ccoe:event-object-designator event)
+     (detect-new-object-pose-from-btr (ccoe:event-object-designator event)))))
 
 
 
-(defmethod cram-occasions-events:on-event btr-world ((event cpoe:object-location-changed))
+(defmethod cram-occasions-events:on-event btr-world ((event ccoe:object-location-changed))
   ;; Remove loose attachment between robot and object,
   ;; if the object was placed somewhere else, e. g.:
   ;; the robot has been placing an object on itself
   ;; and now picked up and placed the object on the table.
   (when (btr:attached-objects (btr:get-robot-object))
     (let* ((object-desig
-             (cpoe:event-object-designator event))
+             (ccoe:event-object-designator event))
            (object-name
              (desig:desig-prop-value object-desig :name))
            (btr-object
              (btr:object btr:*current-bullet-world* object-name))
            (target-desig
-             (cpoe:event-location-designator event))
+             (ccoe:event-location-designator event))
            (target-on-desig
              (or (desig:desig-prop-value target-desig :on)
                  (desig:desig-prop-value target-desig :in)))
@@ -130,12 +130,12 @@ and renames POSE into OLD-POSE."
 
   ;; update the designator to get the new location
   (update-object-designator-location
-   (cpoe:event-object-designator event)
-   (cpoe:event-location-designator event)))
+   (ccoe:event-object-designator event)
+   (ccoe:event-location-designator event)))
 
 
 
-(defmethod cram-occasions-events:on-event robot-moved ((event cpoe:robot-state-changed))
+(defmethod cram-occasions-events:on-event robot-moved ((event ccoe:robot-state-changed))
   (unless cram-projection:*projection-environment*
     (let ((robot (btr:get-robot-object)))
       (when robot
@@ -153,30 +153,30 @@ and renames POSE into OLD-POSE."
                 (cram-robot-interfaces:end-effector-link ?robot ,arm
                                                          ?ee-link))))))
 
-(defmethod cram-occasions-events:on-event btr-attach-object 2 ((event cpoe:object-attached-robot))
+(defmethod cram-occasions-events:on-event btr-attach-object 2 ((event ccoe:object-attached-robot))
   "2 means this method has to be ordered based on integer qualifiers.
 It could have been 1 but 1 is reserved in case somebody has to be even more urgently
 executed before everyone else.
 If there is no other method with 1 as qualifier, this method will be executed always first."
-(let* ((robot-object-name (or (cpoe:event-other-object-name event)
+(let* ((robot-object-name (or (ccoe:event-other-object-name event)
                                 (rob-int:get-robot-name)))
          (robot-object (btr:object btr:*current-bullet-world* robot-object-name))
          (environment-object (btr:get-environment-object))
-         (btr-object-name (cpoe:event-object-name event))
+         (btr-object-name (ccoe:event-object-name event))
          (btr-object (btr:object btr:*current-bullet-world* btr-object-name))
-         (arm (cpoe:event-arm event))
+         (arm (ccoe:event-arm event))
          (link (if arm
                    (cut:var-value
                     '?ee-link
                     (car (prolog:prolog
                           `(and (rob-int:robot ?robot)
                                 (rob-int:end-effector-link ?robot ,arm ?ee-link)))))
-                   (if (cpoe:event-link event)
-                       (cpoe:event-link event)
+                   (if (ccoe:event-link event)
+                       (ccoe:event-link event)
                        (error "[BTR-WORLD OBJECT-ATTACHED] either link or arm ~
                                in object-attached-robot event had to be given..."))))
-         (grasp (cpoe:event-grasp event))
-         (object-designator (cpoe:event-object-designator event)))
+         (grasp (ccoe:event-grasp event))
+         (object-designator (ccoe:event-object-designator event)))
     (when (cut:is-var link)
       (error "[BTR-WORLD OBJECT-ATTACHED] Couldn't find robot's EE link."))
     ;; first detach from environment in case it is attached
@@ -215,24 +215,24 @@ If there is no other method with 1 as qualifier, this method will be executed al
          object-designator robot-object-name link)))))
 
    
-(defmethod cram-occasions-events:on-event btr-detach-object 2 ((event cpoe:object-detached-robot))
+(defmethod cram-occasions-events:on-event btr-detach-object 2 ((event ccoe:object-detached-robot))
   (let* ((robot-object (btr:get-robot-object))
          (environment-object (btr:get-environment-object))
-         (btr-object-name (cpoe:event-object-name event))
-         (first-arm (first (cpoe:event-arm event)))
-         (second-arm (second (cpoe:event-arm event)))
+         (btr-object-name (ccoe:event-object-name event))
+         (first-arm (first (ccoe:event-arm event)))
+         (second-arm (second (ccoe:event-arm event)))
          (first-link (when first-arm
                        (if (get-ee-link first-arm)
                            (get-ee-link first-arm)
-                           (if (cpoe:event-link event)
-                               (cpoe:event-link event)
+                           (if (ccoe:event-link event)
+                               (ccoe:event-link event)
                                (error "[BTR-WORLD OBJECT-DETACHED] either link or arm ~
                                  in object-attached-robot even had to be given...")))))
          (second-link (when second-arm
                         (if (get-ee-link second-arm)
                             (get-ee-link second-arm)
-                            (if (cpoe:event-link event)
-                                (cpoe:event-link event)
+                            (if (ccoe:event-link event)
+                                (ccoe:event-link event)
                                 (error "[BTR-WORLD OBJECT-DETACHED] either link or arm ~
                                   in object-attached-robot even had to be given..."))))))
     (when (and (cut:is-var first-link)
@@ -292,12 +292,12 @@ If there is no other method with 1 as qualifier, this method will be executed al
 
 
 
-(defmethod cram-occasions-events:on-event btr-attach-two-objs ((event cpoe:object-attached-object))
-  (let* ((btr-object-name (cpoe:event-object-name event))
+(defmethod cram-occasions-events:on-event btr-attach-two-objs ((event ccoe:object-attached-object))
+  (let* ((btr-object-name (ccoe:event-object-name event))
          (btr-object (btr:object btr:*current-bullet-world* btr-object-name))
-         (btr-other-object-name (cpoe:event-other-object-name event))
+         (btr-other-object-name (ccoe:event-other-object-name event))
          (btr-other-object (btr:object btr:*current-bullet-world* btr-other-object-name))
-         (attachment-type (cpoe:event-attachment-type event)))
+         (attachment-type (ccoe:event-attachment-type event)))
     (when (and btr-object btr-other-object attachment-type)
       (let* ((btr-object-type
                (car (slot-value btr-object 'btr::types)))
@@ -339,9 +339,9 @@ If there is no other method with 1 as qualifier, this method will be executed al
 
 
 (defun move-joint-by-event (event open-or-close)
-  (let* ((joint-name (cpoe:environment-event-joint-name event))
-         (object (cpoe:environment-event-object event))
-         (distance (cpoe:environment-event-distance event))
+  (let* ((joint-name (ccoe:environment-event-joint-name event))
+         (object (ccoe:environment-event-object event))
+         (distance (ccoe:environment-event-distance event))
          (current-opening (gethash joint-name (btr:joint-states object)))
          (new-joint-angle
            (funcall
@@ -365,15 +365,15 @@ If there is no other method with 1 as qualifier, this method will be executed al
         ,new-joint-angle-rounded))
      object)))
 
-(defmethod cram-occasions-events:on-event open-container 2 ((event cpoe:container-opening-event))
+(defmethod cram-occasions-events:on-event open-container 2 ((event ccoe:container-opening-event))
   (move-joint-by-event event :open)
   (unless cram-projection:*projection-environment*
-    (publish-environment-joint-state (btr:joint-states (cpoe:environment-event-object event)))))
+    (publish-environment-joint-state (btr:joint-states (ccoe:environment-event-object event)))))
 
-(defmethod cram-occasions-events:on-event close-container 2 ((event cpoe:container-closing-event))
+(defmethod cram-occasions-events:on-event close-container 2 ((event ccoe:container-closing-event))
   (move-joint-by-event event :close)
   (unless cram-projection:*projection-environment*
-    (publish-environment-joint-state (btr:joint-states (cpoe:environment-event-object event)))))
+    (publish-environment-joint-state (btr:joint-states (ccoe:environment-event-object event)))))
 
 
 

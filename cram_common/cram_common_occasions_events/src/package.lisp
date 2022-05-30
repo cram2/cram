@@ -30,7 +30,7 @@
 (in-package :cl-user)
 
 (defpackage cram-common-occasions-events
-  (:nicknames :cpoe)
+  (:nicknames :ccoe)
   (:use #:common-lisp
         #:cram-occasions-events
         #:cram-prolog)

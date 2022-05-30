@@ -81,10 +81,10 @@
                ;;         (task-specific-action ,top-level-name ?transporting-task
                ;;                               :navigating ?navigating-task ?_)
                ;;         (task-started-at ,top-level-name ?navigating-task ?start-time)
-               ;;         (coe:holds ?timeline (cpoe:loc ?robot ?start-location)
+               ;;         (coe:holds ?timeline (ccoe:loc ?robot ?start-location)
                ;;                    (coe:at ?start-time))
                ;;         (task-ended-at ,top-level-name ?navigating-task ?end-time)
-               ;;         (coe:holds ?timeline (cpoe:loc ?robot ?end-location)
+               ;;         (coe:holds ?timeline (ccoe:loc ?robot ?end-location)
                ;;                    (coe:at ?end-time))))
                ))))
          (picking-action
