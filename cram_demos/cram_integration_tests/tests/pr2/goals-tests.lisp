@@ -315,6 +315,7 @@
            (target (a location
                       (pose ?look-pose)))))
       (let* ((?object
+
                (perform
                 (an action
                     (type perceiving)

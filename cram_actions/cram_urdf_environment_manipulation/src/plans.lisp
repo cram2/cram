@@ -128,7 +128,9 @@ a threshold (if T) to signal a failure.")
     (exe:perform
      (desig:an action
                (type gripping)
-               (gripper ?arm))))
+               (gripper ?arm)
+               (object (desig:an object
+                                 (name ?environment-name))))))
 
   ;;;;;;;;;;;;;;;;;;;;;; MANIPULATING ;;;;;;;;;;;;;;;;;;;;;;;
   (roslisp:ros-info (environment-manipulation manipulate-container)
@@ -192,12 +194,17 @@ a threshold (if T) to signal a failure.")
   ;;;;;;;;;;;;;;;;;;;; RETRACTING ;;;;;;;;;;;;;;;;;;;;;;;;;;;
   (roslisp:ros-info (environment-manipulation manipulate-container)
                     "Retracting")
-  (let ((?goal `(cpoe:gripper-opened ,?arm)))
-    (exe:perform
-     (desig:an action
-               (type releasing)
-               (gripper ?arm)
-               (goal ?goal))))
+  
+  (when (eq ?type :opening)
+    (let ((?goal `(cpoe:gripper-opened ,?arm)))
+      (exe:perform
+       (desig:an action
+                 (type releasing)
+                 (gripper ?arm)
+                 (object (desig:an object
+                                   (name ?environment-name)))
+                 (goal ?goal)))))
+
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
          (roslisp:ros-warn (env-plans manipulate)
