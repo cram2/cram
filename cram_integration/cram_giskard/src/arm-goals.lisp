@@ -46,7 +46,7 @@
                                          collision-object-b
                                          collision-object-b-link
                                          collision-object-a
-                                         prefer-base
+                                         prefer-base allow-base
                                          align-planes-left align-planes-right
                                          unmovable-joints)
   (declare (type (or null cl-transforms-stamped:pose-stamped) left-pose right-pose)
@@ -58,8 +58,12 @@
     (make-giskard-goal
      :constraints (list
                    (make-avoid-joint-limits-constraint)
-                   (when prefer-base
-                     (make-prefer-base-constraint))
+                   (when allow-base
+                     (make-prefer-base-constraint
+                      :base-weight (if prefer-base
+                                       *prefer-base-low-cost*
+                                       *allow-base-high-cost*)))
+                   ;; ;; align planes is WIP in giskard
                    ;; (when align-planes-left
                    ;;   (make-align-planes-constraint
                    ;;    pose-base-frame
@@ -99,31 +103,32 @@
                                      cram-tf:*robot-right-tool-frame*
                                      right-pose)))
      :collisions (ecase collision-mode
-                   (:avoid-all nil;; (make-avoid-all-collision)
-                    )
+                   (:avoid-all (make-avoid-all-collision))
                    (:allow-all (make-allow-all-collision))
-                   (:allow-hand (list ;; (make-avoid-all-collision)
-                                      (make-allow-hand-collision
-                                       arms collision-object-b
-                                       collision-object-b-link)
-                                      (make-allow-hand-collision
-                                       arms (rob-int:get-environment-name))))
-                   (:allow-fingers (list ;; (make-avoid-all-collision)
+                   (:allow-hand (alexandria:flatten
+                                 (list ;; (make-avoid-all-collision)
+                                  (make-allow-hand-collision
+                                   arms collision-object-b
+                                   collision-object-b-link)
+                                  (make-allow-hand-collision
+                                   arms (rob-int:get-environment-name)))))
+                   (:allow-fingers (alexandria:flatten
+                                    (list ;; (make-avoid-all-collision)
                                     (make-allow-fingers-collision
                                      arms collision-object-b
                                      collision-object-b-link)
                                     (make-allow-fingers-collision
-                                     arms (rob-int:get-environment-name))))
-                   (:allow-arm (list ;; (make-avoid-all-collision)
-                                     (make-allow-arm-collision
-                                      arms collision-object-b
-                                      collision-object-b-link)
-                                     (make-allow-arm-collision
-                                      arms (rob-int:get-environment-name))))
-                   (:allow-attached (list ;; (make-avoid-all-collision)
-                                          (make-allow-attached-collision
-                                           collision-object-a
-                                           collision-object-b-link)))))))
+                                     arms (rob-int:get-environment-name)))))
+                   (:allow-arm (alexandria:flatten
+                                (list ;; (make-avoid-all-collision)
+                                 (make-allow-arm-collision
+                                  arms collision-object-b
+                                  collision-object-b-link)
+                                 (make-allow-arm-collision
+                                  arms (rob-int:get-environment-name)))))
+                   (:allow-attached (make-avoid-all-collision)
+                                        ; attached objects are handled by giskard
+                                    )))))
 
 (defun make-arm-joint-action-goal (joint-state-left joint-state-right
                                    align-planes-left align-planes-right
@@ -154,11 +159,8 @@
                    cram-tf:*robot-base-frame* 0.0
                    (cl-transforms:make-identity-pose))
                   :max-velocity *base-max-velocity-slow-xy*
-                  :avoid-collisions-much t)
-                 ;; (make-base-velocity-constraint
-                 ;;  *base-max-velocity-slow-xy*
-                 ;;  *base-max-velocity-slow-theta*)
-                 ;; (make-avoid-joint-limits-constraint)
+                  ;; :avoid-collisions-much t
+                  )
                  (when align-planes-left
                    (make-align-planes-tool-frame-constraint
                     :left
@@ -179,8 +181,7 @@
                      (cl-transforms:make-3d-vector 0 0 1)))))
    :joint-constraints (list (make-joint-constraint joint-state-left)
                             (make-joint-constraint joint-state-right))
-   :collisions (list ;; (make-avoid-all-collision)
-                     )))
+   :collisions (list (make-avoid-all-collision))))
 
 
 
@@ -228,9 +229,6 @@
                                arm current-angles goal-angles
                                *arm-convergence-delta-joint*))))))
 
-
-
-
 (defun call-arm-cartesian-action (&key
                                     action-timeout
                                     goal-pose-left goal-pose-right
@@ -275,6 +273,7 @@
                  :collision-object-b collision-object-b
                  :collision-object-b-link collision-object-b-link
                  :collision-object-a collision-object-a
+                 :allow-base move-base
                  :prefer-base prefer-base
                  :align-planes-left align-planes-left
                  :align-planes-right align-planes-right
