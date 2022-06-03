@@ -31,10 +31,11 @@
 
 (defparameter *avoid-joint-limits-percentage* 40)
 (defparameter *prefer-base-low-cost* 0.0001)
-(defparameter *avoid-collisions-distance* 0.10 "In cm, not used atm")
+(defparameter *allow-base-high-cost* 0.01)
+(defparameter *avoid-collisions-distance* 0.10 "In m.")
 (defparameter *unmovable-joint-weight* 9001)
-(defparameter *collision-avoidance-hint-threshold* 0.25 "In cm")
-(defparameter *collision-avoidance-hint-spring-offset* 0.05 "In m.")
+(defparameter *collision-avoidance-hint-threshold* 0.2 "In m.")
+(defparameter *collision-avoidance-hint-spring-offset* 0.1 "In m.")
 (defparameter *collision-avoidance-hint-velocity* 1.0 "In m/s")
 
 
@@ -80,22 +81,9 @@
                 :constraints (make-constraints-vector constraints
                                                       cartesian-constraints
                                                       joint-constraints)
-                ;; :cartesian_constraints (make-constraints-vector
-                ;;                         cartesian-constraints)
-                ;; :joint_constraints (make-constraints-vector joint-constraints)
                 :collisions (make-constraints-vector collisions)))
              all-constraints)))
 
-;; (defun cram-name-list->ros-frame-vector (cram-names-list)
-;;   "@artnie used this function but actually other CRAM users probably don't need it..."
-;;   (if cram-names-list
-;;       (make-constraints-vector
-;;        (mapcar (lambda (symbol)
-;;                  (roslisp-utilities:rosify-underscores-lisp-name symbol))
-;;                (if (listp cram-names-list)
-;;                    cram-names-list
-;;                    (list cram-names-list))))
-;;       (vector (roslisp:symbol-code 'giskard_msgs-msg:collisionentry :all))))
 
 (defun get-arm-joint-names-and-positions-list (arm &optional joint-states)
   "Returns a list of two elements: (joint-names joint-positions)"
@@ -142,21 +130,36 @@
    (alist->json-string
     `(("percentage" . ,percentage)))))
 
-(defun make-prefer-base-constraint (&optional (base-weight
-                                               *prefer-base-low-cost*))
+
+(defun make-prefer-base-constraint (&key
+                                      (base-weight *prefer-base-low-cost*)
+                                      do-not-rotate)
   (roslisp:make-message
    'giskard_msgs-msg:constraint
    :type
-   "UpdateGodMap"
+   "OverwriteWeights"
    :parameter_value_pair
    (alist->json-string
     `(("updates"
-       . (("rosparam"
-           . (("general_options"
-               . (("joint_weights"
-                   . (("odom_x_joint" . ,base-weight)
-                      ("odom_y_joint" . ,base-weight)
-                      ("odom_z_joint" . ,base-weight)))))))))))))
+       . (("1"
+           . (("odom_x_joint" . ,base-weight)
+              ("odom_y_joint" . ,base-weight)
+              ("odom_z_joint" . ,(if do-not-rotate
+                                     *unmovable-joint-weight*
+                                     base-weight))))
+          ("2"
+           . (("odom_x_joint" . ,base-weight)
+              ("odom_y_joint" . ,base-weight)
+              ("odom_z_joint" . ,(if do-not-rotate
+                                     *unmovable-joint-weight*
+                                     base-weight))))
+          ("3"
+           . (("odom_x_joint" . ,base-weight)
+              ("odom_y_joint" . ,base-weight)
+              ("odom_z_joint" . ,(if do-not-rotate
+                                     *unmovable-joint-weight*
+                                     base-weight))))))))))
+
 
 (defun make-align-planes-constraint (root-frame tip-frame root-vector tip-vector
                                      &key avoid-collisions-not-much)
@@ -201,7 +204,7 @@
      :avoid-collisions-not-much avoid-collisions-not-much)))
 
 (defun make-pointing-constraint (root-frame tip-frame goal-pose
-                                 &optional pointing-vector weight)
+                                 &optional pointing-vector)
   (declare (type string root-frame tip-frame)
            (type cl-transforms-stamped:pose-stamped goal-pose)
            (type (or cl-transforms-stamped:vector-stamped null) pointing-vector))
@@ -252,7 +255,7 @@
       tool-frame 0.0
       (cl-transforms:make-identity-pose)))))
 
-(defun make-open-or-close-constraint (open-or-close arm handle-link goal-joint-state)
+(defun make-open-or-close-constraint (open-or-close arm handle-link &optional goal-joint-state)
   (declare (type keyword open-or-close arm)
            (type keyword handle-link)
            (type (or number null) goal-joint-state))
@@ -273,7 +276,7 @@
       `(("tip_link" . ,tool-frame)
         ("environment_link" . ,(roslisp-utilities:rosify-underscores-lisp-name
                                 handle-link))
-        ,@(when goal-joint-state
+        ,@(when (and (eq open-or-close :open) goal-joint-state)
             `(("goal_joint_state" . ,goal-joint-state))))))))
 
 (defun make-grasp-bar-constraint (arm root-link
@@ -328,10 +331,15 @@
           ("message" . ,(to-hash-table goal-pose))))
       ,@(when max-velocity
           `(("max_linear_velocity" . ,max-velocity)))
-      ,@(when avoid-collisions-much
+      ,@(if avoid-collisions-much
           `(("weight" . ,(roslisp-msg-protocol:symbol-code
                           'giskard_msgs-msg:constraint
-                          :weight_below_ca))))))))
+                          :weight_below_ca
+                          )))
+          `(("weight" . ,(roslisp-msg-protocol:symbol-code
+                          'giskard_msgs-msg:constraint
+                          :weight_above_ca ; that's the default weight anyway
+                          ))))))))
 
 (defun make-joint-constraint (joint-state &optional weights)
 "`joint-state' is a list of two elements: (joint-names joint-positions).
@@ -391,8 +399,8 @@ a keyword, a number or NIL."
           weights))
 
 (defun make-unmovable-joints-constraint (joint-names
-                                         &optional (weight
-                                                    *unmovable-joint-weight*))
+                                         &optional
+                                           (weight *unmovable-joint-weight*))
   (declare (type list joint-names)
            (type (or number null) weight))
   (make-joint-constraint
@@ -430,7 +438,7 @@ a keyword, a number or NIL."
         ("avoidance_hint"
          . (("message_type" . "geometry_msgs/Vector3Stamped")
             ("message" . ,(to-hash-table vector))))
-        ("object_name" . ,(roslisp-utilities:rosify-underscores-lisp-name
+        ("object_group" . ,(roslisp-utilities:rosify-underscores-lisp-name
                            (rob-int:get-environment-name)))
         ("object_link_name" . ,environment-link)
         ;; ("root_link" . "map")
@@ -439,7 +447,7 @@ a keyword, a number or NIL."
         ("spring_threshold" . ,(+ threshold spring-offset))
         ("weight" . ,(roslisp-msg-protocol:symbol-code
                       'giskard_msgs-msg:constraint
-                      :weight_collision_avoidance)))))))
+                      :weight_max)))))))
 
 (defun make-base-velocity-constraint (max-linear-velocity max-angular-velocity)
   (declare (type number max-linear-velocity max-angular-velocity))
@@ -478,42 +486,6 @@ a keyword, a number or NIL."
         ("max_angular_velocity" . ,max-angular-velocity)
         ("hard" . 0))))))
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; NON-JSON CONSTRAINTS ;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; (defun make-simple-cartesian-constraint (root-link tip-link pose-stamped)
-;;   (declare (type string root-link tip-link)
-;;            (type cl-transforms-stamped:pose-stamped pose-stamped))
-;;   (list (roslisp:make-message
-;;          'giskard_msgs-msg:cartesianconstraint
-;;          :type (roslisp:symbol-code
-;;                 'giskard_msgs-msg:cartesianconstraint
-;;                 :translation_3d)
-;;          :root_link root-link
-;;          :tip_link tip-link
-;;          :goal (cl-transforms-stamped:to-msg pose-stamped))
-;;         (roslisp:make-message
-;;          'giskard_msgs-msg:cartesianconstraint
-;;          :type (roslisp:symbol-code
-;;                 'giskard_msgs-msg:cartesianconstraint
-;;                 :rotation_3d)
-;;          :root_link root-link
-;;          :tip_link tip-link
-;;          :goal (cl-transforms-stamped:to-msg pose-stamped))))
-
-;; (defun make-simple-joint-constraint (joint-state)
-;;   (declare (type list joint-state))
-;;   "`joint-state' is a list of two elements: (joint-names joint-positions)."
-;;   (roslisp:make-message
-;;    'giskard_msgs-msg:jointconstraint
-;;    :type (roslisp:symbol-code
-;;           'giskard_msgs-msg:jointconstraint
-;;           :joint)
-;;    :goal_state (roslisp:make-message
-;;                 'sensor_msgs-msg:jointstate
-;;                 :name (apply #'vector (first joint-state))
-;;                 :position (apply #'vector (second joint-state)))))
-
 (defun make-current-joint-state-constraint (arms)
   (let* ((joint-names-and-positions-lists
            (mapcar #'get-arm-joint-names-and-positions-list arms))
@@ -536,13 +508,6 @@ a keyword, a number or NIL."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; COLLISIONS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; (defun make-allow-all-collision ()
-;;   (roslisp:make-message
-;;    'giskard_msgs-msg:collisionentry
-;;    :type (roslisp:symbol-code
-;;           'giskard_msgs-msg:collisionentry
-;;           :allow_all_collision)))
-
 (defun make-allow-all-collision ()
   (roslisp:make-message
    'giskard_msgs-msg:collisionentry
@@ -555,8 +520,19 @@ a keyword, a number or NIL."
             'giskard_msgs-msg:collisionentry
             :all)))
 
-(defun make-avoid-all-collision (&optional (minimal-distance
-                                            *avoid-collisions-distance*))
+(defun make-allow-self-collision ()
+  "Only for debugging purposes."
+  (roslisp:make-message
+   'giskard_msgs-msg:collisionentry
+   :type (roslisp:symbol-code
+          'giskard_msgs-msg:collisionentry
+          :allow_collision)
+   :group1 (roslisp-utilities:rosify-underscores-lisp-name
+            (rob-int:get-robot-name))
+   :group2 (roslisp-utilities:rosify-underscores-lisp-name
+            (rob-int:get-robot-name))))
+
+(defun make-avoid-all-collision (&optional (minimal-distance *avoid-collisions-distance*))
   (declare (type number minimal-distance))
   (roslisp:make-message
    'giskard_msgs-msg:collisionentry
@@ -570,102 +546,152 @@ a keyword, a number or NIL."
             'giskard_msgs-msg:collisionentry
             :all)))
 
-(defun make-allow-robot-links-collision (links body-b &optional body-b-link)
-  (declare (type list links)
-           (type (or null keyword) body-b body-b-link))
+
+(defun make-allow-robot-links-collision (group1 group2)
+  (declare (type string group1)
+           (type (or null string) group2))
   (roslisp:make-message
    'giskard_msgs-msg:collisionentry
    :type (roslisp:symbol-code
           'giskard_msgs-msg:collisionentry
           :allow_collision)
-   :robot_links (make-constraints-vector links)
-   :body_b (if body-b
-               (roslisp-utilities:rosify-underscores-lisp-name body-b)
-               (roslisp:symbol-code 'giskard_msgs-msg:collisionentry :all))
-   :link_bs (vector
-             (if body-b-link
-                 (roslisp-utilities:rosify-underscores-lisp-name body-b-link)
-                 (roslisp:symbol-code 'giskard_msgs-msg:collisionentry :all)))))
+   :group1 group1
+   :group2 (or group2
+               (roslisp:symbol-code 'giskard_msgs-msg:collisionentry :all))))
+
+
+(defun find-root-links (link-names)
+  (declare (type list link-names))
+  "Takes a list of links and reduces it to only contain the root link(s)."
+  (let* ((robot-links-table (cl-urdf:links rob-int:*robot-urdf*))
+         (link-parent-alist
+           (mapcar (lambda (link-name)
+                     `(,link-name
+                       . ,(cl-urdf:name
+                           (cl-urdf:parent
+                            (cl-urdf:from-joint
+                             (gethash link-name robot-links-table))))))
+                   link-names)))
+    ;; remove all whose parent is in `link-names'
+    (mapcar #'car
+            (remove-if (alexandria:rcurry #'member
+                                          (mapcar #'car link-parent-alist)
+                                          :test #'string=)
+                       link-parent-alist
+                       :key #'cdr))))
 
 (defun make-allow-arm-collision (arms body-b &optional body-b-link)
   (declare (type list arms)
            (type (or null keyword) body-b body-b-link))
-  (let ((arm-links
-          (mapcan (lambda (arm)
-                    (cut:var-value
-                     '?arm-links
-                     (car
-                      (prolog:prolog
-                       `(and (rob-int:robot ?robot)
-                             (rob-int:arm-links ?robot ,arm ?arm-links))))))
-                  arms)))
-    (make-allow-robot-links-collision arm-links body-b body-b-link)))
+  "Allows collision between all given arms and body-b-link if defined, or just body-b."
+  (let* ((arms-roots
+           (find-root-links
+            (mapcan (lambda (arm)
+                        (cut:var-value
+                         '?arm-links
+                         (car
+                          (prolog:prolog
+                           `(and (rob-int:robot ?robot)
+                                 (rob-int:arm-links ?robot ,arm ?arm-links))))))
+                    arms)))
+         collision-group2)
+    (when body-b
+      (setf collision-group2 (roslisp-utilities:rosify-underscores-lisp-name
+                              body-b)))
+    (when body-b-link
+      (register-group :root-link
+                      (roslisp-utilities:rosify-underscores-lisp-name
+                       body-b-link)
+                      :parent-group-name
+                      (roslisp-utilities:rosify-underscores-lisp-name
+                       (or body-b (rob-int:get-environment-name))))
+      (setf collision-group2 (roslisp-utilities:rosify-underscores-lisp-name
+                              body-b-link)))
+    (loop for root in arms-roots
+          do (register-group :root-link root
+                             :parent-group-name
+                             (roslisp-utilities:rosify-underscores-lisp-name
+                              (rob-int:get-robot-name)))
+          collect (make-allow-robot-links-collision root collision-group2))))
 
 (defun make-allow-hand-collision (arms body-b &optional body-b-link)
   (declare (type list arms)
            (type (or null keyword) body-b body-b-link))
-  (let ((hand-links
-          (mapcan (lambda (hand)
-                    (cut:var-value
-                     '?hand-links
-                     (car
-                      (prolog:prolog
-                       `(and (rob-int:robot ?robot)
-                             (rob-int:hand-links ?robot ,hand ?hand-links))))))
-                  arms)))
-    (make-allow-robot-links-collision hand-links body-b body-b-link)))
+  "Allows collision between all given hands (in arms) and body-b-link if defined, or just body-b."
+  (let ((hand-roots
+          (find-root-links
+           (mapcan (lambda (hand)
+                     (cut:var-value
+                      '?hand-links
+                      (car
+                       (prolog:prolog
+                        `(and (rob-int:robot ?robot)
+                              (rob-int:hand-links ?robot ,hand ?hand-links))))))
+                   arms)))
+        collision-group2)
+    (when body-b
+      (setf collision-group2 (roslisp-utilities:rosify-underscores-lisp-name
+                              body-b)))
+    (when body-b-link
+      (register-group :root-link
+                      (roslisp-utilities:rosify-underscores-lisp-name
+                       body-b-link)
+                      :parent-group-name
+                      (roslisp-utilities:rosify-underscores-lisp-name
+                       (or body-b (rob-int:get-environment-name))))
+      (setf collision-group2 (roslisp-utilities:rosify-underscores-lisp-name
+                              body-b-link)))
+    (loop for root in hand-roots
+          do (register-group :root-link root
+                             :parent-group-name
+                             (roslisp-utilities:rosify-underscores-lisp-name
+                              (rob-int:get-robot-name)))
+          collect (make-allow-robot-links-collision root collision-group2))))
 
 (defun make-allow-fingers-collision (arms body-b &optional body-b-link)
   (declare (type list arms)
            (type (or null keyword) body-b body-b-link))
-  (let ((finger-links
-          (mapcan (lambda (arm)
-                    (cut:var-value
-                     '?finger-links
-                     (car
-                      (prolog:prolog
-                       `(and (rob-int:robot ?robot)
-                             (rob-int:hand-links ?robot ,arm ?hand-links)
-                             (prolog:setof
-                              ?finger-link
-                              (and (member ?finger-link ?hand-links)
-                                   (rob-int:hand-finger-link
-                                    ?robot ,arm ?finger-link))
-                              ?finger-links))))))
-                  arms)))
-    (make-allow-robot-links-collision finger-links body-b body-b-link)))
-
-(defun make-allow-attached-collision (object-name environment-link)
-  (declare (type (or symbol null) object-name)
-           (type (or string null) environment-link))
-  "`object-name' is the name of the attached object."
-  (roslisp:make-message
-   'giskard_msgs-msg:collisionentry
-   :type (roslisp:symbol-code
-          'giskard_msgs-msg:collisionentry
-          :allow_collision)
-   :robot_links (vector
-                 (if object-name
-                     (roslisp-utilities:rosify-underscores-lisp-name object-name)
-                     (roslisp:symbol-code 'giskard_msgs-msg:collisionentry :all)))
-   :body_b (roslisp-utilities:rosify-underscores-lisp-name
-            (rob-int:get-environment-name))
-   :link_bs (vector
-             (if environment-link
-                 (roslisp-utilities:rosify-underscores-lisp-name environment-link)
-                 (roslisp:symbol-code 'giskard_msgs-msg:collisionentry :all)))))
+  "Allows collision between all given hand's fingers and body-b-link if defined, or just body-b."
+  (let ((finger-roots
+          (find-root-links
+           (mapcan (lambda (arm)
+                     (cut:var-value
+                      '?finger-links
+                      (car
+                       (prolog:prolog
+                        `(and (rob-int:robot ?robot)
+                              (rob-int:hand-links ?robot ,arm ?hand-links)
+                              (prolog:setof
+                               ?finger-link
+                               (and (member ?finger-link ?hand-links)
+                                    (rob-int:hand-finger-link
+                                     ?robot ,arm ?finger-link))
+                               ?finger-links))))))
+                   arms)))
+        collision-group2)
+    (when body-b ; if body-b exists, set as group2
+      (setf collision-group2 (roslisp-utilities:rosify-underscores-lisp-name
+                              body-b)))
+    (when body-b-link ; if specific link is defined, register and use as group2
+      (register-group :root-link
+                      (roslisp-utilities:rosify-underscores-lisp-name
+                       body-b-link)
+                      :parent-group-name
+                      (roslisp-utilities:rosify-underscores-lisp-name
+                       (or body-b (rob-int:get-environment-name))))
+      (setf collision-group2 (roslisp-utilities:rosify-underscores-lisp-name
+                              body-b-link)))
+    (loop for root in finger-roots
+          do (register-group :root-link root
+                             :parent-group-name
+                             (roslisp-utilities:rosify-underscores-lisp-name
+                              (rob-int:get-robot-name)))
+          collect (make-allow-robot-links-collision root collision-group2))))
 
 (defun make-allow-collision-with-environment-attachments ()
+  "Allows collision towards all objects attached to the environment."
   (mapcar (lambda (attachment-info)
-            (roslisp:make-message
-              'giskard_msgs-msg:collisionentry
-              :type (roslisp:symbol-code
-                     'giskard_msgs-msg:collisionentry
-                     :allow_collision)
-              :robot_links (vector
-                            (roslisp:symbol-code 'giskard_msgs-msg:collisionentry :all))
-              :body_b (roslisp-utilities:rosify-underscores-lisp-name
-                       (car attachment-info))
-              :link_bs (vector
-                        (roslisp:symbol-code 'giskard_msgs-msg:collisionentry :all))))
+            (make-allow-robot-links-collision
+             (roslisp:symbol-code 'giskard_msgs-msg:collisionentry :all)
+             (roslisp-utilities:rosify-underscores-lisp-name (car attachment-info))))
           (btr:attached-objects (btr:get-environment-object))))
