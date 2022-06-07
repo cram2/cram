@@ -15,7 +15,7 @@
   <url type="bugtracker">https://github.com/cram2/cram_3rdparty/issues</url>
   <url type="repository">https://github.com/cram2/cram_3rdparty</url>
   <url type="repository">https://github.com/skypher/cl-store.git</url>
-  <!--external-version>2d2455c024fe64ee24cbf914c82254fa5bd09cab</external-version-->
+  <!--external-version>8fbdb07810fee42b1e8be3fe268a5ab9226befb9</external-version-->
 
   <buildtool_depend>catkin</buildtool_depend>
 
