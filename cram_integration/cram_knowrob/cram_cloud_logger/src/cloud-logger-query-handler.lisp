@@ -2,18 +2,16 @@
 
 (defparameter *environment-owl* "'package://iai_semantic_maps/owl/kitchen.owl'")
 (defparameter *environment-owl-individual-name* "'http://knowrob.org/kb/IAI-kitchen.owl#iai_kitchen_room_link'")
-(defparameter *environment-urdf* "'package://iai_kitchen/urdf_obj/iai_kitchen_popcorn_python.urdf'") ;;TODO This should automatically be read if possible
+(defparameter *environment-urdf* "'package://iai_kitchen/urdf_obj/kitchen.urdf'")
 (defparameter *environment-urdf-prefix* "'iai_kitchen/'")
 
 (defparameter *agent-owl* "'package://knowrob/owl/robots/PR2.owl'")
 (defparameter *agent-owl-individual-name* "'http://knowrob.org/kb/PR2.owl#PR2_0'")
 (defparameter *agent-urdf* "'package://knowrob/urdf/pr2.urdf'")
 
-
-
 (defun get-parent-folder-path()
   (namestring (physics-utils:parse-uri "package://cram_cloud_logger/src")))
-  
+
 
 (defun send-load-neem-generation-interface ()
   (let ((path-to-interface-file (concatenate 'string "'"(get-parent-folder-path) "/neem-interface.pl'")))
@@ -84,7 +82,19 @@
   (setf ccl::*is-logging-enabled* t)
   (ccl::init-logging)
   (ccl::clear-detected-objects)
-  (setf ccl::*episode-name* (get-url-from-send-query-1 "RootAction" "mem_episode_start" "RootAction"))
+  (setf ccl::*episode-name*
+        (get-url-from-send-query-1
+         "RootAction"
+         "mem_episode_start"
+         "RootAction"
+         *environment-owl*
+         *environment-owl-individual-name*
+         *environment-urdf*
+         *environment-urdf-prefix*
+         *agent-owl*
+         *agent-owl-individual-name*
+         *agent-urdf*
+         ))
   (ccl::start-situation *episode-name*))
 
 (defun stop-episode ()
@@ -115,10 +125,45 @@
   (send-query-1-without-result "add_comment" action-inst (concatenate 'string "'"comment"'")))
   ;;(print "COMMENT"))
 
-(defun send-object-action-parameter (action-inst object-designator)
-  (let* ((object-name (get-designator-property-value-str object-designator :NAME))
+(defun send-container-object-action-parameter (action-inst action-type object-designator)
+  (let ((owl-name (get-designator-property-value-str object-designator :OWL-NAME)))
+    (when owl-name
+      (send-query-1-without-result "add_participant_with_role"
+                                   action-inst
+                                   (concatenate 'string "'" owl-name "'")
+                                   "'http://www.ease-crc.org/ont/SOMA.owl#AlteredObject'"))))
+
+
+(defun send-object-action-parameter (action-inst action-type object-designator)
+  (let* ((role (gethash action-type *object-parameter-role-lookup-table*))
+         (object-name (get-designator-property-value-str object-designator :NAME))
+         (print "object-name")
+         (print object-name)
          (object-ease-id (get-ease-object-id-of-detected-object-by-name object-name)))
-    (when object-ease-id 
+    (when (not object-ease-id)
+      (let ((owl-name (get-designator-property-value-str object-designator :OWL-NAME)))
+        (when owl-name
+         (print "owl-name")
+         (print owl-name)
+         (print "object-ease-id")
+         (print object-ease-id)
+          (send-query-1-without-result "add_participant_with_role"
+                                       action-inst
+                                       (concatenate 'string "'" owl-name "'")
+                                       "'http://www.ease-crc.org/ont/SOMA.owl#AlteredObject'"))))
+    (when object-ease-id
+      (print "object-ease-id")
+      (print object-ease-id)
+      (if (and (not role) object-ease-id)
+          (send-query-1-without-result "add_participant_with_role" action-inst object-ease-id "'http://www.ease-crc.org/ont/SOMA.owl#Item'")
+          (send-query-1-without-result "add_participant_with_role"
+                                       action-inst
+                                       object-ease-id
+                                       (concatenate 'string "'http://www.ease-crc.org/ont/SOMA.owl#" role "'"))))))
+
+(defun send-object-name-action-parameter (action-inst object-name)
+  (let* ((object-ease-id (get-ease-object-id-of-detected-object-by-name object-name)))
+    (when object-ease-id
       (send-query-1-without-result "add_participant_with_role" action-inst object-ease-id "'http://www.ease-crc.org/ont/SOMA.owl#AffectedObject'"))))
 
 
