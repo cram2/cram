@@ -6,13 +6,13 @@
 
     <!-- uploading the shelf to the param server -->
     <!-- <param name="shelf_description" -->
-    <!--        command="$(find xacro)/xacro.py -->
+    <!--        command="$(find xacro)/xacro -->
     <!--                 '$(find iai_refills_lab)/maps/dm_shelves.urdf.xacro'"/> -->
     <!-- <param name="shelf_description" -->
-    <!--        command="$(find xacro)/xacro.py -->
+    <!--        command="$(find xacro)/xacro -->
     <!--                 '$(find cram_pr2_shopping_demo)/resource/shelf.urdf'"/> -->
     <param name="shelf_description"
-           command="$(find xacro)/xacro.py
+           command="$(find xacro)/xacro
                     '$(find cram_pr2_shopping_demo)/resource/dm_shelves.urdf'"/>
     <node pkg="joint_state_publisher" type="joint_state_publisher"
         name="shelf_joint_state_publisher" output="screen">
@@ -31,7 +31,7 @@
 
     <!-- Uploading the kitchen to the param server -->
     <param name="kitchen_description"
-           command="$(find xacro)/xacro.py
+           command="$(find xacro)/xacro
                     '$(find iai_kitchen)/urdf_obj/iai_kitchen_python.urdf.xacro'"/>
     <node pkg="joint_state_publisher" type="joint_state_publisher"
         name="kitchen_joint_state_publisher" output="screen">
@@ -57,7 +57,7 @@
     <!-- Uploading PR2 to the parameter server -->
     <group if="$(arg upload)">
         <param name="robot_description"
-            command="$(find xacro)/xacro.py
+            command="$(find xacro)/xacro
                      '$(find pr2_description)/robots/pr2.urdf.xacro'"/>
         <!-- <node pkg="joint_state_publisher" type="joint_state_publisher" -->
         <!--       name="robot_joint_state_publisher" output="screen"> -->
