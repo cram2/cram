@@ -51,10 +51,10 @@
   (<- (man-int:object-type-direct-subtype :cutlery :fork))
   (<- (man-int:object-type-direct-subtype :cutlery :spoon))
 
-  (<- (man-int:object-type-direct-subtype :cereal :breakfast-cereal)))
+  (<- (man-int:object-type-direct-subtype :cereal :breakfast-cereal))
 
  (<- (man-int:object-type-direct-subtype :household-item :big-bowl))
-    (<- (man-int:object-type-direct-subtype :cutlery :whisk))
+    (<- (man-int:object-type-direct-subtype :cutlery :whisk)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
