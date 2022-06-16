@@ -116,6 +116,9 @@
   (<- (object-type-costmap-threshold :knife 0.8d0)) ; 0.99d0))
   (<- (object-type-costmap-threshold :big-knife 0.8d0)) ; 0.99d0))
   (<- (object-type-costmap-threshold :cup 0.8d0)) ; 0.99d0))
+  (<- (object-type-costmap-threshold :whisk 0.8d0)) ; 0.99d0))
+(<- (object-type-costmap-threshold :big-bowl 0.8d0)) ; 0.99d0))
+
   ;;
   (<- (object-costmap-threshold ?world ?object-name ?threshold)
     (btr:item-type ?world ?object-name ?object-type)

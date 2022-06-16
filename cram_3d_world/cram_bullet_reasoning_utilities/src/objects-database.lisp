@@ -63,6 +63,9 @@
   (<- (%scenario-object-color :pancake-maker (0.15 0.15 0.15)))
   (<- (%scenario-object-color :breakfast-cereal (0.5 0.5 0.21)))
   (<- (%scenario-object-color :visualization-box (1.0 0.0 0.0 0.5)))
+  (<- (%scenario-object-color :whisk   (0 1 1 1)))
+   (<- (%scenario-object-color :big-bowl  (0.61 0.17 0.06)))
+
 
   ;; Object type shapes
   (<- (scenario-object-shape ?object-type ?shape)

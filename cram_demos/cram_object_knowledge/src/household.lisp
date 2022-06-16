@@ -53,6 +53,9 @@
 
   (<- (man-int:object-type-direct-subtype :cereal :breakfast-cereal)))
 
+ (<- (man-int:object-type-direct-subtype :household-item :big-bowl))
+    (<- (man-int:object-type-direct-subtype :cutlery :whisk))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod man-int:get-action-gripping-effort :heuristics 20
@@ -1251,3 +1254,25 @@
 
 (defmethod man-int:get-arms-for-object-type :heuristics 20 ((object-type (eql :tray)))
   '(:left :right))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; whisk ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *whisk-grasp-z-offset* 0.015 ;; -0.015
+   "in meters") ; because TCP is not at the edge
+(defparameter *whisk-pregrasp-z-offset* 0.20 "in meters")
+
+;; TOP grasp
+(man-int:def-object-type-to-gripper-transforms '(:whisk)
+    '(:left :right) :top
+  :grasp-translation `(-0.05 0 -0.02)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets `(-0.05 0 0.2)
+  :2nd-pregrasp-offsets `(-0.05 0 0.2)
+  :lift-translation `(-0.05 0 0.2)
+  :2nd-lift-translation `(-0.05 0 0.2))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; big-bowl ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *big-bowl-grasp-xy-offset* 0.12 "in meters")
+(defparameter *big-bowl-pregrasp-z-offset* 0.30 "in meters")
+(defparameter *big-bowl-grasp-z-offset* 0.06 "in meters")
