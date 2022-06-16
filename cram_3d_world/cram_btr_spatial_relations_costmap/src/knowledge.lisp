@@ -54,6 +54,8 @@
   (<- (%item-type-shape :bread :rectangle))
   (<- (%item-type-shape :pancake-maker :circle))
   (<- (%item-type-shape :spatula :rectangle))
+  (<- (%item-type-shape :big-bowl :circle))
+  (<- (%item-type-shape :whisk :rectangle))
   ;;
   (<- (item-type-shape ?type ?shape)
     (setof ?a-type (%item-type-shape ?a-type ?_)
@@ -88,6 +90,8 @@
   (<- (object-type-padding-size :pancake-maker 0.018d0))
   (<- (object-type-padding-size :spatula 0.01d0))
   (<- (object-type-padding-size :cup 0.1d0))
+  (<- (object-type-padding-size :big-bowl 0.03d0))
+(<- (object-type-padding-size :whisk 0.005d0)) 
   ;;
   (<- (padding-size ?world ?object-name ?padding)
     (btr:item-type ?world ?object-name ?object-type)
