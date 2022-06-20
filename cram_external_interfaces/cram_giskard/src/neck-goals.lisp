@@ -42,44 +42,44 @@
                                 camera-link
                                 camera-offset)
   (declare (type cl-transforms-stamped:pose-stamped goal-pose))
-  (make-giskard-goal
-   :constraints (list (make-align-planes-constraint
-                       root-link
-                       camera-link
-                       (cl-transforms-stamped:make-vector-stamped
-                        cram-tf:*fixed-frame* 0.0
-                        (cl-transforms:make-3d-vector 1 0 0))
-                       (cl-transforms-stamped:make-vector-stamped
-                        camera-link 0.0
-                        (cl-transforms:make-3d-vector 0 -1 0)))
-                      (make-pointing-constraint
-                       root-link
-                       camera-link
-                       goal-pose
-                       ;; (cl-transforms-stamped:make-vector-stamped
-                       ;;  "rs_camera_depth_optical_frame" 0.0
-                       ;;  (cl-transforms:make-3d-vector 0 0 1))
-                       ))
-   :cartesian-constraints (when camera-offset
-                            (make-simple-cartesian-constraint
-                             root-link camera-link
-                             (cram-tf:strip-transform-stamped
-                              (cram-tf:apply-transform
-                               (cl-transforms-stamped:transform->transform-stamped
-                                cram-tf:*fixed-frame* cram-tf:*fixed-frame* 0.0
-                                *donbot-camera-offset*)
-                               (cram-tf:pose-stamped->transform-stamped
-                                goal-pose "goal_pose")))))
-   :collisions (make-avoid-all-collision)))
+  (let ((neck-joints (first (get-neck-joint-names-and-positions-list))))
+    (make-giskard-goal
+     :constraints `(,(make-pointing-constraint
+                      root-link
+                      camera-link
+                      goal-pose)
+                    ;; for PTU heads align planes doesn't make sense
+                    ,@(when (> (length neck-joints) 2)
+                        `((make-align-planes-constraint
+                           root-link
+                           camera-link
+                           (cl-transforms-stamped:make-vector-stamped
+                            cram-tf:*fixed-frame* 0.0
+                            (cl-transforms:make-3d-vector 1 0 0))
+                           (cl-transforms-stamped:make-vector-stamped
+                            camera-link 0.0
+                            (cl-transforms:make-3d-vector 0 -1 0)))))
+                    ;; (cl-transforms-stamped:make-vector-stamped
+                    ;;  "rs_camera_depth_optical_frame" 0.0
+                    ;;  (cl-transforms:make-3d-vector 0 0 1))
+                    )
+     :cartesian-constraints (when camera-offset
+                              (make-cartesian-constraint
+                               root-link camera-link
+                               (cram-tf:strip-transform-stamped
+                                (cram-tf:apply-transform
+                                 (cl-transforms-stamped:transform->transform-stamped
+                                  cram-tf:*fixed-frame* cram-tf:*fixed-frame* 0.0
+                                  *donbot-camera-offset*)
+                                 (cram-tf:pose-stamped->transform-stamped
+                                  goal-pose "goal_pose")))))
+     :collisions (make-avoid-all-collision))))
 
 (defun make-neck-joint-action-goal (joint-state)
   (declare (type list joint-state))
   (make-giskard-goal
-   :joint-constraints (make-simple-joint-constraint joint-state)
+   :joint-constraints (make-joint-constraint joint-state )
    :collisions (make-avoid-all-collision)))
-
-
-
 
 (defun ensure-neck-goal-input ()
   (if (eq (rob-int:get-robot-name) :iai-donbot)
@@ -94,32 +94,16 @@
         (list camera-frame))))
 
 (defun ensure-neck-joint-goal-input (goal-configuration)
-  (if (and (listp goal-configuration)
-           (or (= (length goal-configuration) 7)
-               (= (length goal-configuration) 6)))
-      (get-neck-joint-names-and-positions-list goal-configuration)
-      (progn (roslisp:ros-warn (giskard neck)
-                               "Joint goal ~a was not a list of 7 (or 6). Ignoring."
-                               goal-configuration)
-             (get-neck-joint-names-and-positions-list))))
-
-
-
-
-(defun ensure-neck-goal-reached (goal-pose goal-frame)
-  "@artnie-s function, I actually doubt very much that it makes sense :)"
-  (when goal-pose
-    (let* ((pose-in-frame
-             (cram-tf:ensure-pose-in-frame goal-pose goal-frame))
-           (goal-dist
-             (max (abs (cl-transforms:x (cl-transforms:origin pose-in-frame)))
-                  (abs (cl-transforms:y (cl-transforms:origin pose-in-frame))))))
-      (unless (<= goal-dist *neck-convergence-delta-xy*)
-        (make-instance 'common-fail:manipulation-goal-not-reached
-          :description (format nil "Giskard did not converge to goal:~%~
-                                    ~a should have been at ~a with delta-xy of ~a."
-                               goal-frame goal-pose
-                               *neck-convergence-delta-xy*))))))
+  (let ((neck-joints (first (get-neck-joint-names-and-positions-list))))
+    (if (and (listp goal-configuration)
+             (= (length goal-configuration)
+                (length neck-joints)))
+        (get-neck-joint-names-and-positions-list goal-configuration)
+        (progn (roslisp:ros-warn (giskard neck)
+                                 "Joint goal ~a was not a list of ~a. Ignoring."
+                                 goal-configuration
+                                 (length neck-joints))
+               (get-neck-joint-names-and-positions-list)))))
 
 (defun ensure-neck-joint-goal-reached (goal-configuration)
   (when goal-configuration
@@ -139,8 +123,6 @@
                                current-angles goal-angles
                                *neck-convergence-delta-joint*))))))
 
-
-
 (defun call-neck-action (&key action-timeout goal-pose)
   (declare (type (or number null) action-timeout)
            (type cl-transforms-stamped:pose-stamped goal-pose))
@@ -150,15 +132,11 @@
          (camera-offset (second camera-frame-and-offset)))
 
     (cram-tf:visualize-marker (list goal-pose) :r-g-b-list '(0 0 1))
-
     (call-action
      :action-goal (make-neck-action-goal goal-pose
                                          :camera-link camera-frame
                                          :camera-offset camera-offset)
-     :action-timeout action-timeout
-     ;; :check-goal-function (lambda () (ensure-neck-goal-reached
-     ;;                                  goal-pose camera-frame))
-     )))
+     :action-timeout action-timeout)))
 
 (defun call-neck-joint-action (&key action-timeout goal-configuration)
   (declare (type (or number null) action-timeout)

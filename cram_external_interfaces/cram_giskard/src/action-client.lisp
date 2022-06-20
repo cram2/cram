@@ -71,7 +71,7 @@
     (when (and result
                (member (roslisp:symbol-code
                         'giskard_msgs-msg:moveresult
-                        :unknown_object)
+                        :unknown_group)
                        (map 'list #'identity
                             (roslisp:msg-slot-value
                              result
