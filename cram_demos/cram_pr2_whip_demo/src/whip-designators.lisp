@@ -9,20 +9,26 @@
       (spec:property ?action-designator (:type :mixing))
       ;; extract info from ?action-designator
       (spec:property ?action-designator (:object ?object-designator))
-      (desig:current-designator ?object-designator ?current-object-desig-utensil)
-      (spec:property ?current-object-desig (:type ?object-type))
-      (spec:property ?current-object-desig (:name ?object-name))
+      (desig:current-designator ?object-designator ?object-target)
+ ;     (spec:property ?current-object-desig (:type ?object-type))
+ ;     (spec:property ?current-object-desig (:name ?object-name))
       
       (-> (spec:property ?action-designator (:arm ?arm))
-          (true)
+          (and(true)
+          (format "Step: ?arm defined - true.~%"
+                ?direction))
           (man-int:robot-free-hand ?_ ?arm))
-      
-    (lisp-fun man-int:get-object-old-transform ?current-object-desig ?object-transform)
+      ;wip check if arm is specified for object type
+   (lisp-fun man-int:get-object-old-transform ?object-target ?object-transform)
     
-    (-> (spec:property ?action-designator (:grasp ?grasp))
-        (true)
-        (and (lisp-fun man-int:get-action-grasps ?object-type ?arm ?object-transform ?grasps)
-             (member ?grasp ?grasps)))
+    
+; grasp spec not needed currently   (-> (spec:property ?action-designator (:grasp ?grasp))
+;    
+;        (and(true)
+;        (format "grasp defined?~%"
+;                ?direction))
+;        (and (lisp-fun man-int:get-action-grasps ?object-type ?arm ?object-transform ?grasps)
+;             (member ?grasp ?grasps)))
 
  ;later for bowl   
  ;   (lisp-fun man-int:get-action-gripping-effort ?object-type ?effort)
@@ -30,8 +36,6 @@
 
     ;; calculate trajectory
     (equal ?objects (?current-object-desig))
-    
-    
     (-> (equal ?arm :left)
         (and (lisp-fun man-int:get-action-trajectory :mixing ?arm ?grasp T ?objects
                        ?left-mix-poses)
@@ -42,12 +46,12 @@
             )
         (and (equal ?left-approach-poses NIL)
              (equal ?left-mix-poses NIL)))
-    
+    ;!!!#####curently only working in :right
     (-> (equal ?arm :right)
     (and (lisp-fun man-int:get-action-trajectory :mixing ?arm ?grasp T ?objects
                        ?right-mix-poses)
                            (lisp-fun man-int:get-traj-poses-by-label ?right-approach-pose :whip-approach
-                       ?left-approach-poses)
+                       ?right-approach-poses)
 ;             (lisp-fun man-int:get-traj-poses-by-label ?right-mix- poses :whip-approach
  ;                      ?right-mix-poses))
             )
@@ -62,13 +66,13 @@
       
       ;;put together resulting action designator
       (desig:designator :action ((:type :mixing)
-                                 (:object ?current-object-desig)
+                                 (:object ?object-tool)
                                  (:object-type ?object-type)
                                  (:object-name  ?object-name)
-                                ; (:objectc ?object-container)
+                                (:object ?object-target)
                                  (:arms ?arms)
                                 (:effort ?effort)
-                               ;(:grasp ?grasp)
+                               (:grasp ?grasp)
                                 ;(:left-mix-poses ?left-approach-poses)
                                ;(:right-mix-poses ?right-approach-poses)
                                ; (:duration ?timer))

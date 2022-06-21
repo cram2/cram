@@ -85,5 +85,6 @@
      (:file "evaluation-plan" :depends-on ("package" "demo"))
        (:file "whip-designators" :depends-on ("package" "demo"))
             (:file "whip-plans" :depends-on ("package" "demo"))
-      (:file "trajectories" :depends-on ("package" "demo"))   
+      (:file "trajectories" :depends-on ("package" "demo")) 
+      (:file "mixing" :depends-on ("package" "demo"))  
      ))))

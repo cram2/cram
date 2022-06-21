@@ -169,12 +169,11 @@
       
                                      
        ;;;; Picking-up the utensil object 
- 
 ;grabbing utensil
             (exe:perform (desig:an action
                                    (type picking-up)
                                    (object ?object-utensil)
-                                   (arm '(:right)) 
+                                   (arm (:right)) 
                                    (grasp :top)))
                
        ;bowl                            
@@ -274,18 +273,47 @@
 
 ;--------TINA END
 
-(defun clean-demo ()
+(defun initialize ()
+  (sb-ext:gc :full t)
+
+  ;; (setf proj-reasoning::*projection-checks-enabled* t)
+
   (btr:detach-all-objects (btr:get-robot-object))
+  (btr:detach-all-objects (btr:get-environment-object))
   (btr-utils:kill-all-objects)
-  (sleep 0.3))
+  (setf (btr:joint-state (btr:get-environment-object)
+                         "sink_area_left_upper_drawer_main_joint")
+        0.0
+        (btr:joint-state (btr:get-environment-object)
+                         "sink_area_left_middle_drawer_main_joint")
+        0.0
+        (btr:joint-state (btr:get-environment-object)
+                         "sink_area_left_bottom_drawer_main_joint")
+        0.0
+        (btr:joint-state (btr:get-environment-object)
+                         "iai_fridge_door_joint")
+        0.0
+        (btr:joint-state (btr:get-environment-object)
+                         "sink_area_dish_washer_door_joint")
+        0.0
+        (btr:joint-state (btr:get-environment-object)
+                         "sink_area_dish_washer_tray_main")
+        0.0
+        (btr:joint-state (btr:get-environment-object)
+                         "oven_area_area_right_drawer_main_joint")
+        0.0
+        (btr:joint-state (btr:get-environment-object)
+                         "sink_area_trash_drawer_main_joint")
+        0.0
+        (btr:joint-state (btr:get-environment-object)
+                         "kitchen_island_left_upper_drawer_main_joint")
+        0.0)
+  (btr-belief::publish-environment-joint-state
+   (btr:joint-states (btr:get-environment-object)))
 
-(defun park ()
-   (exe:perform (desig:an action
-                         (type positioning-arm)
-                         (left-configuration park)
-                         (right-configuration park))))
+  (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))
 
-;(defun demo-play-pour-sink ()
-;  (clean-demo)
-;  (spawn-cup 'sink))
+  (coe:clear-belief)
+
+  (btr:clear-costmap-vis-object))
 

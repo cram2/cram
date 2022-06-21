@@ -1,10 +1,5 @@
 (in-package :cram-manipulation-interfaces)
 
-(defmethod get-object-type-robot-frame-whisk-approach-transform
-    ((object-type (eql :big-bowl))
-     arm)
-  '((0.0 0.0 0.3)(0 0.707 0 0.707)))
-
 (defun translate-pose-in-base (bTg &key (x-offset 0.0) (y-offset 0.0) (z-offset 0.0))
   (cram-tf:translate-transform-stamped bTg
                                        :x-offset x-offset
@@ -76,7 +71,7 @@
               `(,(man-int:get-object-type-to-gripper-pregrasp-transforms
                   object-type object-name arm grasp location oTg-std)
                 (,oTg-std)
-                (,(get-object-type-robot-frame-whisk-approach-transform
+                (,(man-int:get-object-type-robot-frame-whisk-approach-transform
                    object-type arm grasp))
                    ;wip mixing
                 )))))

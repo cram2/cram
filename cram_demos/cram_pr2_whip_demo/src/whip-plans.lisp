@@ -32,18 +32,23 @@
 ;:WIP
 (defun whip (&key
                  ((:object ?current-object-desig))
+                 ((:object-type ?object-type))
                   ((:object-name  ?object-name))
-                   ;((:objectc ?object-container))
-                    ((:arms ?arms))
+                   ;((:object ?object-target))
+                    ((:arm ?arm-tool))
                      ((:effort ?effort))
                       ((:grasp ?grasp))
                                 ;(:left-mix-poses ?left-approach-poses)
                                ;(:right-mix-poses ?right-approach-poses)
                                ; (:duration ?timer))
               &allow-other-keys)
-              
+      
+      (roslisp:ros-info (whisking) "approaching")        
      (exe:perform
      (desig:an action
                (type whip-approach)
+               (gripper ?arm-tool)
+               (left-poses ?left-approach-poses)
+               (right-poses ?right-approach-poses)
                ))
 )
