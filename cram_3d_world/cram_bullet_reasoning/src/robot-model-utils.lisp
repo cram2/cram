@@ -218,7 +218,7 @@ Should it be taken out and made PR2-specific?"
 
 (defun robot-converged-to-goal-joint-states (goal-states delta)
   (let ((arm-joint-names (loop for (name value) in goal-states collect name))
-        (goal-values (loop for (name value) in goal-states collect value)))
+        (Goal-values (loop for (name value) in goal-states collect value)))
     (cram-tf:values-converged
      (mapcar (alexandria:curry 'btr:joint-state (btr:get-robot-object))
              arm-joint-names)

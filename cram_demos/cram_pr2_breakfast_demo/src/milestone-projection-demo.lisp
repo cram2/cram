@@ -29,7 +29,7 @@
 
 (in-package :demo)
 
-;; (setf cram-tf:*tf-broadcasting-enabled* t)
+(setf cram-tf:*tf-broadcasting-enabled* t)
 
 (defparameter *demo-object-spawning-poses*
   '((:bowl
@@ -41,14 +41,14 @@
     (:plate
      "kitchen_island_left_upper_drawer_main"
      ((0.11 0.08 -0.026367) (0 0 -1 0)))
-    (:spatula
+    (:spoon
      ;; "oven_area_area_middle_upper_drawer_main"
      "sink_area_left_upper_drawer_main"
      ((0.125 0 -0.0136) (0 -0.053938 -0.998538 -0.003418)))
     ;; So far only this orientation works
     (:mondamin
      "oven_area_area_right_drawer_board_3_link"
-     ((0.123 -0.03 0.11) (0.0087786 0.005395 -0.838767 -0.544393)))
+     ((0.00 -0.03 0.11) (0.0087786 0.005395 -0.838767 -0.544393)))
     ;; ((:breakfast-cereal . ((1.398 1.490 1.2558) (0 0 0.7071 0.7071)))
     ;; (:breakfast-cereal . ((1.1 1.49 1.25) (0 0 0.7071 0.7071)))
     (:milk
@@ -95,7 +95,7 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
                                        (spawning-poses-relative
                                         *demo-object-spawning-poses*)
                                        (object-types
-                                        '(:mondamin :plate :bowl :milk :spatula)))
+                                        '(:mondamin :plate :bowl :milk :spoon)))
   (btr-utils:kill-all-objects)
   (btr:add-objects-to-mesh-list "cram_pr2_breakfast_demo")
   (btr:detach-all-objects (btr:get-robot-object))
@@ -125,8 +125,8 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
 
 
 
-(defun setting-demo (&optional (object-list '(:bowl :spoon :cup
-                                              :milk :breakfast-cereal)))
+(defun setting-demo (&optional (object-list '(:mondamin :milk :bowl :spoon)))
+  (urdf-proj::with-simulated-robot
   (initialize)
   (setf btr:*visibility-threshold* 0.7)
   (when (or cram-projection:*projection-environment*
@@ -161,55 +161,56 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
            (type transporting)
            (object ?object)
            (context :table-setting)
-           ;;(grasps (:top ))
+           (grasps (:top ))
            (desig:when ?arm
                (arms (?arm)))
            ;(:?right-grasp :top)
            (desig:when ?grasp
              (grasp ?grasp))
            (target ?deliver-location)
-           )))))
+           ))))))
 
-(defun cleaning-demo (&optional (object-list '(:breakfast-cereal :milk
-                                               :spoon :cup :bowl)))
-  "Cleans up object to the designated locations by iterating over
-`object-list' "
-  ;; (setup-for-demo object-list)
-  (initialize)
-  (when (or cram-projection:*projection-environment*
-            ;; dont want to add dependency on sim PMs, thus this stupid hack
-            (roslisp:get-param "/base_simulator/sim_frequency" nil))
-    (spawn-objects-on-fixed-spots
-     :object-types object-list
-     :spawning-poses-relative *delivery-poses-dining-table-relative*))
+;; (defun cleaning-demo (&optional (object-list '(:breakfast-cereal :milk
+;;                                                :spoon :cup :bowl)))
+;;   "Cleans up object to the designated locations by iterating over
+;; `object-list' "
+;;   ;; (setup-for-demo object-list)
+;;   (initialize)
+;;   (when (or cram-projection:*projection-environment*
+;;             ;; dont want to add dependency on sim PMs, thus this stupid hack
+;;             (roslisp:get-param "/base_simulator/sim_frequency" nil))
+;;     (spawn-objects-on-fixed-spots
+;;      :object-types object-list
+;;      :spawning-poses-relative *delivery-poses-dining-table-relative*))
 
-  (dolist (?object-type object-list)
-    (let ((?grasps (when (eq ?object-type :cup)
-                     '(:front :back :left-side :right-side))))
-      (exe:perform
-       (desig:an action
-                 (type transporting)
-                 (object (desig:an object (type ?object-type)))
-                 (context table-cleaning)
-                 (desig:when ?grasps
-                   (grasps ?grasps)))))))
+;;   (dolist (?object-type object-list)
+;;     (let ((?grasps (when (eq ?object-type :cup)
+;;                      '(:front :back :left-side :right-side))))
+;;       (exe:perform
+;;        (desig:an action
+;;                  (type transporting)
+;;                  (object (desig:an object (type ?object-type)))
+;;                  (context table-cleaning)
+;;                  (desig:when ?grasps
+;;                    (grasps ?grasps)))))))
 
 (defun reset-world ()
   (cl-bullet-vis:show-window cram-bullet-reasoning:*debug-window*))
 
 
-(defparameter *delivery-poses-dining-island-relative*
-  `((:milk
-     "kitchen_island_surface"
-     ((-0.012 -0.031 0.4862768868605296d0 ;; 0.8362768809000651d0
-              )
-      (-0.00932157 0.00720728 0.965580536 0.25983724)))))
+;; (defparameter *delivery-poses-dining-island-relative*
+;;   `((:milk
+;;      "kitchen_island_surface"
+;;      ((-0.012 -0.031 0.4862768868605296d0 ;; 0.8362768809000651d0
+;;               )
+;;       (-0.00932157 0.00720728 0.965580536 0.25983724)))))
 
 
 (defparameter *delivery-poses-island-absolute*
-  `((:milk . ((-0.9 1.5 0.98) (0.0 1 1 1)))
-    (:bowl . ((-0.9 1.9 0.95) (0 0 0 1)))))
-
+  `((:milk . ((-0.9 1.5 0.95) (0.0 0 1 0)))
+    (:bowl . ((-0.9 1.9 0.9) (0 0 0 1)))
+    (:mondamin . ((-0.9 2.3 0.95) (0 0 0 1)))
+    (:spoon . ((-0.9 2.0 0.9) (0 0 1 0)))))
 
 ;; (defparameter *delivery-poses*
 ;;   `((:bowl . ((-0.8399440765380859d0 1.2002920786539713d0 0.8932199478149414d0)
@@ -228,5 +229,15 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
 ;;     (:spoon . ((1.45 -0.4 1.0) (0 0 0 1)))
 ;;     (:milk . ((1.2 -0.5 0.8) (0 0 1 0)))
 ;;     (:breakfast-cereal . ((1.15 -0.5 0.8) (0 0 1 0)))))
+
+
+;;(urdf-proj::with-simulated-robot 
+;;  (demo::pick-object :mondamin :right :island))
+
+;; (urdf-proj::with-simulated-robot 
+;;            (demo::pour-into :bowl :right :top-front))
+
+
+;;parkarms
 
 

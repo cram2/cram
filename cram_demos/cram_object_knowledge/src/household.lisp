@@ -41,6 +41,7 @@
   (<- (man-int:object-type-direct-subtype :household-item :bottle))
   (<- (man-int:object-type-direct-subtype :household-item :cup))
   (<- (man-int:object-type-direct-subtype :household-item :milk))
+  (<- (man-int:object-type-direct-subtype :household-item :mondamin))
   (<- (man-int:object-type-direct-subtype :household-item :cereal))
   (<- (man-int:object-type-direct-subtype :household-item :bowl))
   (<- (man-int:object-type-direct-subtype :food :weisswurst))
@@ -316,8 +317,8 @@
 
 (defparameter *milk-grasp-xy-offset* 0.01 "in meters")
 (defparameter *milk-grasp-z-offset* 0.03 "in meters")
-(defparameter *milk-pregrasp-xy-offset* 0.15 "in meters")
-(defparameter *milk-lift-z-offset* 0.15 "in meters")
+(defparameter *milk-pregrasp-xy-offset* 0.05 "in meters")
+(defparameter *milk-lift-z-offset* 0.05 "in meters")
 
 ;; BACK grasp
 (man-int:def-object-type-to-gripper-transforms :milk '(:left :right) :back
@@ -353,6 +354,50 @@
   :2nd-pregrasp-offsets `(0.0 ,(- *milk-pregrasp-xy-offset*) 0.0)
   :lift-translation `(0.0 0.0 ,*milk-lift-z-offset*)
   :2nd-lift-translation `(0.0 0.0 ,*milk-lift-z-offset*))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; mondamin ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *mondamin-grasp-xy-offset* 0.01 "in meters")
+(defparameter *mondamin-grasp-z-offset* 0.01 "in meters")
+(defparameter *mondamin-pregrasp-xy-offset* 0.15 "in meters")
+(defparameter *mondamin-lift-z-offset* 0.15 "in meters")
+
+;; BACK grasp
+(man-int:def-object-type-to-gripper-transforms :mondamin '(:left :right) :back
+  :grasp-translation `(,*mondamin-grasp-xy-offset* 0.0d0 ,*mondamin-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation*
+  :pregrasp-offsets `(,(- *mondamin-pregrasp-xy-offset*) 0.0 ,*mondamin-lift-z-offset*)
+  :2nd-pregrasp-offsets `(,(- *mondamin-pregrasp-xy-offset*) 0.0 0.0)
+  :lift-translation `(0.0 0.0 ,*mondamin-lift-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*mondamin-lift-z-offset*))
+
+;; FRONT grasp
+(man-int:def-object-type-to-gripper-transforms :mondamin '(:left :right) :front
+  :grasp-translation `(,(- *mondamin-grasp-xy-offset*) 0.0d0 ,*mondamin-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
+  :pregrasp-offsets `(,*mondamin-pregrasp-xy-offset* 0.0 ,*mondamin-lift-z-offset*)
+  :2nd-pregrasp-offsets `(,*mondamin-pregrasp-xy-offset* 0.0 0.0)
+  :lift-translation `(0.0 0.0 ,*mondamin-lift-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*mondamin-lift-z-offset*))
+
+;; SIDE grasp
+(man-int:def-object-type-to-gripper-transforms :mondamin '(:left :right) :left-side
+  :grasp-translation `(0.0d0 ,(- *mondamin-grasp-xy-offset*) ,*mondamin-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*y-across-z-grasp-rotation*
+  :pregrasp-offsets `(0.0 ,*mondamin-pregrasp-xy-offset* ,*mondamin-lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 ,*mondamin-pregrasp-xy-offset* 0.0)
+  :lift-translation `(0.0 0.0 ,*mondamin-lift-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*mondamin-lift-z-offset*))
+
+(man-int:def-object-type-to-gripper-transforms :mondamin '(:left :right) :right-side
+  :grasp-translation `(0.0d0 ,*mondamin-grasp-xy-offset* ,*mondamin-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-y-across-z-grasp-rotation*
+  :pregrasp-offsets `(0.0 ,(- *mondamin-pregrasp-xy-offset*) ,*mondamin-lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 ,(- *mondamin-pregrasp-xy-offset*) 0.0)
+  :lift-translation `(0.0 0.0 ,*mondamin-lift-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*mondamin-lift-z-offset*))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; cereal ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -454,6 +499,31 @@
   :2nd-pregrasp-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
   :lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
   :2nd-lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*))
+
+
+(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform 
+    ((object-type (eql :bowl))
+     arm
+     (grasp (eql :top-left)))
+  '((0.0 0.2 0.24)(0 0 -0.707 0.707)))
+
+(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform
+    ((object-type (eql :bowl))
+     arm
+     (grasp (eql :top-right)))
+  '((0.0 -0.2 0.26)(0 0 0.707 0.707)))
+
+(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform
+    ((object-type (eql :bowl))
+     arm
+     (grasp (eql :top-front)))
+  '((-0.02 0.0 0.15)(0 0 0 1)))
+
+(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform 
+    ((object-type (eql :bowl))
+     arm
+     (grasp (eql :top)))
+  '((0.02 0.0 0.26)(0 0 1 0)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Weisswurst ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -994,7 +1064,7 @@
                environment human
                (context (eql :table-setting-counter)))
             (make-location-on-sink-middle-front environment)))
-        '(:bottle :milk :cereal :breakfast-cereal :cup :bowl :mug))
+        '(:bottle :milk :cereal :breakfast-cereal :cup :bowl :mug :mondamin))
 
 (mapcar (lambda (type)
           (defmethod man-int:get-object-likely-location :heuristics 20
@@ -1108,7 +1178,7 @@
                environment human
                (context (eql :table-setting)))
             (make-location-in-oven-right-drawer object-type environment)))
-        '(:cereal :breakfast-cereal))
+        '(:cereal :breakfast-cereal :mondamin))
 
 ;;;;;;;; destination locations
 
@@ -1251,3 +1321,4 @@
 
 (defmethod man-int:get-arms-for-object-type :heuristics 20 ((object-type (eql :tray)))
   '(:left :right))
+

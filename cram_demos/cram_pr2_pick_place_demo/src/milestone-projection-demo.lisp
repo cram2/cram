@@ -282,3 +282,49 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
                  (context table-cleaning)
                  (desig:when ?grasps
                    (grasps ?grasps)))))))
+
+(defun symbol-append (&rest symbols) 
+  (intern (apply #'concatenate 'string 
+                 (mapcar #'symbol-name symbols))))
+
+(defun spawn-liquid (pose)
+  (dotimes (n 8)    
+    (let* ((names (list 'liquid-1 'liquid-2 'liquid-3 'liquid-4 'liquid-5 'liquid-6
+                        'liquid-7 'liquid-7 'liquid-8))
+           (name (nth n names)))
+      (btr::add-object btr:*current-bullet-world* :liquid-minor
+                       name pose :color '(0 1 0 0.5))))
+  (btr-utils:spawn-object 'bowl-1 :bowl
+                          :pose (cl-transforms:make-pose
+                                 (cl-tf:make-3d-vector 1.4 0.6 0.9)
+                                 (cl-tf:make-quaternion 0 0 0 1))))
+
+(defun attacherino ()
+  (dotimes (n 9)
+    (let* ((names (list 'liquid-1 'liquid-2 'liquid-3 'liquid-4 'liquid-5 'liquid-6
+                      'liquid-7 'liquid-7 'liquid-8))
+          (name (nth n names)))
+  (btr:attach-object 'bowl-1 name))))
+
+(defun detacherino ()
+    (dotimes (n 9)
+    (let* ((names (list 'liquid-1 'liquid-2 'liquid-3 'liquid-4 'liquid-5 'liquid-6
+                      'liquid-7 'liquid-7 'liquid-8))
+          (name (nth n names)))
+      (btr:detach-object 'bowl-1 name))))
+
+(defun my-demo ()
+  (btr-utils::move-robot '((0.73 0.6 0) (0 0 0 1)))
+  (urdf-proj::with-simulated-robot (let ((?pose-knife (cl-tf:pose->pose-stamped
+                             cram-tf:*fixed-frame*
+                             0
+                             (btr:object-pose 'CRAM-PR2-PICK-PLACE-DEMO::BOWL-1))))
+            (dotimes (n 3)
+          (cram-executive:perform
+           (desig:an action
+                     (type looking)
+                     (target (desig:a location (pose ?pose-knife)))))))
+        (let ((?object-knife (urdf-proj::detect
+                                                           (desig:an object (type :bowl)))))
+           (exe:perform (desig:an action (type picking-up) (object ?object-knife) 
+                                  )))))

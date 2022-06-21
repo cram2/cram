@@ -67,6 +67,7 @@
                cram-urdf-projection      ; for with-simulated-robot
                cram-urdf-projection-reasoning ; to set projection reasoning to T
                cram-fetch-deliver-plans
+               cram-mobile-cut-pour-plans
                cram-urdf-environment-manipulation
 
                cram-pr2-description

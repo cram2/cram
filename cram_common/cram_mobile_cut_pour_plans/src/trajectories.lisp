@@ -175,10 +175,14 @@
             ;;depending on the grasp the angle to tilt is different
             (case grasp
               (:front (rotate-once-pose ?approach-pose (+ angle) :y))
+              (:top-front (rotate-once-pose ?approach-pose (+ angle) :y))
               (:left-side (rotate-once-pose ?approach-pose (+ angle) :x))
+              (:top-left (rotate-once-pose ?approach-pose (+ angle) :x))
               (:right-side (rotate-once-pose ?approach-pose (- angle) :x))
+              (:top-right (rotate-once-pose ?approach-pose (- angle) :x))
               (:back (rotate-once-pose ?approach-pose (- angle) :y))
-              (t (error "can only pour from :side, back or :front"))))
+              (:top (rotate-once-pose ?approach-pose (- angle) :y))
+              (t (error "can only pour from :side, back or :front :top :top-side"))))
           approach-poses))
 
 ;;helper function for tilting

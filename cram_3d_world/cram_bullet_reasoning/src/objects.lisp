@@ -224,6 +224,7 @@
                                                       (/ size-z 2))
                                        :color color))))))
 
+
 (defmethod add-object ((world bt-world) (type (eql :static-plane)) name pose
                        &key normal constant (collision-mask '(:default-filter)))
   (destructuring-bind (normal-x normal-y normal-z) normal
@@ -259,6 +260,7 @@
                   :name name :mass mass :pose (ensure-pose pose)
                   :collision-shape (make-instance 'colored-sphere-shape
                                      :radius radius :color color)))))
+
 
 (defmethod add-object ((world bt-world) (type (eql :cylinder)) name pose &key mass size)
   (destructuring-bind (size-x size-y size-z) size
@@ -557,3 +559,76 @@ recursive function."
                                          (when (eql (first (btr:item-types obj)) object-type)
                                            obj)))
                          (btr:objects btr:*current-bullet-world*))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;; LIQUID PRIMITIVE OBJECT ;;;;;;;;;;;;;;;;;;;;;;
+(defmethod add-object ((world bt-world) (type (eql :liquid-minor)) name pose
+                       &key (mass 0.01) (radius 0.01) color)
+  ;; (let ((compound-shape (make-instance 'compound-shape)))
+  ;;   (dotimes (i 8)
+  ;;     (add-child-shape
+  ;;      compound-shape
+  ;;       (cl-transforms:make-pose
+  ;;         (cl-transforms:make-3d-vector 0 0 0)
+  ;;         (cl-transforms:make-quaternion 0 0 0 1))
+  ;;        (make-instance 'colored-sphere-shape
+  ;;                                    :radius radius :color '(1 0 0 0.5))))
+          
+    ;; ;; Adds the basket to the specified world
+    ;;   (make-item world name (list type)
+    ;;              (list
+    ;;               (make-instance 'rigid-body
+    ;;                 :name name :mass mass :pose (ensure-pose pose)
+    ;;                 :collision-shape compound-shape)))))
+        
+  (make-item world name (list type)
+              (list
+                (make-instance
+                    'rigid-body
+                  :name 'waterdrop1 :mass mass :pose (ensure-pose pose)
+                  :collision-shape (make-instance 'colored-sphere-shape
+                                     :radius radius :color color))
+                )))
+                  ;; (make-instance
+                  ;;   'rigid-body
+                  ;; :name 'waterdrop2 :mass mass :pose (ensure-pose pose)
+                  ;; :collision-shape (make-instance 'colored-sphere-shape
+                  ;;                    :radius radius :color '(0 0 1 0.5)))
+                  ;;   (make-instance
+                  ;;   'rigid-body
+                  ;; :name 'waterdrop3 :mass mass :pose (ensure-pose pose)
+                  ;; :collision-shape (make-instance 'colored-sphere-shape
+                  ;;                    :radius radius :color '(0 1 0 0.5)))
+                  ;;   (make-instance
+                  ;;   'rigid-body
+                  ;; :name 'waterdrop4 :mass mass :pose (ensure-pose pose)
+                  ;; :collision-shape (make-instance 'colored-sphere-shape
+                  ;;                    :radius radius :color '(1 0 0 0.5)))
+                  ;; (make-instance
+                  ;;   'rigid-body
+                  ;; :name 'waterdrop5 :mass mass :pose (ensure-pose pose)
+                  ;; :collision-shape (make-instance 'colored-sphere-shape
+                  ;;                    :radius radius :color '(0 0 1 0.5)))
+                  ;;   (make-instance
+                  ;;   'rigid-body
+                  ;; :name 'waterdrop6 :mass mass :pose (ensure-pose pose)
+                  ;; :collision-shape (make-instance 'colored-sphere-shape
+
+                  ;;                    :radius radius :color '(0 1 0 0.5)))
+                  ;;   (make-instance
+                  ;;   'rigid-body
+                  ;; :name 'waterdrop7 :mass mass :pose (ensure-pose pose)
+                  ;; :collision-shape (make-instance 'colored-sphere-shape
+                  ;;                    :radius radius :color '(1 0 0 0.5)))
+                  ;; (make-instance
+                  ;;   'rigid-body
+                  ;; :name 'waterdrop8 :mass mass :pose (ensure-pose pose)
+                  ;; :collision-shape (make-instance 'colored-sphere-shape
+                  ;;                    :radius radius :color '(0 0 1 0.5)))
+                  ;;   (make-instance
+                  ;;   'rigid-body
+                  ;; :name 'waterdrop9 :mass mass :pose (ensure-pose pose)
+                  ;; :collision-shape (make-instance 'colored-sphere-shape
+                  ;;                    :radius radius :color '(0 1 0 0.5))))))
+
+
