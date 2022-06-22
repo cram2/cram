@@ -8,6 +8,10 @@ CRAM is a toolbox for designing, implementing and deploying software on autonomo
 The core packages of CRAM are implemented in Common Lisp (with a little bit of C/C++) with support to the ROS middleware infrastructure.
 
 ----
+### Prerequisite
+
+[ROS installation](http://wiki.ros.org/noetic/Installation) and an [SSH key set up](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/about-ssh)  for your github account.
+
 ### Workspace Installation
 * `sudo apt install ros-noetic-roslisp-repl`
 * `sudo apt-get install python-rosinstall python-wstool`
