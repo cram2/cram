@@ -10,6 +10,7 @@
   <arg name="household" default="false" />
   <arg name="retail" default="false" />
   <arg name="storage" default="false" />
+  <arg name="apartment" default="false" />
 
   <!-- upload or not upload the robot description (in case one is already uploaded) -->
   <arg name="upload_robot" default="true" />
@@ -85,6 +86,11 @@
     <param name="kitchen_description"
            command="$(find xacro)/xacro
                     '$(find cram_projection_demos)/resource/retail/storage.urdf.xacro'"/>
+  </group>
+  <group if="$(arg apartment)">
+    <param name="kitchen_description"
+           command="$(find xacro)/xacro
+                    '$(find iai_apartment)/urdf/apartment.urdf'"/>
   </group>
 
   <!-- environment state publisher -->
