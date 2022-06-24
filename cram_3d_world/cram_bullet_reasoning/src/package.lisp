@@ -48,7 +48,8 @@
            height fov-y z-near z-far pose gl-execute-with-camera
            camera-transform look-at-object-rotation
            with-rendering-to-framebuffer render-to-framebuffer
-           get-rendering-context read-pixelbuffer read-depthbuffer to-png-image
+           get-rendering-context read-pixelbuffer read-depthbuffer
+           to-png-image png-from-camera-view
            add-object generic-cup item mesh
            remove-object object
            object-type item-type item-types name rigid-bodies
@@ -86,8 +87,8 @@
            ;; reach-pose-ik reach-object-ik point-reachable-p reach-point-ik
            ;; object-reachable-p pose-reachable-p calculate-orientation-in-robot
            ;; calculate-object-tool-length
-           init-ros-object-database clear-bullet-world
-           ros-household-object execute open close ;; reach-ik-solution
+           clear-bullet-world
+           execute open close ;; reach-ik-solution
            attached attached-objects object-attached
            attach-object detach-object detach-all-objects detach-all-from-link
            get-loose-attached-objects remove-loose-attachment-for

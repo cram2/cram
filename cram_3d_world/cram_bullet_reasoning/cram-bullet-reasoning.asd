@@ -29,86 +29,88 @@
 ;;;
 
 (defsystem cram-bullet-reasoning
-    :author "Lorenz Moesenlechner"
-    :license "BSD"
+  :author "Lorenz Moesenlechner"
+  :license "BSD"
 
-    :depends-on (alexandria
-                 cram-prolog
-                 cl-bullet
-                 cl-bullet-vis
-                 cl-urdf
-                 cl-transforms-stamped
-                 cl-transforms
-                 roslisp
-                 moveit_msgs-srv
-                 moveit_msgs-msg
-                 sensor_msgs-msg
-                 ;; household_objects_database_msgs-msg
-                 ;; household_objects_database_msgs-srv
-                 cram-location-costmap
-                 cram-designators
-                 roslisp-utilities
-                 cram-semantic-map-utils
-                 cram-robot-interfaces
-                 cram-occasions-events
-                 cram-utilities ; lazy in pose-generators and with-file-cache
-                 cram-occasions-events ; for temporal reasoning
-                 cram-tf
-                 cram-physics-utils)
+  :depends-on (alexandria
+               png ; used in png-rendering for writing png images
+               cram-prolog
+               cl-bullet
+               cl-bullet-vis
+               cl-urdf
+               cl-transforms-stamped
+               cl-transforms
+               roslisp
+               moveit_msgs-srv
+               moveit_msgs-msg
+               sensor_msgs-msg
+               cram-location-costmap
+               cram-designators
+               roslisp-utilities
+               cram-semantic-map-utils
+               cram-robot-interfaces
+               cram-occasions-events
+               cram-utilities ; lazy in pose-generators and with-file-cache
+               cram-occasions-events ; for temporal reasoning
+               cram-tf
+               cram-physics-utils)
+  :components
+  ((:module
+    "src"
     :components
-    ((:module
-      "src"
-      :components
-      ((:file "package")
-       (:file "reasoning-world" :depends-on ("package"))
-       (:file "textures" :depends-on ("package"))
-       (:file "utils" :depends-on ("package"))
+    ((:file "package")
+     (:file "reasoning-world" :depends-on ("package"))
+     (:file "textures" :depends-on ("package"))
+     (:file "utils" :depends-on ("package"))
 
-       (:file "objects" :depends-on ("package" "utils" "reasoning-world" "textures"))
-       (:file "robot-model" :depends-on ("package" "objects" "utils"
-                                                   "reasoning-world"))
-       (:file "robot-model-utils" :depends-on ("package" "robot-model"))
-       (:file "robot-model-facts" :depends-on ("package" "world-facts"
-                                                         "prolog-handlers"
-                                                         "robot-model"
-                                                         "robot-model-utils"))
-       (:file "items" :depends-on ("package" "objects" "utils" "aabb"))
+     (:file "objects" :depends-on ("package" "utils" "reasoning-world" "textures"))
+     (:file "robot-model" :depends-on ("package" "objects" "utils"
+                                                 "reasoning-world"))
+     (:file "robot-model-utils" :depends-on ("package" "robot-model"))
+     (:file "robot-model-facts" :depends-on ("package" "world-facts"
+                                                       "prolog-handlers"
+                                                       "robot-model"
+                                                       "robot-model-utils"))
+     (:file "items" :depends-on ("package" "objects" "utils" "aabb"))
 
-       (:file "aabb" :depends-on ("package" "objects"))
+     (:file "aabb" :depends-on ("package" "objects"))
 
-       (:file "debug-window" :depends-on ("package"))
-       (:file "gl-scenes" :depends-on ("package" "debug-window"))
-       (:file "visibility-reasoning" :depends-on ("package" "gl-scenes"))
-       (:file "visibility-facts" :depends-on ("package" "world-facts"
-                                                        "visibility-reasoning"
-                                                        "robot-model-facts"))
+     (:file "debug-window" :depends-on ("package"))
+     (:file "gl-scenes" :depends-on ("package" "debug-window"))
+     (:file "visibility-reasoning" :depends-on ("package" "gl-scenes"))
+     (:file "visibility-facts" :depends-on ("package" "world-facts"
+                                                      "visibility-reasoning"
+                                                      "robot-model-facts"))
+     (:file "png-rendering" :depends-on ("package"
+                                         "gl-scenes"
+                                         "visibility-reasoning"))
 
-       (:file "world-utils" :depends-on ("package" "reasoning-world" "objects"))
-       (:file "world-facts" :depends-on ("package" "reasoning-world" "items"
-                                                   "objects" "debug-window"
-                                                   "world-utils"))
-       (:file "prolog-handlers" :depends-on ("package" "reasoning-world"
-                                                       "world-facts"))
+     (:file "world-utils" :depends-on ("package" "reasoning-world" "objects"))
+     (:file "world-facts" :depends-on ("package" "reasoning-world" "items"
+                                                 "objects" "debug-window"
+                                                 "world-utils"))
+     (:file "prolog-handlers" :depends-on ("package" "reasoning-world"
+                                                     "world-facts"))
 
-       (:file "pose-generators" :depends-on ("package" "utils" "aabb" "world-facts"))
-       (:file "pose-sampling-facts" :depends-on ("package" "world-facts"
-                                                           "pose-generators"))
-       (:file "pose-facts" :depends-on ("package" "aabb" "world-utils"
-                                                  "pose-generators" "objects"
-                                                  "world-facts"))
+     (:file "pose-generators" :depends-on ("package" "utils" "aabb" "world-facts"))
+     (:file "pose-sampling-facts" :depends-on ("package" "world-facts"
+                                                         "pose-generators"))
+     (:file "pose-facts" :depends-on ("package" "aabb" "world-utils"
+                                                "pose-generators" "objects"
+                                                "world-facts"))
 
-       (:file "semantic-map" :depends-on ("package" "objects" "utils"))
-       (:file "simple-semantic-map" :depends-on ("package" "semantic-map"))
-       (:file "urdf-semantic-map" :depends-on ("package" "reasoning-world"
-                                                         "semantic-map"
-                                                         "robot-model"))
-       (:file "semantic-map-facts" :depends-on ("package" "semantic-map"
-                                                          "urdf-semantic-map"
-                                                          "world-facts"))
-       (:file "articulated-objects" :depends-on ("package" "semantic-map"))
+     (:file "semantic-map" :depends-on ("package" "objects" "utils"))
+     (:file "simple-semantic-map" :depends-on ("package" "semantic-map"))
+     (:file "urdf-semantic-map" :depends-on ("package" "reasoning-world"
+                                                       "semantic-map"
+                                                       "robot-model"))
+     (:file "semantic-map-facts" :depends-on ("package" "semantic-map"
+                                                        "urdf-semantic-map"
+                                                        "world-facts"))
+     (:file "articulated-objects" :depends-on ("package" "semantic-map"))
 
-       (:module "temporal-reasoning" :depends-on ("package" "reasoning-world"
-                                                            "world-facts" "utils")
-        :components ((:file "events")
-                     (:file "timeline" :depends-on ("events"))
-                     (:file "prolog")))))))
+     (:module "temporal-reasoning" :depends-on ("package" "reasoning-world"
+                                                          "world-facts" "utils")
+      :components ((:file "events")
+                   (:file "timeline" :depends-on ("events"))
+                   (:file "prolog")))))))

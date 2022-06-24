@@ -1,0 +1,18 @@
+Version 0.6 (2009-02-08)
+ - Read and write from Lisp streams, also those without file descriptors
+ - Added unit tests.
+ - Fixed pointer size bug causing memory fault on SBCL Linux x86_64.
+ - Read, write, and represent 16-bit images.  (Previously downscaled
+   to 8 bits on read.)
+ - Fixed reading of 1, 2, and 4-bit images on CCL DarwinPPC.
+Version 0.5 (2008-12-01)
+ - Complete rewrite, using foreign calls to libpng.
+Version 0.4 (2004-03-06)
+ - Fix simple bug (#4) in package definition that made CL-PNG unloadable.
+ - Fix simple bug (#5) that made memory allocation in UNCOMPRESS-STRING
+   slightly inefficient.
+ - Fix bug (#6) that made CL-PNG not work at all on CMUCL.
+Version 0.3 (2004-03-05)
+ - Use compression and decompression code from libz (via UFFI) instead
+   of the CL implementation.
+ - Changes (mostly cosmetic) from Kevin Rosenberg's Debian package.
