@@ -228,7 +228,7 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
 
 
 
-(defun pour-into (?object-type-to-pour-into ?arms ?from-which-side-pouring)
+(defun pour-into (?object-type-to-pour-into ?arms ?from-which-side-pouring ?context)
   (let ((?object-to-pour-into (get-object-designator ?object-type-to-pour-into)))
     (cpl:seq
       (exe:perform (desig:an action     
@@ -239,7 +239,8 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
                  (type pouring)
                  (object ?object-to-pour-into)
                  (arms (?arms))
-                 (grasp ?from-which-side-pouring))))))
+                 (grasp ?from-which-side-pouring)
+		 (context ?context))))))
 
 
 (defun get-object-designator (?object-type &optional ?pose-in-map)

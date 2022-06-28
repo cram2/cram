@@ -324,7 +324,8 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
            (desig:an action
                      (type looking)
                      (target (desig:a location (pose ?pose-knife)))))))
-        (let ((?object-knife (urdf-proj::detect
-                                                           (desig:an object (type :bowl)))))
-           (exe:perform (desig:an action (type picking-up) (object ?object-knife) 
-                                  )))))
+    (let ((?object-knife (urdf-proj::detect
+			  (desig:an object (type :bowl)))))
+      (print ?object-knife)
+      (exe:perform (desig:an action (type picking-up) (object ?object-knife) (arm ((:left)))
+			     )))))

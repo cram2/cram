@@ -563,7 +563,7 @@ recursive function."
 
 ;;;;;;;;;;;;;;;;;;;;;;;; LIQUID PRIMITIVE OBJECT ;;;;;;;;;;;;;;;;;;;;;;
 (defmethod add-object ((world bt-world) (type (eql :liquid-minor)) name pose
-                       &key (mass 0.01) (radius 0.01) color)
+                       &key (mass 0.00001) (radius 0.01) color)
   ;; (let ((compound-shape (make-instance 'compound-shape)))
   ;;   (dotimes (i 8)
   ;;     (add-child-shape
@@ -585,7 +585,7 @@ recursive function."
               (list
                 (make-instance
                     'rigid-body
-                  :name 'waterdrop1 :mass mass :pose (ensure-pose pose)
+                  :name 'waterdrop1 :mass 0.00000000001 :pose (ensure-pose pose)
                   :collision-shape (make-instance 'colored-sphere-shape
                                      :radius radius :color color))
                 )))
