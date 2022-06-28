@@ -1,13 +1,22 @@
 (in-package :cram-manipulation-interfaces)
 
+(defmethod get-object-type-robot-frame-whisk-approach-transform
+    ((object-type (eql :big-bowl))
+     arm)
+    (grasp (eql :center)) 
+  '((0.0 0.0 0.3)(0 0.707 0 0.707)))
+
 (defun translate-pose-in-base (bTg &key (x-offset 0.0) (y-offset 0.0) (z-offset 0.0))
   (cram-tf:translate-transform-stamped bTg
                                        :x-offset x-offset
                                        :y-offset y-offset
                                        :z-offset z-offset))
                                        
-(defun calculate-init-whipping-pose ()
-
+(defun man-int:get-action-trajectory :heuristics 20 ((action-type (eql :mixing))
+                                                          arm
+                                                          grasp
+                                                          objects-acted-on
+                                                          &key )
 (let* ((object
            (car objects-acted-on))
          (object-name
@@ -26,14 +35,10 @@
          (oTg-std 
            (man-int:get-object-type-to-gripper-transform
             object-type object-name arm grasp))
-         (oTg-lifts
-           (reverse
-            (mapcar
-             (lambda (btb-lift)
-               (reduce #'cram-tf:apply-transform
-                       `(,oTb ,bTb-lift ,bTo ,oTg-std)
-                       :from-end T))
-             bTb-lifts))))
+            
+         (bTb-offset(get-object-type-robot-frame-whisk-approach-transform
+                   object-type arm grasp))   
+         )
 ;stuff
     (flet ((get-base-to-gripper-transform-for-whipping (bTb-offset)
              (cl-tf:make-transform-stamped
@@ -52,9 +57,8 @@
                  :label label
                  :poses 
                  (if (eq label :whip-approach)
-                     (calculate-init-whipping-trajectory-in-map btr-object arm
-                                     (get-base-to-gripper-transform-for-whipping
-                                                           (car transforms)))
+                 ;gotta infer missing gasp info :center
+                     (calculate-init-whipping-trajectory-in-map btr-object arm grasp)
                                                            
                                                            
                                                            
@@ -71,8 +75,7 @@
               `(,(man-int:get-object-type-to-gripper-pregrasp-transforms
                   object-type object-name arm grasp location oTg-std)
                 (,oTg-std)
-                (,(man-int:get-object-type-robot-frame-whisk-approach-transform
-                   object-type arm grasp))
+                (,bTb-offset)
                    ;wip mixing
                 )))))
  
@@ -90,7 +93,6 @@
                  mTb
                  bTg-pose)))
              (calculate-whipping-trajectory object arm bTg))))
-             
-
-             
-
+ 
+ ;(defun calculate-whipping-trajectory ())
+ 

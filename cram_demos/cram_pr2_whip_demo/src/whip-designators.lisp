@@ -19,7 +19,7 @@
                 ?direction))
           (man-int:robot-free-hand ?_ ?arm))
       ;wip check if arm is specified for object type
-   (lisp-fun man-int:get-object-old-transform ?object-target ?object-transform)
+   (lisp-fun man-int:get-object-transform ?object-target ?object-transform)
     
     
 ; grasp spec not needed currently   (-> (spec:property ?action-designator (:grasp ?grasp))
@@ -70,7 +70,7 @@
                                  (:object-type ?object-type)
                                  (:object-name  ?object-name)
                                 (:object ?object-target)
-                                 (:arms ?arms)
+                                 (:arm ?arm-tool)
                                 (:effort ?effort)
                                (:grasp ?grasp)
                                 ;(:left-mix-poses ?left-approach-poses)
