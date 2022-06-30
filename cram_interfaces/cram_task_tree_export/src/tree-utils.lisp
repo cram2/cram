@@ -1,5 +1,6 @@
 ;;;
-;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2022, Arthur Niedzwiecki <aniedz@cs.uni-bremen.de>
+;;;
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -10,10 +11,10 @@
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
-;;;     * Neither the name of the Institute for Artificial Intelligence/
-;;;       Universitaet Bremen nor the names of its contributors may be used to
-;;;       endorse or promote products derived from this software without
-;;;       specific prior written permission.
+;;;     * Neither the name of the Intelligent Autonomous Systems Group/
+;;;       Technische Universitaet Muenchen nor the names of its contributors
+;;;       may be used to endorse or promote products derived from this software
+;;;       without specific prior written permission.
 ;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,13 +28,28 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :pr2-sim-pms)
+(in-package :tt-export)
 
-(defmacro with-real-robot (&body body)
-  `(cram-process-modules:with-process-modules-running
-       (giskard:giskard-pm
-        bullet-perception-pm
-        joints:joint-state-pm
-        empty-gripper-pm)
-     (cpl-impl::named-top-level (:name :top-level)
-       ,@body)))
+(defun get-task-tree (&optional (tree-name :top-level))
+  "Returns the task-tree object."
+  (gethash tree-name cpl-impl::*top-level-task-trees*))
+
+(defun node-children (node)
+  "Returns all children of the given node, only including successful executions"
+  (remove-if-not #'node-valid
+                 (mapcar 'cdr (cpl-impl:task-tree-node-children node))))
+
+(defun node-valid (node)
+  "Checks if given node execution :SUCCEEDED.
+Moves step-by-step down through slots 'task', 'status' and 'value'"
+  (let ((slinky (cpl-impl:task-tree-node-code node)))
+    (and (setf slinky (slot-value slinky 'task))
+         (setf slinky (slot-value slinky 'status))
+         (setf slinky (slot-value slinky 'value))
+         (eq slinky :SUCCEEDED))))
+
+(defun node->designator (node)
+  "Provides a node's designator, if it has any."
+  (when (cpl-impl:task-tree-node-code node)
+    (car (slot-value (cpl-impl:task-tree-node-code node) 'parameters))))
+

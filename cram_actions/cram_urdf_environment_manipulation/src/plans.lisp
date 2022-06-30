@@ -129,8 +129,9 @@ a threshold (if T) to signal a failure.")
      (desig:an action
                (type gripping)
                (gripper ?arm)
-               (object (desig:an object
-                                 (name ?environment-name))))))
+               ;;(object (desig:an object
+                                 ;;(name ?environment-name)))
+                                 )))
 
   ;;;;;;;;;;;;;;;;;;;;;; MANIPULATING ;;;;;;;;;;;;;;;;;;;;;;;
   (roslisp:ros-info (environment-manipulation manipulate-container)
