@@ -36,48 +36,22 @@
            (type symbol handle-link)
            (type (or number null) joint-state)
            (type boolean prefer-base))
-  ;; (make-giskard-goal-multiple
-  ;;  :all-constraints (mapcar
-  ;;                    (lambda (joint-state)
-  ;;                      (list
-  ;;                       (when prefer-base (make-prefer-base-constraint))
-  ;;                       (make-open-or-close-constraint
-  ;;                        open-or-close arm handle-link joint-state)
-  ;;                       (make-base-velocity-constraint
-  ;;                        *base-max-velocity-slow-xy*
-  ;;                        *base-max-velocity-slow-theta*)
-  ;;                       (make-avoid-joint-limits-constraint)
-  ;;                       (make-head-pointing-at-hand-constraint arm)))
-  ;;                    (list (/ joint-state 2) joint-state))
-  ;;  :collisions (make-constraints-vector
-  ;;               ;; (make-avoid-all-collision)
-  ;;               (append
-  ;;                (make-allow-collision-with-environment-attachments)
-  ;;                (list
-  ;;                 (ecase open-or-close
-  ;;                   (:open (make-allow-hand-collision
-  ;;                           (list arm) (rob-int:get-environment-name) handle-link))
-  ;;                   (:close (make-allow-arm-collision
-  ;;                            (list arm) (rob-int:get-environment-name))))))))
   (make-giskard-goal
    :constraints (list
-                 (when prefer-base (make-prefer-base-constraint))
-                 (make-open-or-close-constraint
-                  open-or-close arm handle-link joint-state)
+                 (when prefer-base
+                   (make-prefer-base-constraint :do-not-rotate T))
                  (make-base-velocity-constraint
                   *base-max-velocity-slow-xy* *base-max-velocity-slow-theta*)
+                 (make-open-or-close-constraint
+                  open-or-close arm handle-link joint-state)
                  (make-avoid-joint-limits-constraint)
                  (make-head-pointing-at-hand-constraint arm))
    :collisions (make-constraints-vector
-                ;; (make-avoid-all-collision)
-                (append
-                 (make-allow-collision-with-environment-attachments)
-                 (list
-                  (ecase open-or-close
-                    (:open (make-allow-hand-collision
-                            (list arm) (rob-int:get-environment-name) handle-link))
-                    (:close (make-allow-arm-collision
-                             (list arm) (rob-int:get-environment-name)))))))))
+                (ecase open-or-close
+                  (:open (make-allow-hand-collision
+                          (list arm) (rob-int:get-environment-name) handle-link))
+                  (:close (make-allow-arm-collision
+                           (list arm) (rob-int:get-environment-name)))))))
 
 (defun call-environment-manipulation-action (&key
                                                action-timeout
@@ -94,6 +68,8 @@
         (call-action
          :action-goal (make-environment-manipulation-goal
                        open-or-close arm handle-link (/ joint-angle 2.0) prefer-base)
+         ;; This needs a fix: we open the joint 2x for the same joint state
+         ;; Instead do open half, update global env joint-state, open full.
          :action-timeout action-timeout
          :check-goal-function (lambda (result status)
                                 (declare (ignore result))
