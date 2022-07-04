@@ -147,6 +147,8 @@
   (<- (costmap:desig-costmap ?desig ?cm)
     (costmap:costmap ?cm)
     (desig-prop ?desig (:reachable-from ?from-what))
+    (not (or (desig-prop ?desig (:attachments ?_))
+             (desig-prop ?desig (:attachment ?_))))
     (or (and (lisp-type ?from-what symbol)
              ;; (cram-robot-interfaces:robot ?from-what)
              (lisp-fun cram-tf:robot-current-pose ?pose))
