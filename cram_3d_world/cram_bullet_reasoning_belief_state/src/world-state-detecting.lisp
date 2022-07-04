@@ -113,8 +113,7 @@ the old object-designator description is enough to create a new one."
                                                                                           obj)))
                                                                         (if (or (btr:object-visibility-occluding-objects visibility)
                                                                                 (<= btr:*visibility-threshold* (btr:object-visibility-percentage visibility)))
-                                                                            obj)))
-                                    ;;                    (btr::get-objects-for-type (desig:desig-prop-value old-object :type)))))
+                                                                            obj))))
                                                         (btr::get-objects-for-type (desig:desig-prop-value old-object :type)))))
     
          btr::get-robot-object
