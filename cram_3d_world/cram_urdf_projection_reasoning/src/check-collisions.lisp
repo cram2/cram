@@ -248,7 +248,7 @@ Store found pose into designator or throw error if good pose not found."
                             (cpl:retry)
                             (progn
                               (roslisp:ros-warn (coll-check place)
-                                                "No more placing samples to try.~
+                                                "No more placing samples to try. ~
                                                  Object unreachable.")
                               (cpl:fail 'common-fail:object-unreachable
                                         :description
@@ -336,12 +336,11 @@ Store found pose into designator or throw error if good pose not found."
                                               (btr:robot-colliding-objects-without-attached))
                             (cpl:sleep urdf-proj:*debug-long-sleep-duration*)
                             (btr:restore-world-poses world-pose-info)
-                            ;; (cpl:fail 'common-fail:manipulation-goal-in-collision)
-                            ))))
-                    ;; (list left-put-poses)
-                    ;; (list right-put-poses)
-                    (list left-reach-poses left-put-poses left-retract-poses)
-                    (list right-reach-poses right-put-poses right-retract-poses))))))
+                            (cpl:fail 'common-fail:manipulation-goal-in-collision)))))
+                    (list left-reach-poses ;; left-put-poses
+                          left-retract-poses)
+                    (list right-reach-poses ;; right-put-poses
+                          right-retract-poses))))))
         (btr:restore-world-poses world-pose-info)))))
 
 
@@ -451,6 +450,7 @@ Store found pose into designator or throw error if good pose not found."
                                      (btr:robot-colliding-objects-without-attached))
                    (cpl:sleep urdf-proj:*debug-long-sleep-duration*)
                    (btr:restore-world-poses world-pose-info)
+                   ;; Ignoring collisions with the environment and only reacting to IK fails.
                    ;; (cpl:fail 'common-fail:manipulation-goal-in-collision)
                    ))))
         (btr:restore-world-poses world-pose-info)))))
