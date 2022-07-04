@@ -181,7 +181,7 @@
         (cram-tf:ensure-pose-in-frame
          pose-stamped cram-tf:*fixed-frame* :use-zero-time t))
 
-  (btr:add-vis-axis-object pose-stamped :length 0.02 :width 0.02)
+  (btr:add-vis-axis-object pose-stamped :length 0.03 :width 0.03)
 
   ;; first look forward, because our IK with 2 joints is buggy...
   (look-at-joint-angles '(0 0))
