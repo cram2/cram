@@ -85,3 +85,16 @@
                        `(and (cram-robot-interfaces:robot ?robot)
                              (cram-robot-interfaces:standard<-particular-gripper-transform
                               ?robot ?transform)))))))))))))
+
+(defun reset-debug-window ()
+  "Terminates debug-window thread and launches a new one."
+  (let ((thread (find "Debug window"
+                      (sb-thread:list-all-threads)
+                      :key 'sb-thread:thread-name
+                      :test 'string=)))
+    (when thread
+      (sb-thread:terminate-thread thread)))
+  (when btr:*debug-window*
+    (cl-bullet-vis:close-window btr:*debug-window*))
+  (sleep 1)
+  (btr:add-debug-window btr:*current-bullet-world*))

@@ -29,13 +29,27 @@
 
 (in-package :giskard)
 
+(defparameter *giskard-environment-service-timeout* 10
+  "in seconds. Service will wait that long until responding being busy.")
+
 (defvar *giskard-environment-service* nil
-  "Persistent service client for querying ...")
+  "Persistent service client for querying.")
 
 (defparameter *giskard-environment-service-name* "/giskard/update_world")
 
+(defvar *giskard-groups-service* nil
+  "Persistent service client for groups.")
+
+(defparameter *giskard-groups-service-name* "/giskard/get_group_names")
+
+(defvar *giskard-register-groups-service* nil
+  "Persistent service client for registering new groups.")
+
+(defparameter *giskard-register-groups-service-name* "/giskard/register_groups")
+
+
 (defun init-giskard-environment-service ()
-  "Initializes *robosherlock-service* ROS publisher"
+  "Initializes *giskard-environment-service*"
   (let (ready)
     (loop repeat 12                     ; for one minute then give up
           until (setf ready
@@ -55,19 +69,85 @@
                             "Giskard environment service doesn't reply. Ignoring.")
          nil))))
 
+(defun init-giskard-groups-service ()
+  "Initializes *giskard-groups-service*"
+  (let (ready)
+    (loop repeat 12                     ; for one minute then give up
+          until (setf ready
+                      (roslisp:wait-for-service *giskard-groups-service-name* 5))
+          do (roslisp:ros-info (gisk-env-service)
+                               "Waiting for giskard groups service."))
+   (if ready
+       (prog1
+           (setf *giskard-groups-service*
+                 (make-instance 'roslisp:persistent-service
+                   :service-name *giskard-groups-service-name*
+                   :service-type 'giskard_msgs-srv:getgroupnames))
+         (roslisp:ros-info (gisk-env-service)
+                           "Giskard groups service client created."))
+       (progn
+         (roslisp:ros-error (gisk-env-service)
+                            "Giskard groups service doesn't reply. Ignoring.")
+         nil))))
+
+(defun init-giskard-register-groups-service ()
+  "Initializes *giskard-groups-service*"
+  (let (ready)
+    (loop repeat 12                     ; for one minute then give up
+          until (setf ready
+                      (roslisp:wait-for-service
+                       *giskard-register-groups-service-name* 5))
+          do (roslisp:ros-info (gisk-env-service)
+                               "Waiting for giskard register-groups service."))
+   (if ready
+       (prog1
+           (setf *giskard-register-groups-service*
+                 (make-instance 'roslisp:persistent-service
+                   :service-name *giskard-register-groups-service-name*
+                   :service-type 'giskard_msgs-srv:registergroup))
+         (roslisp:ros-info (gisk-env-service)
+                           "Giskard register-groups service client created."))
+       (progn
+         (roslisp:ros-error (gisk-env-service)
+                            "Giskard register-groups service doesn't reply. Ignoring.")
+         nil))))
+
 (defun get-giskard-environment-service ()
   (if (and *giskard-environment-service*
            (roslisp:persistent-service-ok *giskard-environment-service*))
       *giskard-environment-service*
       (init-giskard-environment-service)))
 
+(defun get-giskard-groups-service ()
+  (if (and *giskard-groups-service*
+           (roslisp:persistent-service-ok *giskard-groups-service*))
+      *giskard-groups-service*
+      (init-giskard-groups-service)))
+
+(defun get-giskard-register-groups-service ()
+  (if (and *giskard-register-groups-service*
+           (roslisp:persistent-service-ok *giskard-register-groups-service*))
+      *giskard-register-groups-service*
+      (init-giskard-register-groups-service)))
+
 (defun destroy-giskard-environment-service ()
   (when *giskard-environment-service*
     (roslisp:close-persistent-service *giskard-environment-service*))
   (setf *giskard-environment-service* nil))
 
-(roslisp-utilities:register-ros-cleanup-function destroy-giskard-environment-service)
+(defun destroy-giskard-groups-service ()
+  (when *giskard-groups-service*
+    (roslisp:close-persistent-service *giskard-groups-service*))
+  (setf *giskard-groups-service* nil))
 
+(defun destroy-giskard-register-groups-service ()
+  (when *giskard-register-groups-service*
+    (roslisp:close-persistent-service *giskard-register-groups-service*))
+  (setf *giskard-register-groups-service* nil))
+
+(roslisp-utilities:register-ros-cleanup-function destroy-giskard-environment-service)
+(roslisp-utilities:register-ros-cleanup-function destroy-giskard-groups-service)
+(roslisp-utilities:register-ros-cleanup-function destroy-giskard-register-groups-service)
 
 (defun make-giskard-environment-request (add-or-remove-or-attach-or-detach
                                          &key
@@ -75,7 +155,9 @@
                                            pose
                                            mesh-path
                                            dimensions
-                                           joint-state-topic)
+                                           joint-state-topic
+                                           parent-link
+                                           parent-link-group)
   (declare (type keyword add-or-remove-or-attach-or-detach)
            (type (or null string) name)
            (type (or null cl-transforms-stamped:pose-stamped) pose))
@@ -93,18 +175,16 @@
                    :type (roslisp:symbol-code
                           'giskard_msgs-msg:worldbody
                           :mesh_body)
-                   :name name
                    :mesh mesh-path)
                   (roslisp:make-msg
                    'giskard_msgs-msg:worldbody
                    :type (roslisp:symbol-code
                           'giskard_msgs-msg:worldbody
                           :primitive_body)
-                   :name name
                    :shape (roslisp:make-msg
                            'shape_msgs-msg:solidprimitive
                            :type (roslisp:symbol-code 'shape_msgs-msg:solidprimitive :box)
-                           :dimensions (map 'vector #'identity dimensions))) )))
+                           :dimensions (map 'vector #'identity dimensions))))))
     (ecase add-or-remove-or-attach-or-detach
       (:add
        (roslisp:make-request
@@ -112,62 +192,78 @@
         :operation (roslisp:symbol-code
                     'giskard_msgs-srv:updateworld-request
                     :add)
-        :rigidly_attached nil
+        :timeout *giskard-environment-service-timeout*
+        :group_name name
         :body body
-        :pose (cl-transforms-stamped:to-msg pose)))
-      (:alter
-       (roslisp:make-request
-        'giskard_msgs-srv:updateworld
-        :operation (roslisp:symbol-code
-                    'giskard_msgs-srv:updateworld-request
-                    :alter)
-        :body body
-        :pose (cl-transforms-stamped:to-msg pose)))
-      (:add-environment
-       (roslisp:make-request
-        'giskard_msgs-srv:updateworld
-        :operation (roslisp:symbol-code
-                    'giskard_msgs-srv:updateworld-request
-                    :add)
-        :rigidly_attached nil
-        :body (roslisp:make-msg
-               'giskard_msgs-msg:worldbody
-               :type (roslisp:symbol-code
-                      'giskard_msgs-msg:worldbody
-                      :urdf_body)
-               :name name
-               :urdf (roslisp:get-param rob-int:*environment-description-parameter* nil)
-               :joint_state_topic joint-state-topic)
-        :pose (cl-transforms-stamped:to-msg pose)))
+        :pose (cl-transforms-stamped:to-msg pose)
+        :timeout *giskard-environment-service-timeout*))
       (:remove
        (roslisp:make-request
         'giskard_msgs-srv:updateworld
         :operation (roslisp:symbol-code
                     'giskard_msgs-srv:updateworld-request
                     :remove)
-        :body (roslisp:make-msg 'giskard_msgs-msg:worldbody :name name)))
+        :group_name name
+        :timeout *giskard-environment-service-timeout*))
+      (:alter
+       (roslisp:make-request
+        'giskard_msgs-srv:updateworld
+        :operation (roslisp:symbol-code
+                    'giskard_msgs-srv:updateworld-request
+                    :update_pose)
+        :body body
+        :group_name name
+        :pose (cl-transforms-stamped:to-msg pose)
+        :timeout *giskard-environment-service-timeout*))
       (:remove-all
        (roslisp:make-request
         'giskard_msgs-srv:updateworld
         :operation (roslisp:symbol-code
                     'giskard_msgs-srv:updateworld-request
-                    :remove_all)))
-      (:attach
+                    :remove_all)
+        :timeout *giskard-environment-service-timeout*))
+      (:add-environment
        (roslisp:make-request
         'giskard_msgs-srv:updateworld
         :operation (roslisp:symbol-code
                     'giskard_msgs-srv:updateworld-request
                     :add)
-        :rigidly_attached t
-        :body body
-        :pose (cl-transforms-stamped:to-msg pose)))
+        :group_name name
+        :body (roslisp:make-msg
+               'giskard_msgs-msg:worldbody
+               :type (roslisp:symbol-code
+                      'giskard_msgs-msg:worldbody
+                      :urdf_body)
+               :urdf (roslisp:get-param rob-int:*environment-description-parameter* nil)
+               :joint_state_topic joint-state-topic)
+        :pose (cl-transforms-stamped:to-msg pose)
+        :timeout *giskard-environment-service-timeout*))
       (:detach
        (roslisp:make-request
         'giskard_msgs-srv:updateworld
         :operation (roslisp:symbol-code
                     'giskard_msgs-srv:updateworld-request
-                    :detach)
-        :body (roslisp:make-msg 'giskard_msgs-msg:worldbody :name name))))))
+                    :update_parent_link)
+        :group_name name
+        :timeout *giskard-environment-service-timeout*))
+      (:attach
+       (roslisp:make-request
+        'giskard_msgs-srv:updateworld
+        :operation (roslisp:symbol-code
+                    'giskard_msgs-srv:updateworld-request
+                    :update_parent_link)
+        :group_name name
+        :parent_link parent-link
+        :parent_link_group
+        (or parent-link-group
+            (when (gethash parent-link (btr:links (btr:get-environment-object)))
+              (roslisp-utilities:rosify-underscores-lisp-name (rob-int:get-environment-name)))
+            (when (gethash parent-link (btr:links (btr:get-robot-object)))
+              (roslisp-utilities:rosify-underscores-lisp-name (rob-int:get-robot-name)))
+            "")
+        :timeout *giskard-environment-service-timeout*
+        :body body
+        :pose (cl-transforms-stamped:to-msg pose))))))
 
 (defun ensure-giskard-environment-service-input-parameters ()
   )
@@ -178,8 +274,8 @@
 
 (defun call-giskard-environment-service (add-or-remove-or-attach-or-detach
                                          &key name pose dimensions mesh-path
-                                           joint-state-topic)
-
+                                           joint-state-topic parent-link
+                                           parent-link-group)
   (ensure-giskard-environment-service-input-parameters)
   (cpl:with-failure-handling
       (((or simple-error roslisp:service-call-error) (e)
@@ -203,7 +299,9 @@
                     :pose pose
                     :mesh-path mesh-path
                     :dimensions dimensions
-                    :joint-state-topic joint-state-topic))
+                    :joint-state-topic joint-state-topic
+                    :parent-link parent-link
+                    :parent-link-group parent-link-group))
                   'giskard_msgs-srv:error_msg)
                  "Cannot load URDF file.")
             (roslisp:msg-slot-value
@@ -215,9 +313,47 @@
                :pose pose
                :mesh-path nil
                :dimensions dimensions
-               :joint-state-topic joint-state-topic))
+               :joint-state-topic joint-state-topic
+               :parent-link parent-link
+               :parent-link-group parent-link-group))
              'giskard_msgs-srv:error_msg))
           nil))))
+
+;;;;;;;;; GROUPS SERVICE CALLS;;;;;;;;;
+
+(defun call-giskard-groups-service ()
+  (roslisp:msg-slot-value
+   (roslisp:call-persistent-service
+    (get-giskard-groups-service)
+    (roslisp:make-request giskard_msgs-srv:getgroupnames))
+   'giskard_msgs-srv:group_names))
+
+(defun get-groups ()
+  (coerce (call-giskard-groups-service) 'list))
+
+(defun call-giskard-register-groups-service (group-name
+                                             parent-group-name
+                                             root-link-name)
+  (declare (type string group-name parent-group-name root-link-name))
+  (roslisp:msg-slot-value
+   (roslisp:call-persistent-service
+    (get-giskard-register-groups-service)
+    (roslisp:make-request
+     giskard_msgs-srv:registergroup
+     :group_name group-name
+     :parent_group_name parent-group-name
+     :root_link_name root-link-name))
+   'giskard_msgs-srv:error_codes))
+
+(defun register-group (&key group-name parent-group-name root-link)
+  (declare (type string root-link parent-group-name))
+  "Create a new group of links. They are used in collision entries e.g. for arms and grippers.
+If `group-name' is NIL, take the `root-link' as group name.
+The `parent-group-name' is usually the robot or environment."
+  (unless (member (or group-name root-link) (get-groups) :test #'string=)
+    (call-giskard-register-groups-service (or group-name root-link)
+                                          parent-group-name
+                                          root-link)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;; UTILS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -257,11 +393,13 @@
          (btr-object
            (btr:object btr:*current-bullet-world* object-name))
          (robot-links-object-is-attached-to
-           (btr:object-attached (btr:get-robot-object) btr-object)))
+           (or (btr:object-attached (btr:get-environment-object) btr-object)
+               (btr:object-attached (btr:get-robot-object) btr-object))))
     ;; to update an object pose, first remove the old object together with the pose
-    (call-giskard-environment-service
-     :remove
-     :name object-name-string)
+    (when (member object-name-string (get-groups) :test #'string=)
+      (call-giskard-environment-service
+       :remove
+       :name object-name-string))
     ;; add it at the new perceived pose
     (call-giskard-environment-service
      :add
@@ -276,38 +414,19 @@
                    (list cl-transforms:x cl-transforms:y cl-transforms:z)))
     ;; reattach the object if it was attached somewhere
     (when robot-links-object-is-attached-to
-      (let* ((link (car robot-links-object-is-attached-to))
-             (map-to-link-transform
-               (cl-transforms-stamped:lookup-transform
-                cram-tf:*transformer*
-                cram-tf:*fixed-frame*
-                link
-                :timeout cram-tf:*tf-default-timeout*
-                :time 0))
-             (link-to-map-transform
-               (cram-tf:transform-stamped-inv map-to-link-transform))
-             (map-to-obj-transform
-               (cram-tf:pose->transform-stamped
-                cram-tf:*fixed-frame*
-                object-name-string
-                0.0
-                (btr:pose btr-object)))
-             (link-to-object-transform
-               (cram-tf:multiply-transform-stampeds
-                link object-name-string
-                link-to-map-transform map-to-obj-transform))
-             (link-to-object-pose
-               (cram-tf:strip-transform-stamped link-to-object-transform)))
+      (let ((link (car robot-links-object-is-attached-to)))
         (call-giskard-environment-service
          :attach
          :name object-name-string
-         :pose link-to-object-pose
+         :pose (cl-transforms-stamped:pose->pose-stamped
+                cram-tf:*fixed-frame* 0.0 (btr:pose btr-object))
          :mesh-path (when btr-object
                       (second (assoc (car (btr:item-types btr-object))
                                      btr::*mesh-files*)))
          :dimensions (with-slots (cl-transforms:x cl-transforms:y cl-transforms:z)
                          (btr:calculate-bb-dims btr-object)
-                       (list cl-transforms:x cl-transforms:y cl-transforms:z)))))))
+                       (list cl-transforms:x cl-transforms:y cl-transforms:z))
+         :parent-link link)))))
 
 (defun detach-object-in-collision-scene (object-name)
   (let* ((object-name-string
@@ -364,7 +483,7 @@
                (cram-tf:strip-transform-stamped ee-to-object-transform)))
         ;; remove the object first, maybe it was already attached to something
         (call-giskard-environment-service
-         :remove
+         :detach
          :name object-name-string)
         (call-giskard-environment-service
          :attach
@@ -375,7 +494,10 @@
                                      btr::*mesh-files*)))
          :dimensions (with-slots (cl-transforms:x cl-transforms:y cl-transforms:z)
                          (btr:calculate-bb-dims btr-object)
-                       (list cl-transforms:x cl-transforms:y cl-transforms:z)))))))
+                       (list cl-transforms:x cl-transforms:y cl-transforms:z))
+         :parent-link link
+         :parent-link-group (roslisp-utilities:rosify-underscores-lisp-name
+                             (rob-int:get-robot-name)))))))
 
 (defun full-update-collision-scene ()
   (mapcar (lambda (object)
@@ -438,10 +560,3 @@
   (unless cram-projection:*projection-environment*
     (add-object-to-collision-scene
      (desig:desig-prop-value (cpoe:event-object-designator event) :name))))
-
-(defmethod cram-occasions-events:on-event giskard-env 3 ((event cpoe:environment-manipulation-event))
-  (unless cram-projection:*projection-environment*
-    (mapcar (lambda (attachment-info)
-              (update-object-pose-in-collision-scene (car attachment-info)))
-            (btr:attached-objects (btr:get-environment-object)))))
-

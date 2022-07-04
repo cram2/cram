@@ -132,7 +132,7 @@ to grasp the object, if that fails the next position in list will be tried"
                                    "~%Failed with given msgs ~a~%" e)
                  (cpl:retry)))
              (roslisp:ros-warn (grasp-object fail)
-                               "~%No more retries~%")))
+?                               "~%No more retries~%")))
         ;; park-robot (percieve pose)
         (btr-utils:park-robot)
         (let* ((?nav-pose

@@ -36,6 +36,7 @@
   (:export
    ;; vis-tools.lisp
    #:visualize-designator-costmaps #:visualize-gripper
+   #:reset-debug-window
    ;; object-database.lisp
    #:scenario-objects-init-pose #:scenario-objects-default-color #:scenario-object-color
    #:scenario-object-shape #:scenario-object-extra-attributes

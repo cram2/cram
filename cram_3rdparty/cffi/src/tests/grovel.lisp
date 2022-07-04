@@ -114,3 +114,4 @@
                      (eql (caddr arr-type) tagged-array-max-length))
                 (and (eql len-type :unsigned-int)))))
   t t t)
+

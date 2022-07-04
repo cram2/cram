@@ -49,7 +49,10 @@
                cram-plan-occasions-events
                cram-common-failures
                cram-manipulation-interfaces
-               cram-robot-interfaces)
+               cram-robot-interfaces
+
+               cram-bullet-reasoning ;; for occluding check in perceive designator
+               )
 
   :components
   ((:module "src"
