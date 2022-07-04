@@ -69,12 +69,16 @@
   ;; if we only want to know the link and don't care about the arm
   ;; it can be that the arm is not even given in the attachments
   ;; so we need a bit of copy paste here...
-  (<- (cpoe:object-in-hand ?object ?_ ?grasp ?link)
+  (<- (cpoe:object-in-hand ?object ?arm ?grasp ?link)
     (btr:bullet-world ?world)
     (rob-int:robot ?robot)
     (btr:attached ?world ?robot ?link ?object-name ?grasp)
     (once (and (object-designator-name ?object ?object-name)
-               (desig:obj-desig? ?object))))
+               (desig:obj-desig? ?object)))
+    (-> (bound ?arm)
+        (rob-int:end-effector-link ?robot ?arm ?link)
+        (once (or (rob-int:end-effector-link ?robot ?arm ?link)
+                  (true)))))
   ;;
   (<- (cpoe:object-in-hand ?object ?arm)
     (cpoe:object-in-hand ?object ?arm ?_))
