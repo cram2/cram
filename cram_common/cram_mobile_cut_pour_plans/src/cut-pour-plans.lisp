@@ -46,6 +46,7 @@
                ((:left-tilt-poses ?left-tilt-poses))
                ((:right-tilt-poses ?right-tilt-poses))
                ((:collision-mode ?collision-mode))
+	       ((:context ?context))
              &allow-other-keys)
   "Object already in hand, approach 2nd object, tilt 100degree, tilt back"
   
@@ -63,7 +64,7 @@
                (left-poses ?left-approach-poses)
                (right-poses ?right-approach-poses)
                (desig:when ?collision-mode
-                 (collision-mode ?collision-mode))))
+                 (collision-mode ?collision-mode)))))
     (cpl:sleep 2)
     
     (roslisp:ros-info (cut-pour pour) "Tilting")
@@ -80,20 +81,37 @@
                  (desig:when ?collision-mode
                    (collision-mode ?collision-mode)))))
 
-    (cpl:sleep 2)
-    
-    (cpl:with-failure-handling
-        ((common-fail:manipulation-low-level-failure (e)
-           (roslisp:ros-warn (cut-and-pour-plans pour)
-                             "Manipulation messed up: ~a~%Ignoring."
-                             e)))
-      (exe:perform
-       (desig:an action
-                 (type approaching)
-                 (left-poses ?left-approach-poses)
-                 (right-poses ?right-approach-poses)
-                 (desig:when ?collision-mode
-                   (collision-mode ?collision-mode)))))))
+  (cpl:sleep 2)
+  (if (eq ?context :pancake-making)
+      (and 
+       (roslisp:ros-info (cut-pour pour) "Squeeze")
+       (exe:perform
+	(desig:an action
+		  (type setting-gripper)
+		  (gripper ?arms)
+		  (position 0.018)))
+
+
+       (exe:perform
+	(desig:an action
+		  (type setting-gripper)
+		  (gripper ?arms)
+		  (position 0.1)))))
+
+  (if (eq ?context :pouring)
+      (and 
+       (cpl:with-failure-handling
+	   ((common-fail:manipulation-low-level-failure (e)
+	      (roslisp:ros-warn (cut-and-pour-plans pour)
+				"Manipulation messed up: ~a~%Ignoring."
+				e)))
+	 (exe:perform
+	  (desig:an action
+		    (type approaching)
+		    (left-poses ?left-approach-poses)
+		    (right-poses ?right-approach-poses)
+		    (desig:when ?collision-mode
+		      (collision-mode ?collision-mode))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                      SLICE                                   ;;;

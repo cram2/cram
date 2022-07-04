@@ -216,6 +216,24 @@ the element before in `other-objects' and `object'."
                 (cdr other-objects)))
       (warn "Trying to attach an object to a NIL.")))
 
+(defmethod attach-object ((other-objects list) (object item)
+                          &key attachment-type loose)
+  "Will be used if an attachment should be made from one item to more
+than one item. If `loose' T the other attachments have to be made with
+`skip-removing-loose' as T to prevent removing loose attachments between
+the element before in `other-objects' and `object'."
+  (if other-objects
+      (progn
+        (attach-object (first other-objects) object
+                       :attachment-type attachment-type :loose loose)
+        (mapcar (lambda (obj)
+                  (attach-object obj object
+                                 :attachment-type attachment-type :loose loose
+                                 :skip-removing-loose T))
+                (cdr other-objects)))
+      (warn "Trying to attach an object to a NIL.")))
+
+
 (defmethod detach-object ((other-object item) (object item) &key)
   "Removes item names from the given arguments in the corresponding
 `attached-objects' lists of the given items."
@@ -484,6 +502,7 @@ The length, width and height have to be given for the function to work."
                 :collision-shape (make-instance 'colored-sphere-shape
                                    :radius radius
                                    :color color)))))
+
 
 (defmethod add-object ((world bt-world) (type (eql :apple)) name pose
                        &key mass (color '(0.5 0.5 0.5 1.0)) radius)

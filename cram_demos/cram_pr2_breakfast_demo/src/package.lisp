@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2015, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2022, Vanessa Hassouna <hassouna@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -11,8 +11,8 @@
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
 ;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors
-;;;       may be used to endorse or promote products derived from this software
+;;;       Technische Universitaet Muenchen nor the names of its contributors 
+;;;       may be used to endorse or promote products derived from this software 
 ;;;       without specific prior written permission.
 ;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -27,28 +27,15 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-bullet-reasoning-utilities
-  :author "Gayane Kazhoyan"
-  :license "BSD"
-  :depends-on (cram-designators
-               cram-prolog
-               cram-utilities
+(in-package :cl-user)
 
-               cram-location-costmap
-               cram-tf ; for visualize-gripper in vis-tools
-               cram-robot-interfaces ; also for visualize-gripper and robot utils
-               cl-transforms
-               cl-transforms-stamped
+(defpackage cram-pr2-breakfast-demo
+  (:nicknames #:pr2-bf-demo #:demo)
+  (:use #:common-lisp #:cram-prolog
+        #:desig #:exe)
+  (:export
+   ;; setup
+   ;; #:bla
+   ;; demo
+   ))
 
-               cram-bullet-reasoning
-               cl-bullet
-               cl-bullet-vis)
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "objects-database" :depends-on ("package"))
-     (:file "objects" :depends-on ("package" "objects-database"))
-     (:file "utils" :depends-on ("package" "objects"))
-     (:file "vis-tools" :depends-on ("package" "objects"))
-     (:file "robot" :depends-on ("package"))))))

@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2022, Tina Van <van@uni-bremen.de>
+;;; Copyright (c) 2022, Vanessa Hassouna <hassouna@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,36 +27,14 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :demo)
+(in-package :bullet-reasoning-utilities)
 
-;:WIP
-(defun whip (&key
-                 ((:object ?current-object-desig))
-                 ((:object-type ?object-type))
-                  ((:object-name  ?object-name))
-                   ;((:object ?object-target))
-                    ((:arm ?arm-tool))
-                     ((:effort ?effort))
-                      ((:grasp ?grasp))
-                                ;(:left-mix-poses ?left-approach-poses)
-                               ;(:right-mix-poses ?right-approach-poses)
-                               ; (:duration ?timer))
-              &allow-other-keys)
-      
-       (exe:perform
-     (desig:an action
-               (type approaching)
-               (left-poses ?left-approach-poses)
-               (right-poses ?right-approach-poses)
-               (desig:when ?collision-mode
-                 (collision-mode ?collision-mode))))
-                 
-   ;   (roslisp:ros-info (whisking) "approaching")        
-   ;  (exe:perform
-   ;  (desig:an action
-   ;            (type whip-approach)
-   ;            (gripper ?arm-tool)
-   ;            (left-poses ?left-approach-poses)
-   ;            (right-poses ?right-approach-poses)
-   ;            ))
-)
+(defun spawn-liquid-inside-target (target-object major-minor-liquid)
+       (btr::add-object btr:*current-bullet-world* :liquid 'liquid-1 pose
+                         :mass 0.001 :radius 0.01 :color '(1 1 0 0.5))
+     (btr-utils:spawn-object 'bowl-1 :bowl
+                              :pose (cl-transforms:make-pose
+                                     (cl-tf:make-3d-vector 1.4 0.6 0.9)
+                                     (cl-tf:make-quaternion 0 0 0 1)))
+  (btr:attach-object 'bowl-1 'liquid-1)
+  )

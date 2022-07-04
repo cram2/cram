@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2015, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2022, Vanessa Hassouna <hassouna@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,28 +27,33 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-bullet-reasoning-utilities
-  :author "Gayane Kazhoyan"
-  :license "BSD"
-  :depends-on (cram-designators
-               cram-prolog
-               cram-utilities
+(in-package :demo)
 
-               cram-location-costmap
-               cram-tf ; for visualize-gripper in vis-tools
-               cram-robot-interfaces ; also for visualize-gripper and robot utils
-               cl-transforms
-               cl-transforms-stamped
+;; roslaunch cram_pr2_pick_place_demo sandbox.launch
 
-               cram-bullet-reasoning
-               cl-bullet
-               cl-bullet-vis)
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "objects-database" :depends-on ("package"))
-     (:file "objects" :depends-on ("package" "objects-database"))
-     (:file "utils" :depends-on ("package" "objects"))
-     (:file "vis-tools" :depends-on ("package" "objects"))
-     (:file "robot" :depends-on ("package"))))))
+(defun init-projection ()
+  (coe:clear-belief)
+
+  (setf cram-tf:*tf-default-timeout* 2.0)
+
+  (setf prolog:*break-on-lisp-errors* t)
+
+  (btr:clear-costmap-vis-object)
+
+  (setf cram-tf:*tf-broadcasting-enabled* t)
+
+  (setf proj-reasoning::*projection-reasoning-enabled* nil)
+
+  (setf ccl::*is-client-connected* nil)
+  (setf ccl::*is-logging-enabled* nil)
+  (setf ccl::*host* "'https://192.168.100.172'")
+  (setf ccl::*cert-path* "'/home/ease/openease-certificates/sebastian.pem'")
+  (setf ccl::*api-key* "'hftn9KwE77FEhDv9k6jV7rJT7AK6nPizZJUhjw5Olbxb2a3INUL8AM3DNp9Ci6L1'")
+  (ccl::connect-to-cloud-logger)
+  (ccl::reset-logged-owl)
+
+  ;; (setf cram-tf:*transformer* (make-instance 'cl-tf2:buffer-client))
+
+  (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo"))
+
+(roslisp-utilities:register-ros-init-function init-projection)

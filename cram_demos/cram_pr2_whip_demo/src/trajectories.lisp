@@ -36,6 +36,7 @@
            (man-int:get-object-type-to-gripper-transform
             object-type object-name arm grasp))
             
+            ;rotation des gripper important -in 
          (bTb-offset(get-object-type-robot-frame-whisk-approach-transform
                    object-type arm grasp))   
          )
@@ -57,11 +58,11 @@
                  :label label
                  :poses 
                  (if (eq label :whip-approach)
+                    
                  ;gotta infer missing gasp info :center
+		 ;whip approach using pouring
                      (calculate-init-whipping-trajectory-in-map btr-object arm grasp)
-                                                           
-                                                           
-                                                           
+                                        
                      (mapcar 
                       (alexandria:curry #'man-int:calculate-gripper-pose-in-map bTo arm)
                       transforms))))

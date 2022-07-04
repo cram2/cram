@@ -255,7 +255,7 @@
           (setf ?grasp-to-hold :right-hold)
           (setf ?slice-position :left-top)
           (setf ?arm-to-hold :right)))
-
+  
     
 ;;;;; Picking the knife up
     

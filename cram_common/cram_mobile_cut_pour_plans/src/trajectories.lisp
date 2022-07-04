@@ -170,15 +170,19 @@
                 (,(man-int:get-object-type-robot-frame-slice-down-transform
                    object-type arm grasp)))))))
 
-(defun get-tilting-poses (grasp approach-poses &optional (angle (cram-math:degrees->radians 100)))
+(defun get-tilting-poses (grasp approach-poses &optional angle)
   (mapcar (lambda (?approach-pose)
             ;;depending on the grasp the angle to tilt is different
             (case grasp
               (:front (rotate-once-pose ?approach-pose (+ angle) :y))
+              (:top-front (rotate-once-pose ?approach-pose (+ angle) :y))
               (:left-side (rotate-once-pose ?approach-pose (+ angle) :x))
+              (:top-left (rotate-once-pose ?approach-pose (+ angle) :x))
               (:right-side (rotate-once-pose ?approach-pose (- angle) :x))
+              (:top-right (rotate-once-pose ?approach-pose (- angle) :x))
               (:back (rotate-once-pose ?approach-pose (- angle) :y))
-              (t (error "can only pour from :side, back or :front"))))
+              (:top (rotate-once-pose ?approach-pose (- angle) :y))
+              (t (error "can only pour from :side, back or :front :top :top-side"))))
           approach-poses))
 
 ;;helper function for tilting
@@ -206,7 +210,7 @@
                                                          grasp
                                                          location
                                                          objects-acted-on
-                                                         &key )
+                                                         &key tilt-angle)
   (let* ((object
            (car objects-acted-on))
          (object-name
@@ -244,31 +248,8 @@
               arm oTg-std)
             :orientation 
             (cl-tf:rotation bTb-offset)))
-            ;; (cl-tf:q+
-            ;;  (cl-tf:q-
-            ;;   (cl-tf:orientation (btr:pose (btr:get-robot-object)))
-            ;;   (cl-tf:rotation
-            ;;    (cram-tf:apply-transform
-            ;;     (cl-tf:make-transform-stamped
-            ;;      cram-tf:*robot-base-frame*
-            ;;      cram-tf:*robot-base-frame*
-            ;;      0.0
-            ;;      (cl-tf:make-identity-vector)
-            ;;      (cl-tf:rotation (cl-tf:transform-inv bTo)))
-            ;;     (cl-tf:make-transform-stamped
-            ;;      cram-tf:*robot-base-frame*
-            ;;      cram-tf:*robot-base-frame*
-            ;;      0.0
-            ;;      (cl-tf:make-identity-vector)
-            ;;      (cl-tf:orientation (btr:pose
-            ;;                          (btr:get-robot-object)))))))
-            ;;  (case grasp
-            ;;    (:FRONT (cl-tf:euler->quaternion :az 0.0))
-            ;;    (:BACK (cl-tf:euler->quaternion :az pi))
-            ;;    (:LEFT-SIDE (cl-tf:euler->quaternion :az (- (/ pi 2))))
-            ;;    (:RIGHT-SIDE (cl-tf:euler->quaternion :az (/ pi 2)))))))
          (tilting-poses
-           (get-tilting-poses grasp (list approach-pose))))
+           (get-tilting-poses grasp (list approach-pose) (cram-math:degrees->radians tilt-angle))))
     (mapcar (lambda (label poses-in-base)
               (man-int:make-traj-segment
                :label label
