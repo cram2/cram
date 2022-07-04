@@ -273,6 +273,9 @@ Store found pose into designator or throw error if good pose not found."
                         (arm
                           (desig:desig-prop-value placing-action-referenced
                                                   :arm))
+                        (gripper-opening
+                          (desig:desig-prop-value placing-action-referenced
+                                                  :gripper-opening))
                         (left-reach-poses
                           (desig:desig-prop-value placing-action-referenced
                                                   :left-reach-poses))
@@ -297,7 +300,7 @@ Store found pose into designator or throw error if good pose not found."
                         (move-base
                           (infer-move-base object-designator placing-action-desig)))
 
-                   (urdf-proj::gripper-action :open arm)
+                   (urdf-proj::gripper-action gripper-opening arm)
 
                    (roslisp:ros-info (coll-check place)
                                      "Trying to place object ~a with arm ~a~%"
