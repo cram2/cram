@@ -94,7 +94,7 @@
 (defun drive (target)
   (declare (type cl-transforms-stamped:pose-stamped target))
 
-  (btr:add-vis-axis-object target)
+  (btr:add-vis-axis-object target :length 0.5)
 
   (let ((world-pose-info (btr:get-world-objects-pose-info)))
     (unwind-protect
@@ -177,6 +177,12 @@
 (defun look-at-pose-stamped-two-joints (pose-stamped)
   (declare (type cl-transforms-stamped:pose-stamped pose-stamped))
 
+  (setf pose-stamped
+        (cram-tf:ensure-pose-in-frame
+         pose-stamped cram-tf:*fixed-frame* :use-zero-time t))
+
+  (btr:add-vis-axis-object pose-stamped :length 0.02 :width 0.02)
+
   ;; first look forward, because our IK with 2 joints is buggy...
   (look-at-joint-angles '(0 0))
 
@@ -207,10 +213,7 @@
         (btr:calculate-pan-tilt
          (btr:get-robot-object)
          ?pan-link ?tilt-link
-         (cram-tf:ensure-pose-in-frame
-          pose-stamped
-          cram-tf:*fixed-frame*
-          :use-zero-time t)
+         pose-stamped
          ?pan-forward-axis ?pan-forward-sign
          ?tilt-forward-axis ?tilt-forward-sign
          ?pan-lower-limit ?pan-upper-limit
