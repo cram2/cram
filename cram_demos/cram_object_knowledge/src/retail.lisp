@@ -79,6 +79,12 @@
 (defmethod man-int:get-action-gripper-opening
     :heuristics 20 ((object-type (eql :retail-item)))
   0.1)
+(defmethod man-int:get-action-gripper-opening
+    :heuristics 20 ((object-type (eql :balea-bottle)))
+  0.06)
+(defmethod man-int:get-action-gripper-opening
+    :heuristics 20 ((object-type (eql :dish-washer-tabs)))
+  0.06)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -117,7 +123,7 @@
 (defparameter *dish-washer-tabs-lift-z-top-grasp-offset* 0.10 "in meters")
 (defparameter *dish-washer-tabs-lift-z-other-grasp-offset* 0.05 "in meters")
 (defparameter *dish-washer-tabs-lift-z-basket-offset* 0.10 "in meters")
-(defparameter *dish-washer-tabs-2nd-lift-z-basket-offset* 0.30 "in meters")
+(defparameter *dish-washer-tabs-2nd-lift-z-basket-offset* 0.31 "in meters")
 
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms :dish-washer-tabs '(:left :right) :top
