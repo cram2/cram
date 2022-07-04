@@ -265,7 +265,6 @@
                               of the arms should be used.~%")
                      (fail)))))
 
-
    
     ;;; infer missing information
     (desig:current-designator ?object-designator ?current-object-designator)

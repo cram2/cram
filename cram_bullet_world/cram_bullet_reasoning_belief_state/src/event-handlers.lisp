@@ -97,6 +97,7 @@ and renames POSE into OLD-POSE."
 
 
 
+
 (defmethod cram-occasions-events:on-event btr-belief ((event cpoe:object-location-changed))
   ;; Remove loose attachment between robot and object,
   ;; if the object was placed somewhere else, e. g.:
@@ -132,7 +133,6 @@ and renames POSE into OLD-POSE."
   (update-object-designator-location
    (cpoe:event-object-designator event)
    (cpoe:event-location-designator event)))
-
 
 
 (defmethod cram-occasions-events:on-event robot-moved ((event cpoe:robot-state-changed))
@@ -369,6 +369,7 @@ If there is no other method with 1 as qualifier, this method will be executed al
       (if (prolog `(man-int:unidirectional-attachment ?attachment-type))
             (btr:attach-object btr-other-object btr-object :loose T)
           (btr:attach-object btr-other-object btr-object))))))
+
 
 
 
