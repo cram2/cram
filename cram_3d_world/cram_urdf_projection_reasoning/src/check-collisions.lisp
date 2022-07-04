@@ -332,7 +332,8 @@ Store found pose into designator or throw error if good pose not found."
                                  ;;  :key #'btr:name)
                                  )
                             (roslisp:ros-warn (coll-check place)
-                                              "Robot is in collision with environment.")
+                                              "Robot is in collision with ~a."
+                                              (btr:robot-colliding-objects-without-attached))
                             (cpl:sleep urdf-proj:*debug-long-sleep-duration*)
                             (btr:restore-world-poses world-pose-info)
                             ;; (cpl:fail 'common-fail:manipulation-goal-in-collision)
@@ -446,7 +447,8 @@ Store found pose into designator or throw error if good pose not found."
                (when (eq (desig:desig-prop-value action-desig :type) :opening)
                  (when (btr:robot-colliding-objects-without-attached)
                    (roslisp:ros-warn (coll-check environment)
-                                     "Robot is in collision with environment.")
+                                     "Robot is in collision with ~a."
+                                     (btr:robot-colliding-objects-without-attached))
                    (cpl:sleep urdf-proj:*debug-long-sleep-duration*)
                    (btr:restore-world-poses world-pose-info)
                    ;; (cpl:fail 'common-fail:manipulation-goal-in-collision)
