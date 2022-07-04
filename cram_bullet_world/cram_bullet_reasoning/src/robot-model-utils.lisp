@@ -318,7 +318,6 @@ Used in visibility costmap calculations and in projection."
      delta)))
 
 
-
 (defun get-robot-object ()
   (object *current-bullet-world* (rob-int:get-robot-name)))
 

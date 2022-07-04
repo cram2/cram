@@ -18,6 +18,9 @@
 (defun get-designator-property-value-str (designator property-keyname)
   (string (cadr (assoc property-keyname (desig:properties designator)))))
 
+(defun get-property-value-str (properties property-keyname)
+  (string (cadr (assoc property-keyname properties))))
+
 (defun string-start-with (str prefix)
   (if (< (length str) (length prefix))
       nil

@@ -223,7 +223,7 @@ Store found pose into designator or throw error if good pose not found."
 
 
 
-(defun check-placing-collisions (placing-action-desig &optional (retries 3))
+(defun check-placing-collisions (placing-action-desig &optional (retries 20))
   (when *projection-checks-enabled*
     (let ((world-pose-info (btr:get-world-objects-pose-info)))
       (unwind-protect

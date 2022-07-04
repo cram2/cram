@@ -1,7 +1,19 @@
 (in-package :ccl)
 
+(defparameter *environment-owl* "'package://iai_semantic_maps/owl/kitchen.owl'")
+(defparameter *environment-owl-individual-name* "'http://knowrob.org/kb/IAI-kitchen.owl#iai_kitchen_room_link'")
+(defparameter *environment-urdf* "'package://iai_kitchen/urdf_obj/iai_kitchen_popcorn_python.urdf'") ;;TODO This should automatically be read if possible
+(defparameter *environment-urdf-prefix* "'iai_kitchen/'")
+
+(defparameter *agent-owl* "'package://knowrob/owl/robots/PR2.owl'")
+(defparameter *agent-owl-individual-name* "'http://knowrob.org/kb/PR2.owl#PR2_0'")
+(defparameter *agent-urdf* "'package://knowrob/urdf/pr2.urdf'")
+
+
+
 (defun get-parent-folder-path()
   (namestring (physics-utils:parse-uri "package://cram_cloud_logger/src")))
+  
 
 (defun send-load-neem-generation-interface ()
   (let ((path-to-interface-file (concatenate 'string "'"(get-parent-folder-path) "/neem-interface.pl'")))
@@ -30,7 +42,16 @@
     (setf (gethash ":BACK" lookup-table) "BackGrasp")
     lookup-table))
 
+
+(defun get-object-parameter-role-lookup-table()
+  (let ((lookup-table (make-hash-table :test 'equal)))
+    (setf (gethash "Lowering" lookup-table) "AlteredObject")
+    (setf (gethash "Perceiving" lookup-table) "DetectedObject")
+    (setf (gethash "Reaching" lookup-table) "Destination")
+    lookup-table))
+
 (defparameter *grasp-type-lookup-table* (get-grasp-type-lookup-table))
+(defparameter *object-parameter-role-lookup-table* (get-object-parameter-role-lookup-table))
 
 (defun start-situation (situation-uri)
   (attach-time-to-situation "mem_event_begin" situation-uri))
@@ -44,8 +65,11 @@
 (defun attach-event-to-situation (event-prolog-url situation-prolog-url)
   (get-url-from-send-query-1 "SubAction" "add_subaction_with_task" situation-prolog-url "SubAction" event-prolog-url))
 
-(defun send-belief-perceived-at (object-type transform object-id)
-  (send-query-1-without-result "belief_perceived_at" object-type transform object-id)
+(defun send-belief-perceived-at (object-type transform rotation object-id)
+  (if transform
+      (send-query-1-without-result "belief_perceived_at" object-type transform rotation object-id)
+      (send-query-1-without-result "belief_perceived_at" object-type object-id))
+
   object-id)
 
 (defun send-belief-new-object-query (object-type)
@@ -58,25 +82,42 @@
   (send-query-1-without-result "mem_event_set_failed" event-prolog-url))
 
 (defun send-attach-object-as-parameter-to-situation (object-url parameter-type-url event-prolog-url)
-  (break)
+  ;; (break)
   (send-query-1-without-result "add_participant_with_role" event-prolog-url object-url parameter-type-url))
 
 (defun set-event-diagnosis (event-prolog-url diagnosis-url)
   (send-query-1-without-result "mem_event_add_diagnosis" event-prolog-url diagnosis-url))
 
 (defun start-episode ()
+  (setf ccl::*is-logging-enabled* t)
+  (ccl::init-logging)
   (when *episode-name*
     (progn
       (print "Previous episode recording is still running. Stopping the recording ...")
       (stop-episode)))
-  (setf ccl::*is-logging-enabled* t)
-  (ccl::init-logging)
+  (let ((cram-episode-name "'NoName'"))
+             (when (string-not-equal "'NoName'"cram-episode-name)
+               (progn
+                 (setf ccl::*episode-name* cram-episode-name)
+                 (stop-episode))))
   (ccl::clear-detected-objects)
-  (setf ccl::*episode-name* (get-url-from-send-query-1 "RootAction" "mem_episode_start" "RootAction"))
+  (setf ccl::*episode-name*
+        (get-url-from-send-query-1
+         "RootAction"
+         "mem_episode_start"
+         "RootAction"
+         *environment-owl*
+         *environment-owl-individual-name*
+         *environment-urdf*
+         *environment-urdf-prefix*
+         *agent-owl*
+         *agent-owl-individual-name*
+         *agent-urdf*))
   (ccl::start-situation *episode-name*))
 
 (defun stop-episode ()
   (ccl::stop-situation *episode-name*)
+  ;;(send-query-1-without-result "delete_episode_name" *episode-name*)
   (send-query-1-without-result "mem_episode_stop" (concatenate 'string "'" (uiop:getenv "KNOWROB_MEMORY_DIR") "'"))
   (setf ccl::*episode-name* nil)
   (setf ccl::*is-logging-enabled* nil))
@@ -84,13 +125,13 @@
 (defun send-query-1-without-result (query-name &rest query-parameters)
   (let* ((query (create-query query-name query-parameters))
          (result (send-query-1 query)))
-    (when (not result)
-      (break))
+    ;; (when (not result)
+    ;;   (break))
     (print "DONE REASONING")))
 
 (defun send-query-1 (query)
   (print query)
-  (print (json-prolog:prolog-simple-1 query)))
+  (json-prolog:prolog-simple-1 query))
 
 (defun get-url-from-send-query-1 (url-parameter query-name &rest query-parameters)
   (let* ((query (create-query query-name query-parameters))
@@ -103,14 +144,42 @@
   (send-query-1-without-result "add_comment" action-inst (concatenate 'string "'"comment"'")))
   ;;(print "COMMENT"))
 
-(defun send-object-action-parameter (action-inst object-designator)
-  (let* ((object-name (get-designator-property-value-str object-designator :NAME))
+(defun send-container-object-action-parameter (action-inst action-type object-designator)
+  (let ((owl-name (get-designator-property-value-str object-designator :OWL-NAME)))
+    (when owl-name
+      (send-query-1-without-result "add_participant_with_role"
+                                   action-inst
+                                   (concatenate 'string "'" owl-name "'")
+                                   "'http://www.ease-crc.org/ont/SOMA.owl#AlteredObject'"))))
+
+
+(defun send-object-action-parameter (action-inst action-type object-designator)
+  (let* ((role (gethash action-type *object-parameter-role-lookup-table*))
+         (object-name (get-designator-property-value-str object-designator :NAME))
          (object-ease-id (get-ease-object-id-of-detected-object-by-name object-name)))
-    (when object-ease-id 
+    (when (not object-ease-id)
+      (let ((owl-name (get-designator-property-value-str object-designator :OWL-NAME)))
+        (when owl-name
+          (send-query-1-without-result "add_participant_with_role"
+                                       action-inst
+                                       (concatenate 'string "'" owl-name "'")
+                                       "'http://www.ease-crc.org/ont/SOMA.owl#AlteredObject'"))))
+    (when object-ease-id
+      (if (and (not role) object-ease-id)
+          (send-query-1-without-result "add_participant_with_role" action-inst object-ease-id "'http://www.ease-crc.org/ont/SOMA.owl#Item'")
+          (send-query-1-without-result "add_participant_with_role"
+                                       action-inst
+                                       object-ease-id
+                                       (concatenate 'string "'http://www.ease-crc.org/ont/SOMA.owl#" role "'"))))))
+
+(defun send-object-name-action-parameter (action-inst object-name)
+  (let* ((object-ease-id (get-ease-object-id-of-detected-object-by-name object-name)))
+    (when object-ease-id
       (send-query-1-without-result "add_participant_with_role" action-inst object-ease-id "'http://www.ease-crc.org/ont/SOMA.owl#AffectedObject'"))))
 
 
-(defun send-grasp-action-parameter (action-inst grasp)
+
+(defun send-grasp-action-parameter (action-inst action-type grasp)
   (let ((grasp-type (gethash (write-to-string grasp) *grasp-type-lookup-table*)))
     (send-parameter action-inst grasp-type)))
 
@@ -323,7 +392,7 @@
 
 (defun send-pose-stamped-list-action-parameter (action-inst list-name pose-stamped-list)
   (let ((pose-stamp (get-last-element-in-list pose-stamped-list)))
-    (if pose-stamp (progn 
+    (if pose-stamp (progn
                      (send-rdf-query (convert-to-prolog-str action-inst)
                                      "knowrob:goalLocation" (convert-to-prolog-str (send-create-pose-stamped pose-stamp)))
                      (if (string-equal "left" list-name)

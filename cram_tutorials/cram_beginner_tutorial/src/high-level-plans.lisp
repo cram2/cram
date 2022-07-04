@@ -28,8 +28,10 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
 (in-package :tut)
-
-(defun draw-house ()
+ 
+(defun draw-house (&key ((:shape ?shape))
+                   &allow-other-keys)
+  (declare (type (or keyword) ?shape))
   (with-fields (x y)
       (value *turtle-pose*)
     (exe:perform (an action (type drawing) (shape rectangle) (width 5) (height 4.5)))
@@ -40,33 +42,39 @@
     (navigate-without-pen (list x (+ y 4.5) 0))
     (exe:perform (an action (type drawing) (shape triangle) (base-width 5) (height 4)))))
 
-(defun draw-simple-shape (vertices)
+(defun draw-simple-shape (&key
+                            ((:vertices ?vertices))
+                          &allow-other-keys)
+  (declare (type (or list null) ?vertices)) 
   (mapcar
    (lambda (?v)
      (exe:perform (an action (type navigating) (target ?v))))
-   vertices))
-
+   ?vertices))
+ 
 (defun navigate-without-pen (?target)
   (exe:perform (a motion (type setting-pen) (off 1)))
   (exe:perform (an action (type navigating) (target ?target)))
   (exe:perform (a motion (type setting-pen) (off 0))))
+ 
 
 (defparameter *min-bound* 0.5)
 (defparameter *max-bound* 10.5)
-
-(defun navigate (?v)
+ 
+(defun navigate (&key ((:target ?target))
+                 &allow-other-keys)
+  (declare (type (or list null) ?target))
   (flet ((out-of-bounds (pose)
            (with-fields (x y)
                (value pose)
              (not (and (< *min-bound* x *max-bound*)
                        (< *min-bound* y *max-bound*))))))
-    (with-failure-handling
+        (with-failure-handling
         ((out-of-bounds-error (e)
            (ros-warn (draw-simple-simple) "Moving went-wrong: ~a" e)
            (exe:perform (a motion (type setting-pen) (r 204) (g 0) (b 0) (width 2)))
            (let ((?corr-v (list
-                           (max 0.6 (min 10.4 (car ?v)))
-                           (max 0.6 (min 10.4 (cadr ?v)))
+                           (max 0.6 (min 10.4 (car ?target)))
+                           (max 0.6 (min 10.4 (cadr ?target)))
                            0)))
              (recover-from-oob ?corr-v)
              (exe:perform (a motion (type moving) (goal ?corr-v))))
@@ -75,7 +83,7 @@
       (pursue
         (whenever ((fl-funcall #'out-of-bounds *turtle-pose*))
           (error 'out-of-bounds-error))
-        (exe:perform (a motion (type moving) (goal ?v)))))))
+        (exe:perform (a motion (type moving) (goal ?target)))))))
 
 (defun recover-from-oob (&optional goal)
   (rotate-to (make-3d-vector 5.5 5.5 0))
@@ -83,9 +91,3 @@
   (wait-duration 0.2)
   (when goal
     (rotate-to (apply #'make-3d-vector goal))))
-
-(defun perform-draw-house ()
-  (top-level
-    (with-process-modules-running (turtlesim-navigation turtlesim-pen-control)
-      (navigate-without-pen '(3 2 0))
-      (exe:perform (an action (type drawing) (shape house))))))
