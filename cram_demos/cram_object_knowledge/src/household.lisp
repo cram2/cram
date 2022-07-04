@@ -1309,12 +1309,12 @@
 
 (man-int:def-object-type-in-other-object-transform :cup :drawer
   :dish-washer-drawer-left-flipped-around-x
-  :attachment-translation `(0.05 -0.19 0.22)
+  :attachment-translation `(0.06 -0.19 0.22)
   :attachment-rot-matrix man-int:*rotation-around-x-180-matrix*)
 
 (man-int:def-object-type-in-other-object-transform :cup :drawer
   :dish-washer-drawer-left-flipped-around-y
-  :attachment-translation `(0.05 -0.19 0.22)
+  :attachment-translation `(0.06 -0.19 0.22)
   :attachment-rot-matrix man-int:*rotation-around-y-180-matrix*)
 
 (man-int:def-object-type-in-other-object-transform :spoon :drawer
