@@ -561,5 +561,3 @@ The length, width and height have to be given for the function to work."
                   :collision-shape (make-instance 'bt-vis:colored-box-shape
                                      :half-extents (ensure-vector size)
                                      :color color))))))
-
-
