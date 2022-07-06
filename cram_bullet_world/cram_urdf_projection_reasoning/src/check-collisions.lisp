@@ -282,12 +282,12 @@ Store found pose into designator or throw error if good pose not found."
                         (right-reach-poses
                           (desig:desig-prop-value placing-action-referenced
                                                   :right-reach-poses))
-                        (left-put-poses
-                          (desig:desig-prop-value placing-action-referenced
-                                                  :left-put-poses))
-                        (right-put-poses
-                          (desig:desig-prop-value placing-action-referenced
-                                                  :right-put-poses))
+                        ;; (left-put-poses
+                        ;;   (desig:desig-prop-value placing-action-referenced
+                        ;;                           :left-put-poses))
+                        ;; (right-put-poses
+                        ;;   (desig:desig-prop-value placing-action-referenced
+                        ;;                           :right-put-poses))
                         (left-retract-poses
                           (desig:desig-prop-value placing-action-referenced
                                                   :left-retract-poses))
