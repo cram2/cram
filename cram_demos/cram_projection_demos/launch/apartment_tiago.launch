@@ -1,0 +1,10 @@
+<launch>
+  <include file="$(find cram_projection_demos)/launch/everything.launch">
+    <arg name="tiago" value="true"/>
+    <arg name="apartment" value="true"/>
+    <arg name="upload_robot" value="true"/>
+    <arg name="publish_robot" value="false"/>
+    <arg name="occupancy_map" value="false"/>
+    <arg name="tf2_buffer" value="false"/>
+  </include>
+</launch>

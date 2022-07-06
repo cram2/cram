@@ -48,7 +48,7 @@
   (<- (man-int:object-type-direct-subtype :assembly-item :front-wheel))
   (<- (man-int:object-type-direct-subtype :assembly-item :nut)))
 
-(def-fact-group attachment-knowledge (man-int:unidirectional-attachment)
+(def-fact-group attachmend-knowledge (man-int:unidirectional-attachment)
 
   (<- (man-int:unidirectional-attachment ?attachment-type)
     (member ?attachment-type (:horizontal-attachment
@@ -185,15 +185,15 @@
   :2nd-lift-translation *default-lift-offsets*)
 
 ;; SIDE grasp (for picking it up with the whole airplane later)
-(man-int:def-object-type-to-gripper-transforms :top-wing :left :right-side
-  :grasp-translation `(,(- *top-wing-grasp-x-offset*)
-                       ,(- *top-wing-grasp-y-offset*)
-                       ,*top-wing-grasp-z-offset*)
-  :grasp-rot-matrix man-int:*-y-across-x-grasp-rotation*
-  :pregrasp-offsets `(0 ,(- *default-z-offset*) ,*default-z-offset*)
-  :2nd-pregrasp-offsets `(0 ,(- *default-z-offset*) 0.0)
-  :lift-translation *default-lift-offsets*
-  :2nd-lift-translation *default-lift-offsets*)
+;; (man-int:def-object-type-to-gripper-transforms :top-wing :left :right-side
+;;   :grasp-translation `(,(- *top-wing-grasp-x-offset*)
+;;                        ,(- *top-wing-grasp-y-offset*)
+;;                        ,*top-wing-grasp-z-offset*)
+;;   :grasp-rot-matrix man-int:*-y-across-x-grasp-rotation*
+;;   :pregrasp-offsets `(0 ,(- *default-z-offset*) ,*default-z-offset*)
+;;   :2nd-pregrasp-offsets `(0 ,(- *default-z-offset*) 0.0)
+;;   :lift-translation *default-lift-offsets*
+;;   :2nd-lift-translation *default-lift-offsets*)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; WINDOW ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -232,31 +232,44 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;; PROPELLER ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter *propeller-grasp-x-offset* 0.013)
+(defparameter *propeller-grasp-x-offset* -0.03)
 (defparameter *propeller-grasp-y-offset* 0.0)
-(defparameter *propeller-grasp-z-offset* 0.003)
+(defparameter *propeller-grasp-z-offset* 0.01)
 
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms :propeller '(:left :right) :top
   :grasp-translation `(,*propeller-grasp-x-offset*
                        ,*propeller-grasp-y-offset*
-                       ,(- *propeller-grasp-z-offset*))
-  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
-  :pregrasp-offsets *default-lift-offsets*
-  :2nd-pregrasp-offsets *default-lift-offsets*
-  :lift-translation *default-lift-offsets*
-  :2nd-lift-translation *default-lift-offsets*)
+                       ,*propeller-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets '(0 0 0.02)
+  :2nd-pregrasp-offsets '(0 0 0.02)
+  :lift-translation '(0 0 0.02)
+  :2nd-lift-translation '(0 0 0.02))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; BOLT ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defparameter *bolt-lift-z-offset* 0.02)
+
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms :bolt '(:left :right) :top
-  :grasp-translation `(0.0 0.0 0.008)
+  :grasp-translation `(0.0 0.0 0.023)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets *default-lift-offsets*
   :2nd-pregrasp-offsets *default-lift-offsets*
   :lift-translation *default-lift-offsets*
   :2nd-lift-translation *default-lift-offsets*)
+
+;; TOP grasp for placing on propeller is shorter because propeller is very high
+(man-int:def-object-type-to-gripper-transforms :bolt '(:left :right) :top
+  :location-type :propeller
+  :grasp-translation `(0.0 0.0 0.023)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,*bolt-lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,*bolt-lift-z-offset*)
+  :lift-translation `(0.0 0.0 ,*bolt-lift-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*bolt-lift-z-offset*))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -270,7 +283,7 @@
   0.02)
 
 (man-int:def-object-type-in-other-object-transform :bottom-wing :chassis :wing-attachment
-  :attachment-translation `(0.0 -0.025 0.0)
+  :attachment-translation `(0.0 -0.025 0.005)
   :attachment-rot-matrix man-int:*identity-matrix*)
 
 (defmethod man-int:get-z-offset-for-placing-with-dropping ((object (eql :bottom-wing))
@@ -288,7 +301,7 @@
 
 (man-int:def-object-type-in-other-object-transform :propeller :motor-grill :propeller-attachment
   :attachment-translation `(0.0 0.0 0.002)
-  :attachment-rot-matrix man-int:*identity-matrix*)
+  :attachment-rot-matrix man-int:*rotation-around-z+180-matrix*)
 
 (man-int:def-object-type-in-other-object-transform :front-wheel :chassis :left-wheel-attachment
   :attachment-translation `(-0.0 -0.15 0.00)
@@ -299,11 +312,11 @@
   :attachment-rot-matrix  man-int:*rotation-around-x+90-matrix*)
 
 (man-int:def-object-type-in-other-object-transform :top-wing :holder-plane-vertical :vertical-attachment
-  :attachment-translation `(0.025 0 0.183)
-  :attachment-rot-matrix man-int:*rotation-around-z-180-and-x+90-matrix*)
+  :attachment-translation `(-0.035 0 0.16)
+  :attachment-rot-matrix man-int:*rotation-around-z-90-then-x+90-matrix*)
 
 (defmethod man-int:get-z-offset-for-placing-with-dropping ((object (eql :bolt)) other-object attachment)
-  0.015)
+  0.02)
 
 (man-int:def-object-type-in-other-object-transform :bolt :upper-body :rear-thread
   :attachment-translation `(-0.0525 0.0 -0.025)
@@ -330,11 +343,16 @@
   :attachment-translation `(0.0 -0.0525 0.0075)
   :attachment-rot-matrix man-int:*rotation-around-z+90-matrix*)
 
+(defmethod man-int:get-z-offset-for-placing-with-dropping ((object (eql :window))
+                                                           (other-object (eql :top-wing))
+                                                           (attachment (eql :window-attachment)))
+  0.005)
+
 (man-int:def-object-type-in-other-object-transform :bolt :window :window-thread
   :attachment-translation `(-0.0125 0.0 -0.02)
   :attachment-rot-matrix man-int:*identity-matrix*)
 
 (man-int:def-object-type-in-other-object-transform :bolt :propeller :propeller-thread
-  :attachment-translation `(0.0 0.0 -0.02)
+  :attachment-translation `(0.0 0.0 -0.005)
   :attachment-rot-matrix man-int:*identity-matrix*)
 

@@ -320,14 +320,11 @@ environment, in which it can be found, respectively."
   "Takes an X and Y coordinate, but ignores them, and returns a quaternion
 to face from `pos1' towards `pos2'."
   (declare (ignore x y))
-  (let* ((point1 (etypecase pos1
+  (let ((point1 (etypecase pos1
                    (cl-transforms:pose (cl-transforms:origin pos1))
-                   (cl-transforms:3d-vector pos1)))
-         (point2 (etypecase pos2
-                   (cl-transforms:pose (cl-transforms:origin pos2))
-                   (cl-transforms:3d-vector pos2)))
-         (p-rel (cl-transforms:v- point2 point1)))
-    (atan (cl-transforms:y p-rel) (cl-transforms:x p-rel))))
+                   (cl-transforms:3d-vector pos1))))
+    (costmap:angle-to-point-direction
+     (cl-transforms:x point1) (cl-transforms:y point1) pos2)))
 
 (defun make-point-to-point-generator (pos1 pos2 &key (samples 1) sample-step sample-offset)
   "Returns a function that takes an X and Y coordinate and returns a lazy-list of
@@ -345,8 +342,9 @@ quaternions to face from `pos1' to `pos2'."
   "Takes an X and Y coordinate and returns a quaternion between the one facing
 from pos1 to pos2 and the one facing from (X,Y) to target-pos."
   (let ((pos-direction (point-to-point-direction 0 0 pos1 pos2))
-        (target-direction (costmap::angle-to-point-direction x y target-pos)))
-    (/ (+ pos-direction target-direction) 2)))
+        (target-direction (costmap:angle-to-point-direction x y target-pos)))
+    (+ pos-direction
+       (/ (cl-transforms:normalize-angle (- target-direction pos-direction)) 2))))
 
 (defun make-angle-halfway-to-point-generator (pos1 pos2 target-pos &key (samples 1) sample-step sample-offset)
   "Returns a function that takes an X and Y coordinate and returns a lazy-list of

@@ -43,7 +43,7 @@
                cram-designators
                cram-occasions-events
                cram-executive
-               cram-utilities ; for cut:var-value of prolog stuff and equalize-lists
+               cram-utilities ; for cut:var-value, cut:force-ll, equalize-lists
 
                cram-tf
                cram-plan-occasions-events
@@ -61,14 +61,24 @@
 
      ;; actions such as REACHING, LIFTING, GRASPING, GRIPPING, LOOKING-AT, etc.
      (:file "atomic-action-plans" :depends-on ("package"))
-     (:file "atomic-action-designators" :depends-on ("package" "atomic-action-plans"))
+     (:file "atomic-action-designators" :depends-on ("package"
+                                                     "atomic-action-plans"))
 
      ;; PICKING-UP and PLACING actions
-     (:file "pick-place-plans" :depends-on ("package" "atomic-action-designators"))
+     (:file "pick-place-plans" :depends-on ("package"
+                                            "atomic-action-designators"))
      (:file "pick-place-designators" :depends-on ("package"
                                                   "pick-place-plans"))
 
      ;; high-level plans such as DRIVE-AND-PICK-UP, PERCEIVE, etc.
      (:file "high-level-plans" :depends-on ("package"
                                             "atomic-action-designators"
-                                            "pick-place-designators"))))))
+                                            "pick-place-designators"))
+
+     ;; pouring plans
+     (:file "pour-plans" :depends-on ("package"
+                                      "atomic-action-designators"
+                                      ;; for parking-arms
+                                      "pick-place-designators"))
+     (:file "pour-designators" :depends-on ("package"
+                                            "pour-plans"))))))

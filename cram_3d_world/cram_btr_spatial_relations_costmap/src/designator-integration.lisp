@@ -81,7 +81,7 @@ have the highest values, so we put a threshold on the solution values.")
       (let ((for-prop-value (desig:desig-prop-value desig :for)))
         (if (and for-prop-value
                  (prolog `(and
-                           (btr-belief:object-designator-name ,for-prop-value ?object-name)
+                           (object-designator-from-name-or-type ,for-prop-value ?object-name)
                            (btr:item-type ?world ?object-name ?_)))
                  (costmap::get-cached-costmap desig))
             (if (prolog `(desig-solution-not-in-collision ,desig ,for-prop-value ,pose))

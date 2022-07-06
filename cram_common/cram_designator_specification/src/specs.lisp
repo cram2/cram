@@ -77,7 +77,9 @@
 
   (<- (%property ?designator (?number-key ?value))
     (lisp-pred typep ?designator desig:motion-designator)
-    (member ?number-key (:effort :joint-angle :joint-angle-threshold :speed))
+    (member ?number-key (:effort
+                         :joint-angle :joint-angle-threshold :speed
+                         :duration))
     (property-member (?number-key ?value) ?designator)
     (assert-type ?value (or keyword number) "MOTION SPEC:PROPERTY"))
 
@@ -147,7 +149,7 @@
 
   (<- (%property ?designator (?number-key ?value))
     (lisp-pred typep ?designator desig:action-designator)
-    (member ?number-key (:position :effort :distance))
+    (member ?number-key (:position :effort :distance :duration))
     (property-member (?number-key ?value) ?designator)
     (assert-type ?value number "ACTION SPEC:PROPERTY"))
 
@@ -199,7 +201,8 @@
     (member ?object-desig-key (:object
                                :in :on :above
                                :left-of :right-of :in-front-of :behind
-                               :far-from :near))
+                               :far-from :near
+                               :of))
     (property-member (?object-desig-key ?value) ?designator)
     (assert-type ?value desig:object-designator "LOCATION SPEC:PROPERTY"))
 
@@ -231,9 +234,15 @@
 
   (<- (%property ?designator (?keyword-key ?name))
     (lisp-pred typep ?designator desig:object-designator)
-    (member ?keyword-key (:name :urdf-name))
+    (member ?keyword-key (:name))
     (property-member (?keyword-key ?name) ?designator)
     (assert-type ?name symbol "OBJECT SPEC:PROPERTY"))
+
+  (<- (%property ?designator (?keyword-key ?name))
+    (lisp-pred typep ?designator desig:object-designator)
+    (member ?keyword-key (:urdf-name))
+    (property-member (?keyword-key ?name) ?designator)
+    (assert-type ?name (or symbol string) "OBJECT SPEC:PROPERTY"))
 
   (<- (%property ?designator (:part-of ?environment-or-robot))
     (lisp-pred typep ?designator desig:object-designator)

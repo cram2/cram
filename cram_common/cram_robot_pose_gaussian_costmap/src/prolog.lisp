@@ -147,6 +147,10 @@
   (<- (costmap:desig-costmap ?desig ?cm)
     (costmap:costmap ?cm)
     (desig-prop ?desig (:reachable-from ?from-what))
+    (not (or (desig-prop ?desig (:pose ?_))
+             (desig-prop ?desig (:poses ?_))
+             (desig-prop ?desig (:attachments ?_))
+             (desig-prop ?desig (:attachment ?_))))
     (or (and (lisp-type ?from-what symbol)
              ;; (cram-robot-interfaces:robot ?from-what)
              (lisp-fun cram-tf:robot-current-pose ?pose))
@@ -159,7 +163,10 @@
      reachable-from-space
      (costmap:make-range-cost-function ?point ?distance)
      ?cm)
-    (costmap:costmap-add-function
-     reachable-from-weighted
-     (costmap:make-location-cost-function ?pose ?distance)
-     ?cm)))
+    ;; Locations closer to the robot are not necessarily better
+    ;; than the further ones, so commenting this out.
+    ;; (costmap:costmap-add-function
+    ;;  reachable-from-weighted
+    ;;  (costmap:make-location-cost-function ?pose ?distance)
+    ;;  ?cm)
+    ))

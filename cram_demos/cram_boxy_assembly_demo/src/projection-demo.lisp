@@ -195,6 +195,7 @@
                   spawning-data)))
 
     (btr:attach-object 'motor-grill 'underbody)
+    (btr:attach-object 'holder-top-wing 'top-wing :loose T)
 
     objects))
 
@@ -386,7 +387,7 @@
          (base-right-side-left-hand-pose
            `((,base-x 0.7 0) (0 0 0 1)))
          (base-very-right-side-left-hand-pose
-           `((,(- base-x 0.2) 0.65 0) (0 0 0 1))))
+           `((,(- base-x 0.18) 0.65 0) (0 0 0 1))))
 
     (urdf-proj:with-projected-robot
       ;; 1
@@ -436,7 +437,7 @@
                   :window-thread)
 
       ;; 10
-      (go-connect :top-wing  base-somewhat-left-side-left-hand-pose
+      (go-connect :top-wing  base-left-side-left-hand-pose
                   :holder-plane-vertical base-left-side-left-hand-pose
                   ;; or `((,(- *base-x* 0.00) 1.45 0) (0 0 0 1))
                   :vertical-attachment)

@@ -10,7 +10,7 @@
   </include>
 
   <arg name="model" default="$(find iai_kitchen)/urdf/IAI_kitchen.urdf.xacro"/>
-  <param name="kitchen_description" command="$(find xacro)/xacro.py '$(arg model)'" />
+  <param name="kitchen_description" command="$(find xacro)/xacro '$(arg model)'" />
   <node name="spawn_kitchen" pkg="gazebo_ros" type="spawn_model"
         args="-param kitchen_description -urdf -model IAI_kitchen "/>
 

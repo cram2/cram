@@ -32,6 +32,7 @@
 (defparameter *plate-x* -1.1115)
 (defparameter *plate-y* 1.6)
 (defparameter *plate-z* 0.8626)
+(defparameter *original-plate-z* 0.8626)
 
 (defparameter *plate-rad-x* 0.36)
 (defparameter *plate-rad-y* 0.60)
@@ -116,7 +117,7 @@
      ((,*holder-plane-vertical-rad-x*
        ,(- 1.0 *holder-plane-vertical-rad-y*)
        ,*holder-plane-vertical-rad-z*)
-      (0 0 0 1)))
+      (0 0 1 0)))
     (:holder-top-wing
      :holder-top-wing
      ,*yellow-plastic*
@@ -187,7 +188,7 @@
     (:propeller
      :propeller
      ,*yellow-plane*
-     ((0.075 1.10 0) (0 0 0 1)))
+     ((0.075 1.13 0) ,man-int:*rotation-around-z-90-list*))
     (:front-wheel-1
      :front-wheel
      ,*black-plane*
@@ -207,13 +208,7 @@
 
 
 (defun spawn-assembly-objects (&optional (spawning-data *object-spawning-data*))
-  (btr-utils:kill-all-objects)
-  (btr:detach-all-objects (btr:get-robot-object))
-  (btr:detach-all-objects (btr:get-environment-object))
-  ;; detach all items from each other
-  (mapcar #'btr:detach-all-objects
-          (remove-if-not (lambda (obj) (typep obj 'btr:item))
-                         (btr:objects btr:*current-bullet-world*)))
+  (kill-and-detach-all)
   ;; spawn objects at default poses
   (let ((objects
           (mapcar (lambda (object-name-type-pose-list)
@@ -251,119 +246,11 @@
 
     objects))
 
-;;; ASSEMBLY STEPS:
-;;; (1)  put chassis on holder (bump inwards)
-;;; (2)  put bottom wing on chassis
-;;; *    maybe: dont hit the top-wing with the arm
-;;; (3)  put underbody on bottom wing
-;;; (4)  put upperbody on underbody
-;;; (5)  screw rear hole
-;;; (6)  put top wing on body
-;;; (7)  screw top wing
-;;; (8)  put window on body
-;;; (9)  screw window
-;;; (10) put plane on vertical holder
-;;; (11) put propeller on grill
-;;; (12) screw propeller
-;;; * put wheel on
-;;; * screw nut onto wheel
-;;; * put other wheel on
-;;; * screw nut onto wheel
-;;; * screw bottom body
-(defun assembly-demo ()
-  (urdf-proj:with-projected-robot
-    ;;(setf cram-robosherlock::*no-robosherlock-mode* t)
-    (spawn-assembly-objects)
-    (let ((old-visibility btr:*visibility-threshold*))
-      (setf btr:*visibility-threshold*
-            (case (rob-int:get-robot-name)
-              (:iai-donbot 0.1) ; perceiving with an object in hand is hard
-              (t 0.4)))
-      (unwind-protect
-           (let* ((?env-name
-                    (rob-int:get-environment-name))
-                  (wooden-plate
-                    (desig:an object
-                              (type big-wooden-plate)
-                              (location (desig:a location
-                                                 (on (desig:an object
-                                                               (type counter-top)
-                                                               (urdf-name
-                                                                kitchen-island-surface)
-                                                               (part-of ?env-name)))
-                                                 ;; (side back)
-                                                 (side front)
-                                                 (range 0.3))))))
-             ;; 1
-             (go-transport :chassis '(:side :left) :holder-plane-horizontal '(:range 0.3)
-                           :horizontal-attachment
-                           wooden-plate)
-             ;; 2
-             (go-transport :bottom-wing '(:side :right) :chassis '(:range 0.3)
-                           :wing-attachment
-                           wooden-plate)
-             ;; 3
-             (go-transport :underbody '(:side :right) :bottom-wing '(:range 0.3)
-                           :body-attachment
-                           wooden-plate)
 
-             ;; we put the underbody on the bottom-wing but by doing that
-             ;; we also put it on the rear-wing.
-             ;; as there is no explicit placing action,
-             ;; the attachment that we get is loose,
-             ;; so we have to attach them manually unfortunately.
-             ;; this is required for later moving the whole plane onto another holder
-             (btr:attach-object :underbody :rear-wing)
-
-             ;; 4
-             (go-transport :upper-body '(:side :right) :underbody '(:range 0.3)
-                           :body-on-body
-                           wooden-plate)
-             ;; 5
-             (go-transport :bolt '(:side :right) :upper-body '(:range 0.3)
-                           :rear-thread
-                           wooden-plate)
-             ;; 6
-             (go-transport :top-wing '(:side :left) :upper-body '(:range 0.3)
-                           :wing-attachment
-                           wooden-plate)
-             ;; 7
-             (go-transport :bolt :bolt :top-wing '(:range 0.3)
-                           :middle-thread
-                           wooden-plate)
-             ;; 8
-             (go-transport :window '(:side :left) :top-wing '(:range 0.3)
-                           :window-attachment
-                           wooden-plate)
-             ;; 9
-             (go-transport :bolt :bolt :window '(:range 0.3)
-                           :window-thread
-                           wooden-plate)
-
-             ;; 10
-             (go-transport :top-wing  '(:range 0.3) :holder-plane-vertical '(:side :left)
-                           ;; or `((,(- *base-x* 0.00) 1.45 0) (0 0 0 1))
-                           :vertical-attachment
-                           wooden-plate)
-
-             ;; 11
-             (go-transport :propeller '(:side :left) :motor-grill '(:side :left)
-                           ;; or `((,(- *base-x* 0.15) 1.8 0) (0 0 0 1))
-                           :propeller-attachment
-                           wooden-plate)
-
-             ;; 12
-             (go-transport :bolt :bolt :propeller '(:side :left)
-                           ;; or `((,*base-x* 1.85 0) (0 0 0 1))
-                           :propeller-thread
-                           wooden-plate))
-        (setf btr:*visibility-threshold* old-visibility)))))
-
-
-(defun go-transport (?object-type ?object-location-property
-                     ?other-object-type ?other-object-location-property
-                     ?attachment-type
-                     ?wooden-plate)
+(defun transport (?object-type ?object-location-property
+                  ?other-object-type ?other-object-location-property
+                  ?attachment-type
+                  ?wooden-plate)
   (let* ((?env-name
            (rob-int:get-environment-name))
          (?object-location
@@ -401,6 +288,120 @@
                                 (on ?other-object)
                                 (for ?object)
                                 (attachments (?attachment-type))))))))
+
+;;; ASSEMBLY STEPS:
+;;; (1)  put chassis on holder (bump inwards)
+;;; (2)  put bottom wing on chassis
+;;; *    maybe: dont hit the top-wing with the arm
+;;; (3)  put underbody on bottom wing
+;;; (4)  put upperbody on underbody
+;;; (5)  screw rear hole
+;;; (6)  put top wing on body
+;;; (7)  screw top wing
+;;; (8)  put window on body
+;;; (9)  screw window
+;;; (10) put plane on vertical holder
+;;; (11) put propeller on grill
+;;; (12) screw propeller
+;;; * put wheel on
+;;; * screw nut onto wheel
+;;; * put other wheel on
+;;; * screw nut onto wheel
+;;; * screw bottom body
+(defun assembly-demo ()
+  (when (eq (rob-int:get-robot-name) :tiago-dual)
+    (let ((kitchen-island-offset -0.2))
+      (setf *plate-z* (+ *plate-z* kitchen-island-offset))
+      (btr-belief:vary-kitchen-urdf `(("kitchen_island_footprint_joint"
+                                       ((-1.365d0 0.59d0 ,kitchen-island-offset) (0 0 0 1)))))
+      (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
+      (btr-belief:spawn-world)))
+
+  (urdf-proj:with-projected-robot
+    ;;(setf cram-robosherlock::*no-robosherlock-mode* t)
+    (spawn-assembly-objects)
+    (let ((old-visibility btr:*visibility-threshold*))
+      (setf btr:*visibility-threshold*
+            (case (rob-int:get-robot-name)
+              (:iai-donbot 0.1) ; perceiving with an object in hand is hard
+              (t 0.4)))
+      (unwind-protect
+           (let* ((?env-name
+                    (rob-int:get-environment-name))
+                  (wooden-plate
+                    (desig:an object
+                              (type big-wooden-plate)
+                              (location (desig:a location
+                                                 (on (desig:an object
+                                                               (type counter-top)
+                                                               (urdf-name
+                                                                kitchen-island-surface)
+                                                               (part-of ?env-name)))
+                                                 ;; (side back)
+                                                 (side front)
+                                                 (range 0.3))))))
+             ;; 1
+             (transport :chassis '(:side :left) :holder-plane-horizontal '(:range 0.3)
+                        :horizontal-attachment
+                        wooden-plate)
+             ;; 2
+             (transport :bottom-wing '(:side :right) :chassis '(:range 0.3)
+                        :wing-attachment
+                        wooden-plate)
+             ;; 3
+             (transport :underbody '(:side :right) :bottom-wing '(:range 0.3)
+                        :body-attachment
+                        wooden-plate)
+
+             ;; we put the underbody on the bottom-wing but by doing that
+             ;; we also put it on the rear-wing.
+             ;; as there is no explicit placing action,
+             ;; the attachment that we get is loose,
+             ;; so we have to attach them manually unfortunately.
+             ;; this is required for later moving the whole plane onto another holder
+             (btr:attach-object :underbody :rear-wing)
+
+             ;; 4
+             (transport :upper-body '(:side :right) :underbody '(:range 0.3)
+                        :body-on-body
+                        wooden-plate)
+             ;; 5
+             (transport :bolt '(:side :right) :upper-body '(:range 0.3)
+                        :rear-thread
+                        wooden-plate)
+             ;; 6
+             (transport :top-wing '(:side :left) :upper-body '(:range 0.3)
+                        :wing-attachment
+                        wooden-plate)
+             ;; 7
+             (transport :bolt :bolt :top-wing '(:range 0.3)
+                        :middle-thread
+                        wooden-plate)
+             ;; 8
+             (transport :window '(:side :left) :top-wing '(:range 0.3)
+                        :window-attachment
+                        wooden-plate)
+             ;; 9
+             (transport :bolt :bolt :window '(:range 0.3)
+                        :window-thread
+                        wooden-plate)
+
+             ;; 10
+             (transport :top-wing  '(:range 0.3) :holder-plane-vertical '(:side :left)
+                        :vertical-attachment
+                        wooden-plate)
+
+             ;; 11
+             (transport :propeller '(:side :left) :motor-grill '(:side :left)
+                        :propeller-attachment
+                        wooden-plate)
+
+             ;; 12
+             (transport :bolt :bolt :propeller '(:side :left)
+                        :propeller-thread
+                        wooden-plate))
+        (setf *plate-z* *original-plate-z*)
+        (setf btr:*visibility-threshold* old-visibility)))))
 
 
 #+boxy-action-examples

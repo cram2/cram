@@ -47,6 +47,7 @@
                   ((:right-grasp ?right-grasp))
                   location-type
                   ((:look-pose ?look-pose))
+                  robot-arm-is-also-a-neck
                   ((:left-reach-poses ?left-reach-poses))
                   ((:right-reach-poses ?right-reach-poses))
                   ((:left-grasp-poses ?left-grasp-poses))
@@ -69,18 +70,19 @@
   (cram-tf:visualize-marker (man-int:get-object-pose ?object-designator)
                             :r-g-b-list '(1 1 0) :id 300)
 
-  (roslisp:ros-info (pick-place pick-up) "Looking")
-  (cpl:with-failure-handling
-      ((common-fail:ptu-low-level-failure (e)
-         (roslisp:ros-warn (pp-plans pick-up)
-                           "Looking-at had a problem: ~a~%Ignoring."
-                           e)
-         (return)))
-    (exe:perform
-     (desig:an action
-               (type looking)
-               (target (desig:a location
-                                (pose ?look-pose))))))
+  (unless robot-arm-is-also-a-neck
+    (roslisp:ros-info (pick-place pick-up) "Looking")
+    (cpl:with-failure-handling
+        ((common-fail:ptu-low-level-failure (e)
+           (roslisp:ros-warn (pp-plans pick-up)
+                             "Looking-at had a problem: ~a~%Ignoring."
+                             e)
+           (return)))
+      (exe:perform
+       (desig:an action
+                 (type looking)
+                 (target (desig:a location
+                                  (pose ?look-pose)))))))
   (cpl:par
     (roslisp:ros-info (pick-place pick-up) "Opening gripper and reaching")
     (let ((?goal `(cpoe:gripper-joint-at ,?arm ,?gripper-opening)))
@@ -186,6 +188,7 @@
                 ((:gripper-opening ?gripper-opening))
                 ((:attachment-type ?placing-location-name))
                 ((:look-pose ?look-pose))
+                robot-arm-is-also-a-neck
                 ((:left-reach-poses ?left-reach-poses))
                 ((:right-reach-poses ?right-reach-poses))
                 ((:left-put-poses ?left-put-poses))
@@ -205,18 +208,19 @@
            (ignore location-type))
   "Reach, put, assert assemblage if given, open gripper, retract grasp event, retract arm."
 
-  (roslisp:ros-info (pick-place place) "Looking")
-  (cpl:with-failure-handling
-      ((common-fail:ptu-low-level-failure (e)
-         (roslisp:ros-warn (pp-plans place)
-                           "Looking-at had a problem: ~a~%Ignoring."
-                           e)
-         (return)))
-    (exe:perform
-     (desig:an action
-               (type looking)
-               (target (desig:a location
-                                (pose ?look-pose))))))
+  (unless robot-arm-is-also-a-neck
+    (roslisp:ros-info (pick-place place) "Looking")
+    (cpl:with-failure-handling
+        ((common-fail:ptu-low-level-failure (e)
+           (roslisp:ros-warn (pp-plans place)
+                             "Looking-at had a problem: ~a~%Ignoring."
+                             e)
+           (return)))
+      (exe:perform
+       (desig:an action
+                 (type looking)
+                 (target (desig:a location
+                                  (pose ?look-pose)))))))
   (roslisp:ros-info (pick-place place) "Reaching")
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
@@ -239,7 +243,8 @@
          (roslisp:ros-warn (pp-plans pick-up)
                            "Manipulation messed up: ~a~%Ignoring."
                            e)
-         (return)))
+         ;; (return)
+         ))
     (let ((?goal `(cpoe:tool-frames-at ,?left-put-poses ,?right-put-poses)))
       (exe:perform
        (desig:an action

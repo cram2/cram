@@ -75,7 +75,8 @@
                                 (declare (ignore result))
                                 (when (or (not status)
                                           (member status '(:preempted :aborted :timeout)))
-                                  (make-instance 'common-fail:manipulation-low-level-failure
+                                  (make-instance
+                                      'common-fail:environment-manipulation-goal-not-reached
                                     :description "Giskard action failed.")))))
       (call-action
        :action-goal (make-environment-manipulation-goal
@@ -85,5 +86,6 @@
                               (declare (ignore result))
                               (when (or (not status)
                                         (member status '(:preempted :aborted :timeout)))
-                                (make-instance 'common-fail:manipulation-low-level-failure
+                                (make-instance
+                                    'common-fail:environment-manipulation-goal-not-reached
                                   :description "Giskard action failed."))))))

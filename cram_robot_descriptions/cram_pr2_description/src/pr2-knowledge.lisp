@@ -38,6 +38,8 @@
                               camera-minimal-height camera-maximal-height
                               camera-horizontal-angle camera-vertical-angle
                               robot-neck-links robot-neck-joints
+                              robot-neck-pan-joint-forward-facing-axis-sign
+                              robot-neck-tilt-joint-forward-facing-axis-sign
                               robot-joint-states robot-pose)
 
   (<- (robot-odom-frame :pr2 "odom_combined"))
@@ -59,6 +61,11 @@
 
   (<- (robot-neck-links :pr2 "head_pan_link" "head_tilt_link"))
   (<- (robot-neck-joints :pr2 "head_pan_joint" "head_tilt_joint"))
+
+  (<- (robot-neck-pan-joint-forward-facing-axis-sign :pr2
+                                                     cl-transforms:x +1))
+  (<- (robot-neck-tilt-joint-forward-facing-axis-sign :pr2
+                                                      cl-transforms:x -1))
 
   (<- (robot-joint-states :pr2 :neck ?_ :forward ((?pan_joint 0.0) (?tilt_joint 0.0)))
     (robot-neck-joints :pr2 ?pan_joint ?tilt_joint))

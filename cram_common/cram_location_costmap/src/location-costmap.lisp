@@ -219,8 +219,8 @@ calls the generator functions and runs normalization."
     (destructuring-bind (column row)
         (funcall sampling-function cost-map)
       (with-slots (origin-x origin-y resolution) map
-        (let* ((x (+ (* column resolution) origin-x))
-               (y (+ (* row resolution) origin-y))
+        (let* ((x (+ (* column resolution) origin-x (/ resolution 2.0)))
+               (y (+ (* row resolution) origin-y (/ resolution 2.0)))
                (z (generate-height map x y))
                (point (cl-transforms:make-3d-vector x y z)))
           (on-visualize-costmap-sample point)

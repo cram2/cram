@@ -115,22 +115,39 @@
    (cl-transforms:make-3d-vector 0 -0.15 0.48)
    (cl-transforms:make-quaternion 0.5 0.5 0 0)))
 
-(defun spawn-object-n-times (type pose times color &optional offset-axis offset)
-  "`offset-axis' can be one of :x, :y or :z."
-  (loop for i from 0 to (1- times)
-        for name = (intern (string-upcase (format nil "~a-~a" type i)) :keyword)
-        do (when offset-axis
-             (setf pose (cram-tf:translate-pose pose offset-axis offset)))
-           ;; if object with name NAME already exists, create a new unique name
-           (when (btr:object btr:*current-bullet-world* name)
-             (setf i (+ i times)
-                   name (intern (string-upcase (format nil "~a-~a" type i))
-                                :keyword)))
-           (btr:add-object btr:*current-bullet-world* :mesh name pose :mesh type
-                           :mass 0.0
-                           :color color)))
+;; Calculated based on the basket grasp pose
+#+first-set-the-basket-correctly-in-hand-then-take-the-relative-pose
+(let* ((obj-T-std-gripper
+               (man-int:get-object-type-to-gripper-transform
+                :basket :b :left :top))
+             (map-T-std-gripper
+               (cl-transforms:transform*
+                (cl-transforms:reference-transform
+                 (btr:link-pose (btr:get-robot-object) "gripper_left_grasping_frame"))
+                (cl-transforms:make-transform
+                 (cl-transforms:make-3d-vector (- 0.24 0.150575d0) 0 0 )
+                 (cl-transforms:make-identity-rotation))
+                (cl-transforms:transform-inv
+                 (cl-transforms:make-transform
+                  (cl-transforms:make-identity-vector)
+                  (cl-transforms:matrix->quaternion
+                   #2A((0 1 0)
+                       (0 0 1)
+                       (1 0 0)))))))
+             (map-T-obj
+               (cl-transforms:transform*
+                map-T-std-gripper
+                (cl-transforms:transform-inv
+                 obj-T-std-gripper))))
+         (setf (btr:pose (btr:object btr:*current-bullet-world* :b))
+               (cl-transforms:transform->pose map-T-obj)))
+(defparameter *basket-in-tiago-wrist*
+  (cl-transforms:make-transform
+   (cl-transforms:make-3d-vector 0.42 0.15 0)
+   (cl-transforms:make-quaternion -0.5 0.5 0.5 -0.5))
+  "In end-effector frame.")
 
-(defun spawn-objects-on-big-shelf ()
+(defun spawn-objects-on-big-shelf (&optional (minimal-color 0.0))
   (let ((type-and-pose-list
           (make-poses-relative-multiple *big-shelf-poses* "shelf_1_")))
     (mapcar (lambda (type-and-pose)
@@ -139,7 +156,9 @@
                  type
                  pose
                  (+ (random 3) 1)
-                 (list (random 1.0) (random 1.0) (random 1.0))
+                 (list (cut:random-with-minimum 1.0 minimal-color)
+                       (cut:random-with-minimum 1.0 minimal-color)
+                       (cut:random-with-minimum 1.0 minimal-color))
                 :x
                 0.13)))
             type-and-pose-list)))
@@ -251,10 +270,9 @@
                                  (btr:remove-object
                                   btr:*current-bullet-world* name)))))))
 
-(defun spawn-objects-on-small-shelf ()
+(defun spawn-objects-on-small-shelf (&optional (minimal-color 0.0))
   (sb-ext:gc :full t)
   (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))
-  (btr:clear-costmap-vis-object)
   ;; (btr-utils:kill-all-objects)
   (btr:detach-all-objects (btr:get-robot-object))
   (btr:detach-all-objects (btr:get-environment-object))
@@ -271,18 +289,27 @@
             poses)
     (btr:add-object btr:*current-bullet-world*
                     :box-item
-                    :small-shelf-collision-box
+                    :small-shelf-dish-washer-tabs-collision-box
                     (cdr (find :dish-washer-tabs poses :key #'car))
                     :mass 0.0
-                    :size '(0.15 0.2 0.1)
+                    :size '(0.15 0.1 0.1)
+                    :color '(0 0 0)
+                    :item-type :collision-thingy)
+    (btr:add-object btr:*current-bullet-world*
+                    :box-item
+                    :small-shelf-balea-bottle-collision-box
+                    (cdr (find :balea-bottle poses :key #'car))
+                    :mass 0.0
+                    :size '(0.15 0.1 0.1)
                     :color '(0 0 0)
                     :item-type :collision-thingy))
 
   (spawn-random-box-objects-on-shelf "shelf_2_base"
                                      :start-x-offset 0.05
-                                     :minimal-color 0.6)
+                                     :minimal-color minimal-color)
 
-  (btr:remove-object btr:*current-bullet-world* :small-shelf-collision-box)
+  (btr:remove-object btr:*current-bullet-world* :small-shelf-dish-washer-tabs-collision-box)
+  (btr:remove-object btr:*current-bullet-world* :small-shelf-balea-bottle-collision-box)
   ;; (btr:simulate btr:*current-bullet-world* 50)
   )
 
@@ -310,6 +337,8 @@
          (wrist-T-basket
            (case (rob-int:get-robot-name)
              (:pr2 *basket-in-pr2-wrist*)
+             (:boxy *basket-in-boxy-wrist*)
+             (:tiago-dual *basket-in-tiago-wrist*)
              (t *basket-in-boxy-wrist*)))
          (map-T-basket
            (cl-transforms:transform*
@@ -339,7 +368,10 @@
   ;; (setf cram-tf:*tf-broadcasting-enabled* t)
   ;; (roslisp-utilities:startup-ros)
   (urdf-proj:with-simulated-robot
-
+    (if (eql (rob-int:get-robot-name) :kmr-iiwa)
+        (setf btr:*visibility-threshold* 0.7)
+        (setf btr:*visibility-threshold* 0.5))
+    (kill-and-detach-all)
     (let ((?pose (cl-transforms-stamped:make-pose-stamped
                   "map" 0.0
                   (cl-transforms-stamped:make-3d-vector 2 0 0.0d0)
@@ -348,20 +380,12 @@
        (desig:a motion
                 (type going)
                 (pose ?pose))))
-
-    (if (eql (rob-int:get-robot-name) :kmr-iiwa)
-        (setf btr:*visibility-threshold* 0.7)
-        (setf btr:*visibility-threshold* 0.5))
-    (btr-utils:kill-all-objects)
-    (btr:detach-all-objects (btr:get-robot-object))
-    (btr:detach-all-objects (btr:get-environment-object))
     (if (eql (rob-int:get-environment-name) :store)
         (spawn-objects-on-real-small-shelf)
         (progn
-          (spawn-objects-on-small-shelf)
-          (spawn-objects-on-big-shelf)))
-    (unless (or (eql (rob-int:get-robot-name) :iai-donbot)
-                (eql (rob-int:get-robot-name) :kmr-iiwa))
+          (spawn-objects-on-small-shelf 0.6)
+          (spawn-objects-on-big-shelf 0.6)))
+    (unless (member (rob-int:get-robot-name) '(:iai-donbot :kmr-iiwa))
       (spawn-basket))
 
     (let* ((?source-shelf-base-urdf-name
@@ -437,7 +461,7 @@
                                     (owl-name "donbot_tray")
                                     (urdf-name plate)))
                       (for ?dish-washer-tabs-desig)
-                      (attachments (donbot-tray-front donbot-tray-back))))
+                      (attachments (donbot-tray-back donbot-tray-front))))
            (?target-location-kukabot-tray-dish-washer-tabs
              (desig:a location
                       (on (desig:an object
@@ -447,16 +471,17 @@
                                     (owl-name "kukabot_tray")
                                     (urdf-name base-link)))
                       (for ?dish-washer-tabs-desig)
-                      (attachments (;; kukabot-tray-front
-                                    kukabot-tray-back))))
+                      (attachments (kukabot-tray-back kukabot-tray-front))))
            (?target-location-basket-dish-washer-tabs
              (desig:a location
                       (on (desig:an object
                                     (type basket)
                                     (name b)))
                       (for ?dish-washer-tabs-desig)
-                      (attachments (  ; in-basket-front
-                                    in-basket-back))))
+                      (attachments (in-basket-back
+                                    in-basket-front
+                                    in-basket-other-back
+                                    in-basket-other-front))))
            (?target-location-robot-dish-washer-tabs
              (case ?robot-name
                (:iai-donbot
@@ -475,7 +500,8 @@
                    (type transporting)
                    (object ?dish-washer-tabs-desig)
                    (target ?target-location-robot-dish-washer-tabs)
-                   (grasps (back)))))
+                   ;; (grasps (back))
+                   )))
       (cpl:with-failure-handling
           ((cpl:simple-plan-failure (e)
              (declare (ignore e))
@@ -485,7 +511,8 @@
                    (type transporting)
                    (object ?balea-bottle-desig)
                    (target ?target-location-shelf-balea-bottle)
-                   (grasps (back)))))
+                   ;; (grasps (back))
+                   )))
       (cpl:with-failure-handling
           ((cpl:simple-plan-failure (e)
              (declare (ignore e))
@@ -495,6 +522,7 @@
                    (type transporting)
                    (object ?dish-washer-tabs-desig)
                    (target ?target-location-shelf-dish-washer-tabs)
+                   ;; vvv donbot tries to grasp through itself otherwise
                    (grasps (back)))))
 
       ;; look at separators

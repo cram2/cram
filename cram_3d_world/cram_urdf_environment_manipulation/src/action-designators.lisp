@@ -43,9 +43,10 @@
     (-> (spec:property ?container-designator (:handle-axis ?handle-axis))
         (true)
         (lisp-fun get-handle-axis ?container-designator ?handle-axis))
+    (rob-int:robot ?robot)
     (-> (spec:property ?action-designator (:arm ?arm))
         (true)
-        (man-int:robot-free-hand ?_ ?arm))
+        (man-int:robot-free-hand ?robot ?arm))
     (lisp-fun get-container-link ?container-name ?btr-environment ?container-link)
     (lisp-fun get-connecting-joint ?container-link ?connecting-joint)
 
@@ -161,6 +162,10 @@
         (equal ?left-reach-poses (?look-pose . ?_))
         (equal ?right-reach-poses (?look-pose . ?_)))
 
+    (-> (man-int:robot-arm-is-also-a-neck ?robot ?arm)
+        (equal ?robot-arm-is-also-a-neck T)
+        (equal ?robot-arm-is-also-a-neck NIL))
+
     ;; make new action designator
     (desig:designator :action ((:type ?action-type)
                                (:arm ?arm)
@@ -168,6 +173,7 @@
                                (:distance ?clipped-distance)
                                (:absolute-distance ?absolute-distance)
                                (:look-pose ?look-pose)
+                               (:robot-arm-is-also-a-neck ?robot-arm-is-also-a-neck)
                                (:left-reach-poses ?left-reach-poses)
                                (:right-reach-poses ?right-reach-poses)
                                (:left-grasp-poses ?left-grasp-poses)

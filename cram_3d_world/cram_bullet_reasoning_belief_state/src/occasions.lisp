@@ -40,6 +40,7 @@
 
 (def-fact-group occasions (cpoe:object-in-hand
                            cpoe:object-at-location
+                           cpoe:object-placed
                            cpoe:robot-at-location
                            cpoe:torso-at
                            cpoe:gripper-joint-at
@@ -68,12 +69,16 @@
   ;; if we only want to know the link and don't care about the arm
   ;; it can be that the arm is not even given in the attachments
   ;; so we need a bit of copy paste here...
-  (<- (cpoe:object-in-hand ?object ?_ ?grasp ?link)
+  (<- (cpoe:object-in-hand ?object ?arm ?grasp ?link)
     (btr:bullet-world ?world)
     (rob-int:robot ?robot)
     (btr:attached ?world ?robot ?link ?object-name ?grasp)
     (once (and (object-designator-name ?object ?object-name)
-               (desig:obj-desig? ?object))))
+               (desig:obj-desig? ?object)))
+    (-> (bound ?arm)
+        (rob-int:end-effector-link ?robot ?arm ?link)
+        (once (or (rob-int:end-effector-link ?robot ?arm ?link)
+                  (true)))))
   ;;
   (<- (cpoe:object-in-hand ?object ?arm)
     (cpoe:object-in-hand ?object ?arm ?_))
@@ -96,6 +101,10 @@
     (desig:obj-desig? ?object)
     (object-designator-name ?object ?object-name)
     (%object-at-location ?_ ?object-name ?location))
+
+  (<- (cpoe:object-placed ?object ?location)
+    (cpoe:object-at-location ?object ?location)
+    (not (cpoe:object-in-hand ?object)))
 
 
   (<- (cpoe:torso-at ?joint-state)
