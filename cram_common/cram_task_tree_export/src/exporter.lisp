@@ -59,7 +59,7 @@ dry-run - don't generate dot file, just the graph object "
                           :if-does-not-exist :create)))
         (cl-dot:print-graph graph :stream stream)
         (close stream))
-      (format T "File exported to ~a.~%~a~%~a~%~a" *export-file-path*
+      (format T "File exported to ~a.~%~a~%~a~%~a" path
               "Install graphviz to convert from .dot file:"
               "dot -Tpdf <dot-in> -o <pdf-out>"
               "dot -Tsvg <dot-in> -o <svg-out>"))
