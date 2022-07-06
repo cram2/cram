@@ -145,44 +145,20 @@ and renames POSE into OLD-POSE."
          ;; :timestamp (cram-occasions-events:event-timestamp event)
          )))))
 
-
-
-
-(defun snap-object-onto-robot (object-type object-name arm grasp)
-  (cut:with-vars-strictly-bound (?ee-frame ?ee-P-tcp ?std-gripper-T-gripper)
-
-      (cut:lazy-car
-       (prolog:prolog
-        `(and
-          (rob-int:robot ?robot)
-          (rob-int:end-effector-link ?robot ,arm ?ee-frame)
-          (rob-int:tcp-in-ee-pose ?robot ?ee-P-tcp)
-          (rob-int:standard<-particular-gripper-transform ?robot ?std-gripper-T-gripper))))
-
-    (let* ((map-T-ee
-             (cl-transforms:reference-transform
-              (btr:link-pose (btr:get-robot-object) ?ee-frame)))
-           (ee-T-gripper
-             (cl-transforms:reference-transform ?ee-P-tcp))
-           (gripper-T-std-gripper
-             (cl-transforms:transform-inv ?std-gripper-T-gripper))
-           (obj-T-std-gripper
-             (man-int:get-object-type-to-gripper-transform
-              object-type object-name arm grasp))
-           (std-gripper-T-obj
-             (cl-transforms:transform-inv obj-T-std-gripper))
-           (map-T-obj
-             (cl-transforms:transform*
-              map-T-ee ee-T-gripper gripper-T-std-gripper std-gripper-T-obj)))
-      (setf (btr:pose (btr:object btr:*current-bullet-world* object-name))
-            (cl-transforms:transform->pose map-T-obj)))))
+(defun get-ee-link (arm)
+   (cut:var-value
+    '?ee-link
+    (car (prolog:prolog
+          `(and (cram-robot-interfaces:robot ?robot)
+                (cram-robot-interfaces:end-effector-link ?robot ,arm
+                                                         ?ee-link))))))
 
 (defmethod cram-occasions-events:on-event btr-attach-object 2 ((event cpoe:object-attached-robot))
   "2 means this method has to be ordered based on integer qualifiers.
 It could have been 1 but 1 is reserved in case somebody has to be even more urgently
 executed before everyone else.
 If there is no other method with 1 as qualifier, this method will be executed always first."
-  (let* ((robot-object-name (or (cpoe:event-other-object-name event)
+(let* ((robot-object-name (or (cpoe:event-other-object-name event)
                                 (rob-int:get-robot-name)))
          (robot-object (btr:object btr:*current-bullet-world* robot-object-name))
          (environment-object (btr:get-environment-object))
@@ -212,7 +188,10 @@ If there is no other method with 1 as qualifier, this method will be executed al
     ;; with the supporting objects. do not destroy the normal attachments,
     ;; as those are attachments to the supported objects and we want the
     ;; supported objects to still stay with our grasped object
-    (btr:remove-loose-attachment-for btr-object)
+    (mapcar (lambda (other-object-name)
+              (btr:detach-object
+               btr-object (btr:object btr:*current-bullet-world* other-object-name)))
+            (btr:get-loose-attached-objects btr-object))
     ;; now attach to the robot-object
     (when btr-object
       ;; if the object is already attached to some other robot link
@@ -228,13 +207,6 @@ If there is no other method with 1 as qualifier, this method will be executed al
                                                              :loose t
                                                              :grasp grasp))
                 links grasps)))
-      ;; This is not really necessary, as the object and the gripper should
-      ;; already be perfectly aligned. But if one wanted to test something out
-      ;; without bothering to move the robot, this could be useful.
-      ;; In that case please call the function yourself directly.
-      ;; For environment objects, which are also robot objects,
-      ;; the grasp transform is not defined, so this only works for robot robots.
-      ;; (snap-object-onto-robot (car (btr:item-types btr-object)) btr-object-name arm grasp)
       ;; attach
       (btr:attach-object robot-object btr-object :link link :loose nil :grasp grasp)
       ;; invalidate the pose in the designator
@@ -242,11 +214,12 @@ If there is no other method with 1 as qualifier, this method will be executed al
         (update-object-designator-with-attachment
          object-designator robot-object-name link)))))
 
+   
 (defmethod cram-occasions-events:on-event btr-detach-object 2 ((event cpoe:object-detached-robot))
   (let* ((robot-object (btr:get-robot-object))
          (environment-object (btr:get-environment-object))
          (btr-object-name (cpoe:event-object-name event))
-	 (first-arm (first (cpoe:event-arm event)))
+         (first-arm (first (cpoe:event-arm event)))
          (second-arm (second (cpoe:event-arm event)))
          (first-link (when first-arm
                        (if (get-ee-link first-arm)
@@ -269,8 +242,9 @@ If there is no other method with 1 as qualifier, this method will be executed al
         ;; if btr-object-name was given, detach it from the robot link
         (let ((btr-object (btr:object btr:*current-bullet-world* btr-object-name)))
           (when btr-object
-            (btr:detach-object robot-object btr-object :link link)
-            (btr:simulate btr:*current-bullet-world* 100)
+            (btr:detach-object robot-object btr-object :link first-link)
+            (btr:detach-object robot-object btr-object :link second-link)
+            (btr:simulate btr:*current-bullet-world* 10)
             ;; find the links and items that support the object
             ;; and attach the object to them.
             ;; links get proper attachments and items loose attachments
@@ -290,16 +264,15 @@ If there is no other method with 1 as qualifier, this method will be executed al
                   (contacting-items
                     (remove-if-not
                      (lambda (c) (typep c 'btr:item))
-                     (btr:find-objects-in-contact
-                      btr:*current-bullet-world* btr-object))))
+                     (btr:find-objects-in-contact btr:*current-bullet-world* btr-object))))
               ;; If btr-object is in contact with an item,
               ;; it will be attached loose.
               ;; Otherwise, if a link contacting btr-object was found,
               ;; btr-object will be attached to it.
-              (or (mapcar (lambda (item-object)
-                            (when item-object
-                              (btr:attach-object item-object btr-object :loose T)))
-                          contacting-items)
+              (or ;;-- (mapcar (lambda (item-object)
+                  ;;           (when item-object
+                  ;;             (btr:attach-object item-object btr-object :loose T)))
+                  ;;         contacting-items)
                   (mapcar (lambda (link-name)
                             (btr:attach-object
                              environment-object btr-object :link link-name))
@@ -312,8 +285,12 @@ If there is no other method with 1 as qualifier, this method will be executed al
                                     btr-object-name)))))
         ;; if btr-object-name was not given, detach all objects from the robot link
         (progn
-          (btr:detach-all-from-link robot-object link)
-          (btr:simulate btr:*current-bullet-world* 100)))))
+          (btr:detach-all-from-link robot-object first-link)
+          (btr:detach-all-from-link robot-object second-link)
+          (btr:simulate btr:*current-bullet-world* 10)))))
+
+
+
 
 (defmethod cram-occasions-events:on-event btr-attach-two-objs ((event cpoe:object-attached-object))
   (let* ((btr-object-name (cpoe:event-object-name event))
@@ -352,9 +329,12 @@ If there is no other method with 1 as qualifier, this method will be executed al
                (cram-tf:strip-transform-stamped
                 map-to-object-transform)))
         (setf (btr:pose btr-object) object-in-map-pose))
-      (if (prolog `(man-int:unidirectional-attachment ,attachment-type))
-          (btr:attach-object btr-other-object btr-object :loose T)
-          (btr:attach-object btr-other-object btr-object)))))
+      (print (prolog `(man-int:unidirectional-attachment ,attachment-type)))
+      (print attachment-type)
+      (let ((?attachment-type attachment-type))
+      (if (prolog `(man-int:unidirectional-attachment ?attachment-type))
+            (btr:attach-object btr-other-object btr-object :loose T)
+          (btr:attach-object btr-other-object btr-object))))))
 
 
 
@@ -396,13 +376,7 @@ If there is no other method with 1 as qualifier, this method will be executed al
     (publish-environment-joint-state (btr:joint-states (cpoe:environment-event-object event)))))
 
 
-(defun get-ee-link (arm)
-   (cut:var-value
-    '?ee-link
-    (car (prolog:prolog
-          `(and (cram-robot-interfaces:robot ?robot)
-                (cram-robot-interfaces:end-effector-link ?robot ,arm
-                                                         ?ee-link))))))
+
 #+old-Lorenzs-stuff-currently-not-used-but-maybe-in-the-future
 (
  (defun object-pose-in-frame (object frame)
@@ -435,5 +409,3 @@ If there is no other method with 1 as qualifier, this method will be executed al
         `((:in :gripper)
           (:pose ,(object-pose-in-frame object gripper-link)))))))
 )
-
-
