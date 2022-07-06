@@ -49,7 +49,7 @@
     ;; So far only this orientation works
     (:breakfast-cereal
      "oven_area_area_right_drawer_board_3_link"
-     ((-0.123 -0.03 0.11) (0.0087786 0.005395 -0.538767 -0.544393)))
+     ((0.10 -0.03 0.11) (0.0087786 0.005395 -0.838767 -0.544393)))
     ;; ((:breakfast-cereal . ((1.398 1.490 1.2558) (0 0 0.7071 0.7071)))
     ;; (:breakfast-cereal . ((1.1 1.49 1.25) (0 0 0.7071 0.7071)))
     (:milk
