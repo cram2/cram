@@ -41,13 +41,22 @@
 
 (defparameter *experiment-log-failures-to-count*
   '(common-fail:searching-failed common-fail:fetching-failed common-fail:delivering-failed
-    common-fail:perception-low-level-failure common-fail:navigation-low-level-failure
-    common-fail:manipulation-low-level-failure common-fail:ptu-low-level-failure))
+    common-fail:navigation-goal-not-reached
+    common-fail:manipulation-goal-not-reached
+    common-fail:gripper-low-level-failure
+    ;; common-fail:perception-low-level-failure common-fail:navigation-low-level-failure
+    ;; common-fail:manipulation-low-level-failure common-fail:ptu-low-level-failure
+    common-fail:environment-manipulation-goal-not-reached
+    common-fail:object-unreachable
+    common-fail:object-nowhere-to-be-found
+    common-fail:environment-unreachable))
 (defvar *experiment-log-current-demo-run-object-failures* nil)
 
 (defvar *experiment-log-current-execution-time-bowl* 0)
 (defvar *experiment-log-current-execution-time-cup* 0)
 (defvar *experiment-log-current-execution-time-spoon* 0)
+(defvar *experiment-log-current-execution-time-breakfast-cereal* 0)
+(defvar *experiment-log-current-execution-time-milk* 0)
 
 
 (defun experiment-log (string &key
@@ -69,7 +78,8 @@
                               :if-does-not-exist :create)
         (format stream "RUN_ID,OBJ_TYPE,FAIL_TYPE,TRANSPORT_FAIL,~
                         SEARCH_FAIL,FETCH_FAIL,DELIVER_FAIL,~
-                        PERCEPT_FAIL,NAV_FAIL,MANIP_FAIL,TIME_SEC~%~%~%")))
+                        NAV_FAIL,MANIP_FAIL,GRIP_FAIL,ENV_MANIP_FAIL,~
+                        REACH_FAIL,FIND_FAIL,ENV_REACH_FAIL,TIME_SEC~%~%~%")))))
     (with-open-file (stream file-path
                             :direction :output
                             :if-exists :append
@@ -152,33 +162,39 @@
     new-prop-list))
 
 (defun get-experiment-log-failures (failure-symbol &optional object-type)
-  (let ((failure-num
-          (if object-type
-              (getf (getf *experiment-log-current-demo-run-object-failures*
-                          object-type)
-                    failure-symbol)
-              (+ (getf (getf *experiment-log-current-demo-run-object-failures*
-                             'bowl)
-                       failure-symbol)
-                 (getf (getf *experiment-log-current-demo-run-object-failures*
-                             'cup)
-                       failure-symbol)
-                 (getf (getf *experiment-log-current-demo-run-object-failures*
-                             'spoon)
-                       failure-symbol)))))
-    (if (eql failure-symbol 'common-fail:perception-low-level-failure)
-        (/ failure-num 5)
-        failure-num)))
+  (if object-type
+      (getf (getf *experiment-log-current-demo-run-object-failures*
+                  object-type)
+            failure-symbol)
+      (+ (getf (getf *experiment-log-current-demo-run-object-failures*
+                     :bowl)
+               failure-symbol)
+         (getf (getf *experiment-log-current-demo-run-object-failures*
+                     :cup)
+               failure-symbol)
+         (getf (getf *experiment-log-current-demo-run-object-failures*
+                     :spoon)
+               failure-symbol)
+         (getf (getf *experiment-log-current-demo-run-object-failures*
+                     :breakfast-cereal)
+               failure-symbol)
+         (getf (getf *experiment-log-current-demo-run-object-failures*
+                     :milk)
+               failure-symbol))))
 
 (defun get-experiment-log-transport-duration (&optional object-type)
   (if object-type
       (case object-type
-        (bowl *experiment-log-current-execution-time-bowl*)
-        (cup *experiment-log-current-execution-time-cup*)
-        (spoon *experiment-log-current-execution-time-spoon*))
+        (:bowl *experiment-log-current-execution-time-bowl*)
+        (:cup *experiment-log-current-execution-time-cup*)
+        (:spoon *experiment-log-current-execution-time-spoon*)
+        (:breakfast-cereal *experiment-log-current-execution-time-breakfast-cereal*)
+        (:milk *experiment-log-current-execution-time-milk*))
       (+ *experiment-log-current-execution-time-bowl*
          *experiment-log-current-execution-time-cup*
-         *experiment-log-current-execution-time-spoon*)))
+         *experiment-log-current-execution-time-spoon*
+         *experiment-log-current-execution-time-breakfast-cereal*
+         *experiment-log-current-execution-time-milk*)))
 
 
 (defun experiment-log-current-demo-run-failures (&optional object-type)
@@ -193,21 +209,34 @@
             'common-fail:delivering-failed object-type))
          (transporting-failed
            (+ searching-failures fetching-failures delivering-failures))
-         (navigation-failures
+         (nav-failures
            (get-experiment-log-failures
-            'common-fail:navigation-low-level-failure object-type))
-         (manipulation-failures
+            'common-fail:navigation-goal-not-reached object-type))
+         (manip-failures
            (get-experiment-log-failures
-            'common-fail:manipulation-low-level-failure object-type))
-         (perception-failures
+            'common-fail:manipulation-goal-not-reached object-type))
+         (grip-failures
            (get-experiment-log-failures
-            'common-fail:perception-low-level-failure object-type))
+            'common-fail:gripper-low-level-failure object-type))
+         (env-manip-failures
+           (get-experiment-log-failures
+            'common-fail:environment-manipulation-goal-not-reached object-type))
+         (obj-reach-failures
+           (get-experiment-log-failures
+            'common-fail:object-unreachable object-type))
+         (obj-find-failures
+           (get-experiment-log-failures
+            'common-fail:object-nowhere-to-be-found object-type))
+         (env-reach-failures
+           (get-experiment-log-failures
+            'common-fail:environment-unreachable object-type))
          (duration
            (get-experiment-log-transport-duration object-type)))
-    (experiment-log (format nil "SUM,~a,~a,~a,~a,~a,~a,~a,~f"
+    (experiment-log (format nil "SUM,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~f"
                             transporting-failed
                             searching-failures fetching-failures delivering-failures
-                            perception-failures navigation-failures manipulation-failures
+                            nav-failures manip-failures grip-failures env-manip-failures
+                            obj-reach-failures obj-find-failures env-reach-failures
                             duration))
     (when *experiment-log-detailed?*
       (experiment-log (format nil "~%")))))
@@ -220,16 +249,22 @@
       (experiment-log (format nil "~%~%"))
       (experiment-log (format nil "")))
 
-  (setf (getf *experiment-log-current-demo-run-object-failures* 'bowl)
+  (setf (getf *experiment-log-current-demo-run-object-failures* :bowl)
         (generate-empty-failure-property-list))
-  (setf (getf *experiment-log-current-demo-run-object-failures* 'cup)
+  (setf (getf *experiment-log-current-demo-run-object-failures* :cup)
         (generate-empty-failure-property-list))
-  (setf (getf *experiment-log-current-demo-run-object-failures* 'spoon)
+  (setf (getf *experiment-log-current-demo-run-object-failures* :spoon)
+        (generate-empty-failure-property-list))
+  (setf (getf *experiment-log-current-demo-run-object-failures* :breakfast-cereal)
+        (generate-empty-failure-property-list))
+  (setf (getf *experiment-log-current-demo-run-object-failures* :milk)
         (generate-empty-failure-property-list))
 
   (setf *experiment-log-current-execution-time-bowl* 0
         *experiment-log-current-execution-time-cup* 0
-        *experiment-log-current-execution-time-spoon* 0))
+        *experiment-log-current-execution-time-spoon* 0
+        *experiment-log-current-execution-time-breakfast-cereal* 0
+        *experiment-log-current-execution-time-milk* 0))
 
 (defun experiment-log-finish-demo-run ()
   (setf *experiment-log-current-object* nil)
@@ -244,25 +279,43 @@
 (defun experiment-log-start-object-transport (object-type)
   (setf *experiment-log-current-object* object-type)
   (case object-type
-    (bowl (setf *experiment-log-current-execution-time-bowl* (roslisp:ros-time)))
-    (cup (setf *experiment-log-current-execution-time-cup* (roslisp:ros-time)))
-    (spoon (setf *experiment-log-current-execution-time-spoon* (roslisp:ros-time)))))
+    (:bowl (setf *experiment-log-current-execution-time-bowl*
+                 (roslisp:ros-time)))
+    (:cup (setf *experiment-log-current-execution-time-cup*
+                (roslisp:ros-time)))
+    (:spoon (setf *experiment-log-current-execution-time-spoon*
+                  (roslisp:ros-time)))
+    (:breakfast-cereal (setf *experiment-log-current-execution-time-breakfast-cereal*
+                             (roslisp:ros-time)))
+    (:milk (setf *experiment-log-current-execution-time-milk*
+                 (roslisp:ros-time)))))
 
 (defun experiment-log-finish-object-transport-successful (object-type)
   (when *experiment-log-detailed?*
     (experiment-log (format nil "TRANSPORTING SUCCEEDED~%")))
   (case object-type
-    (bowl (setf *experiment-log-current-execution-time-bowl*
-                (- (roslisp:ros-time) *experiment-log-current-execution-time-bowl*)))
-    (cup (setf *experiment-log-current-execution-time-cup*
-               (- (roslisp:ros-time) *experiment-log-current-execution-time-cup*)))
-    (spoon (setf *experiment-log-current-execution-time-spoon*
-                 (- (roslisp:ros-time) *experiment-log-current-execution-time-spoon*)))))
+    (:bowl (setf *experiment-log-current-execution-time-bowl*
+                 (- (roslisp:ros-time)
+                    *experiment-log-current-execution-time-bowl*)))
+    (:cup (setf *experiment-log-current-execution-time-cup*
+                (- (roslisp:ros-time)
+                   *experiment-log-current-execution-time-cup*)))
+    (:spoon (setf *experiment-log-current-execution-time-spoon*
+                  (- (roslisp:ros-time)
+                     *experiment-log-current-execution-time-spoon*)))
+    (:breakfast-cereal (setf *experiment-log-current-execution-time-breakfast-cereal*
+                             (- (roslisp:ros-time)
+                                *experiment-log-current-execution-time-breakfast-cereal*)))
+    (:milk (setf *experiment-log-current-execution-time-milk*
+                 (- (roslisp:ros-time)
+                    *experiment-log-current-execution-time-milk*)))))
 
 (defun experiment-log-finish-object-transport-failed (object-type)
   (when *experiment-log-detailed?*
     (experiment-log (format nil "TRANSPORTING FAILED~%")))
   (case object-type
-    (bowl (setf *experiment-log-current-execution-time-bowl* 0))
-    (cup (setf *experiment-log-current-execution-time-cup* 0))
-    (spoon (setf *experiment-log-current-execution-time-spoon* 0))))
+    (:bowl (setf *experiment-log-current-execution-time-bowl* 0))
+    (:cup (setf *experiment-log-current-execution-time-cup* 0))
+    (:spoon (setf *experiment-log-current-execution-time-spoon* 0))
+    (:breakfast-cereal (setf *experiment-log-current-execution-time-breakfast-cereal* 0))
+    (:milk (setf *experiment-log-current-execution-time-milk* 0))))

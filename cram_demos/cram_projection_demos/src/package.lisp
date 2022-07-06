@@ -31,7 +31,7 @@
 
 (defpackage cram-projection-demos
   (:nicknames #:demos)
-  (:use #:common-lisp #:cram-prolog)
+  (:use #:common-lisp #:cram-prolog #:urdf-proj #:cram-designators #:cram-executive)
   (:export
    ;; household-demo
    #:household-demo

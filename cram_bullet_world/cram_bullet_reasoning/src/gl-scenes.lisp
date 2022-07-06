@@ -172,15 +172,3 @@
         (mirror-buffer (width camera) (height camera) gl-buffer 1)
         gl-buffer)))
 
-(defun to-png-image (width height buffer &optional (color-mode :rgb))
-  (let ((channels (ecase color-mode
-                    (:rgb 3)
-                    (:gray 1))))
-    (let* ((result (make-array `(,height ,width ,channels)
-                               :element-type '(unsigned-byte 8)
-                               :displaced-to (make-array (* height width channels)
-                                                         :element-type (list 'unsigned-byte 8)))))
-      (dotimes (i (array-total-size buffer) result)
-        (setf (row-major-aref result i)
-              (truncate (* (row-major-aref buffer i) #xff)))))))
-

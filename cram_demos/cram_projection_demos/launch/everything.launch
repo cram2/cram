@@ -4,11 +4,17 @@
   <arg name="boxy" default="false" />
   <arg name="donbot" default="false" />
   <arg name="kukabot" default="false" />
+<<<<<<< HEAD
+  <arg name="tiago" default="false" />
+=======
   <arg name="hsrb" default="false" />
+>>>>>>> noetic
 
   <!-- choose environment -->
   <arg name="household" default="false" />
   <arg name="retail" default="false" />
+  <arg name="storage" default="false" />
+  <arg name="apartment" default="false" />
 
   <!-- upload or not upload the robot description (in case one is already uploaded) -->
   <arg name="upload_robot" default="true" />
@@ -34,16 +40,24 @@
       <include file="$(find iai_boxy_description)/launch/upload_boxy.launch" />
     </group>
     <group if="$(arg donbot)">
-      <include file="$(find iai_donbot_description)/launch/upload_with_refills_finger.launch" />
+      <param name="robot_description"
+             command="$(find xacro)/xacro
+                      '$(find cram_projection_demos)/resource/robots/iai_donbot.urdf.xacro'" />
     </group>
     <group if="$(arg kukabot)">
       <include file="$(find iai_kmr_iiwa_description)/launch/upload_kmr_iiwa.launch" />
     </group>
+    <group if="$(arg tiago)">
+      <include file="$(find tiago_dual_description)/robots/upload.launch">
+        <arg name="end_effector_left" value="pal-gripper" />
+        <arg name="end_effector_right" value="pal-gripper" />
+      </include>
+
     <group if="$(arg hsrb)">
     <param name="robot_description"
            command="$(find xacro)/xacro
                     '$(find hsr_description)/robots/hsrb4s.urdf.xacro'"/>
-    </group>
+     </group>
   </group>
 
   <!-- robot state publisher -->
@@ -76,6 +90,16 @@
              command="$(find xacro)/xacro
                       '$(find iai_refills_lab)/urdf/dm_room.urdf.xacro'"/>
     </group>
+  </group>
+  <group if="$(arg storage)">
+    <param name="kitchen_description"
+           command="$(find xacro)/xacro
+                    '$(find cram_projection_demos)/resource/retail/storage.urdf.xacro'"/>
+  </group>
+  <group if="$(arg apartment)">
+    <param name="kitchen_description"
+           command="$(find xacro)/xacro
+                    '$(find iai_apartment)/urdf/apartment.urdf'"/>
   </group>
 
   <!-- environment state publisher -->

@@ -38,3 +38,7 @@
                                (double-matrix-product cov-inv x-mean cov-x-prod)
                                e-factor-mat)
                               0 0)))))))
+
+(defun average (min max)
+  (+ min (/ (- max min) 2)))
+

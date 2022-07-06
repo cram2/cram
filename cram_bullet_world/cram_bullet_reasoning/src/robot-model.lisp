@@ -33,7 +33,7 @@
 
 (in-package :btr)
 
-(defvar *robot-model-alpha* nil)
+(defvar *robot-model-alpha* 0.7)
 
 (defgeneric urdf-make-collision-shape (geometry &optional color compound))
 
@@ -43,7 +43,7 @@
   (make-instance 'colored-box-shape
     :half-extents (cl-transforms:v*
                    (cl-urdf:size box) 0.5)
-    :color (apply-alpha-value color)))
+    :color (apply-alpha-value color *robot-model-alpha*)))
 
 (defmethod urdf-make-collision-shape ((cylinder cl-urdf:cylinder)
                                       &optional (color '(0.8 0.8 0.8 1.0)) (compound nil))
@@ -53,13 +53,13 @@
                    (cl-urdf:radius cylinder)
                    (cl-urdf:radius cylinder)
                    (* 0.5 (cl-urdf:cylinder-length cylinder)))
-    :color (apply-alpha-value color)))
+    :color (apply-alpha-value color *robot-model-alpha*)))
 
 (defmethod urdf-make-collision-shape ((sphere cl-urdf:sphere)
                                       &optional (color '(0.8 0.8 0.8 1.0)) (compound nil))
   (declare (ignore compound))
   (make-instance 'colored-sphere-shape :radius (cl-urdf:radius sphere)
-    :color (apply-alpha-value color)))
+    :color (apply-alpha-value color *robot-model-alpha*)))
 
 (defmethod urdf-make-collision-shape ((mesh cl-urdf:mesh)
                                       &optional (color '(0.8 0.8 0.8 1.0)) (compound nil))
@@ -139,23 +139,27 @@
 (defgeneric (setf link-pose) (new-value robot-object name)
   (:documentation "Sets the pose of a link and all its children"))
 
-(defgeneric object-attached (robot-object object &key loose)
-  (:documentation "Returns the list of links `object' has been
-  attached to.")
-  (:method ((robot-object robot-object) (object object) &key loose)
-    (with-slots (attached-objects) robot-object
-      (values (mapcar #'attachment-link (remove-if-not
-                                         (if loose
-                                             #'attachment-loose
-                                             #'identity)
-                                         (car (cdr (assoc (name object) attached-objects
-                                                          :test #'equal)))))
-              (mapcar #'attachment-grasp (remove-if-not
-                                          (if loose
-                                              #'attachment-loose
-                                              #'identity)
-                                          (car (cdr (assoc (name object) attached-objects
-                                                           :test #'equal)))))))))
+(defmethod object-attached ((object robot-object) (other-object object) &key loose)
+  "Returns the list of links `other-object' has been attached to."
+  (with-slots (attached-objects) object
+    (values (mapcar #'attachment-link (remove-if-not
+                                       (if loose
+                                           #'attachment-loose
+                                           #'identity)
+                                       (car (cdr (assoc (name other-object) attached-objects
+                                                        :test #'equal)))))
+            (mapcar #'attachment-grasp (remove-if-not
+                                        (if loose
+                                            #'attachment-loose
+                                            #'identity)
+                                        (car (cdr (assoc (name other-object) attached-objects
+                                                         :test #'equal))))))))
+
+(defmethod object-attached ((object object) (other-object robot-object) &key)
+  "Robot objects cannot be attached to anything.
+Things get attached to robot objects, not the other way around.
+So this function just returns NIL."
+  NIL)
 
 (defmethod attach-object ((robot-object robot-object) (obj object)
                           &key link loose grasp &allow-other-keys)
@@ -341,7 +345,8 @@ Otherwise, the attachment is only used as information but does not affect the wo
                                                          (cl-urdf:visual link))))
                                                      (let ((some-gray (/ (+ (random 5) 3) 10.0)))
                                                        (list some-gray some-gray some-gray
-                                                             (or *robot-model-alpha* 1.0)))))
+                                                             (or *robot-model-alpha* 1.0))))
+                                                 *robot-model-alpha*)
                                                 compound)
                               :collision-flags :cf-default
                               :group collision-group
@@ -672,31 +677,38 @@ inverse joint transform of parent's from-joint and try again."
   (with-slots (urdf links joint-states) obj
     (let* ((joint (gethash joint-name (cl-urdf:joints urdf)))
            (parent (and joint (cl-urdf:parent joint))))
-      (cond ((and parent (gethash (cl-urdf:name parent) links))
-             (cl-transforms:transform->pose
-              (cl-transforms:transform*
-               (cl-transforms:reference-transform current-pose)
-               (cl-transforms:reference-transform (pose (gethash (cl-urdf:name parent) links))))))
-            ((and parent (cl-urdf:from-joint parent))
-             ;; walk the tree up
-             (let* ((parent-joint (cl-urdf:from-joint parent))
-                    (parent-joint-name (cl-urdf:name parent-joint)))
-               (find-parent-pose
-                obj parent-joint-name
-                (cl-transforms:transform->pose
-                 (cl-transforms:transform*
-                  (cl-transforms:reference-transform
-                   (cl-urdf:origin parent-joint))
-                  (joint-transform
-                   parent-joint
-                   (or (joint-state obj parent-joint-name)
-                       0.0))
-                  (cl-transforms:reference-transform current-pose))))))
-            (t ;; We are at the root. Return the object's inverse pose
-             ;; multiplied with current-pose
+      (cond
+        ;; parent has a physical link
+        ((and parent (gethash (cl-urdf:name parent) links))
+         (cl-transforms:transform->pose
+          ;; map-T-parent = map-T-grandparent * grandparent-T-parent
+          (cl-transforms:transform*
+           (cl-transforms:reference-transform (pose (gethash (cl-urdf:name parent) links)))
+           (cl-transforms:reference-transform current-pose))))
+        ;; parent has no physical link but there is a grandparent
+        ((and parent (cl-urdf:from-joint parent))
+         ;; walk the tree up
+         (let* ((parent-joint (cl-urdf:from-joint parent))
+                (parent-joint-name (cl-urdf:name parent-joint)))
+           (find-parent-pose
+            obj parent-joint-name
+            ;; grandpa-link-T-pa-link =
+            ;;   grandpa-link-T-pa-joint * joint-state * pa-joint-T-pa-link
+            (cl-transforms:transform->pose
              (cl-transforms:transform*
-              (cl-transforms:reference-transform (pose obj))
-              (cl-transforms:reference-transform current-pose)))))))
+              (cl-transforms:reference-transform
+               (cl-urdf:origin parent-joint))
+              (joint-transform
+               parent-joint
+               (or (joint-state obj parent-joint-name)
+                   0.0))
+              (cl-transforms:reference-transform current-pose))))))
+        ;; We are at the root. Return the object's inverse pose
+        ;; multiplied with current-pose
+        (t
+         (cl-transforms:transform*
+          (cl-transforms:reference-transform (pose obj))
+          (cl-transforms:reference-transform current-pose)))))))
 
 (defmethod link-pose ((obj robot-object) name)
   ;; We need to handle two different cases here. One is when we have a
@@ -759,16 +771,3 @@ Only one joint state changes in this situation, so only one joint state is updat
   (with-slots (urdf) obj
     (setf (link-pose obj (cl-urdf:name (cl-urdf:root-link urdf)))
           new-value)))
-
-(defmacro with-alpha (alpha &body body)
-  `(let ((*robot-model-alpha* ,alpha))
-     ,@body))
-
-(defun apply-alpha-value (color)
-  (if (= (length color) 4)
-      (destructuring-bind (r g b a) color
-        (list r g b (or *robot-model-alpha* a)))
-      (if (= (length color) 3)
-          (destructuring-bind (r g b) color
-            (list r g b (or *robot-model-alpha* 1.0)))
-          (error "Color of an object has to be a list of 3 or 4 values"))))

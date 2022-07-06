@@ -37,6 +37,9 @@
 (define-condition manipulation-pose-unreachable (manipulation-low-level-failure) ()
   (:documentation "Thrown when no IK solution can be found."))
 
+(define-condition environment-manipulation-goal-not-reached (manipulation-low-level-failure) ()
+  (:documentation "Thrown when door / drawer opening / closing goal is not reached."))
+
 (define-condition gripper-low-level-failure (low-level-failure)
   ((action :initarg :object :initform nil :reader gripper-failure-action)))
 

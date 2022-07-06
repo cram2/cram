@@ -29,6 +29,241 @@
 
 (in-package :demos)
 
+(defparameter *demo-object-spawning-poses*
+  '((:bowl
+     "sink_area_left_middle_drawer_main"
+     ((0.10 -0.0505 -0.062256) (0 0 -1 0)))
+    (:cup
+     ;; "sink_area_left_bottom_drawer_main"
+     ;; ((0.11 0.12 -0.0547167) (0 0 -1 0))
+     "kitchen_island_left_upper_drawer_main"
+     ((0.11 0.08 -0.026367) (0 0 -1 0)))
+    (:spoon
+     ;; "oven_area_area_middle_upper_drawer_main"
+     "sink_area_left_upper_drawer_main"
+     ((0.125 0 -0.0136) (0 -0.053938 -0.998538 -0.003418)))
+    ;; So far only this orientation works
+    (:breakfast-cereal
+     "oven_area_area_right_drawer_board_3_link"
+     ((0.10 -0.03 0.11) (0.0087786 0.005395 -0.838767 -0.544393)))
+    ;; ((:breakfast-cereal . ((1.398 1.490 1.2558) (0 0 0.7071 0.7071)))
+    ;; (:breakfast-cereal . ((1.1 1.49 1.25) (0 0 0.7071 0.7071)))
+    (:milk
+     ;; "iai_fridge_main_middle_level"
+     ;; ((0.10355 0.022 0.094) (0.00939 -0.00636 -0.96978 -0.2437))
+     "iai_fridge_door_shelf1_bottom"
+     ((-0.01 -0.05 0.094) (0 0 0 1)))))
+
+(defparameter *object-grasps*
+  '((:cup . (:left-side :right-side :back :front))
+    ;; PR2 cannot grasp the cereal from the top on the oven shelf
+    ;; (Boxy can though.)
+    (:breakfast-cereal . (:front :back :front-flipped :back-flipped))))
+
+(defparameter *furniture-offsets-original-kitchen*
+  '(("sink_area_footprint_joint"
+     ((1.855d0 1.3d0 0.0d0) (0 0 1 0)))
+    ("oven_area_footprint_joint"
+     ((1.845d0 2.5d0 0.0d0) (0 0 1 0)))
+    ("kitchen_island_footprint_joint"
+     ((-1.363d0 0.59d0 0.0d0) (0 0 0 1)))
+    ("fridge_area_footprint_joint"
+     ((1.845d0 -0.73d0 0.0d0) (0 0 1 0)))
+    ("table_area_main_joint"
+     ((-2.4d0 -1.5d0 0.0d0) (0 0 1 0)))
+    ("dining_area_footprint_joint"
+     ((-3.38d0 0.28d0 0.0d0) (0.0d0 0.0d0 0.7071067811848163d0 0.7071067811882787d0)))))
+
+(defparameter *furniture-offsets-offset-kitchen*
+  '(("sink_area_footprint_joint"
+     ((1.855d0 2.9d0 0.0d0) (0 0 1 0)))
+    ("oven_area_footprint_joint"
+     ((1.65d0 0.35d0 0.0d0) (0 0 0.7 0.3)))
+    ("kitchen_island_footprint_joint"
+     ((-3.6d0 0.7d0 0.0d0) (0 0 0 1)))
+    ("fridge_area_footprint_joint"
+     ((-1.4d0 3.05d0 0.0d0) (0 0 -0.7 0.7)))
+    ("table_area_main_joint"
+     ((0.95d0 -0.95d0 0.0d0) (0 0 0.3 0.7)))
+    ("dining_area_footprint_joint"
+     ((-2.5d0 -0.55d0 0.0d0) (0 0 1 0)))))
+
+
+(defun spawn-objects-on-fixed-spots (&key
+                                       (spawning-poses-relative
+                                        *demo-object-spawning-poses*)
+                                       (object-types
+                                        '(:breakfast-cereal :cup :bowl :spoon :milk)))
+  ;; clean up
+  (kill-and-detach-all)
+
+  ;; spawn objects at default poses
+  (let* ((spawning-poses-absolute
+           (make-poses-list-relative spawning-poses-relative))
+         (objects (mapcar (lambda (object-type)
+                            (btr-utils:spawn-object
+                             (intern (format nil "~a-1" object-type) :keyword)
+                             object-type
+                             :pose (cdr (assoc object-type
+                                               spawning-poses-absolute))))
+                          object-types)))
+    ;; stabilize world
+    ;; (btr:simulate btr:*current-bullet-world* 100)
+    objects)
+
+  ;; attach objects to world
+  (mapcar (lambda (object-type)
+            (btr:attach-object (btr:get-environment-object)
+                               (btr:object btr:*current-bullet-world*
+                                           (intern (format nil "~a-1" object-type) :keyword))
+                               :link (second (find object-type
+                                                   spawning-poses-relative
+                                                   :key #'car))))
+          object-types))
+
+
+(defun park-robot ()
+  (cpl:with-failure-handling
+      ((cpl:plan-failure (e)
+         (declare (ignore e))
+         (return)))
+    (cpl:par
+      (exe:perform
+       (desig:an action
+                 (type positioning-arm)
+                 (left-configuration park)
+                 (right-configuration park)))
+      (exe:perform
+       (desig:an action
+                 (type moving-torso)
+                 (joint-angle upper-limit)))
+      (let ((?pose (cl-transforms-stamped:make-pose-stamped
+                    cram-tf:*fixed-frame*
+                    0.0
+                    (cl-transforms:make-identity-vector)
+                    (cl-transforms:make-identity-rotation))))
+        (exe:perform
+         (desig:an action
+                   (type going)
+                   (target (desig:a location
+                                    (pose ?pose))))))
+      (exe:perform (desig:an action (type opening-gripper) (gripper (left right))))
+      (exe:perform (desig:an action (type looking) (direction forward))))))
+
+(defun initialize ()
+  (sb-ext:gc :full t)
+
+  ;;(when ccl::*is-logging-enabled*
+  ;;    (setf ccl::*is-client-connected* nil)
+  ;;    (ccl::connect-to-cloud-logger)
+  ;;    (ccl::reset-logged-owl))
+
+  ;; (setf proj-reasoning::*projection-checks-enabled* t)
+
+  (kill-and-detach-all)
+  (setf (btr:joint-state (btr:get-environment-object)
+                         "sink_area_left_upper_drawer_main_joint")
+        0.0
+        (btr:joint-state (btr:get-environment-object)
+                         "sink_area_left_middle_drawer_main_joint")
+        0.0
+        (btr:joint-state (btr:get-environment-object)
+                         "sink_area_left_bottom_drawer_main_joint")
+        0.0
+        (btr:joint-state (btr:get-environment-object)
+                         "iai_fridge_door_joint")
+        0.0
+        (btr:joint-state (btr:get-environment-object)
+                         "sink_area_dish_washer_door_joint")
+        0.0
+        (btr:joint-state (btr:get-environment-object)
+                         "sink_area_dish_washer_tray_main")
+        0.0
+        (btr:joint-state (btr:get-environment-object)
+                         "oven_area_area_right_drawer_main_joint")
+        0.0
+        (btr:joint-state (btr:get-environment-object)
+                         "sink_area_trash_drawer_main_joint")
+        0.0
+        (btr:joint-state (btr:get-environment-object)
+                         "kitchen_island_left_upper_drawer_main_joint")
+        0.0)
+  (btr-belief::publish-environment-joint-state
+   (btr:joint-states (btr:get-environment-object)))
+
+  (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))
+
+  ;; (coe:clear-belief)
+
+  (btr:clear-costmap-vis-object))
+
+(defun finalize ()
+  ;; (setf proj-reasoning::*projection-reasoning-enabled* nil)
+
+  ;;(when ccl::*is-logging-enabled*
+  ;;  (ccl::export-log-to-owl "ease_milestone_2018.owl")
+  ;;  (ccl::export-belief-state-to-owl "ease_milestone_2018_belief.owl"))
+  (sb-ext:gc :full t))
+
+
+(defun household-demo (&key (object-list '(:bowl :breakfast-cereal :milk :cup :spoon))
+                         varied-kitchen)
+  (urdf-proj:with-simulated-robot
+
+    (if varied-kitchen
+        (btr-belief:vary-kitchen-urdf *furniture-offsets-offset-kitchen*)
+        (btr-belief:vary-kitchen-urdf *furniture-offsets-original-kitchen*))
+    (if (> (cl-transforms:x
+            (cl-transforms:origin
+             (btr:pose
+              (btr:rigid-body (btr:get-environment-object)
+                              :|IAI-KITCHEN.fridge_area|))))
+           0)
+        ;; if the fridge is in front of robot, current kitchen is original
+        (when varied-kitchen
+          (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
+          (btr-belief:spawn-world))
+        ;; if the fridge is behind the robot, current kitchen is varied
+        (unless varied-kitchen
+          (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
+          (btr-belief:spawn-world)))
+    (initialize)
+    (setf btr:*visibility-threshold* 0.7)
+    (when cram-projection:*projection-environment*
+      (spawn-objects-on-fixed-spots
+       :object-types object-list
+       :spawning-poses-relative *demo-object-spawning-poses*))
+    (park-robot)
+
+    ;; set the table
+    (dolist (?object-type object-list)
+      (exe:perform
+       (desig:an action
+                 (type transporting)
+                 (object (desig:an object (type ?object-type)))
+                 (context table-setting))))
+
+    ;; clean up
+    ;; (when cram-projection:*projection-environment*
+    ;;   (spawn-objects-on-fixed-spots
+    ;;    :object-types object-list
+    ;;    :spawning-poses-relative *delivery-poses-relative*))
+
+    (dolist (?object-type (reverse object-list))
+      (let ((?grasps (cdr (assoc ?object-type *object-grasps*))))
+        (exe:perform
+         (desig:an action
+                   (type transporting)
+                   (object (desig:an object (type ?object-type)))
+                   (context table-cleaning)
+                   (grasps ?grasps)))))))
+
+
+
+
+
+;;;;;; THE STUFF BELOW IS FOR HOUSEHOLD-DEMO-RANDOM
+
 (defparameter *object-spawning-poses*
   '("sink_area_surface"
     (:breakfast-cereal . ((0.2 -0.15 0.1) (0 0 0 1)))
@@ -45,29 +280,6 @@
     (:spoon . ((-0.78 1.5 0.86) (0 0 0 1)))
     (:milk . ((-0.75 1.7 0.95) (0 0 0.7071 0.7071))))
   "Absolute poses on kitchen_island.")
-
-(defparameter *demo-object-spawning-poses*
-  '((:bowl
-     "sink_area_left_middle_drawer_main"
-     ((0.10 -0.1505 -0.062256) (0 0 -1 0)))
-    (:cup
-     "sink_area_left_bottom_drawer_main"
-     ((0.11 0.12 -0.0547167) (0 0 -1 0)))
-    (:spoon
-     ;; "oven_area_area_middle_upper_drawer_main"
-     "sink_area_left_upper_drawer_main"
-     ((0.125 0 -0.0136) (0 -0.053938 -0.998538 -0.003418)))
-    ;; So far only this orientation works
-    (:breakfast-cereal
-     "oven_area_area_right_drawer_board_3_link"
-     ((0.123 -0.03 0.11) (0.0087786 0.005395 -0.838767 -0.544393)))
-    ;; ((:breakfast-cereal . ((1.398 1.490 1.2558) (0 0 0.7071 0.7071)))
-    ;; (:breakfast-cereal . ((1.1 1.49 1.25) (0 0 0.7071 0.7071)))
-    (:milk
-     ;; "iai_fridge_main_middle_level"
-     ;; ((0.10355 0.022 0.094) (0.00939 -0.00636 -0.96978 -0.2437))
-     "iai_fridge_door_shelf1_bottom"
-     ((-0.01 -0.05 0.094) (0 0 0 1)))))
 
 (defparameter *delivery-poses-relative*
   `((:bowl
@@ -101,26 +313,6 @@
               (0.0 0.0 -0.9 0.7)))
     (:breakfast-cereal . ((-0.78 0.8 0.95) (0 0 0.6 0.4)))))
 
-(defparameter *cleaning-deliver-poses*
-  `((:bowl . ((1.45 -0.4 1.0) (0 0 0 1)))
-    (:cup . ((1.45 -0.4 1.0) (0 0 0 1)))
-    (:spoon . ((1.45 -0.4 1.0) (0 0 0 1)))
-    (:milk . ((1.2 -0.5 0.8) (0 0 1 0)))
-    (:breakfast-cereal . ((1.15 -0.5 0.8) (0 0 1 0)))))
-
-(defparameter *object-grasping-arms*
-  '(;; (:breakfast-cereal . :right)
-    ;; (:cup . :left)
-    ;; (:bowl . :right)
-    ;; (:spoon . :right)
-    ;; (:milk . :right)
-    ))
-
-(defparameter *object-cad-models*
-  '(;; (:cup . "cup_eco_orange")
-    ;; (:bowl . "edeka_red_bowl")
-    ))
-
 (defparameter *object-colors*
   '((:spoon . "black")
     (:breakfast-cereal . "yellow")
@@ -128,15 +320,24 @@
     (:bowl . "red")
     (:cup . "red")))
 
-(defparameter *object-grasps*
-  '((:spoon . :top)
-    (:breakfast-cereal . :front)
-    (:milk . :front)
-    (:cup . :top)
-    (:bowl . :top)))
+(defparameter *object-cad-models*
+  '(;; (:cup . "cup_eco_orange")
+    ;; (:bowl . "edeka_red_bowl")
+    ))
 
+;; (defparameter *cleaning-deliver-poses*
+;;   `((:bowl . ((1.45 -0.4 1.0) (0 0 0 1)))
+;;     (:cup . ((1.45 -0.4 1.0) (0 0 0 1)))
+;;     (:spoon . ((1.45 -0.4 1.0) (0 0 0 1)))
+;;     (:milk . ((1.2 -0.5 0.8) (0 0 1 0)))
+;;     (:breakfast-cereal . ((1.15 -0.5 0.8) (0 0 1 0)))))
 
-
+;; (defparameter *object-grasping-arms*
+;;   '((:breakfast-cereal . :right)
+;;     (:cup . :left)
+;;     (:bowl . :right)
+;;     (:spoon . :right)
+;;     (:milk . :right)))
 
 (defun spawn-objects-on-sink-counter (&key
                                         (object-types
@@ -150,10 +351,7 @@
                                         (random
                                          NIL))
   ;; make sure mesh paths are known, kill old objects and destroy all attachments
-  (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo")
-  (btr-utils:kill-all-objects)
-  (btr:detach-all-objects (btr:get-robot-object))
-  (btr:detach-all-objects (btr:get-environment-object))
+  (kill-and-detach-all)
 
   ;; spawn objects
   (let* ((spawning-poses-absolute
@@ -224,129 +422,6 @@
     ;; return list of BTR objects
     objects))
 
-(defun attach-object-to-the-world (object-type spawning-poses-relative)
-  (when spawning-poses-relative
-    (btr:attach-object (btr:get-environment-object)
-                       (btr:object btr:*current-bullet-world*
-                                   (intern (format nil "~a-1" object-type) :keyword))
-                       :link (second (find object-type
-                                           spawning-poses-relative
-                                           :key #'car)))))
-
-
-
-(defun spawn-objects-on-fixed-spots (&key
-                                       (spawning-poses-relative
-                                        *demo-object-spawning-poses*)
-                                       (object-types
-                                        '(:breakfast-cereal :cup :bowl :spoon :milk)))
-  (btr-utils:kill-all-objects)
-  (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo")
-  (btr:detach-all-objects (btr:get-robot-object))
-  ;; spawn objects at default poses
-  (let* ((spawning-poses-absolute
-           (make-poses-list-relative spawning-poses-relative))
-         (objects (mapcar (lambda (object-type)
-                            (btr-utils:spawn-object
-                             (intern (format nil "~a-1" object-type) :keyword)
-                             object-type
-                             :pose (cdr (assoc object-type
-                                               ;; *demo-object-spawning-poses*
-                                               spawning-poses-absolute
-                                               ))))
-                          object-types)))
-    ;; stabilize world
-    ;; (btr:simulate btr:*current-bullet-world* 100)
-    objects)
-
-  (mapcar (alexandria:rcurry #'attach-object-to-the-world spawning-poses-relative)
-          object-types))
-
-
-
-(defun park-robot ()
-  (cpl:with-failure-handling
-      ((cpl:plan-failure (e)
-         (declare (ignore e))
-         (return)))
-    (cpl:par
-      (exe:perform
-       (desig:an action
-                 (type positioning-arm)
-                 (left-configuration park)
-                 (right-configuration park)))
-      (exe:perform
-       (desig:an action
-                 (type moving-torso)
-                 (joint-angle upper-limit)))
-      (let ((?pose (cl-transforms-stamped:make-pose-stamped
-                    cram-tf:*fixed-frame*
-                    0.0
-                    (cl-transforms:make-identity-vector)
-                    (cl-transforms:make-identity-rotation))))
-        (exe:perform
-         (desig:an action
-                   (type going)
-                   (target (desig:a location
-                                    (pose ?pose))))))
-      (exe:perform (desig:an action (type opening-gripper) (gripper (left right))))
-      (exe:perform (desig:an action (type looking) (direction forward))))))
-
-(defun initialize ()
-  (sb-ext:gc :full t)
-
-  ;;(when ccl::*is-logging-enabled*
-  ;;    (setf ccl::*is-client-connected* nil)
-  ;;    (ccl::connect-to-cloud-logger)
-  ;;    (ccl::reset-logged-owl))
-
-  ;; (setf proj-reasoning::*projection-checks-enabled* t)
-
-  (btr:detach-all-objects (btr:get-robot-object))
-  (btr:detach-all-objects (btr:get-environment-object))
-  (btr-utils:kill-all-objects)
-  (setf (btr:joint-state (btr:get-environment-object)
-                         "sink_area_left_upper_drawer_main_joint")
-        0.0
-        (btr:joint-state (btr:get-environment-object)
-                         "sink_area_left_middle_drawer_main_joint")
-        0.0
-        (btr:joint-state (btr:get-environment-object)
-                         "sink_area_left_bottom_drawer_main_joint")
-        0.0
-        (btr:joint-state (btr:get-environment-object)
-                         "iai_fridge_door_joint")
-        0.0
-        (btr:joint-state (btr:get-environment-object)
-                         "sink_area_dish_washer_door_joint")
-        0.0
-        (btr:joint-state (btr:get-environment-object)
-                         "sink_area_dish_washer_tray_main")
-        0.0
-        (btr:joint-state (btr:get-environment-object)
-                         "oven_area_area_right_drawer_main_joint")
-        0.0
-        (btr:joint-state (btr:get-environment-object)
-                         "sink_area_trash_drawer_main_joint")
-        0)
-  (btr-belief::publish-environment-joint-state
-   (btr:joint-states (btr:get-environment-object)))
-
-  (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))
-
-  ;; (coe:clear-belief)
-
-  (btr:clear-costmap-vis-object))
-
-(defun finalize ()
-  ;; (setf proj-reasoning::*projection-reasoning-enabled* nil)
-
-  ;;(when ccl::*is-logging-enabled*
-  ;;  (ccl::export-log-to-owl "ease_milestone_2018.owl")
-  ;;  (ccl::export-belief-state-to-owl "ease_milestone_2018_belief.owl"))
-  (sb-ext:gc :full t))
-
-
 (defun household-demo-random (&optional
                                 (random
                                  nil)
@@ -407,49 +482,27 @@
 
 
 
-(defun household-demo (&optional (object-list '(:bowl :spoon :cup
-                                                :breakfast-cereal :milk)))
+;;;;;;;; THE STUFF BELOW IS FOR THE POURING EXPERIMENT
+
+(defun pour-demo ()
+  (spawn-objects-on-fixed-spots
+   :spawning-poses-relative *delivery-poses-relative*)
   (urdf-proj:with-simulated-robot
-
-    (initialize)
-    (setf btr:*visibility-threshold* 0.7)
-    (when cram-projection:*projection-environment*
-      (spawn-objects-on-fixed-spots
-       :object-types object-list
-       :spawning-poses-relative *demo-object-spawning-poses*))
-    (park-robot)
-
-    ;; set the table
-    (dolist (?object-type object-list)
-      (exe:perform
-       (desig:an action
-                 (type transporting)
-                 (object (desig:an object (type ?object-type)))
-                 (context table-setting))))
-
-    ;; clean up
-    ;; (when cram-projection:*projection-environment*
-    ;;   (spawn-objects-on-fixed-spots
-    ;;    :object-types object-list
-    ;;    :spawning-poses-relative *delivery-poses-relative*))
-
-    (dolist (?object-type object-list)
-      (exe:perform
-       (desig:an action
-                 (type transporting)
-                 (object (desig:an object (type ?object-type)))
-                 (context table-cleaning))))))
-
-
-
-
-
-
-
-
-
-
-
+    (pp-plans::add
+     (desig:an object
+               (type milk)
+               (location (desig:a location
+                                  (on (desig:an object
+                                                (type counter-top)
+                                                (urdf-name kitchen-island-surface)
+                                                (part-of iai-kitchen))))))
+     (desig:an object
+               (type bowl)
+               (location (desig:a location
+                                  (on (desig:an object
+                                                (type counter-top)
+                                                (urdf-name kitchen-island-surface)
+                                                (part-of iai-kitchen)))))))))
 
 
 

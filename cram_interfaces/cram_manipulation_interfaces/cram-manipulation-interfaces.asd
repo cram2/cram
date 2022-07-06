@@ -66,7 +66,9 @@
      (:file "trajectories" :depends-on ("package"
                                         "prolog"
                                         "manipulation-interfaces"
-                                        "object-hierarchy"))
+                                        "object-hierarchy"
+                                        ;; for get-object-transform
+                                        "object-designator-interfaces"))
 
      (:file "standard-grasps" :depends-on ("package"))
      (:file "standard-rotations" :depends-on ("package"))

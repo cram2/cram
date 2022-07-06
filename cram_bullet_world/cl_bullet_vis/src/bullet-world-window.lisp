@@ -69,6 +69,104 @@
   (when (frame-rate w)
     (glut:enable-tick w (truncate (* (/ (frame-rate w)) 1000)))))
 
+(defvar *draw-ui* nil)
+(defvar *draw-textured-number* nil)
+(defvar *text-to-draw* "")
+
+(defun draw-ui (window)
+  (when *draw-ui*
+    (gl:disable :lighting)
+    (gl:with-pushed-matrix
+      (let ((text-point (cl-transforms:transform-point
+                        (camera-transform window)
+                        (cl-transforms:make-3d-vector 3.0 0 1.3))))
+        (gl:translate (cl-transforms:x text-point)
+                      (cl-transforms:y text-point)
+                      (cl-transforms:z text-point)))
+      (gl:color 1 0 0 1.0)
+      (%gl:raster-pos-3f 0.0 0.0 0.0)
+      (glut:bitmap-string glut:+bitmap-times-roman-24+ *text-to-draw*)
+      (glut:bitmap-string glut:+bitmap-times-roman-24+ "Red")
+      (when *draw-textured-number*
+        ;; (print (gl:get* :current-raster-position))
+        ;; (print (gl:get* :current-raster-position-valid))
+        (let ((text-pose (cl-transforms:transform-pose
+                          (camera-transform window)
+                          (cl-transforms:make-pose
+                           (cl-transforms:make-3d-vector 3.0 0 1.3)
+                           (cl-transforms:make-identity-rotation)))))
+          ;; (gl:translate (cl-transforms:x (cl-transforms:origin text-pose))
+          ;;               (cl-transforms:y (cl-transforms:origin text-pose))
+          ;;               (cl-transforms:z (cl-transforms:origin text-pose)))
+          (gl:translate 0.5 0 0)
+          (multiple-value-bind (axis angle)
+              (cl-transforms:quaternion->axis-angle (cl-transforms:orientation text-pose))
+            (gl:rotate (cma:radians->degrees angle)
+                       (cl-transforms:x axis) (cl-transforms:y axis) (cl-transforms:z axis))
+            (gl:rotate 90 0 1 0)
+            (gl:rotate -90 0 0 1)))
+        (gl:enable :lighting)
+        (gl:color 1 0 0 1.0)
+        (gl:scale 0.1 0.1 0.1)
+        ;; (glut:solid-cube 2.0)
+        (gl:with-pushed-attrib (:texture-bit :enable-bit)
+          (multiple-value-bind (texture-handle new?)
+              (cl-bullet-vis:get-texture-handle window (gensym))
+            (gl:bind-texture :texture-2d texture-handle)
+            ;; (print new?)
+            (when new?
+              (gl:tex-env :texture-env :texture-env-mode :modulate)
+              (gl:tex-parameter :texture-2d :texture-min-filter :linear-mipmap-linear)
+              (gl:tex-parameter :texture-2d :texture-mag-filter :linear)
+              (gl:tex-parameter :texture-2d :texture-wrap-s :repeat)
+              (gl:tex-parameter :texture-2d :texture-wrap-t :repeat)
+              (glu:build-2d-mipmaps
+               :texture-2d 4 16 16 :rgba :float
+               (texture-str->bitmap
+                (concatenate
+                 'string
+                 "xxxxxxxxxxxxxxxx"
+                 "x              x"
+                 "x      xx      x"
+                 "x     x x      x"
+                 "x    x  x      x"
+                 "x   x   x      x"
+                 "x       x      x"
+                 "x       x      x"
+                 "x       x      x"
+                 "x       x      x"
+                 "x       x      x"
+                 "x       x      x"
+                 "x    xxxxxxx   x"
+                 "x              x"
+                 "x              x"
+                 "xxxxxxxxxxxxxxxx")
+                #\o #\Space #\x '(1 1 1 1)))))
+          (gl:enable :texture-2d)
+          (gl:disable :cull-face)
+          (gl:disable :lighting)
+          (gl:with-primitive :quads
+            (gl:normal 0 0 1)
+            (gl:tex-coord 0.0 0.0)
+            (gl:vertex -0.5 -0.5)
+            (gl:tex-coord 1.0 0.0)
+            (gl:vertex 0.5 -0.5)
+            (gl:tex-coord 1.0 1.0)
+            (gl:vertex 0.5 0.5)
+            (gl:tex-coord 0.0 1.0)
+            (gl:vertex -0.5 0.5)))))
+    (gl:with-pushed-matrix
+      (let ((text-point (cl-transforms:transform-point
+                        (camera-transform window)
+                        (cl-transforms:make-3d-vector 3.0 -0.2 1.3))))
+        (gl:translate (cl-transforms:x text-point)
+                      (cl-transforms:y text-point)
+                      (cl-transforms:z text-point)))
+      (gl:color 0 1 0 1.0)
+      (%gl:raster-pos-3f 0.0 0.0 0.0)
+      (glut:bitmap-string glut:+bitmap-times-roman-24+ "Green"))
+    (gl:enable :lighting)))
+
 (defmethod glut:display ((window bullet-world-window))
   (with-rendering-lock
     (gl:matrix-mode :projection)
@@ -98,6 +196,8 @@
         (dolist (obj transparent-objects)
           (draw window obj))
         (%gl:depth-mask t)))
+    ;; Draw UI texts
+    (draw-ui window)
     ;; When we are moving around, draw a little yellow disk similar to
     ;; that one RVIZ draws.
     (when (or (eq (motion-mode window) :rotate)
