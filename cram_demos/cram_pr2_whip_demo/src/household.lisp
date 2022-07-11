@@ -47,7 +47,7 @@
   (<- (man-int:object-type-direct-subtype :household-item :bread))
   
   (<- (man-int:object-type-direct-subtype :household-item :big-bowl))
-    (<- (man-int:object-type-direct-subtype :cutlery :whisk))
+  (<- (man-int:object-type-direct-subtype :cutlery :whisk))
     
   (<- (man-int:object-type-direct-subtype :cutlery :knife))
   (<- (man-int:object-type-direct-subtype :cutlery :big-knife))
@@ -381,7 +381,6 @@
 ;; FRONT grasp shelf
 (man-int:def-object-type-to-gripper-transforms
     '(:cereal :breakfast-cereal) '(:left :right) :front
-  :location-type :shelf
   :grasp-translation `(,*cereal-grasp-xy-offset* 0.0d0 ,*cereal-grasp-z-offset*)
   :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
   :pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 ,*cereal-pregrasp-z-offset*)
@@ -402,7 +401,6 @@
 ;; BACK grasp shelf
 (man-int:def-object-type-to-gripper-transforms
     '(:cereal :breakfast-cereal) '(:left :right) :back
-  :location-type :shelf
   :grasp-translation `(,(- *cereal-grasp-xy-offset*) 0.0d0 ,*cereal-grasp-z-offset*)
   :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation*
   :pregrasp-offsets `(,(- *cereal-pregrasp-xy-offset*) 0.0 ,*cereal-pregrasp-z-offset*)
@@ -1105,7 +1103,6 @@
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms '(:whisk)
     '(:left :right) :top
-  :location-type :island
   :grasp-translation `(-0.05 0 -0.02)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets `(-0.05 0 0.2)

@@ -1,4 +1,3 @@
-
 ;;;
 ;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
@@ -61,7 +60,7 @@
   (<- (man-int:object-type-direct-subtype :cutlery :spoon))
 
  (<- (man-int:object-type-direct-subtype :household-item :big-bowl))
- (<- (man-int:object-type-direct-subtype :cutlery :whisk)))
+ (<- (man-int:object-type-direct-subtype :cutlery :whisk))
 
   (<- (man-int:object-type-direct-subtype :bowl :bowl-round))
 
@@ -141,7 +140,7 @@
                                  )))
 
   (<- (orientation-matters ?object-type)
-    (member ?object-type (:knife :fork :spoon :cutlery :spatula :weisswurst :bread :big-knife))))
+    (member ?object-type (:knife :fork :whisk :spoon :cutlery :spatula :weisswurst :bread :big-knife))))
 
 (def-fact-group attachment-knowledge (man-int:unidirectional-attachment)
 
@@ -1691,6 +1690,7 @@
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms '(:whisk)
     '(:left :right) :top
+  :location-type :counter-top
   :grasp-translation `(-0.05 0 -0.02)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets `(-0.05 0 0.2)

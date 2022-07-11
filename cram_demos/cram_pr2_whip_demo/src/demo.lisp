@@ -156,15 +156,15 @@
                              cram-tf:*fixed-frame*
                              0 
                              (btr:object-pose 'big-bowl-1)))
-      )))
       
- ;;      ;show axis- for testing
-      
-                                         
- ;;     (try-looking ?pose-utensil)    
+                       
+            (cram-executive:perform
+           (desig:an action
+                     (type looking)
+                     (target (desig:a location (pose ?pose-utensil)))))  
      
  ;;           ;CAN SEE THE FORK? hardcoded recognition of utensil type TODO make it adaptible
- ;;      (setf ?object-utensil (urdf-proj::detect (desig:an object (type whisk))))            
+       (setf ?object-utensil (urdf-proj::detect (desig:an object (type whisk))))            
                                      
  ;;      ;(btr::add-vis-axis-object 'whisk-1) 
       
@@ -173,11 +173,12 @@
                                      
 ;;        ;;;; Picking-up the utensil object 
 ;; ;grabbing utensil
-;;             (exe:perform (desig:an action
-;;                                    (type picking-up)
-;;                                    (object ?object-utensil)
-;;                                    (arm (:right)) 
-;;                                    (grasp :top)))
+            (exe:perform (desig:an action
+                                   (type picking-up)
+                                   (object ?object-utensil)
+                                    (arm (:right)) 
+                                   (grasp :top)))
+                                   )))
                
 ;;        ;bowl                            
 ;;       (try-looking ?pose-container)    
@@ -338,5 +339,4 @@
       (exe:perform (desig:an action
                              (type picking-up)
                              (arm ?arm)
-                             (object ?perceived-object-desig)
-                             (location-type ?location)))))
+                             (object ?perceived-object-desig)))))
