@@ -337,5 +337,4 @@
 
   (when *with-logging*
     (ccl::start-episode))
-  
   cpl:*current-path*)

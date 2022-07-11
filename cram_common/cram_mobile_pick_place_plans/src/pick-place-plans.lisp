@@ -57,7 +57,7 @@
                   ((:hold ?holding))
                 &allow-other-keys)
   (declare (type desig:object-designator ?object-designator)
-           (type list ?arm)
+           (type (or list keyword) ?arm)
            ;;(type (or nil keyword) ?left-grasp ?right-grasp)
            (type number ?gripper-opening ?grip-effort)
            (type (or null list) ; yes, null is also a list, but this is more readable
@@ -67,6 +67,9 @@
            (ignore location-type))
   "Open gripper, reach traj, grasp traj, close gripper, issue grasping event, lift."
 
+  (unless (listp ?arm)
+  (setf ?arm (list ?arm)))
+  (print "hehehehehehe")
   (cram-tf:visualize-marker (man-int:get-object-pose ?object-designator)
                             :r-g-b-list '(1 1 0) :id 300)
 
@@ -198,7 +201,7 @@
               &allow-other-keys)
   (declare (type desig:object-designator ?object-designator)
            (type (or desig:object-designator null) ?other-object-designator)
-           (type list ?arm)
+           (type (or keyword list) ?arm)
            (type (or null keyword) ?placing-location-name ?left-grasp ?right-grasp)
            (type number ?gripper-opening)
            (type (or null list) ; yes, null is also list, but this is better readable
@@ -207,7 +210,6 @@
                  ?left-retract-poses ?right-retract-poses)
            (ignore location-type))
   "Reach, put, assert assemblage if given, open gripper, retract grasp event, retract arm."
-
   (unless robot-arm-is-also-a-neck
     (roslisp:ros-info (pick-place place) "Looking")
     (cpl:with-failure-handling

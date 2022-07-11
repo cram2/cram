@@ -65,12 +65,15 @@
   (<- (%scenario-object-color :breakfast-cereal (0.5 0.5 0.21)))
   (<- (%scenario-object-color :milk (0.12 0.22 0.42)))
   (<- (%scenario-object-color :visualization-box (1.0 0.0 0.0 0.5)))
+  (<- (%scenario-object-color :whisk   (0 1 1 1)))
+  (<- (%scenario-object-color :big-bowl  (0.61 0.17 0.06)))
   (<- (%scenario-object-color :bowl-round (0.15 0.24 0.35)))
   (<- (%scenario-object-color :denkmit-entkalker (0.96 0.89 0.3)))
   (<- (%scenario-object-color :heitmann-citronensaeure (0.92 0.92 0.92)))
   (<- (%scenario-object-color :kuehne-essig-essenz (0.06 0.39 0.26 0.3)))
   (<- (%scenario-object-color :domestos-allzweckreiniger (0.06 0.24 0.48)))
   (<- (%scenario-object-color :shoe (0.34 0.32 0.18)))
+
 
   ;; Object type shapes
   (<- (scenario-object-shape ?object-type ?shape)

@@ -185,7 +185,7 @@ It is built from 3 rigid bodies of primitive box shape.
 
         ;; spawn the objects
         (flet ((make-axis-rigid-body (position-list half-extents-list color)
-                 (make-instance 'rigid-body
+                (make-instance 'rigid-body
                    :pose (cl-transforms:transform->pose
                           ;; make the center of axis not in the center of pose
                           ;; but offset, such that it's a corner and not a cross
@@ -228,3 +228,59 @@ It is built from 3 rigid bodies of primitive box shape.
 
 (defmethod costmap:on-visualize-costmap-sample opengl ((point cl-transforms:3d-vector))
   (add-costmap-sample-object point))
+
+;; (defun add-lq (object-or-pose &key length width id)
+;;   (print "add-lq")
+;;   (when (symbolp object-or-pose)
+;;     (print "recognized as symbol")
+;;     (let ((length 0.30) (width 0.01) (id 0))
+;;       (add-lq
+;;        (btr::pose
+;;         (btr::object btr::*current-bullet-world* object-or-pose))
+;;        :length length :width width :id id)))
+;;   (when (typep object-or-pose 'cl-transforms:pose)
+;;     (print "jo is pose")
+;;      (sb-thread:with-mutex (*debug-window-lock*)
+;;        (when (and *liquid-sphere* *debug-window* (assoc id *liquid-sphere*))
+;;         (setf (gl-objects *debug-window*)
+;;               (reduce (lambda (gl-objects-list sphere-object)
+;;                         (remove sphere-object gl-objects-list))
+;;                       (cdr (assoc id *liquid-sphere*))
+;;                       :initial-value (gl-objects *debug-window*))))
+;;          (print "alte sachen entfernt ne")
+;;     (let ((length 0.30) (width 0.01) (id 0)
+;;           (length/2 (/ length 2))
+;;             (width/2 (/ width 2))
+;;           (object-transform (cl-transforms:pose->transform object-or-pose)))
+;;       ;; spawn the objects
+;;         (print "flet to have function called make-lq-sphere-rigid-boxy")
+;;         (flet ((make-lq-sphere-rigid-body (position-list)
+;;                 (make-instance
+;;                       'rigid-body
+;;                   ;:name name :mass mass
+;;                   :pose  (cl-transforms:transform->pose
+;;                           ;; make the center of axis not in the center of pose
+;;                           ;; but offset, such that it's a corner and not a cross
+;;                           (cl-transforms:transform*
+;;                            object-transform
+;;                            (cl-transforms:make-transform
+;;                             (apply #'cl-transforms:make-3d-vector position-list)
+;;                             (cl-transforms:make-identity-rotation))))
+;;                     :collision-shape  (make-instance 'colored-sphere-shape
+;;                                  :radius 0.05
+;;                                         :color '(1.0 0.0 0.0 0.5)))))
+;;             (print "neue liste mit x objekten uebergeben")
+;;           (let ((new-axes-list
+;;                   (list (make-lq-sphere-rigid-body 
+;;                          `(,length/2 0 0))
+;;                         (make-lq-sphere-rigid-body 
+;;                          `(0 ,length/2 0))
+;;                         (make-lq-sphere-rigid-body 
+;;                          `(0 0 ,length/2)))))
+;;             (if (assoc id *liquid-sphere*)
+;;                 (rplacd (assoc id *liquid-sphere*) new-axes-list)
+;;                 (push (cons id new-axes-list) *liquid-sphere*))))
+;;         (print "push object into world bzw debug window :")
+;;       (when btr::*debug-window*
+;;         (mapc (lambda (obj) (push obj (btr::gl-objects btr::*debug-window*)))
+;;               (cdr (assoc id *liquid-sphere*))))))))

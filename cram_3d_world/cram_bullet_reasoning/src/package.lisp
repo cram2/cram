@@ -55,8 +55,8 @@
            object-type item-type item-types name rigid-bodies
            rigid-body-names rigid-body world make-object box
            static-plane sphere cylinder cone point-cloud
-           cutlery fork knife mug plate mondamin pot bowl sugar-box apple orange
-           cereal spatula pancake pancake-maker
+           cutlery fork knife mug plate mondamin pot bowl sugar-box apple
+           orange cereal spatula pancake pancake-maker
            bt-reasoning-world invalidate-object objects object %object
            bt-reasoning-world-state
            get-world-objects-pose-info restore-world-poses

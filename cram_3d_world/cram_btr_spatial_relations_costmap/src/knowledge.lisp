@@ -56,6 +56,8 @@
   (<- (%item-type-shape :pancake-maker :circle))
   (<- (%item-type-shape :cup :circle))
   (<- (%item-type-shape :spatula :rectangle))
+  (<- (%item-type-shape :big-bowl :circle))
+  (<- (%item-type-shape :whisk :rectangle))
   ;;
   (<- (item-type-shape ?type ?shape)
     (setof ?a-type (%item-type-shape ?a-type ?_)
@@ -89,6 +91,10 @@
   (<- (object-type-padding-size :big-knife 0.005d0))
   (<- (object-type-padding-size :pancake-maker 0.018d0))
   (<- (object-type-padding-size :spatula 0.01d0))
+  (<- (object-type-padding-size :cup 0.1d0))
+  (<- (object-type-padding-size :big-bowl 0.03d0))
+  (<- (object-type-padding-size :whisk 0.005d0)) 
+
   (<- (object-type-padding-size :cup 0.0d0))
   ;;
   (<- (padding-size ?world ?object-name ?padding)
@@ -114,6 +120,9 @@
   (<- (object-type-costmap-threshold :knife 0.8d0)) ; 0.99d0))
   (<- (object-type-costmap-threshold :big-knife 0.8d0)) ; 0.99d0))
   (<- (object-type-costmap-threshold :cup 0.8d0)) ; 0.99d0))
+  (<- (object-type-costmap-threshold :whisk 0.8d0)) ; 0.99d0))
+(<- (object-type-costmap-threshold :big-bowl 0.8d0)) ; 0.99d0))
+
   ;;
   (<- (object-costmap-threshold ?world ?object-name ?threshold)
     (btr:item-type ?world ?object-name ?object-type)

@@ -49,5 +49,6 @@
     ((:file "package")
      (:file "objects-database" :depends-on ("package"))
      (:file "objects" :depends-on ("package" "objects-database"))
+     (:file "utils" :depends-on ("package" "objects"))
      (:file "vis-tools" :depends-on ("package" "objects"))
      (:file "robot" :depends-on ("package"))))))

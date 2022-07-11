@@ -109,21 +109,26 @@
     (spec:property ?current-object-desig (:type ?object-type))
     (spec:property ?current-object-desig (:name ?object-name))
 
-    ;; get the arm for grasping by checking if it is specified for ?object-type
-    (man-int:arms-for-object-type ?object-type ?arms-for-object)
-    (-> (equal ?arms-for-object nil)
-        (-> (spec:property ?action-designator (:arm ?arm))
+    (spec:property ?action-designator (:arm ?arm))
+    (-> (lisp-type ?arm list)
+        (equal ?arms ?arm)
+        (equal ?arms (?arm)))
+        
+      ;; get the arm for grasping by checking if it is specified for ?object-type
+    (man-int:arms-for-object-type ?object-type ?armss-for-object)
+    (-> (equal ?armss-for-object nil)
+        (-> (spec:property ?action-designator (:arm ?arms))
             (and (setof ?free-arm (man-int:robot-free-hand ?_ ?free-arm) ?free-arms)
-                 (subset ?arm ?free-arms))
+                 (subset ?arms ?free-arms))
             (and (man-int:robot-free-hand ?_ ?free-arm)
-                 (equal (?free-arm) ?arm)))
-        (-> (spec:property ?action-designator (:arm ?arm))
+                 (equal (?free-arm) ?arms)))
+        (-> (spec:property ?action-designator (:arm ?arms))
             (and (setof ?free-arm (man-int:robot-free-hand ?_ ?free-arm) ?free-arms)
-                 (subset ?arm ?free-arms)
-                 (man-int:check-arms-for-object-type ?arm ?object-type))
+                 (subset ?arms ?free-arms)
+                 (man-int:check-arms-for-object-type ?arms ?object-type))
             (and (setof ?free-arm (man-int:robot-free-hand ?_ ?free-arm) ?free-arms)
                  (man-int:check-arms-for-object-type ?free-arms ?object-type)
-                 (equal ?arm ?free-arms))))
+                 (equal ?arms ?free-arms))))
                  
     (lisp-fun man-int:get-object-transform ?current-object-desig ?object-transform)
     ;; infer missing information like ?grasp type, gripping ?maximum-effort, manipulation poses
@@ -143,9 +148,9 @@
               (equal ?location-type NIL)))
 
     ;; calculate trajectory with given grasps
-    (lisp-fun man-int:get-action-grasps ?object-type ?arm ?object-transform ?grasps)    
+    (lisp-fun man-int:get-action-grasps ?object-type ?arms ?object-transform ?grasps)    
     (equal ?objects (?current-object-desig))
-    (-> (member :left ?arm)
+    (-> (member :left ?arms)
         (and (-> (spec:property ?action-designator (:left-grasp ?left-grasp))
                  (true)
                  (member ?left-grasp ?grasps))
@@ -163,7 +168,7 @@
              (equal ?left-grasp-poses NIL)
              (equal ?left-lift-poses NIL)))
 
-    (-> (member :right ?arm)
+    (-> (member :right ?arms)
         (and  (-> (spec:property ?action-designator (:right-grasp ?right-grasp))
                   (true)
                   (member ?right-grasp ?grasps))
@@ -195,7 +200,7 @@
     ;; put together resulting action designator
     (desig:designator :action ((:type :picking-up)
                                (:object ?current-object-desig)
-                               (:arm ?arm)
+                               (:arm ?arms)
                                (:gripper-opening ?gripper-opening)
                                (:effort ?effort)
                                (:left-grasp ?left-grasp)
@@ -212,6 +217,7 @@
                       ?resolved-action-designator))
 
 
+ 
  (<- (desig:action-grounding ?action-designator (place ?resolved-action-designator))
     (spec:property ?action-designator (:type :placing))
 
@@ -231,10 +237,9 @@
  ;;                              ?object-designator)))
  ;;            (cpoe:object-in-hand ?object-designator ?arm)))
 
-   
  ;; find in which hand the object is
-    (-> (spec:property ?action-designator (:arm ?arm))
-        (-> (spec:property ?action-designator (:object ?object-designator))
+   (-> (spec:property ?action-designator (:arm ?arm))
+          (-> (spec:property ?action-designator (:object ?object-designator))
             ;; Check if every given arm holds the given object
             ;; by proofing if given arms fit to specified and ...
             (or (once (and (man-int:check-arms-for-object ?arm ?object-designator)
@@ -324,46 +329,6 @@
                      ?other-object-designator
                      ?placement-location-name))
 
-    ;; (-> (member :left ?arm)
-    ;;     (and (or (spec:property ?action-designator (:left-grasp ?left-grasp))
-    ;;              (and (format "WARNING: Please specify a grasp with :left-grasp.~%")
-    ;;                   (fail)))
-    ;;          (lisp-fun man-int:get-action-grasps ?object-type :left ?object-transform ?left-grasps)
-    ;;          (lisp-fun man-int:get-action-trajectory 
-    ;;                    :placing :left ?left-grasp ?objects
-    ;;                    :target-object-transform-in-base ?target-object-transform
-    ;;                    ?left-trajectory)
-    ;;          (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :reaching
-    ;;                    ?left-reach-poses)
-    ;;          (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :putting
-    ;;                    ?left-put-poses)
-    ;;          (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :retracting
-    ;;                    ?left-retract-poses))
-    ;;     (and (equal ?left-grasp NIL)
-    ;;          (equal ?left-reach-poses NIL)
-    ;;          (equal ?left-put-poses NIL)
-    ;;          (equal ?left-retract-poses NIL)))
-
-    ;; (-> (member :right ?arm)
-    ;;     (and (or (spec:property ?action-designator (:right-grasp ?right-grasp))
-    ;;              (and (format "WARNING: Please specify a grasp with :right-grasp.~%")
-    ;;                   (fail)))
-    ;;          (lisp-fun man-int:get-action-grasps ?object-type :right ?object-transform ?right-grasps)
-    ;;          (member ?right-grasp ?right-grasps)
-    ;;          (lisp-fun man-int:get-action-trajectory
-    ;;                    :placing :right ?right-grasp ?objects
-    ;;                    :target-object-transform-in-base ?target-object-transform
-    ;;                    ?right-trajectory)
-    ;;          (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :reaching
-    ;;                    ?right-reach-poses)
-    ;;          (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :putting
-    ;;                    ?right-put-poses)
-    ;;          (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :retracting
-    ;;                    ?right-retract-poses))
-    ;;     (and (equal ?right-grasp NIL)
-    ;;          (equal ?right-reach-poses NIL)
-    ;;          (equal ?right-put-poses NIL)
-    ;;          (equal ?right-retract-poses NIL)))
 
 
    (lisp-fun man-int:get-action-grasps ?object-type ?arm ?object-transform ?grasps)  
@@ -444,3 +409,4 @@
                                (:left-retract-poses ?left-retract-poses)
                                (:right-retract-poses ?right-retract-poses))
                       ?resolved-action-designator)))
+
