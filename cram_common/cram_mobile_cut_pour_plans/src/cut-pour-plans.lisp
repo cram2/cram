@@ -113,6 +113,16 @@
 		    (desig:when ?collision-mode
 		      (collision-mode ?collision-mode))))))))
 
+   ;; (if (eq ?context :whisking)
+   ;; 	(exe: perform
+   ;; 	(desig: an action 
+   ;; 	(type approaching)
+   ;;      	    (left-poses ?left-approach-poses)
+   ;;      	    (right-poses ?right-approach-poses)   	
+   ;; 	)
+   ;; 	;get-object-type-robot-frame-whisk-pre-grasp-approach-transform in whipping trajectories for whisk in bowl position/ approach ?
+   ;; 	)
+   ;; )
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                      SLICE                                   ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

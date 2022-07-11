@@ -95,42 +95,43 @@
     
 
 ;;###########################testing bowl graps poses###########
-(defun testbowl()      
-	(urdf-proj:with-simulated-robot
+;; (defun testbowl()      
+;; 	(urdf-proj:with-simulated-robot
 	
-	(move-pr2)
-	(spawn-bigbowl)
+;; 	(move-pr2)
+;; 	(spawn-bigbowl)
         
         
-    (let* (
-        ;container
-        (?object-container nil)
-        (?pose-container nil))
+;;     (let* (
+;;         ;container
+;;         (?object-container nil)
+;;         (?pose-container nil))
                                              
-          ;getting bowl pose and saving it                        
-      (setf ?pose-container (cl-tf:pose->pose-stamped
-                             cram-tf:*fixed-frame*
-                             0 
-                             (btr:object-pose 'big-bowl-1)))
+;;           ;getting bowl pose and saving it                        
+;;       (setf ?pose-container (cl-tf:pose->pose-stamped
+;;                              cram-tf:*fixed-frame*
+;;                              0 
+;;                              (btr:object-pose 'big-bowl-1)))
                                          
-     (try-looking ?pose-container)    
+;;      (try-looking ?pose-container)    
      
      
      
-      (setf ?object-utensil (urdf-proj::detect (desig:an object (type big-bowl))))            
+;;       (setf ?object-utensil (urdf-proj::detect (desig:an object (type big-bowl))))            
                                      
-           (btr::add-vis-axis-object 'big-bowl-1)                                
+;;            (btr::add-vis-axis-object 'big-bowl-1)                                
                                      
-            (exe:perform (desig:an action
-                                   (type holding)
-                                   (object ?object-utensil)
-                                   (arm :left) 
-                                   (grasp :left-hold)))
+;;             (exe:perform (desig:an action
+;;                                    (type holding)
+;;                                    (object ?object-utensil)
+;;                                    (arm :left) 
+;;                                    (grasp :left-hold)))
                                      
-      )))
+;;       )))
 
 ;;#############################whisp testing##############      
-(defun testwhisk()      
+(defun testwhisk()
+  (initialize)
 	(urdf-proj:with-simulated-robot
 	
 	(move-pr2)
@@ -154,41 +155,44 @@
            (setf ?pose-container (cl-tf:pose->pose-stamped
                              cram-tf:*fixed-frame*
                              0 
-                             (btr:object-pose 'big-bowl-1))) 
+                             (btr:object-pose 'big-bowl-1)))
+      )))
       
-      ;show axis- for testing
+ ;;      ;show axis- for testing
       
                                          
-     (try-looking ?pose-utensil)    
+ ;;     (try-looking ?pose-utensil)    
      
-           ;CAN SEE THE FORK? hardcoded recognition of utensil type TODO make it adaptible
-      (setf ?object-utensil (urdf-proj::detect (desig:an object (type whisk))))            
+ ;;           ;CAN SEE THE FORK? hardcoded recognition of utensil type TODO make it adaptible
+ ;;      (setf ?object-utensil (urdf-proj::detect (desig:an object (type whisk))))            
                                      
-      ;(btr::add-vis-axis-object 'whisk-1) 
+ ;;      ;(btr::add-vis-axis-object 'whisk-1) 
       
-      
+ ;; ))) 
+
                                      
-       ;;;; Picking-up the utensil object 
-;grabbing utensil
-            (exe:perform (desig:an action
-                                   (type picking-up)
-                                   (object ?object-utensil)
-                                   (arm (:right)) 
-                                   (grasp :top)))
+;;        ;;;; Picking-up the utensil object 
+;; ;grabbing utensil
+;;             (exe:perform (desig:an action
+;;                                    (type picking-up)
+;;                                    (object ?object-utensil)
+;;                                    (arm (:right)) 
+;;                                    (grasp :top)))
                
-       ;bowl                            
-      (try-looking ?pose-container)    
+;;        ;bowl                            
+;;       (try-looking ?pose-container)    
      
            
-      (setf ?object-container(urdf-proj::detect (desig:an object (type big-bowl))))                       
+;;       (setf ?object-container(urdf-proj::detect (desig:an object (type big-bowl))))                       
             
-            ;mixing                       
-            (exe:perform (desig:an action
-                                   (type mixing)
-                                   (object ?object-container)
-                                   ;(objectc ?object-utensil);WIP default assume whisk
-                                   (arm :right) 
-                                   )))))                       
+;;             ;mixing                       
+;;             (exe:perform (desig:an action
+;;                                    (type mixing)
+;;                                    (object ?object-container)
+;;                                    ;(objectc ?object-utensil);WIP default assume whisk
+;;                                    (arm (:right)) 
+;;                                    )))))        
+
                                    
 
                                      
@@ -214,7 +218,7 @@
 (defun spawn-whisk()
       (btr-utils:spawn-object 'whisk-1 :whisk
                               :pose (cl-transforms:make-pose
-                                     (cl-tf:make-3d-vector -0.85 1 0.95)
+                                     (cl-tf:make-3d-vector -0.85 1 0.89)
                                      (cl-tf:make-identity-rotation))))
                                      
 (defun spawn-bowl()
@@ -226,7 +230,7 @@
 (defun spawn-bigbowl()
       (btr-utils:spawn-object 'big-bowl-1 :big-bowl
                               :pose (cl-transforms:make-pose
-                                     (cl-tf:make-3d-vector -0.85 0.55 0.95)
+                                     (cl-tf:make-3d-vector -0.85 0.55 0.93)
                                      (cl-tf:make-identity-rotation))))
                                      
 (defun spawn-cup()
@@ -246,23 +250,23 @@
 	(spawn-whisk)
 )
 
-(defun try-looking(?location-utensil)
-(cpl:with-retry-counters ((looking-retry 3))
-      (cpl:with-failure-handling
-          ((common-fail:low-level-failure
-               (e)
-             (declare (ignore e))
-             (cpl:do-retry looking-retry
-               (roslisp:ros-warn (whip-demo looking-fail)
-                                 "~%Failed to look at given position~%")
-               (cpl:retry))
-             (roslisp:ros-warn (whip-demo looking-fail)
-                               "~%No more retries~%")))
-        (dotimes (n 3)
-          (cram-executive:perform
-           (desig:an action
-                     (type looking)
-                     (target (desig:a location (pose ?location-utensil)))))))))
+;; (defun try-looking(?location-utensil)
+;; (cpl:with-retry-counters ((looking-retry 3))
+;;       (cpl:with-failure-handling
+;;           ((common-fail:low-level-failure
+;;                (e)
+;;              (declare (ignore e))
+;;              (cpl:do-retry looking-retry
+;;                (roslisp:ros-warn (whip-demo looking-fail)
+;;                                  "~%Failed to look at given position~%")
+;;                (cpl:retry))
+;;              (roslisp:ros-warn (whip-demo looking-fail)
+;;                                "~%No more retries~%")))
+;;         (dotimes (n 3)
+;;           (cram-executive:perform
+;;            (desig:an action
+;;                      (type looking)
+;;                      (target (desig:a location (pose ?location-utensil)))))))))
 
 
 ;;##
@@ -317,3 +321,22 @@
 
   (btr:clear-costmap-vis-object))
 
+
+
+(defun pick-object (&optional (?object-type :breakfast-cereal) (?arm :right) (?location :sink))
+  (go-to-sink-or-island ?location)
+  (let* ((?object-desig
+           (desig:an object (type ?object-type)))
+         (?perceived-object-desig
+           (exe:perform (desig:an action
+                                  (type detecting)
+                                  (object ?object-desig)))))
+    (dotimes (i 3)
+      (exe:perform (desig:an action
+                             (type looking)
+                             (object ?perceived-object-desig))))
+      (exe:perform (desig:an action
+                             (type picking-up)
+                             (arm ?arm)
+                             (object ?perceived-object-desig)
+                             (location-type ?location)))))

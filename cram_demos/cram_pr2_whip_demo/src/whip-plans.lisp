@@ -45,11 +45,11 @@
       
        (exe:perform
      (desig:an action
-               (type approaching)
+               (type pour)
                (left-poses ?left-approach-poses)
                (right-poses ?right-approach-poses)
-               (desig:when ?collision-mode
-                 (collision-mode ?collision-mode))))
+                (whisking ?context) 
+                 )))
                  
    ;   (roslisp:ros-info (whisking) "approaching")        
    ;  (exe:perform
@@ -59,4 +59,4 @@
    ;            (left-poses ?left-approach-poses)
    ;            (right-poses ?right-approach-poses)
    ;            ))
-)
+

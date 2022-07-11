@@ -1,9 +1,19 @@
 (in-package :cram-manipulation-interfaces)
 
-(defmethod get-object-type-robot-frame-whisk-approach-transform
-    ((object-type (eql :big-bowl))
+;pre-grasp - need to make z into dynamic offset depending on tool
+(defmethod get-object-type-robot-frame-whisk-pre-grasp-approach-transform
+    (object-type
      arm)
-    (grasp (eql :center)) 
+     (eql object-type :big-bowl)
+    (eql grasp :center) 
+  '((0.0 0.0 0.6)(0 0.707 0 0.707)))
+  
+;grasp-need to make z into dynamic offset depending on tool- will be done in trajectories this method should be in household at a later time
+(defmethod get-object-type-robot-frame-whisk-grasp-transform
+    (object-type
+     arm)
+     (eql object-type :big-bowl)
+    (eql grasp :center) 
   '((0.0 0.0 0.3)(0 0.707 0 0.707)))
 
 (defun translate-pose-in-base (bTg &key (x-offset 0.0) (y-offset 0.0) (z-offset 0.0))
@@ -11,12 +21,17 @@
                                        :x-offset x-offset
                                        :y-offset y-offset
                                        :z-offset z-offset))
-                                       
-(defun man-int:get-action-trajectory :heuristics 20 ((action-type (eql :mixing))
+                                    
+                                    ;heustistics    
+(defun man-int:get-action-trajectory (action-type
                                                           arm
                                                           grasp
                                                           objects-acted-on
+                                      
                                                           &key )
+
+(if (eql action-type :mixing)
+
 (let* ((object
            (car objects-acted-on))
          (object-name
@@ -37,7 +52,7 @@
             object-type object-name arm grasp))
             
             ;rotation des gripper important -in 
-         (bTb-offset(get-object-type-robot-frame-whisk-approach-transform
+         (bTb-offset(get-object-type-robot-frame-whisk-pre-grasp-approach-transform
                    object-type arm grasp))   
          )
 ;stuff
@@ -60,12 +75,15 @@
                  (if (eq label :whip-approach)
                     
                  ;gotta infer missing gasp info :center
-		 ;whip approach using pouring
+		 ;whip approach using pouring-> now pre grasp to grasp position
                      (calculate-init-whipping-trajectory-in-map btr-object arm grasp)
                                         
                      (mapcar 
                       (alexandria:curry #'man-int:calculate-gripper-pose-in-map bTo arm)
-                      transforms))))
+                      transforms))
+                  ;if eq label start mix - rim of bowl has offset for biggest circle    
+                      
+                      ))
               '(:reaching
                 :grasping
                 :whip-approach
@@ -78,7 +96,7 @@
                 (,oTg-std)
                 (,bTb-offset)
                    ;wip mixing
-                )))))
+                ))))))
  
  ;WIP                 
 (defun calculate-init-whipping-trajectory-in-map (object arm bTg)
