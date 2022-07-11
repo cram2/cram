@@ -1,0 +1,255 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+	<xacro:include filename="$(find iai_kms_40_description)/urdf/kms_40.urdf.xacro" />
+	<xacro:include filename="$(find iai_adapters_description)/urdf/adapter_fwa050_wsg50.urdf.xacro" />
+	<xacro:include filename="$(find iai_adapters_description)/urdf/adapter_kms40_fwk050.urdf.xacro" />
+	<xacro:include filename="$(find iai_adapters_description)/urdf/fwk_fwa_050.urdf.xacro" />
+	<xacro:include filename="$(find iai_wsg_50_description)/urdf/wsg_50.urdf.xacro" />
+	<xacro:include filename="$(find iai_boxy_base_2)/robots/base.xacro" />
+	<material name="gray">
+		<color rgba="0.56 0.67 0.67 1" />
+	</material>
+	<material name="Silver">
+		<color rgba="1.0 1.0 1.0 1.0" />
+	</material>
+	<material name="Grey">
+		<color rgba="0.7 0.7 0.7 1.0" />
+	</material>
+	<material name="yellow">
+		<color rgba="1.0 1.0 0.0 1.0" />
+	</material>
+	<xacro:property name="base_link_to_table_top" value="0.47" />
+	<xacro:property name="table_length" value="0.6" />
+	<xacro:property name="table_width" value="0.553" />
+	<xacro:property name="ur5_prefix" value="ur5_" />
+	<xacro:property name="arm_mounting_plate_width" value="0.18" />
+	<xacro:property name="arm_mounting_plate_length" value="0.15" />
+	<xacro:property name="arm_mounting_plate_height" value="0.006" />
+	<xacro:property name="arm_mounting_plate_x_offset" value="0.0" />
+	<xacro:property name="arm_mounting_plate_y_offset" value="0.027" />
+	<xacro:property name="kms_mounting_plate_height" value="0.016" />
+	<xacro:arg name="transmission_hw_interface" default="hardware_interface/PositionJointInterface" />
+	<!-- common stuff -->
+	<xacro:include filename="$(find iai_ur_description)/urdf/common.gazebo.xacro" />
+	<!-- ur5 -->
+	<xacro:include filename="$(find iai_ur_description)/urdf/ur5.urdf.xacro" />
+	<!-- arm -->
+	<xacro:arg name="kinematics_config" default="$(find iai_ur_description)/config/ur5_default.yaml" />
+	<xacro:macro name="iai_donbot" params="odom with_wheels with_boxes"> 
+		<xacro:base odom="${odom}" with_wheels="${with_wheels}"/> <!-- create base -->
+		<!--
+		<joint name="arm_mounting_plate_joint" type="fixed">
+		<parent link="base_footprint"/>
+		<child link="arm_mounting_plate"/>
+		<origin xyz="${-table_length+arm_mounting_plate_x_offset+arm_mounting_plate_length/2} ${-table_width+arm_mounting_plate_y_offset+arm_mounting_plate_width/2} ${base_link_to_table_top}"/>
+		</joint>
+		
+		<link name="arm_mounting_plate">
+		<visual>
+		<geometry>
+		<mesh filename="package://iai_table_robot_description/meshes/base_to_optical_table.stl"/>
+		</geometry>
+		<material name="Silver"/>
+		</visual>
+		</link>
+		-->
+		<!-- <xacro:ur5_robot prefix="${ur5_prefix}" joint_limited="false"/> -->
+		<xacro:ur5_robot prefix="${ur5_prefix}" joint_limited="false" transmission_hw_interface="$(arg transmission_hw_interface)" kinematics_file="${load_yaml('$(arg kinematics_config)')}" />
+		<joint name="arm_base_mounting_joint" type="fixed">
+			<parent link="base_link" />
+			<child link="${ur5_prefix}base_link" />
+			<origin xyz="-0.525 -0.424 0.470" rpy="0.0 0.0 0.0" />
+		</joint>
+		<link name="kms_mounting_plate">
+			<visual>
+				<geometry>
+					<mesh filename="package://iai_table_robot_description/meshes/adapter_plate_iso50_kms40_weiss.stl" scale="0.001 0.001 0.001" />
+				</geometry>
+				<material name="gray" />
+			</visual>
+		</link>
+		<joint name="kms_mounting_plate_joint" type="fixed">
+			<parent link="${ur5_prefix}ee_link" />
+			<child link="kms_mounting_plate" />
+			<origin xyz="0 0 0" rpy="0 ${pi/2} 0" />
+		</joint>
+		<xacro:kms_40_xacro parent="kms_mounting_plate" prefix="">
+			<origin xyz="0 0 0" rpy="0 0 ${pi}" />
+		</xacro:kms_40_xacro>
+		<xacro:adapter_kms40_fwk050_xacro parent="kms40_frame_out" prefix="">
+			<origin xyz="0 0 0" rpy="0 0 0" />
+		</xacro:adapter_kms40_fwk050_xacro>
+		<xacro:fwk_fwa_050_xacro parent="adapter_kms40_fwk050_frame_out" prefix="">
+			<origin xyz="0 0 0" rpy="0 0 0" />
+		</xacro:fwk_fwa_050_xacro>
+		<xacro:adapter_fwa050_wsg50_xacro parent="fwk_fwa_050_frame_out" prefix="">
+			<origin xyz="0 0 0.0" rpy="0 0 0" />
+		</xacro:adapter_fwa050_wsg50_xacro>
+		<xacro:wsg_50_xacro name="gripper" parent="adapter_fwa050_wsg50_frame_out">
+			<origin xyz="0 0 0" rpy="0 0 3.14159265359" />
+		</xacro:wsg_50_xacro>
+		<link name="camera_holder_link">
+			<visual>
+				<geometry>
+					<mesh filename="package://iai_donbot_description/meshes/refills_camera_holder_and_camera.stl" scale="1 1 1" />
+				</geometry>
+				<material name="gray" />
+			</visual>
+			<collision>
+				<geometry>
+					<mesh filename="package://iai_donbot_description/meshes/refills_camera_holder_and_camera.stl" scale="1 1 1" />
+				</geometry>
+				<material name="gray" />
+			</collision>
+		</link>
+		<joint name="gripper_to_camera_holder_joint" type="fixed">
+			<parent link="gripper_base_link" />
+			<child link="camera_holder_link" />
+			<origin xyz="0 0 0" rpy="0 0 ${pi}" />
+		</joint>
+		<link name="camera_link">
+			<visual>
+				<geometry>
+					<cylinder radius="0.001" length="0.005"/>
+				</geometry>
+			</visual>
+		</link>
+		<joint name="gripper_to_camera_joint" type="fixed">
+			<parent link="gripper_base_link" />
+			<child link="camera_link" />
+			<!--
+			Calib_errors = [0.003425, 0.2069, 0.00611, 0.42678]
+			Calib_errors = median_pos_error(m), median_orient_error(deg), max_pos_error(m), max_orient_error(deg)
+			-->
+			<!-- from base_link origin xyz="0.004174 -0.067273 0.062438" rpy="0.209203 0.001106 3.120208"/ -->
+			<!-- from ur5_base_link origin xyz="0.002956 -0.066498 0.060947" rpy="0.204429 6.281375 3.127197"/ -->
+			<!-- calib errors: 0.00311, 0.24373, 0.00688, 0.4558 -->
+			<!-- old camera holders -->
+			<!-- <origin xyz="0.002956 -0.066498 0.060947" rpy="0.204429 6.281375 3.127197" /> -->
+			<!-- new camera holders -->
+			<origin xyz="0.0013289 -0.06619 0.031583" rpy="0.231224 -0.0034913 -3.134637307" />
+		</joint>
+		<link name="rs_camera_link" />
+		<joint name="wristcam_to_realsense_joint" type="fixed">
+			<parent link="camera_link" />
+			<child link="rs_camera_link" />
+			<!-- old camera holder -->
+			<!-- <origin xyz="-0.017993 -0.107556 0.017699" rpy="6.270618 4.930698 1.578454" /> -->
+			<!-- new camera holder -->
+			<origin xyz="-0.018594 -0.105693 0.017161" rpy="-0.0120443 -1.3424873 1.579879" />
+		</joint>
+
+		<!-- boxes to cover up switches and stuff -->
+		<xacro:if value="${with_boxes}">
+			<joint name="switches_joint" type="fixed">
+				<parent link="base_link" />
+				<child link="switches" />
+				<origin xyz="-0.66 -0.225 0.225" rpy="0 0 0" />
+			</joint>
+			<link name="switches">
+				<visual>
+					<geometry>
+						<box size="0.12 0.4 0.45" />
+					</geometry>
+					<material name="Silver" />
+				</visual>
+				<collision>
+					<geometry>
+						<box size="0.12 0.4 0.45" />
+					</geometry>
+					<material name="Silver" />
+				</collision>
+			</link>
+			<joint name="charger_joint" type="fixed">
+				<parent link="base_link" />
+				<child link="charger" />
+				<origin xyz="0.075 -0.225 0.19" rpy="0 0 0" />
+			</joint>
+			<link name="charger">
+				<visual>
+					<geometry>
+						<box size="0.15 0.3 0.38" />
+					</geometry>
+					<material name="Silver" />
+				</visual>
+				<collision>
+					<geometry>
+						<box size="0.15 0.3 0.38" />
+					</geometry>
+					<material name="Silver" />
+				</collision>
+			</link>
+			<joint name="e_stop_joint" type="fixed">
+				<parent link="base_link" />
+				<child link="e_stop" />
+				<origin xyz="-0.035 -0.0015 0.52" rpy="0 0 0" />
+			</joint>
+			<link name="e_stop">
+				<visual>
+					<geometry>
+						<box size="0.07 0.07 0.1" />
+					</geometry>
+					<material name="yellow" />
+				</visual>
+				<collision>
+					<geometry>
+						<box size="0.07 0.07 0.1" />
+					</geometry>
+					<material name="yellow" />
+				</collision>
+			</link>
+			<joint name="wlan_joint" type="fixed">
+				<parent link="base_link" />
+				<child link="wlan" />
+				<origin xyz="0.05 -0.225 0.405" rpy="0 -0.314 0" />
+			</joint>
+			<link name="wlan">
+				<visual>
+					<geometry>
+						<box size="0.25 0.14 0.05" />
+					</geometry>
+					<material name="Silver" />
+				</visual>
+				<collision>
+					<geometry>
+						<box size="0.25 0.14 0.05" />
+					</geometry>
+					<material name="Silver" />
+				</collision>
+			</link>
+			<joint name="ur5_touchpad_joint" type="fixed">
+				<parent link="base_link" />
+				<child link="ur5_touchpad" />
+				<origin xyz="-0.16 -0.5355 0.38" rpy="0 0 0" />
+			</joint>
+			<link name="ur5_touchpad">
+				<visual>
+					<geometry>
+						<box size="0.32 0.06 0.24" />
+					</geometry>
+					<material name="Silver" />
+				</visual>
+				<collision>
+					<geometry>
+						<box size="0.32 0.06 0.24" />
+					</geometry>
+					<material name="Silver" />
+				</collision>
+			</link>
+			<joint name="wrist_collision_joint" type="fixed">
+				<parent link="adapter_kms40_fwk050_frame_in" />
+				<child link="wrist_collision" />
+				<origin xyz="0 0 -0.005" rpy="0 0 0" />
+			</joint>
+			<link name="wrist_collision">
+				<collision>
+					<geometry>
+						<cylinder radius="0.04" length="0.08" />
+					</geometry>
+					<material name="Silver" />
+				</collision>
+			</link>
+		</xacro:if>
+		
+	</xacro:macro>
+</robot>

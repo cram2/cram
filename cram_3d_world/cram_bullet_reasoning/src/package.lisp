@@ -39,7 +39,7 @@
   (:shadowing-import-from #:cl-bullet points pose)
   (:shadow copy-object)
   (:export *current-bullet-world* *current-timeline* *visibility-threshold*
-           *all-meshes-as-compound*
+           *all-meshes-as-compound* *robot-model-alpha*
            merge-bounding-boxes aabb calculate-bb-dims
            with-stored-world *debug-window*
            add-debug-window add-costmap-function-object add-vis-axis-object
@@ -48,7 +48,8 @@
            height fov-y z-near z-far pose gl-execute-with-camera
            camera-transform look-at-object-rotation
            with-rendering-to-framebuffer render-to-framebuffer
-           get-rendering-context read-pixelbuffer read-depthbuffer to-png-image
+           get-rendering-context read-pixelbuffer read-depthbuffer
+           to-png-image png-from-camera-view
            add-object generic-cup item mesh
            remove-object object
            object-type item-type item-types name rigid-bodies
@@ -86,11 +87,11 @@
            ;; reach-pose-ik reach-object-ik point-reachable-p reach-point-ik
            ;; object-reachable-p pose-reachable-p calculate-orientation-in-robot
            ;; calculate-object-tool-length
-           init-ros-object-database clear-bullet-world
-           ros-household-object execute open close ;; reach-ik-solution
+           clear-bullet-world
+           execute open close ;; reach-ik-solution
            attached attached-objects object-attached
            attach-object detach-object detach-all-objects detach-all-from-link
-           get-loose-attached-objects
+           get-loose-attached-objects remove-loose-attachment-for
            link-attached-object-names object-name-attached-links
            item-dimensions
            add-objects-to-mesh-list
@@ -116,6 +117,12 @@
            holds-in-world with-timeline
            ;; simple-sem-map
            #:*mesh-path-whitelist*
-           ;; Query the bullet world
+           ;; textures
+           #:*static-plane-texture*
+           #:*static-plane-gray-texture*
+           #:*static-plane-gray-thin-texture*
+           #:*static-plane-black-inverted-texture*
+           #:*static-plane-texture-64x64
+	   ;; Query the bullet world
            get-objects-for-type
            ))

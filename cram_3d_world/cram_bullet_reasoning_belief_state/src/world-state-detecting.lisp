@@ -28,16 +28,22 @@
 
 (in-package :btr-belief)
 
-(def-fact-group world-state-matching-pms (cpm:matching-process-module)
-  (<- (cpm:matching-process-module ?motion-designator world-state-detecting-pm)
-    (desig:desig-prop ?motion-designator (:type :world-state-detecting))))
-
 (cpm:def-process-module world-state-detecting-pm (motion-designator)
   (destructuring-bind (command object-designator)
       (desig:reference motion-designator)
     (ecase command
       (cram-common-designators:world-state-detect
        (world-state-detecting object-designator)))))
+
+
+(def-fact-group world-state-matching-pms (cpm:matching-process-module
+                                          cpm:available-process-module)
+
+  (<- (cpm:matching-process-module ?motion-designator world-state-detecting-pm)
+    (desig:desig-prop ?motion-designator (:type :world-state-detecting)))
+
+  (<- (cpm:available-process-module world-state-detecting-pm)))
+
 
 (defun world-state-detecting (object-designator)
   (declare (type desig:object-designator object-designator))
@@ -94,32 +100,10 @@ the old object-designator description is enough to create a new one."
                   :description (format NIL "There are no objects with a matching type to ~a in the field of view of the robot" old-object)))))
 
 
+
 (defun detect-new-object-pose-from-btr (old-object)
-  (let* ((camera-pose (cdr (assoc '?camera-pose (car
-                                                 (prolog:prolog '(and (btr:bullet-world ?world)
-                                                                  (cram-robot-interfaces:robot ?robot)
-                                                                  (cram-robot-interfaces:camera-frame ?robot ?camera-frame)
-                                                                  (btr:link-pose ?robot ?camera-frame ?camera-pose)))))))
-         (visible-objects-in-fov (remove-if-not #'identity
-                                                (mapcar (lambda (obj) (let ((visibility  (btr:calculate-object-visibility
-                                                                                          btr:*current-bullet-world*
-                                                                                          camera-pose
-                                                                                          obj)))
-                                                                        (if (or (btr:object-visibility-occluding-objects visibility)
-                                                                                (<= btr:*visibility-threshold* (btr:object-visibility-percentage visibility)))
-                                                                            obj)))
-                                    ;;                    (btr::get-objects-for-type (desig:desig-prop-value old-object :type)))))
-                                                        (btr::get-objects-for-type (desig:desig-prop-value old-object :type)))))
-    
-         btr::get-robot-object
-         
-         (object-name (if (desig:desig-prop-value old-object :name)
-                          (desig:desig-prop-value old-object :name)
-                          (btr:name (if visible-objects-in-fov
-                                        (car visible-objects-in-fov)
-                                        (cpl:fail 'common-fail:perception-object-not-found
-                                                  :object old-object
-                                                  :description (format NIL "There is no object with a matching type to ~a in the field of view of the robot" old-object))))))
+  (let* ((object-name
+           (desig:desig-prop-value old-object :name))
          (object-type
            (first (btr:item-types
                    (btr:object btr:*current-bullet-world* object-name))))
@@ -134,6 +118,7 @@ the old object-designator description is enough to create a new one."
            (cram-tf:strip-transform-stamped map-T-obj)))
 
     (detect-new-object-pose old-object object-name object-type map-P-obj map-T-obj)))
+
 
 
 (defun detect-new-object-pose-from-old-pose (old-object)

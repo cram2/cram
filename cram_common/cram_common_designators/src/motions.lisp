@@ -202,6 +202,12 @@
               (equal ?comparison-function nil)))))
 
 
+(def-fact-group waiting-motion (motion-grounding)
+
+  (<- (motion-grounding ?designator (wait ?duration))
+    (property ?designator (:type :waiting))
+    (property ?designator (:duration ?duration))))
+
 
 #+wiggling-stuff
 (

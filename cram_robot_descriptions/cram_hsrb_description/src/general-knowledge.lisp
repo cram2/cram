@@ -40,6 +40,8 @@
                                camera-frame
                                camera-horizontal-angle camera-vertical-angle
                                robot-neck-links robot-neck-joints
+                               robot-neck-pan-joint-forward-facing-axis-sign
+                               robot-neck-tilt-joint-forward-facing-axis-sign
                                robot-joint-states robot-pose)
 
   (<- (robot-odom-frame :hsrb "odom"))
@@ -56,6 +58,12 @@
 
   (<- (robot-neck-links :hsrb "head_pan_link" "head_tilt_link"))
   (<- (robot-neck-joints :hsrb "head_pan_joint" "head_tilt_joint"))
+
+  ;; TODO: this needs to be corrected for this robot:
+  (<- (robot-neck-pan-joint-forward-facing-axis-sign :hsrb
+                                                     cl-transforms:x +1))
+  (<- (robot-neck-tilt-joint-forward-facing-axis-sign :hsrb
+                                                      cl-transforms:x +1))
 
   (<- (robot-joint-states :hsrb :neck ?_ :forward ((?pan_joint 0.0) (?tilt_joint 0.0)))
     (robot-neck-joints :hsrb ?pan_joint ?tilt_joint))

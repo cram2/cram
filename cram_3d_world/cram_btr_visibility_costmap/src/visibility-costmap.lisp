@@ -127,7 +127,7 @@ void main(void)
               ;;                                   (/ (row-major-aref depth-image i)
               ;;                                      max-value)
               ;;                                   1.0d0)))
-              ;;                          (to-png-image width height normalized :gray)))
+              ;;                          (btr:to-png-image width height normalized :gray)))
               ;;                      (format nil "/tmp/foo-~a.png" i))
               )))))
 

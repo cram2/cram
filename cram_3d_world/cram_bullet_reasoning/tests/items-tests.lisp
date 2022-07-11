@@ -1006,9 +1006,7 @@
   (btr:attach-object 'oo1 'oo2 :loose T)
   (btr:attach-object 'oo2 'oo3)
   (btr:attach-object 'oo2 'oo4)
-  (btr:attach-object 'oo5 'oo2 :loose T :skip-removing-loose T)
-  ;; the :skip-removing-loose key is used so the loose attachement
-  ;; between 'oo2 and 'oo1 won't get removed
+  (btr:attach-object 'oo5 'oo2 :loose T)
 
   (let ((loose-attached-obj-names (btr::get-loose-attached-objects (btr:object
                                                                     btr:*current-bullet-world* 'oo2))))
@@ -1050,9 +1048,7 @@
   (btr:attach-object 'oo1 'oo2 :loose T)
   (btr:attach-object 'oo2 'oo3)
   (btr:attach-object 'oo2 'oo4)
-  (btr:attach-object 'oo5 'oo2 :loose T :skip-removing-loose T)
-  ;; the :skip-removing-loose key is used so the loose attachement
-  ;; between 'oo2 and 'oo1 won't get removed
+  (btr:attach-object 'oo5 'oo2 :loose T)
 
   (btr::remove-loose-attachment-for (btr:object btr:*current-bullet-world*
                                                 'oo2))

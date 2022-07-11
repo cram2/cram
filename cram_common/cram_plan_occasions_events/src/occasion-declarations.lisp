@@ -30,7 +30,7 @@
 (in-package :cram-plan-occasions-events)
 
 (def-fact-group occasions (object-in-hand
-                           object-at-location robot-at-location
+                           object-at-location object-placed robot-at-location
                            torso-at gripper-joint-at gripper-opened gripper-closed
                            arms-positioned-at tool-frames-at
                            looking-at
@@ -47,6 +47,8 @@
     (fail))
 
   (<- (object-at-location ?object-designator ?location-designator)
+    (fail))
+  (<- (object-placed ?object-designator ?location-designator)
     (fail))
   (<- (robot-at-location ?location-designator)
     (fail))

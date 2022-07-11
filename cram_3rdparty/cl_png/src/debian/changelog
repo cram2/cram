@@ -1,0 +1,27 @@
+cl-png (0.2.1-1) unstable; urgency=low
+
+  * Patch from Milan Zamazal (closes:20600)
+
+ -- Kevin M. Rosenberg <kmr@debian.org>  Mon, 18 Aug 2003 01:22:23 -0600
+
+cl-png (0.2-3) unstable; urgency=low
+
+  * Remove 'load-compiled-op from .asd file
+  * Changes compared to upstream: 
+     - Added .asd file for use with Common Lisp Controller
+     - Change package naming for compatibility with Allegro case-sensitive mode
+     - Change defconstants to defvars for objects that aren't EQL on reload  
+
+ -- Kevin M. Rosenberg <kmr@debian.org>  Mon,  2 Dec 2002 11:37:39 -0700
+
+cl-png (0.2-2) unstable; urgency=low
+
+  * Fix description
+
+ -- Kevin M. Rosenberg <kmr@debian.org>  Tue,  5 Nov 2002 21:37:42 -0700
+
+cl-png (0.2-1) unstable; urgency=low
+
+  * Initial release (closes: 167961)
+
+ -- Kevin M. Rosenberg <kmr@debian.org>  Tue, 22 Oct 2002 09:57:38 -0600

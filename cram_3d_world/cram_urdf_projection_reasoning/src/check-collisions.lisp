@@ -248,7 +248,7 @@ Store found pose into designator or throw error if good pose not found."
                             (cpl:retry)
                             (progn
                               (roslisp:ros-warn (coll-check place)
-                                                "No more placing samples to try.~
+                                                "No more placing samples to try. ~
                                                  Object unreachable.")
                               (cpl:fail 'common-fail:object-unreachable
                                         :description
@@ -273,6 +273,9 @@ Store found pose into designator or throw error if good pose not found."
                         (arm
                           (desig:desig-prop-value placing-action-referenced
                                                   :arm))
+                        (gripper-opening
+                          (desig:desig-prop-value placing-action-referenced
+                                                  :gripper-opening))
                         (left-reach-poses
                           (desig:desig-prop-value placing-action-referenced
                                                   :left-reach-poses))
@@ -297,7 +300,7 @@ Store found pose into designator or throw error if good pose not found."
                         (move-base
                           (infer-move-base object-designator placing-action-desig)))
 
-                   (urdf-proj::gripper-action :open arm)
+                   (urdf-proj::gripper-action gripper-opening arm)
 
                    (roslisp:ros-info (coll-check place)
                                      "Trying to place object ~a with arm ~a~%"
@@ -332,15 +335,15 @@ Store found pose into designator or throw error if good pose not found."
                                  ;;  :key #'btr:name)
                                  )
                             (roslisp:ros-warn (coll-check place)
-                                              "Robot is in collision with environment.")
+                                              "Robot is in collision with ~a."
+                                              (btr:robot-colliding-objects-without-attached))
                             (cpl:sleep urdf-proj:*debug-long-sleep-duration*)
                             (btr:restore-world-poses world-pose-info)
-                            ;; (cpl:fail 'common-fail:manipulation-goal-in-collision)
-                            ))))
-                    ;; (list left-put-poses)
-                    ;; (list right-put-poses)
-                    (list left-reach-poses left-put-poses left-retract-poses)
-                    (list right-reach-poses right-put-poses right-retract-poses))))))
+                            (cpl:fail 'common-fail:manipulation-goal-in-collision)))))
+                    (list left-reach-poses ;; left-put-poses
+                          left-retract-poses)
+                    (list right-reach-poses ;; right-put-poses
+                          right-retract-poses))))))
         (btr:restore-world-poses world-pose-info)))))
 
 
@@ -419,11 +422,9 @@ Store found pose into designator or throw error if good pose not found."
                     (right-poses-2
                       (desig:desig-prop-value action-referenced :right-grasp-poses))
                     (left-poses-3
-                      (or (desig:desig-prop-value action-referenced :left-open-poses)
-                          (desig:desig-prop-value action-referenced :left-close-poses)))
+                      (desig:desig-prop-value action-referenced :left-manipulate-poses))
                     (right-poses-3
-                      (or (desig:desig-prop-value action-referenced :right-open-poses)
-                          (desig:desig-prop-value action-referenced :right-close-poses)))
+                      (desig:desig-prop-value action-referenced :right-manipulate-poses))
                     (left-poses-4
                       (desig:desig-prop-value action-referenced :left-retract-poses))
                     (right-poses-4
@@ -448,9 +449,11 @@ Store found pose into designator or throw error if good pose not found."
                (when (eq (desig:desig-prop-value action-desig :type) :opening)
                  (when (btr:robot-colliding-objects-without-attached)
                    (roslisp:ros-warn (coll-check environment)
-                                     "Robot is in collision with environment.")
+                                     "Robot is in collision with ~a."
+                                     (btr:robot-colliding-objects-without-attached))
                    (cpl:sleep urdf-proj:*debug-long-sleep-duration*)
                    (btr:restore-world-poses world-pose-info)
+                   ;; Ignoring collisions with the environment and only reacting to IK fails.
                    ;; (cpl:fail 'common-fail:manipulation-goal-in-collision)
                    ))))
         (btr:restore-world-poses world-pose-info)))))
