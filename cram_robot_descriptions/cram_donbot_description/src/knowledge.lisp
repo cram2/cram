@@ -31,8 +31,8 @@
 
 (defparameter *tcp-in-ee-pose*
   (cl-transforms:make-pose
-   (cl-transforms:make-3d-vector 0 0 0.2581d0)
-   (cl-transforms:make-quaternion 0 0 -0.7071067811849626d0 -0.7071067811881324d0)))
+   (cl-transforms:make-3d-vector 0 0 0.2211)
+   (cl-transforms:make-quaternion 0 0 0.7071067811849626d0 0.7071067811881324d0)))
 
 (defparameter *standard-to-donbot-gripper-transform*
   (cl-transforms-stamped:make-identity-transform))
@@ -70,12 +70,13 @@
   (<- (camera-frame :iai-donbot "rs_camera_depth_optical_frame")) ; realsense, virtual
   (<- (camera-frame :iai-donbot "rs_camera_color_optical_frame")) ; virtual
 
+  ;; The visibility costmap makes no sense for Donbot, as it can move its arm anywhere.
   ;; (<- (camera-minimal-height :iai-donbot 0.5))
   ;; (<- (camera-maximal-height :iai-donbot 1.2))
 
   ;; These are values taken from the Kinect's wikipedia page for the 360 variant
-  (<- (camera-horizontal-angle donbot 0.99483))
-  (<- (camera-vertical-angle donbot 0.75049)))
+  (<- (camera-horizontal-angle :iai-donbot 0.99483))
+  (<- (camera-vertical-angle :iai-donbot 0.75049)))
 
 
 (def-fact-group donbot-arm-facts (arm-joints arm-links
@@ -244,12 +245,14 @@
                                            costmap:orientation-samples
                                            costmap:orientation-sample-step
                                            costmap:reachability-orientation-offset
+                                           costmap:visibility-orientation-offset
                                            costmap:visibility-costmap-size)
   (<- (costmap:costmap-padding :iai-donbot 0.5))
   (<- (costmap:costmap-manipulation-padding :iai-donbot 0.5))
-  (<- (costmap:costmap-in-reach-distance :iai-donbot 1.125))
+  (<- (costmap:costmap-in-reach-distance :iai-donbot 1.25))
   (<- (costmap:costmap-reach-minimal-distance :iai-donbot 0.1))
   (<- (costmap:orientation-samples :iai-donbot 1))
   (<- (costmap:orientation-sample-step :iai-donbot 0.3))
   (<- (costmap:reachability-orientation-offset :iai-donbot 1.57))
+  (<- (costmap:visibility-orientation-offset :iai-donbot 1.57))
   (<- (costmap:visibility-costmap-size :iai-donbot 2.0)))

@@ -43,7 +43,7 @@
  ;; (<- (costmap:costmap-resolution :iai-oven-area 0.04))
 
   (<- (is-dm-room-urdf-name ?name)
-    (member ?name (:dm-shelves :dm-room :store)))
+    (member ?name (:dm-shelves :dm-room :store :storage)))
   (<- (costmap:costmap-size ?name 10 10)
     (is-dm-room-urdf-name ?name))
   (<- (costmap:costmap-origin ?name -5 -5)

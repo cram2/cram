@@ -31,27 +31,15 @@
 
 (defun make-dm-room-restricted-area-cost-function ()
   (lambda (x y)
-    (if (> x 4.0)
-        0.0
-        (if (< x 0.0)
-            0.0
-            (if (> y 1.0)
-                0.0
-                (if (< y -1.0)
-                    0.0
-                    1.0))))))
+    (if (and (< 0.0 x 4.0) (< -1.0 y 1.0))
+        1.0
+        0.0)))
 
 (defun make-small-retail-restricted-area-cost-function ()
   (lambda (x y)
-    (if (> x 2.0)
-        0.0
-        (if (< x -5.0)
-            0.0
-            (if (> y 1.0)
-                0.0
-                (if (< y -1.0)
-                    0.0
-                    1.0))))))
+    (if (and (< -5.0 x 2.0) (< -1.0 y 1.0))
+        1.0
+        0.0)))
 
 (defun make-iai-kitchen-assembly-restricted-area-cost-function ()
   (lambda (x y)
@@ -64,26 +52,51 @@
   (lambda (x y)
     (if (> x 1.2)
         0.0
-        (if (and (> x 0.5) (> y -1.5) (< y 2.0))
+        (if (and (> x 0.5) (< -1.5 y 2.0))
             1.0
-            (if (and (> x 0.0) (> y -1.5) (< y 1.0))
+            (if (and (> x 0.0) (< -1.5 y 1.0))
                 1.0
-                (if (and (> x -1.5) (> y -1.5) (< y 2.5))
+                (if (and (> x -1.5) (< -1.5 y 2.5))
                     1.0
-                    (if (and (> x -4.0) (> y -1.0) (< y 1.0))
+                    (if (and (> x -4.0) (< -1.0 y 1.0))
                         1.0
                         0.0)))))))
+
+(defun make-iai-kitchen-offset-household-restricted-area-cost-function ()
+  (lambda (x y)
+    (if (< x 1.6)
+        (if (and (> x -1.0) (< -1.0 y 2.9))
+            1.0
+            (if (and (> x -3.0) (< -0.5 y 2.9))
+                1.0
+                0.0))
+        0.0)))
+
+(defun make-storage-restricted-area-cost-function ()
+  (lambda (x y)
+    (if (and (< -2.6 x 2.6) (< -1.6 y 1.6))
+        1.0
+        0.0)))
 
 (defun make-restricted-area-cost-function ()
   (ecase (rob-int:get-environment-name)
     (:iai-kitchen
      (if (btr:object btr:*current-bullet-world* :big-wooden-plate)
          (make-iai-kitchen-assembly-restricted-area-cost-function)
-         (make-iai-kitchen-household-restricted-area-cost-function)))
+         (if (> (cl-transforms:x
+                 (cl-transforms:origin
+                  (btr:pose
+                   (btr:rigid-body (btr:get-environment-object)
+                                   :|IAI-KITCHEN.fridge_area|))))
+                0)
+             (make-iai-kitchen-household-restricted-area-cost-function)
+             (make-iai-kitchen-offset-household-restricted-area-cost-function))))
     ((or :dm-room :store)
      (make-dm-room-restricted-area-cost-function))
     (:dm-shelves
-     (make-small-retail-restricted-area-cost-function))))
+     (make-small-retail-restricted-area-cost-function))
+    (:storage
+     (make-storage-restricted-area-cost-function))))
 
 (defmethod costmap:costmap-generator-name->score ((name (eql 'restricted-area)))
   5)

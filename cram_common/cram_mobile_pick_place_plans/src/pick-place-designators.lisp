@@ -188,6 +188,10 @@
         (equal ?left-grasp-poses (?look-pose . ?_))
         (equal ?right-grasp-poses (?look-pose . ?_)))
 
+    (-> (man-int:robot-arm-is-also-a-neck ?robot ?arm)
+        (equal ?robot-arm-is-also-a-neck T)
+        (equal ?robot-arm-is-also-a-neck NIL))
+
     ;; put together resulting action designator
     (desig:designator :action ((:type :picking-up)
                                (:object ?current-object-desig)
@@ -198,6 +202,7 @@
                                (:right-grasp ?right-grasp)
                                (:location-type ?location-type)
                                (:look-pose ?look-pose)
+                               (:robot-arm-is-also-a-neck ?robot-arm-is-also-a-neck)
                                (:left-reach-poses ?left-reach-poses)
                                (:right-reach-poses ?right-reach-poses)
                                (:left-grasp-poses ?left-grasp-poses)
@@ -260,7 +265,6 @@
                               of the arms should be used.~%")
                      (fail)))))
 
-
    
     ;;; infer missing information
     (desig:current-designator ?object-designator ?current-object-designator)
@@ -271,8 +275,11 @@
     ;; take object-pose from action-designator :target otherwise from object-designator pose
     (-> (spec:property ?action-designator (:target ?location-designator))
         (and (desig:current-designator ?location-designator ?current-loc-desig)
-             ;; if the location designator has ATTACHMENTS property,
-             ;; split it into a list of locations with ATTACHMENT property
+             ;; If the location designator has ATTACHMENTS property,
+             ;; split it into a list of locations with ATTACHMENT property.
+             ;; Although a location with attachments can be resolved,
+             ;; we need to know exactly which attachment we're using
+             ;; to build the correct trajectory.
              (-> (desig:desig-prop ?current-loc-desig (:attachments ?_))
                  (and (lisp-fun split-attachments-desig ?current-loc-desig
                                 ?list-of-current-loc-desig-split)
@@ -410,10 +417,16 @@
        (equal ?left-put-poses (?look-pose . ?_))
         (equal ?right-put-poses (?look-pose . ?_)))
 
+    (rob-int:robot ?robot)
+    (-> (man-int:robot-arm-is-also-a-neck ?robot ?arm)
+        (equal ?robot-arm-is-also-a-neck T)
+        (equal ?robot-arm-is-also-a-neck NIL))
+
     ;; put together resulting designator
     (desig:designator :action ((:type :placing)
                                (:object ?current-object-designator)
                                (:target ?current-location-designator)
+                               (:target-object-transform ?target-object-transform)
                                (:other-object ?other-object-designator)
                                (:other-object-is-a-robot ?other-object-is-a-robot)
                                (:arm ?arm)
@@ -423,6 +436,7 @@
                                (:gripper-opening ?gripper-opening)
                                (:attachment-type ?placement-location-name)
                                (:look-pose ?look-pose)
+                               (:robot-arm-is-also-a-neck ?robot-arm-is-also-a-neck)
                                (:left-reach-poses ?left-reach-poses)
                                (:right-reach-poses ?right-reach-poses)
                                (:left-put-poses ?left-put-poses)

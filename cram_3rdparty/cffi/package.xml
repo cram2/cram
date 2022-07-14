@@ -15,7 +15,7 @@
   <url type="bugtracker">https://github.com/cram2/cram_3rdparty/issues</url>
   <url type="repository">https://github.com/cram2/cram_3rdparty</url>
   <url type="repository">https://gitlab.common-lisp.net/cffi/cffi.git</url>
-  <!--external-version>cffi-0.19.0</external-version-->
+  <!--external-version>v0.24.1</external-version-->
 
   <buildtool_depend>catkin</buildtool_depend>
 
