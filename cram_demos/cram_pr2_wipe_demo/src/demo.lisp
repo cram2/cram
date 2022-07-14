@@ -158,7 +158,7 @@
                  (declare (ignore e))
                  (cpl:do-retry looking-retry
                    (cpl:retry))
-                 (roslisp:ros-warn (slice-demo looking-fail)
+                 (roslisp:ros-warn (wipe-demo looking-fail)
                                  "~%No more retries~%")))
         (let ((?grasping-arm (list :right))
               (?perceived-object (urdf-proj::detect (desig:an object (type :colored-box)))))
