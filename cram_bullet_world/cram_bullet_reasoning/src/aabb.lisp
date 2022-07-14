@@ -77,7 +77,7 @@
                         (bounding-box-dimensions bounding-box)) 2))))))
 
 
-(defun calculate-bb-dims (bullet-object)
+(defun calculate-bb-dims (bullet-object &key initial-pose)
   "Calculates bounding box dimensions, putting the object down flatly,
 i.e. if the object has an angle with respect to the horizontal plane,
 i.e. an angle around the X or/and Y of the fixed map frame,
@@ -90,8 +90,10 @@ with one of its sides."
            (setf (pose bullet-object)
                  (cl-transforms:make-pose
                   (cl-transforms:make-identity-vector)
-                  (cram-tf:map-axis-aligned-orientation
-                   (cl-transforms:orientation (pose bullet-object)))))
+                  (if initial-pose
+                      (cl-transforms:make-identity-rotation)
+                      (cram-tf:map-axis-aligned-orientation
+                       (cl-transforms:orientation (pose bullet-object))))))
            (setf aabb (cl-bullet:aabb bullet-object)))
       (setf (pose bullet-object) old-pose))
     (cl-bullet:bounding-box-dimensions aabb)))

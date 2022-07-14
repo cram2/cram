@@ -30,9 +30,12 @@
 (in-package :cl-user)
 
 (defpackage cram-common-designators
+  (:nicknames :common-desig)
   (:use #:common-lisp #:prolog #:desig #:spec)
   (:export
    ;; motions
    #:move-base #:move-torso #:move-head #:detect #:inspect #:move-gripper-joint
    #:move-tcp #:move-arm-push #:move-arm-pull #:move-joints
-   #:world-state-detect #:monitor-joint-state))
+   #:world-state-detect #:monitor-joint-state #:wait
+   ;; wait-pm
+   #:wait-pm))

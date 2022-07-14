@@ -139,9 +139,10 @@ then return = (0.0 -1 1 -2 2 -3 3 -4 4)"
   (remove-duplicates
    (cons 0.0
          (sort
-          (loop for x = lower-lim then (+ x sampling-step)
-                until (> x upper-lim)
-                collect x)
+          (append (loop for x = lower-lim then (+ x sampling-step)
+                        until (> x upper-lim)
+                        collect x)
+                  (list upper-lim))
           (lambda (x y)
             (< (abs x) (abs y)))))
    ;; remove duplicates in case current value is

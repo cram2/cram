@@ -30,6 +30,29 @@
 
 (in-package :objects)
 
+
+(defun make-arm-transform (object-name arm x y z &optional rot-matrix)
+  (cl-transforms-stamped:make-transform-stamped
+   (roslisp-utilities:rosify-underscores-lisp-name object-name)
+   (ecase arm
+     (:left cram-tf:*robot-left-tool-frame*)
+     (:right cram-tf:*robot-right-tool-frame*))
+   0.0
+   (cl-transforms:make-3d-vector x y z)
+   (if rot-matrix
+       (cl-transforms:matrix->quaternion
+        (make-array '(3 3) :initial-contents rot-matrix))
+       (cl-transforms:make-identity-rotation))))
+
+(defun make-base-transform (x y z)
+  (cl-transforms-stamped:make-transform-stamped
+    cram-tf:*robot-base-frame*
+    cram-tf:*robot-base-frame*
+    0.0
+    (cl-transforms:make-3d-vector x y z)
+    (cl-transforms:make-identity-rotation)))
+
+
 (defparameter *default-retail-z-offset* 0.05 "in meters")
 (defparameter *default-retail-lift-offsets* `(0.0 0.0 ,*default-retail-z-offset*))
 
@@ -38,14 +61,30 @@
 (def-fact-group retail-object-type-hierarchy (man-int:object-type-direct-subtype)
   (<- (man-int:object-type-direct-subtype :retail-item ?item-type)
     (member ?item-type (:dish-washer-tabs
-                        :balea-bottle :deodorant :juice-box
-                        :denkmit :dove :heitmann :somat :basket))))
+                        :retail-bottle :deodorant :juice-box
+                        :denkmit :dove :heitmann :somat :basket)))
+  (<- (man-int:object-type-direct-subtype :retail-bottle ?item-type)
+    (member ?item-type (:retail-bottle-round :retail-bottle-flat)))
+  (<- (man-int:object-type-direct-subtype :retail-bottle-round ?item-type)
+    (member ?item-type (:heitmann-citronensaeure :domestos-allzweckreiniger)))
+  (<- (man-int:object-type-direct-subtype :retail-bottle-flat ?item-type)
+    (member ?item-type (:balea-bottle :denkmit-entkalker :kuehne-essig-essenz))))
+
+(def-fact-group attachment-knowledge (man-int:unidirectional-attachment)
+  (<- (man-int:unidirectional-attachment ?attachment-type)
+    (member ?attachment-type (:in-basket-front :in-basket-back :in-basket))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod man-int:get-action-gripper-opening
     :heuristics 20 ((object-type (eql :retail-item)))
   0.1)
+(defmethod man-int:get-action-gripper-opening
+    :heuristics 20 ((object-type (eql :balea-bottle)))
+  0.06)
+(defmethod man-int:get-action-gripper-opening
+    :heuristics 20 ((object-type (eql :dish-washer-tabs)))
+  0.06)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -78,32 +117,35 @@
 
 (defparameter *dish-washer-tabs-grasp-x-offset* 0.0 "in meters")
 (defparameter *dish-washer-tabs-grasp-z-offset* 0.0 "in meters")
-(defparameter *dish-washer-tabs-pregrasp-x-offset* 0.0 "in meters") ; 0.3
+(defparameter *dish-washer-tabs-top-grasp-z-offset* 0.05 "in meters")
+(defparameter *dish-washer-tabs-pregrasp-x-offset* 0.10 "in meters") ; 0.3
 (defparameter *dish-washer-tabs-small-lift-z-offset* 0.01 "in meters")
 (defparameter *dish-washer-tabs-lift-z-top-grasp-offset* 0.10 "in meters")
 (defparameter *dish-washer-tabs-lift-z-other-grasp-offset* 0.05 "in meters")
+(defparameter *dish-washer-tabs-lift-z-basket-offset* 0.10 "in meters")
+(defparameter *dish-washer-tabs-2nd-lift-z-basket-offset* 0.31 "in meters")
 
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms :dish-washer-tabs '(:left :right) :top
   :grasp-translation `(0.0
                        0.0
-                       ,*dish-washer-tabs-grasp-z-offset*)
+                       ,*dish-washer-tabs-top-grasp-z-offset*)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets `(0.0
                       0.0
-                      ,(+ *dish-washer-tabs-grasp-z-offset*
+                      ,(+ *dish-washer-tabs-top-grasp-z-offset*
                           *dish-washer-tabs-lift-z-top-grasp-offset*))
   :2nd-pregrasp-offsets `(0.0
                           0.0
-                          ,(+ *dish-washer-tabs-grasp-z-offset*
+                          ,(+ *dish-washer-tabs-top-grasp-z-offset*
                               *dish-washer-tabs-small-lift-z-offset*))
   :lift-translation `(0.0
                       0.0
-                      ,(+ *dish-washer-tabs-grasp-z-offset*
+                      ,(+ *dish-washer-tabs-top-grasp-z-offset*
                           *dish-washer-tabs-small-lift-z-offset*))
   :2nd-lift-translation `(0.0
                           0.0
-                          ,(+ *dish-washer-tabs-grasp-z-offset*
+                          ,(+ *dish-washer-tabs-top-grasp-z-offset*
                               *dish-washer-tabs-lift-z-top-grasp-offset*)))
 
 ;; BACK grasp robot
@@ -129,29 +171,101 @@
                           0.0
                           ,(+ *dish-washer-tabs-grasp-z-offset*
                               *dish-washer-tabs-lift-z-other-grasp-offset*)))
+
 ;; BACK grasp basket
-(man-int:def-object-type-to-gripper-transforms :dish-washer-tabs '(:left :right) :back
-  :location-type :basket
-  :grasp-translation `(,(- *dish-washer-tabs-grasp-x-offset*)
-                        0.0
-                        ,*dish-washer-tabs-grasp-z-offset*)
-  :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation-2*
-  :pregrasp-offsets `(,(- *dish-washer-tabs-pregrasp-x-offset*)
-                       0.0
-                       ,(+ *dish-washer-tabs-grasp-z-offset*
-                           *dish-washer-tabs-lift-z-other-grasp-offset*))
-  :2nd-pregrasp-offsets `(,(- *dish-washer-tabs-pregrasp-x-offset*)
-                           0.0
-                           ,(+ *dish-washer-tabs-grasp-z-offset*
-                               *dish-washer-tabs-small-lift-z-offset*))
-  :lift-translation `(0.0
-                      0.0
-                      ,(+ *dish-washer-tabs-grasp-z-offset*
-                          0.1))
-  :2nd-lift-translation `(0.0
-                          0.0
-                          ,(+ *dish-washer-tabs-grasp-z-offset*
-                              0.3)))
+;; (man-int:def-object-type-to-gripper-transforms :dish-washer-tabs '(:left :right) :back
+;;   :location-type :basket
+;;   :grasp-translation `(,(- *dish-washer-tabs-grasp-x-offset*)
+;;                         0.0
+;;                         ,*dish-washer-tabs-grasp-z-offset*)
+;;   :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation-2*
+;;   :pregrasp-offsets `(,(- 0.0
+;;                           *dish-washer-tabs-grasp-x-offset*
+;;                           *dish-washer-tabs-2nd-lift-z-basket-offset*)
+;;                        0.0
+;;                        ,*dish-washer-tabs-grasp-z-offset*)
+;;   :2nd-pregrasp-offsets `(,(- 0.0
+;;                               *dish-washer-tabs-grasp-x-offset*
+;;                               *dish-washer-tabs-lift-z-basket-offset*)
+;;                            0.0
+;;                            ,*dish-washer-tabs-grasp-z-offset*)
+;;   :lift-translation `(0.0
+;;                       0.0
+;;                       ,(+ *dish-washer-tabs-grasp-z-offset*
+;;                           *dish-washer-tabs-lift-z-basket-offset*))
+;;   :2nd-lift-translation `(0.0
+;;                           0.0
+;;                           ,(+ *dish-washer-tabs-grasp-z-offset*
+;;                               *dish-washer-tabs-2nd-lift-z-basket-offset*
+;;                               0.0)))
+;; grasp
+(defmethod man-int:get-object-type-to-gripper-transform
+    ((object-type (eql :dish-washer-tabs))
+     object-name
+     arm
+     (grasp (eql :back)))
+  (make-arm-transform
+   object-name arm
+   (- *dish-washer-tabs-grasp-x-offset*)
+   0.0
+   *dish-washer-tabs-grasp-z-offset*
+   man-int:*-x-across-z-grasp-rotation-2*))
+;; pregrasp
+(defmethod man-int:get-object-type-to-gripper-pregrasp-transforms
+    ((type (eql :dish-washer-tabs))
+     object-name
+     arm
+     (grasp (eql :back))
+     (location (eql :basket))
+     grasp-transform)
+  (list
+   (make-arm-transform
+    object-name arm
+    (- 0.0
+       *dish-washer-tabs-grasp-x-offset*
+       *dish-washer-tabs-2nd-lift-z-basket-offset*)
+    0.0
+    *dish-washer-tabs-grasp-z-offset*
+    man-int:*-x-across-z-grasp-rotation-2*)
+   (make-arm-transform
+    object-name arm
+    (- 0.0
+       *dish-washer-tabs-grasp-x-offset*
+       *dish-washer-tabs-lift-z-basket-offset*)
+    0.0
+    *dish-washer-tabs-grasp-z-offset*
+    man-int:*-x-across-z-grasp-rotation-2*)
+   (make-arm-transform
+    object-name arm
+    (- 0.0
+       *dish-washer-tabs-grasp-x-offset*
+       *dish-washer-tabs-lift-z-other-grasp-offset*)
+    0.0
+    *dish-washer-tabs-grasp-z-offset*
+    man-int:*-x-across-z-grasp-rotation-2*)))
+;; postgrasp
+(defmethod man-int:get-object-type-wrt-base-frame-lift-transforms
+    ((type (eql :dish-washer-tabs))
+     arm
+     (grasp (eql :back))
+     (location (eql :basket)))
+  (list
+   (make-base-transform
+    0.0
+    0.0
+    (+ *dish-washer-tabs-grasp-z-offset*
+       *dish-washer-tabs-lift-z-other-grasp-offset*))
+   (make-base-transform
+    0.0
+    0.0
+    (+ *dish-washer-tabs-grasp-z-offset*
+       *dish-washer-tabs-lift-z-basket-offset*))
+   (make-base-transform
+    0.0
+    0.0
+    (+ *dish-washer-tabs-grasp-z-offset*
+       *dish-washer-tabs-2nd-lift-z-basket-offset*))))
+
 
 ;; FRONT grasp robot
 (man-int:def-object-type-to-gripper-transforms :dish-washer-tabs '(:left :right) :front
@@ -182,43 +296,24 @@
                        0.0
                        ,*dish-washer-tabs-grasp-z-offset*)
   :grasp-rot-matrix man-int:*x-across-z-grasp-rotation-2*
-  :pregrasp-offsets `(,*dish-washer-tabs-pregrasp-x-offset*
+  :pregrasp-offsets `(,(+ *dish-washer-tabs-pregrasp-x-offset*
+                          *dish-washer-tabs-2nd-lift-z-basket-offset*)
                       0.0
-                      ,(+ *dish-washer-tabs-grasp-z-offset*
-                          *default-retail-z-offset*))
-  :2nd-pregrasp-offsets `(,*dish-washer-tabs-pregrasp-x-offset*
+                      ,*dish-washer-tabs-grasp-z-offset*)
+  :2nd-pregrasp-offsets `(,(+ *dish-washer-tabs-pregrasp-x-offset*
+                              *dish-washer-tabs-lift-z-basket-offset*)
                           0.0
                           ,*dish-washer-tabs-grasp-z-offset*)
   :lift-translation `(0.0
                       0.0
                       ,(+ *dish-washer-tabs-grasp-z-offset*
-                          0.1))
+                          *dish-washer-tabs-lift-z-basket-offset*))
   :2nd-lift-translation `(0.0
                           0.0
                           ,(+ *dish-washer-tabs-grasp-z-offset*
-                              0.3)))
+                              *dish-washer-tabs-2nd-lift-z-basket-offset*)))
 
 ;; BACK grasp shelf
-;; util
-(defun make-arm-transform (object-name arm x y z &optional rot-matrix)
-  (cl-transforms-stamped:make-transform-stamped
-   (roslisp-utilities:rosify-underscores-lisp-name object-name)
-   (ecase arm
-     (:left cram-tf:*robot-left-tool-frame*)
-     (:right cram-tf:*robot-right-tool-frame*))
-   0.0
-   (cl-transforms:make-3d-vector x y z)
-   (if rot-matrix
-       (cl-transforms:matrix->quaternion
-        (make-array '(3 3) :initial-contents rot-matrix))
-       (cl-transforms:make-identity-rotation))))
-(defun make-base-transform (x y z)
-  (cl-transforms-stamped:make-transform-stamped
-    cram-tf:*robot-base-frame*
-    cram-tf:*robot-base-frame*
-    0.0
-    (cl-transforms:make-3d-vector x y z)
-    (cl-transforms:make-identity-rotation)))
 ;; grasp
 (defmethod man-int:get-object-type-to-gripper-transform
     ((object-type (eql :dish-washer-tabs))
@@ -355,21 +450,34 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; BALEA-BOTTLE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *balea-bottle-grasp-z-offset* 0.0 "in meters")
-(defparameter *balea-bottle-pregrasp-x-offset* 0.0 "in meters") ;0.2
+(defparameter *balea-bottle-top-grasp-z-offset* 0.05 "in meters")
+(defparameter *balea-bottle-pregrasp-x-offset* 0.10 "in meters")
 
 ;; TOP grasp
-(man-int:def-object-type-to-gripper-transforms :balea-bottle '(:left :right) :top
-  :grasp-translation `(0.0
-                       0.0
-                       ,*balea-bottle-grasp-z-offset*)
-  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
-  :pregrasp-offsets *default-retail-lift-offsets*
-  :2nd-pregrasp-offsets *default-retail-lift-offsets*
-  :lift-translation *default-retail-lift-offsets*
-  :2nd-lift-translation *default-retail-lift-offsets*)
+;; (man-int:def-object-type-to-gripper-transforms
+;;     '(:balea-bottle
+;;       :denkmit-entkalker
+;;       :heitmann-citronensaeure
+;;       :kuehne-essig-essenz
+;;       :domestos-allzweckreiniger)
+;;     '(:left :right) :top
+;;   :grasp-translation `(0.0
+;;                        0.0
+;;                        ,*balea-bottle-top-grasp-z-offset*)
+;;   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+;;   :pregrasp-offsets *default-retail-lift-offsets*
+;;   :2nd-pregrasp-offsets *default-retail-lift-offsets*
+;;   :lift-translation *default-retail-lift-offsets*
+;;   :2nd-lift-translation *default-retail-lift-offsets*)
 
 ;; BACK grasp
-(man-int:def-object-type-to-gripper-transforms :balea-bottle '(:left :right) :back
+(man-int:def-object-type-to-gripper-transforms
+    '(:balea-bottle
+      :denkmit-entkalker
+      :heitmann-citronensaeure
+      :kuehne-essig-essenz
+      :domestos-allzweckreiniger)
+    '(:left :right) :back
   :grasp-translation `(0.0
                        0.0
                        ,*balea-bottle-grasp-z-offset*)
@@ -384,7 +492,13 @@
   :2nd-lift-translation *default-retail-lift-offsets*)
 
 ;; FRONT grasp
-(man-int:def-object-type-to-gripper-transforms :balea-bottle '(:left :right) :front
+(man-int:def-object-type-to-gripper-transforms
+    '(:balea-bottle
+      :denkmit-entkalker
+      :heitmann-citronensaeure
+      :kuehne-essig-essenz
+      :domestos-allzweckreiniger)
+    '(:left :right) :front
   :grasp-translation `(0.0
                        0.0
                        ,*balea-bottle-grasp-z-offset*)
@@ -397,6 +511,98 @@
                           ,*balea-bottle-grasp-z-offset*)
   :lift-translation *default-retail-lift-offsets*
   :2nd-lift-translation *default-retail-lift-offsets*)
+
+;; LEFT-SIDE grasp
+(man-int:def-object-type-to-gripper-transforms
+    '(:heitmann-citronensaeure :domestos-allzweckreiniger) '(:left :right) :left-side
+  :grasp-translation `(0.0
+                       0.0
+                       ,*balea-bottle-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*y-across-z-grasp-rotation*
+  :pregrasp-offsets `(0.0
+                      ,*balea-bottle-pregrasp-x-offset*
+                      ,*default-retail-z-offset*)
+  :2nd-pregrasp-offsets `(0.0
+                          ,*balea-bottle-pregrasp-x-offset*
+                          ,*balea-bottle-grasp-z-offset*)
+  :lift-translation *default-retail-lift-offsets*
+  :2nd-lift-translation *default-retail-lift-offsets*)
+
+;; RIGHT-SIDE grasp
+(man-int:def-object-type-to-gripper-transforms
+    '(:heitmann-citronensaeure :domestos-allzweckreiniger) '(:left :right) :right-side
+  :grasp-translation `(0.0
+                       0.0
+                       ,*balea-bottle-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-y-across-z-grasp-rotation*
+  :pregrasp-offsets `(0.0
+                      ,(- *balea-bottle-pregrasp-x-offset*)
+                      ,*default-retail-z-offset*)
+  :2nd-pregrasp-offsets `(0.0
+                          ,(- *balea-bottle-pregrasp-x-offset*)
+                          ,*balea-bottle-grasp-z-offset*)
+  :lift-translation *default-retail-lift-offsets*
+  :2nd-lift-translation *default-retail-lift-offsets*)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; DOMESTOS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *domestos-allzweckreiniger-grasp-z-offset* 0.035 "in meters")
+
+;; BACK grasp
+(man-int:def-object-type-to-gripper-transforms :domestos-allzweckreiniger '(:left :right) :back
+  :grasp-translation `(0.0 0.0 ,*domestos-allzweckreiniger-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation-2*
+  :pregrasp-offsets `(,(- *balea-bottle-pregrasp-x-offset*)
+                       0.0
+                       ,*default-retail-z-offset*)
+  :2nd-pregrasp-offsets `(,(- *dish-washer-tabs-pregrasp-x-offset*)
+                           0.0
+                           ,*balea-bottle-grasp-z-offset*)
+  :lift-translation *default-retail-lift-offsets*
+  :2nd-lift-translation *default-retail-lift-offsets*)
+
+;; FRONT grasp
+(man-int:def-object-type-to-gripper-transforms :domestos-allzweckreiniger '(:left :right) :front
+  :grasp-translation `(0.0 0.0 ,*domestos-allzweckreiniger-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-z-grasp-rotation-2*
+  :pregrasp-offsets `(,*balea-bottle-pregrasp-x-offset*
+                      0.0
+                      ,*default-retail-z-offset*)
+  :2nd-pregrasp-offsets `(,*balea-bottle-pregrasp-x-offset*
+                          0.0
+                          ,*balea-bottle-grasp-z-offset*)
+  :lift-translation *default-retail-lift-offsets*
+  :2nd-lift-translation *default-retail-lift-offsets*)
+
+;; LEFT-SIDE grasp
+(man-int:def-object-type-to-gripper-transforms
+    '(:heitmann-citronensaeure :domestos-allzweckreiniger) '(:left :right) :left-side
+  :grasp-translation `(0.0 0.0 ,*domestos-allzweckreiniger-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*y-across-z-grasp-rotation*
+  :pregrasp-offsets `(0.0
+                      ,*balea-bottle-pregrasp-x-offset*
+                      ,*default-retail-z-offset*)
+  :2nd-pregrasp-offsets `(0.0
+                          ,*balea-bottle-pregrasp-x-offset*
+                          ,*balea-bottle-grasp-z-offset*)
+  :lift-translation *default-retail-lift-offsets*
+  :2nd-lift-translation *default-retail-lift-offsets*)
+
+;; RIGHT-SIDE grasp
+(man-int:def-object-type-to-gripper-transforms
+    '(:heitmann-citronensaeure :domestos-allzweckreiniger) '(:left :right) :right-side
+  :grasp-translation `(0.0 0.0 ,*domestos-allzweckreiniger-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-y-across-z-grasp-rotation*
+  :pregrasp-offsets `(0.0
+                      ,(- *balea-bottle-pregrasp-x-offset*)
+                      ,*default-retail-z-offset*)
+  :2nd-pregrasp-offsets `(0.0
+                          ,(- *balea-bottle-pregrasp-x-offset*)
+                          ,*balea-bottle-grasp-z-offset*)
+  :lift-translation *default-retail-lift-offsets*
+  :2nd-lift-translation *default-retail-lift-offsets*)
+
 
 
 ;;;;;;;;;;;;;;; DENKMIT, DOVE, HEITMANN and SOMAT ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -467,26 +673,37 @@
 
 (man-int:def-object-type-in-other-object-transform :dish-washer-tabs :environment
   :dish-washer-tabs-shelf-1-front
-  :attachment-translation `(0.39968 -0.26038335 0.1202)
+  :attachment-translation `(0.39968 -0.26038335 0.10) ; 0.1202
   :attachment-rot-matrix man-int:*rotation-around-z-90-matrix*)
 
 (man-int:def-object-type-in-other-object-transform :dish-washer-tabs :environment
   :dish-washer-tabs-shelf-1-back
-  :attachment-translation `(0.39968 -0.26038335 0.1202)
+  :attachment-translation `(0.39968 -0.26038335 0.10) ; 0.1202
   :attachment-rot-matrix man-int:*rotation-around-z+90-matrix*)
 
 (man-int:def-object-type-in-other-object-transform :dish-washer-tabs :basket
   :in-basket-front
-  :attachment-translation `(0.15 0.15 0.05;; -0.02
-                                 )
+  :attachment-translation `(0.15 0.15 -0.02)
   :attachment-rot-matrix '(( 0  0  1)
                            ( 0  1  0)
                            (-1  0  0)))
 
 (man-int:def-object-type-in-other-object-transform :dish-washer-tabs :basket
   :in-basket-back
-  :attachment-translation `(0.15 0.15 0.05;; -0.02
-                                 )
+  :attachment-translation `(0.15 0.15 -0.02)
+  :attachment-rot-matrix '(( 0  0 -1)
+                           ( 0 -1  0)
+                           (-1  0  0)))
+(man-int:def-object-type-in-other-object-transform :dish-washer-tabs :basket
+  :in-basket-other-front
+  :attachment-translation `(0.15 -0.15 -0.02)
+  :attachment-rot-matrix '(( 0  0  1)
+                           ( 0  1  0)
+                           (-1  0  0)))
+
+(man-int:def-object-type-in-other-object-transform :dish-washer-tabs :basket
+  :in-basket-other-back
+  :attachment-translation `(0.15 -0.15 -0.02)
   :attachment-rot-matrix '(( 0  0 -1)
                            ( 0 -1  0)
                            (-1  0  0)))
@@ -567,4 +784,5 @@
 (defmethod man-int:get-z-offset-for-placing-with-dropping (object
                                                            (other-object (eql :basket))
                                                            attachment)
-  0.15)
+  0.0 ;; 0.15 ; <- we have to pick it back up, so no point in dropping stuff
+  )

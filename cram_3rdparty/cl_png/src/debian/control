@@ -1,0 +1,15 @@
+Source: cl-png
+Section: devel
+Priority: optional
+Maintainer: Kevin M. Rosenberg <kmr@debian.org>
+Build-Depends-Indep: debhelper (>= 4.0.0)
+Standards-Version: 3.6.0
+
+Package: cl-png
+Architecture: all
+Depends: ${shlibs:Depends}, common-lisp-controller (>= 3.47)
+Description: Common Lisp package to read and write PNG image files
+ This package includes functions for reading and writing PNG image files as
+ well as functions for compressing and decompressing zipped files.
+
+

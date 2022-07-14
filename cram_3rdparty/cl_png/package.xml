@@ -1,0 +1,25 @@
+<package format="2">
+  <name>cl_png</name>
+  <version>0.8.0</version>
+  <description>
+      3rd party library: CL-PNG
+  </description>
+
+  <author>Harald Musum, Vebjorn Ljosa, Jeff Cunningham</author>
+
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+
+  <license>LGPL-2.1</license>
+
+  <url type="website">http://www.ljosa.com/~ljosa/software/cl-png</url>
+  <url type="bugtracker">https://github.com/cram2/cram_3rdparty/issues</url>
+  <url type="repository">https://github.com/cram2/cram_3rdparty</url>
+  <url type="repository">https://github.com/sharplispers/cl-png.git</url>
+  <!--external-version>6da37329574a0f69ab17ac34bbc0bb7bb61f5708</external-version-->
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>cffi</depend>
+</package>
+
+

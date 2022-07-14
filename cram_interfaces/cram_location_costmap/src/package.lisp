@@ -113,6 +113,7 @@
            #:reachability-orientation-offset #:visibility-orientation-offset
            ;; facts
            #:make-angle-to-point-generator #:make-orientation-generator
+           #:angle-to-point-direction
            #:2d-pose-covariance
            ;; designator-integration
            #:reset-costmap-cache
