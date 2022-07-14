@@ -293,6 +293,21 @@
                   :collision-shape (make-instance 'convex-hull-shape :points points)))))
 
 
+(defmethod add-object ((world bt-world) (type (eql :liquid-minor)) name pose
+                       &key (mass 0.00001) (radius 0.01) color)      
+ 
+  (make-item world name (list type)
+              (list
+                (make-instance
+                    'rigid-body
+                  :name 'waterdrop :mass 0.00000000001 :pose (ensure-pose pose)
+                  :collision-shape (make-instance 'colored-sphere-shape
+                                     :radius radius :color color))
+                )))
+
+
+
+
 ;;;;;;;;;;;;;;;;;;;;;;; MESH LOADING UTILS ;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun load-mesh (mesh-filename &key (scale nil) (size nil)

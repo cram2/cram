@@ -1,0 +1,106 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>cram_pr2_wipe_demo</name>
+  <version>0.0.1</version>
+  <description>The cram_pr2_wipe_demo package</description>
+
+  <!-- One maintainer tag required, multiple allowed, one person per tag -->
+  <!-- Example:  -->
+  <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
+  <maintainer email="krause4@uni-bremen.de">Felix Krause</maintainer>
+
+
+  <!-- One license tag required, multiple allowed, one license per tag -->
+  <!-- Commonly used license strings: -->
+  <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
+  <license>TODO</license>
+
+
+  <!-- Url tags are optional, but multiple are allowed, one per tag -->
+  <!-- Optional attribute type can be: website, bugtracker, or repository -->
+  <!-- Example: -->
+  <!-- <url type="website">http://wiki.ros.org/cram_pr2_wipe_demo</url> -->
+
+
+  <!-- Author tags are optional, multiple are allowed, one per tag -->
+  <!-- Authors do not have to be maintainers, but could be -->
+  <!-- Example: -->
+  <!-- <author email="jane.doe@example.com">Jane Doe</author> -->
+
+
+  <!-- The *depend tags are used to specify dependencies -->
+  <!-- Dependencies can be catkin packages or system dependencies -->
+  <!-- Examples: -->
+  <!-- Use depend as a shortcut for packages that are both build and exec dependencies -->
+  <!--   <depend>roscpp</depend> -->
+  <!--   Note that this is equivalent to the following: -->
+  <!--   <build_depend>roscpp</build_depend> -->
+  <!--   <exec_depend>roscpp</exec_depend> -->
+  <!-- Use build_depend for packages you need at compile time: -->
+  <!--   <build_depend>message_generation</build_depend> -->
+  <!-- Use build_export_depend for packages you need in order to build against this package: -->
+  <!--   <build_export_depend>message_generation</build_export_depend> -->
+  <!-- Use buildtool_depend for build tool packages: -->
+  <!--   <buildtool_depend>catkin</buildtool_depend> -->
+  <!-- Use exec_depend for packages you need at runtime: -->
+  <!--   <exec_depend>message_runtime</exec_depend> -->
+  <!-- Use test_depend for packages you need only for testing: -->
+  <!--   <test_depend>gtest</test_depend> -->
+  <!-- Use doc_depend for packages you need only for building documentation: -->
+  <!--   <doc_depend>doxygen</doc_depend> -->
+  <buildtool_depend>catkin</buildtool_depend>
+  
+  
+  <depend>roslisp_utilities</depend>
+  <depend>cl_transforms</depend>
+  <depend>cl_transforms_stamped</depend>
+  <depend>cl_tf</depend>
+  <depend>cram_tf</depend>
+  <depend>cram_language</depend>
+  <depend>cram_executive</depend>
+  <depend>cram_designators</depend>
+  <depend>cram_prolog</depend>
+  <depend>cram_projection</depend>
+  <depend>cram_occasions_events</depend>
+  <depend>cram_common_failures</depend>
+  <depend>cram_physics_utils</depend>
+  <depend>cl_bullet</depend>
+  <depend>cram_bullet_reasoning</depend>
+  <depend>cram_bullet_reasoning_belief_state</depend>
+  <depend>cram_bullet_reasoning_utilities</depend>
+  <depend>cram_btr_visibility_costmap</depend>
+  <depend>cram_btr_spatial_relations_costmap</depend>
+  <depend>cram_urdf_projection</depend>
+  <depend>cram_urdf_projection_reasoning</depend>
+  <!-- <depend>cram_semantic_map_costmap</depend> -->
+  <depend>cram_robot_pose_gaussian_costmap</depend>
+  <depend>cram_occupancy_grid_costmap</depend>
+  <depend>cram_location_costmap</depend>
+  <depend>cram_object_knowledge</depend>
+  <depend>cram_cloud_logger</depend>
+  <depend>cram_pr2_description</depend>
+  <depend>cram_fetch_deliver_plans</depend>
+  <depend>cram_urdf_environment_manipulation</depend>
+  
+  
+    <!-- launch file -->
+  <exec_depend>iai_maps</exec_depend>
+  <exec_depend>iai_kitchen</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>pr2_description</exec_depend>
+  <exec_depend>pr2_arm_kinematics</exec_depend>
+  <exec_depend>map_server</exec_depend>
+
+
+
+  
+
+  <depend>cram_mobile_cut_pour_plans</depend>
+
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <!-- Other tools can request additional information be placed here -->
+
+  </export>
+</package>
