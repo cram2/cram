@@ -1,0 +1,11 @@
+--- src/constraints.cpp	2022-07-22 15:58:14.805088265 +0200
++++ src/constraints-16.04.cpp	2022-07-22 15:57:26.310011149 +0200
+@@ -125,7 +125,7 @@
+ 
+   double getMotorTargetVelocity(/*const*/ btHingeConstraint *hinge)
+   {
+-    return hinge->getMotorTargetVelocity() / bulletWorldScalingFactor;
++    return hinge->getMotorTargetVelosity() / bulletWorldScalingFactor;
+   }
+ 
+   void setMotorTarget(btHingeConstraint *hinge, double targetAngle, double dt)
