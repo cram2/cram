@@ -79,28 +79,29 @@
   (/ (float a 1.0d0) (float b 1.0d0)))
 
 (defun sleep* (seconds)
+  #+sbcl-1.4.3+
   (common-lisp:sleep seconds)
-  ;; (let ((seconds (coerce seconds 'double-float)))
-  ;;   (declare (double-float seconds))
-  ;;   #+nil (declare (optimize speed))
-  ;;   (prog ((deadline-seconds sb-impl::*deadline-seconds*)
-  ;;          (stop-time
-  ;;           (+ (sb-impl::seconds-to-internal-time seconds)
-  ;;              (get-internal-real-time))))
-  ;;    :retry
-  ;;    (cond ((not deadline-seconds)
-  ;;           (sleep seconds))
-  ;;          ((> deadline-seconds seconds)
-  ;;           (sleep seconds))
-  ;;          (t
-  ;;           (sleep deadline-seconds)
-  ;;           (sb-sys:signal-deadline)
-  ;;           (setq deadline-seconds sb-impl::*deadline-seconds*)
-  ;;           (setf seconds (float-/ (- stop-time (get-internal-real-time))
-  ;;                                  internal-time-units-per-second))
-  ;;           (when (plusp seconds)
-  ;;             (go :retry))))))
-  )
+  #-sbcl-1.4.3+
+  (let ((seconds (coerce seconds 'double-float)))
+    (declare (double-float seconds))
+    #+nil (declare (optimize speed))
+    (prog ((deadline-seconds sb-impl::*deadline-seconds*)
+           (stop-time
+            (+ (sb-impl::seconds-to-internal-time seconds)
+               (get-internal-real-time))))
+     :retry
+     (cond ((not deadline-seconds)
+            (sleep seconds))
+           ((> deadline-seconds seconds)
+            (sleep seconds))
+           (t
+            (sleep deadline-seconds)
+            (sb-sys:signal-deadline)
+            (setq deadline-seconds sb-impl::*deadline-seconds*)
+            (setf seconds (float-/ (- stop-time (get-internal-real-time))
+                                   internal-time-units-per-second))
+            (when (plusp seconds)
+              (go :retry)))))))
 
 (defmacro mapcar-clean (function list &rest more-lists)
   "Automatically removes all `NIL' entries from a generated list after
