@@ -26,7 +26,24 @@ install(TARGETS bullet_cl
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 if (BULLET_FOUND)
-   include_directories(${BULLET_INCLUDE_DIRS})
-   target_link_libraries(bullet_cl ${BULLET_LIBRARIES})
+  include_directories(${BULLET_INCLUDE_DIRS})
+  target_link_libraries(bullet_cl ${BULLET_LIBRARIES})
+
+  # Apply patch for an older Bullet version
+  if (${BULLET_VERSION} VERSION_LESS "2.87")
+    if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/patch/backup)
+      execute_process(COMMAND patch -d ${CMAKE_CURRENT_SOURCE_DIR} -p0 -N -r -
+        -b -B patch/backup/
+        -i patch/downgrade-to-Ubuntu-16.04-ROS-kinetic.patch)
+      execute_process(COMMAND git config filter.ignorepatch.clean
+        "patch -d ${CMAKE_CURRENT_SOURCE_DIR} -p0 -N -r - -R -s -i patch/downgrade-to-Ubuntu-16.04-ROS-kinetic.patch -o -"
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+      execute_process(COMMAND git config filter.ignorepatch.smudge cat
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+      execute_process(COMMAND git add src/constraints.cpp
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+    endif()
+  endif ()
+
 endif (BULLET_FOUND)
 
