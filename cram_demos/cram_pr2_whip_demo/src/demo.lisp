@@ -178,23 +178,29 @@
                                    (object ?object-utensil)
                                     (arm (:right)) 
                                    (grasp :top)))
-                                   )))
-               
-;;        ;bowl                            
-;;       (try-looking ?pose-container)    
-     
-           
-;;       (setf ?object-container(urdf-proj::detect (desig:an object (type big-bowl))))                       
-            
-;;             ;mixing                       
-;;             (exe:perform (desig:an action
-;;                                    (type mixing)
-;;                                    (object ?object-container)
-;;                                    ;(objectc ?object-utensil);WIP default assume whisk
-;;                                    (arm (:right)) 
-;;                                    )))))        
-
                                    
+      
+      (cram-executive:perform
+       (desig:an action
+		 (type looking)
+		 (target (desig:a location (pose ?pose-container)))))    
+      ;;        ;bowl                            
+      ;;       (try-looking ?pose-container)    
+      
+      
+      (setf ?object-container(urdf-proj::detect (desig:an object (type big-bowl))))
+      
+      
+      
+      ;;             ;mixing                       
+      (exe:perform (desig:an action
+			     (type mixing)
+			     (object ?object-container)
+					;(object ?object-utensil);WIP default assume whisk
+			     ;;(arm (:right)) 
+			     ))       
+
+      )))                                 
 
                                      
   ;;###############################################################################

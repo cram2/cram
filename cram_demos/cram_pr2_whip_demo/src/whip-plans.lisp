@@ -31,32 +31,31 @@
 
 ;:WIP
 (defun whip (&key
-                 ((:object ?current-object-desig))
-                 ((:object-type ?object-type))
-                  ((:object-name  ?object-name))
-                   ;((:object ?object-target))
-                    ((:arm ?arm-tool))
-                     ((:effort ?effort))
-                      ((:grasp ?grasp))
-                                ;(:left-mix-poses ?left-approach-poses)
-                               ;(:right-mix-poses ?right-approach-poses)
-                               ; (:duration ?timer))
-              &allow-other-keys)
-      
-       (exe:perform
+	       ((:object ?current-object-desig))
+	       ((:object-type ?object-type))
+	       ((:object-name  ?object-name))
+	       ((:arms ?arms))
+	       ((:effort ?effort))
+	       ((:grasp ?grasp))
+	       ((:left-whip-approach-poses ?left-whip-approach-poses))
+	       ((:right-whip-approach-poses ?right-whip-approach-poses))
+	       ((:collision-mode ?collision-mode))
+	     &allow-other-keys)
+        
+  (roslisp:ros-info (cut-pour pour) "Approaching")
+  (cpl:with-failure-handling
+      ((common-fail:manipulation-low-level-failure (e)
+         (roslisp:ros-warn (cut-and-pour-plans pour)
+                           "Manipulation messed up: ~a~%Ignoring."
+                           e)
+         ;; (return)
+         ))
+    (exe:perform
      (desig:an action
-               (type pour)
-               (left-poses ?left-approach-poses)
-               (right-poses ?right-approach-poses)
-                (whisking ?context) 
-                 )))
-                 
-   ;   (roslisp:ros-info (whisking) "approaching")        
-   ;  (exe:perform
-   ;  (desig:an action
-   ;            (type whip-approach)
-   ;            (gripper ?arm-tool)
-   ;            (left-poses ?left-approach-poses)
-   ;            (right-poses ?right-approach-poses)
-   ;            ))
+               (type approaching)
+               (left-poses ?left-whip-approach-poses)
+               (right-poses ?right-whip-approach-poses)
+               (desig:when ?collision-mode
+                 (collision-mode ?collision-mode)))))
+  )
 
