@@ -31,8 +31,13 @@
 
 (defpackage cram-fetch-deliver-plans-tests
   (:nicknames #:fd-plans-tests)
+  (:import-from :lisp-unit
+                #:define-test
+                #:assert-true
+                #:assert-nil
+                #:assert-equal
+                #:assert-error)
   (:use #:common-lisp
-        #:lisp-unit
         #:cram-prolog
         #:desig #:exe)
   (:export))

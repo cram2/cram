@@ -1,5 +1,5 @@
 (defsystem cram-beginner-tutorial-tests
-  :depends-on (cram-my-beginner-tutorial 
+  :depends-on (cram-beginner-tutorial
                lisp-unit
                cl-transforms
                roslisp

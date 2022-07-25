@@ -28,6 +28,6 @@
 
 (in-package :cl-user)
 
-(defpackage cram-process-module-tests
+(defpackage cram-process-modules-test
   (:use #:common-lisp #:cram-process-modules
         #:lisp-unit))
