@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>cram_task_tree_export</name>
+  <version>0.7.0</version>
+  <description>The cram_task_tree_export package</description>
+
+  <maintainer email="aniedz@cs.uni-bremen.de">Arthur Niedzwiecki</maintainer>
+
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>alexandria</build_depend>
+  <build_depend>cl_dot</build_depend>
+  <build_depend>cram_language</build_depend>
+  <build_export_depend>alexandria</build_export_depend>
+  <build_export_depend>cl_dot</build_export_depend>
+  <build_export_depend>cram_language</build_export_depend>
+  <exec_depend>alexandria</exec_depend>
+  <exec_depend>cl_dot</exec_depend>
+  <exec_depend>cram_language</exec_depend>
+
+</package>
