@@ -9,7 +9,7 @@ The core packages of CRAM are implemented in Common Lisp (with a little bit of C
 
 ----
 ### Version
-The branch is currently tested on 20.04. It is under constant change due the development. If you notice a bug, please report it in an issue.
+The branch is currently tested on **20.04**. It is under constant change due the development. If you notice a bug, please report it in an issue.
 
 ### Prerequisite
 
