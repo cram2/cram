@@ -36,6 +36,11 @@
   (<- (costmap:costmap-size :iai-kitchen 12 12))
   (<- (costmap:costmap-origin :iai-kitchen -6 -6))
   (<- (costmap:costmap-resolution :iai-kitchen 0.04))
+ 
+ ;; This is for the old iai_maps from ai-code
+ ;; (<- (costmap:costmap-size :iai-oven-area 12 12))
+ ;; (<- (costmap:costmap-origin :iai-oven-area -6 -6))
+ ;; (<- (costmap:costmap-resolution :iai-oven-area 0.04))
 
   (<- (is-dm-room-urdf-name ?name)
     (member ?name (:dm-shelves :dm-room :store :storage)))
@@ -45,6 +50,7 @@
     (is-dm-room-urdf-name ?name))
   (<- (costmap:costmap-resolution ?name 0.04)
     (is-dm-room-urdf-name ?name))
+
 
   (<- (man-int:object-tf-prefix :iai-kitchen "iai_kitchen/")))
 

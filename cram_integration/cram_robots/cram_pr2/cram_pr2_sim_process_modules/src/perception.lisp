@@ -47,3 +47,29 @@
 
   (prolog:<- (cpm:available-process-module bullet-perception-pm)
     (prolog:not (cpm:projection-running ?_))))
+
+;;;;;; Ignore gripper. In sim there's no controller for it. ;;;;;;
+
+(defun grip (which-gripper action-type &key max-effort)
+  T)
+
+(cpm:def-process-module empty-gripper-pm (motion-designator)
+  (destructuring-bind (command action-type which-gripper &optional max-effort)
+      (desig:reference motion-designator)
+    (ecase command
+      (cram-common-designators:move-gripper-joint
+       (grip which-gripper action-type :max-effort max-effort)))))
+
+(prolog:def-fact-group empty-gripper-pm (cpm:matching-process-module
+                                         cpm:available-process-module)
+
+  (prolog:<- (cpm:matching-process-module ?motion-designator empty-gripper-pm)
+    (or (desig:desig-prop ?motion-designator (:type :gripping))
+        (desig:desig-prop ?motion-designator (:type :moving-gripper-joint))
+        (desig:desig-prop ?motion-designator (:type :opening-gripper))
+        (desig:desig-prop ?motion-designator (:type :closing-gripper))))
+
+  (prolog:<- (cpm:available-process-module ?pm)
+    (prolog:bound ?pm)
+    (prolog:once (prolog:member ?pm (empty-gripper-pm)))
+    (prolog:not (cpm:projection-running ?_))))

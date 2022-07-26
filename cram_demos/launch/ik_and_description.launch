@@ -1,0 +1,63 @@
+<launch>
+  <arg name="robot" default="pr2" />
+  <arg name="upload" default="true" />
+   <arg name="publish_joint_state" default="false" />
+
+  <!-- occupancy map -->
+  <include file="$(find iai_maps)/launch/map.launch" />
+
+  <!-- kitchen URDF -->
+  <param name="kitchen_description"
+         command="$(find xacro)/xacro '$(find iai_kitchen)/urdf_obj/iai_kitchen_python.urdf.xacro'"/>
+  <node pkg="joint_state_publisher" type="joint_state_publisher"
+        name="kitchen_joint_state_publisher" output="screen">
+    <remap from="robot_description" to="kitchen_description"/>
+    <param name="rate" value="25"/>
+    <param name="use_gui" value="False"/>
+    <remap from="joint_states" to="kitchen/joint_states" />
+  </node>
+  <node pkg="tf" type="static_transform_publisher" name="kitchen_link_broadcaster"
+        args="0 0 0 0 0 0 /map /iai_kitchen/world 25">
+  </node>
+  <node pkg="robot_state_publisher" type="robot_state_publisher"
+    name="kitchen_state_publisher" output="screen">
+    <param name="tf_prefix" value="iai_kitchen"/>
+    <param name="publish_frequency" value="25"/>
+    <remap from="robot_description" to="kitchen_description" />
+    <remap from="joint_states" to="kitchen/joint_states" />
+  </node>
+  
+  <node pkg="kdl_ik_service" type="start_ros_server.py" name="kdl_ik_service" output="screen" />
+
+  <!-- PR2 URDF -->
+
+  <group if="$(eval robot == 'pr2')">
+    <param name="robot_description"
+           command="$(find xacro)/xacro
+                    '$(find pr2_description)/robots/pr2.urdf.xacro'"/>
+  </group>
+
+  <group if="$(eval robot == 'boxy')">
+    <param name="robot_description"
+              textfile="$(find pycram)/resources/boxy.urdf"/>
+  </group>
+
+  <group if="$(eval robot == 'donbot')">
+    <param name="robot_description"
+              textfile="$(find pycram)/resources/donbot.urdf"/>
+  </group>
+
+
+<!--
+  In ROS Noetic the xacro file for boxy doesnt seem to work, as a quick fix use the line above
+  <include file="$(find iai_boxy_description)/launch/upload_boxy.launch" />
+-->
+
+<!--
+<include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch"/>
+-->
+
+
+
+
+</launch>

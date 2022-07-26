@@ -32,7 +32,7 @@
 (defun make-giskard-action-client ()
   (actionlib-client:make-simple-action-client
    'giskard-action
-   "giskardpy/command" "giskard_msgs/MoveAction"
+   "giskard/command" "giskard_msgs/MoveAction"
    120))
 
 (roslisp-utilities:register-ros-init-function make-giskard-action-client)
@@ -71,7 +71,7 @@
     (when (and result
                (member (roslisp:symbol-code
                         'giskard_msgs-msg:moveresult
-                        :unknown_object)
+                        :unknown_group)
                        (map 'list #'identity
                             (roslisp:msg-slot-value
                              result
