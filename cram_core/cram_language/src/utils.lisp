@@ -79,7 +79,6 @@
   (/ (float a 1.0d0) (float b 1.0d0)))
 
 (defun sleep* (seconds)
-
   #+sbcl-1.4.3+
   (common-lisp:sleep seconds)
   #-sbcl-1.4.3+
@@ -102,7 +101,7 @@
             (setf seconds (float-/ (- stop-time (get-internal-real-time))
                                    internal-time-units-per-second))
             (when (plusp seconds)
-
+              (go :retry)))))))
 
 
 (defmacro mapcar-clean (function list &rest more-lists)
