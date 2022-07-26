@@ -57,9 +57,35 @@
      (:file "fluent-operators" :depends-on ("packages" "fluents"))
      (:file "swank-indentation" :depends-on ("packages"))
      ;; Some CRAM vs. SBCL scheduling related stuff
-     #+sbcl (:file "sbcl-hotpatches")))))
+     #+sbcl (:file "sbcl-hotpatches"))))
 
-(defmethod asdf:perform ((o asdf:test-op)
-                         (c (eql (asdf:find-system 'cram-language))))
-  (asdf:operate 'asdf:load-op 'cram-language-tests)
-  (asdf:operate 'asdf:test-op 'cram-language-tests))
+  :perform (asdf:test-op (operation cram-language-component)
+                         (asdf:operate 'asdf:load-op 'cram-language-tests)
+                         (asdf:operate 'asdf:test-op 'cram-language-tests))
+
+  ;; Some deadline-related things depend on the SBCL version, so push the version
+  ;; to *features* to have version-dependent code at compile time
+  :perform (asdf:prepare-op :after (operation cram-language-component)
+                            (let* ((sbcl-version-string
+                                     (lisp-implementation-version))
+                                   (major-version
+                                     (parse-integer sbcl-version-string :junk-allowed t))
+                                   (major-version-dot-index
+                                     (position #\. sbcl-version-string))
+                                   (minor-version
+                                     (parse-integer (subseq sbcl-version-string
+                                                            (1+ major-version-dot-index))
+                                                    :junk-allowed t))
+                                   (minor-version-dot-index
+                                     (position #\. sbcl-version-string
+                                               :start (1+ major-version-dot-index)))
+                                   (patch-version
+                                     (parse-integer (subseq sbcl-version-string
+                                                            (1+ minor-version-dot-index))
+                                                    :junk-allowed t)))
+                              (when (or (> major-version 1)
+                                        (and (= major-version 1)
+                                             (or (> minor-version 4)
+                                                 (and (= minor-version 4)
+                                                      (>= patch-version 3)))))
+                                (pushnew :sbcl-1.4.3+ *features*)))))
