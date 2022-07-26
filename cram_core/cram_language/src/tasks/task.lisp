@@ -486,7 +486,7 @@
     (when (event-sync event)
       (wait-for (apply #'fl-and (mapcar (synced event) child-tasks))))))
 
-
+
 ;;;; Scheduler
 
 ;;; The scheduler is responsible to let us periodically enter the
@@ -510,17 +510,22 @@
   "Renew the current time quantum."
   ;; We can't assert SCHEDULING-ENABLED-P here because we need to use
   ;; this function within the event loop where scheduling is
-  ;; disabled. Still the following check seems rather sensible: 
+  ;; disabled. Still the following check seems rather sensible:
   (assert (thread-local-binding-p 'sb-impl::*deadline*))
-  ;; (setf sb-impl::*deadline* (+ (get-internal-real-time)
-  ;;                              (seconds-to-internal-time new)))
-  ;; (setf sb-impl::*deadline-seconds* new))
 
-   (setf sb-impl::*deadline*
+  #+sbcl-1.4.3+
+  (setf sb-impl::*deadline*
+
         (sb-impl::make-deadline
          (+ (get-internal-real-time)
             (seconds-to-internal-time new))
-         new)))
+         new))
+  #-sbcl-1.4.3+
+  (progn
+    (setf sb-impl::*deadline*
+          (+ (get-internal-real-time)
+             (seconds-to-internal-time new)))
+    (setf sb-impl::*deadline-seconds* new)))
 
 (defun continue-with-adjusted-time-quantum (&optional new-quantum c)
   (let ((restart (find-restart 'continue-with-adjusted-time-quantum c)))
@@ -764,14 +769,17 @@
   (change-status task final-status))
 ;;;; Misc
 
+
+#-sbcl-1.4.3+
 (defun log-gc-event ()
-  ;; (let ((sb-impl::*deadline* nil)
-  ;;       (sb-impl::*deadline-seconds* nil))    
-  ;;   (log-event
-  ;;     (:context "GC")
-  ;;     (:display "new dynamic usage: ~10:D bytes" (sb-kernel:dynamic-usage))
-  ;;     (:tags :gc)))
-  )
+  (let ((sb-impl::*deadline* nil)
+        (sb-impl::*deadline-seconds* nil))
+    (log-event
+      (:context "GC")
+      (:display "new dynamic usage: ~10:D bytes" (sb-kernel:dynamic-usage))
+      (:tags :gc))))
+
+
 ;;; FIXME: enabling it resulted regularly in whole-image deadlocks on
 ;;; SBCL 1.0.38, Linux x86-32 when running the test suite with
 ;;; +LOG-VERY-VERBOSE+. So let's better not enable it by default.
