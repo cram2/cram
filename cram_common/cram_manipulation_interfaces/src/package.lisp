@@ -114,6 +114,8 @@
    #:*-x-across-z-grasp-rotation*
    #:*-x-across-z-grasp-rotation-2*
    #:*x-across-y-grasp-rotation*
+   #:*x-across-y-30-deg-grasp-rotation*
+   #:*x-across-y-24-deg-grasp-rotation*
    #:*-x-across-y-grasp-rotation*
    #:*-x-across-y-flipped-grasp-rotation*
    #:*y-across-z-grasp-rotation*

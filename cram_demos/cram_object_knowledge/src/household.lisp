@@ -61,6 +61,9 @@
   (<- (man-int:object-type-direct-subtype :cutlery :fork))
   (<- (man-int:object-type-direct-subtype :cutlery :spoon))
 
+  (<- (man-int:object-type-direct-subtype :plate :ikea-small-plate))
+  (<- (man-int:object-type-direct-subtype :plate :ikea-big-plate))
+
   (<- (man-int:object-type-direct-subtype :bowl :bowl-round))
 
   (<- (man-int:object-type-direct-subtype :cereal :breakfast-cereal))
@@ -98,6 +101,12 @@
 (defmethod man-int:get-action-gripper-opening :heuristics 20
     ((object-type (eql :plate)))
   0.02)
+(defmethod man-int:get-action-gripper-opening :heuristics 20
+    ((object-type (eql :ikea-small-plate)))
+  0.03)
+(defmethod man-int:get-action-gripper-opening :heuristics 20
+    ((object-type (eql :ikea-big-plate)))
+  0.03)
 (defmethod man-int:get-action-gripper-opening :heuristics 20
     ((object-type (eql :tray)))
   0.02)
@@ -239,7 +248,7 @@
   :lift-translation *lift-offset*
   :2nd-lift-translation *lift-offset*)
 
-(man-int:def-object-type-to-gripper-transforms '(:tray) :right :right-side
+(man-int:def-object-type-to-gripper-transforms '(:plate :tray) :right :right-side
   :grasp-translation `(0.0 ,(- *plate-grasp-y-offset*) ,*plate-grasp-z-offset*)
   :grasp-rot-matrix
   `((0 -1 0)
@@ -250,17 +259,126 @@
   :lift-translation *lift-offset*
   :2nd-lift-translation *lift-offset*)
 
-(man-int:def-object-type-to-gripper-transforms :plate :right :right-side
-  :grasp-translation `(0.0 ,(- *plate-grasp-y-offset*) ,*plate-grasp-z-offset*)
-  :grasp-rot-matrix
-  `((0             -1 0)
-    (,(- (sin *plate-grasp-roll-offset*)) 0  ,(cos *plate-grasp-roll-offset*))
-    (,(- (cos *plate-grasp-roll-offset*)) 0  ,(- (sin *plate-grasp-roll-offset*))))
-  :pregrasp-offsets `(0.0 ,(- *plate-pregrasp-y-offset*) ,*lift-z-offset*)
-  :2nd-pregrasp-offsets `(0.0 ,(- *plate-pregrasp-y-offset*) ,*plate-2nd-pregrasp-z-offset*)
-  :lift-translation *lift-offset*
-  :2nd-lift-translation *lift-offset*)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; IKEA-SMALL-PLATE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *ikea-small-plate-diameter* 0.2 "in meters")
+(defparameter *ikea-small-plate-edge* 0.04 "in meters")
+(defparameter *ikea-small-plate-grasp-xy-offset*
+  (- (/ *ikea-small-plate-diameter* 2) 0.02) "in meters")
+(defparameter *ikea-small-plate-grasp-z-offset* 0.0 "in meters")
+(defparameter *ikea-small-plate-pregrasp-xy-offset* 0.15 "in meters")
+(defparameter *ikea-small-plate-pregrasp-z-offset*
+  (* (tan (/ pi 6))
+     (+ *ikea-small-plate-pregrasp-xy-offset* *ikea-small-plate-edge*))
+  "in meters")
+(defparameter *ikea-small-plate-2nd-pregrasp-xy-offset* 0.05 "in meters")
+(defparameter *ikea-small-plate-2nd-pregrasp-z-offset*
+  (* (tan (/ pi 6))
+     (+ *ikea-small-plate-2nd-pregrasp-xy-offset* *ikea-small-plate-edge*))
+  "in meters")
+(defparameter *ikea-small-plate-z-offsets* '(0 0 0.10) "in meters")
+(defparameter *ikea-small-plate-2nd-z-offsets* '(0 0 0.20) "in meters")
+
+(man-int:def-object-type-to-gripper-transforms :ikea-small-plate '(:left :right) :left-side
+  :grasp-translation `(0.0 ,*ikea-small-plate-grasp-xy-offset* ,*ikea-small-plate-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*y-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 ,*ikea-small-plate-pregrasp-xy-offset* 0.0)
+  :2nd-pregrasp-offsets `(0.0 ,*ikea-small-plate-2nd-pregrasp-xy-offset* 0.0)
+  :lift-translation *ikea-small-plate-z-offsets*
+  :2nd-lift-translation *ikea-small-plate-2nd-z-offsets*)
+
+(man-int:def-object-type-to-gripper-transforms :ikea-small-plate '(:left :right) :right-side
+  :grasp-translation `(0.0 ,(- *ikea-small-plate-grasp-xy-offset*) ,*ikea-small-plate-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-y-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 ,(- *ikea-small-plate-pregrasp-xy-offset*) 0.0)
+  :2nd-pregrasp-offsets `(0.0 ,(- *ikea-small-plate-2nd-pregrasp-xy-offset*) 0.0)
+  :lift-translation *ikea-small-plate-z-offsets*
+  :2nd-lift-translation *ikea-small-plate-2nd-z-offsets*)
+
+(man-int:def-object-type-to-gripper-transforms :ikea-small-plate '(:left :right) :front
+  :grasp-translation `(,*ikea-small-plate-grasp-xy-offset* 0.0 ,*ikea-small-plate-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-y-30-deg-grasp-rotation*
+  :pregrasp-offsets `(,*ikea-small-plate-pregrasp-xy-offset*
+                      0.0
+                      ,*ikea-small-plate-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(,*ikea-small-plate-2nd-pregrasp-xy-offset*
+                          0.0
+                          ,*ikea-small-plate-2nd-pregrasp-z-offset*)
+  :lift-translation *ikea-small-plate-z-offsets*
+  :2nd-lift-translation *ikea-small-plate-2nd-z-offsets*)
+
+(man-int:def-object-type-to-gripper-transforms :ikea-small-plate '(:left :right) :back
+  :grasp-translation `(,(- *ikea-small-plate-grasp-xy-offset*) 0.0 ,*ikea-small-plate-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-x-across-y-grasp-rotation*
+  :pregrasp-offsets `(,(- *ikea-small-plate-pregrasp-xy-offset*) 0.0 0.0)
+  :2nd-pregrasp-offsets `(,(- *ikea-small-plate-2nd-pregrasp-xy-offset*) 0.0 0.0)
+  :lift-translation *ikea-small-plate-z-offsets*
+  :2nd-lift-translation *ikea-small-plate-2nd-z-offsets*)
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; IKEA-BIG-PLATE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *ikea-big-plate-diameter* 0.263 "in meters")
+(defparameter *ikea-big-plate-edge* 0.05 "in meters")
+(defparameter *ikea-big-plate-grasp-xy-offset*
+  (- (/ *ikea-big-plate-diameter* 2) 0.02) "in meters")
+(defparameter *ikea-big-plate-grasp-z-offset* 0.0 "in meters")
+(defparameter *ikea-big-plate-pregrasp-xy-offset* 0.15 "in meters")
+(defparameter *ikea-big-plate-pregrasp-z-offset*
+  (* (tan (/ pi 7.5))
+     (+ *ikea-big-plate-pregrasp-xy-offset* *ikea-big-plate-edge*))
+  "in meters")
+(defparameter *ikea-big-plate-2nd-pregrasp-xy-offset* 0.05 "in meters")
+(defparameter *ikea-big-plate-2nd-pregrasp-z-offset*
+  (* (/ 2 5)
+     (+ *ikea-big-plate-2nd-pregrasp-xy-offset* *ikea-big-plate-edge*))
+  "in meters")
+(defparameter *ikea-big-plate-z-offsets* '(0 0 0.10) "in meters")
+(defparameter *ikea-big-plate-2nd-z-offsets* '(0 0 0.20) "in meters")
+
+(man-int:def-object-type-to-gripper-transforms :ikea-big-plate '(:left :right) :front
+  :grasp-translation `(,*ikea-big-plate-grasp-xy-offset*
+                       0.0
+                       ,*ikea-big-plate-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-y-24-deg-grasp-rotation*
+  :pregrasp-offsets `(,*ikea-big-plate-pregrasp-xy-offset*
+                      0.0
+                      ,*ikea-big-plate-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(,*ikea-big-plate-2nd-pregrasp-xy-offset*
+                          0.0
+                          ,*ikea-big-plate-2nd-pregrasp-z-offset*)
+  :lift-translation *ikea-big-plate-z-offsets*
+  :2nd-lift-translation *ikea-big-plate-2nd-z-offsets*)
+
+(man-int:def-object-type-to-gripper-transforms :ikea-big-plate '(:left :right) :left-side
+  :grasp-translation `(0.0
+                       ,*ikea-big-plate-grasp-xy-offset*
+                       ,*ikea-big-plate-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-y-24-deg-grasp-rotation*
+  :pregrasp-offsets `(0.0
+                      ,*ikea-big-plate-pregrasp-xy-offset*
+                      ,*ikea-big-plate-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0
+                          ,*ikea-big-plate-2nd-pregrasp-xy-offset*
+                          ,*ikea-big-plate-pregrasp-z-offset*)
+  :lift-translation *ikea-big-plate-z-offsets*
+  :2nd-lift-translation *ikea-big-plate-2nd-z-offsets*)
+
+(man-int:def-object-type-to-gripper-transforms :ikea-big-plate '(:left :right) :right-side
+  :grasp-translation `(0.0
+                       ,(- *ikea-big-plate-grasp-xy-offset*)
+                       ,*ikea-big-plate-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-y-24-deg-grasp-rotation*
+  :pregrasp-offsets `(0.0
+                      ,(- *ikea-big-plate-pregrasp-xy-offset*)
+                      ,*ikea-big-plate-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0
+                          ,(- *ikea-big-plate-2nd-pregrasp-xy-offset*)
+                          ,*ikea-big-plate-2nd-pregrasp-z-offset*)
+  :lift-translation *ikea-big-plate-z-offsets*
+  :2nd-lift-translation *ikea-big-plate-2nd-z-offsets*)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; POT ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -1,0 +1,105 @@
+## Jupyter Common Lisp kernel package -- common-lisp-jupyter -- and its dependencies
+####################################################################################
+
+## TODO: assign specific commit numbers to ensure upstream updates don't break stuff
+
+## The repo addresses are taken from
+## https://github.com/quicklisp/quicklisp-projects/blob/master/projects/<PROJECT_NAME>/source.txt
+
+- git:
+    local-name: common-lisp-jupyter
+    uri: https://github.com/yitzchak/common-lisp-jupyter.git
+#    version: master
+
+- git:
+    local-name: bordeaux-threads
+    uri: https://github.com/sionescu/bordeaux-threads.git
+
+# bordeaux-threads dep
+- git:
+    local-name: global-vars
+    uri: https://github.com/lmj/global-vars.git
+
+- git:
+    local-name: cl-base64
+    uri: https://gitlab.common-lisp.net/nyxt/cl-base64.git
+
+- git:
+    local-name: cl-indentify
+    uri: https://github.com/yitzchak/cl-indentify.git
+
+- git:
+    local-name: closer-mop
+    uri: https://github.com/pcostanza/closer-mop.git
+
+- git:
+    local-name: dissect
+    uri: https://github.com/Shinmera/dissect.git
+
+- git:
+    local-name: eclector
+    uri: https://github.com/robert-strandh/eclector.git
+
+# eclector dep
+- git:
+    local-name: acclimation
+    uri: https://github.com/robert-strandh/Acclimation.git
+
+- git:
+    local-name: ironclad
+    uri: https://github.com/sharplispers/ironclad.git
+
+- git:
+    local-name: multilang-documentation
+    uri: https://github.com/Shinmera/multilang-documentation.git
+
+# multilang-documentation dep
+- git:
+    local-name: documentation-utils
+    uri: https://github.com/Shinmera/documentation-utils.git
+
+# documentation-utils dep
+- git:
+    local-name: trivial-indent
+    uri: https://github.com/Shinmera/trivial-indent.git
+
+# multilang-documentation dep
+- git:
+    local-name: language-codes
+    uri: https://github.com/Shinmera/language-codes.git
+
+# multilang-documentation dep
+- git:
+    local-name: system-locale
+    uri: https://github.com/Shinmera/system-locale.git
+
+# sudo apt install libzmq3-dev
+- git:
+    local-name: pzmq
+    uri: https://github.com/orivej/pzmq.git
+
+# pzmq dep, newest version, our cram_3rdparty version is outdated
+#- git:
+#    local-name: cffi
+#    uri: https://gitlab.common-lisp.net/cffi/cffi.git
+
+- git:
+    local-name: puri
+    uri: https://gitlab.common-lisp.net/clpm/puri.git
+
+- git:
+    local-name: static-vectors
+    uri: https://github.com/sionescu/static-vectors.git
+
+- git:
+    local-name: trivial-do
+    uri: https://github.com/yitzchak/trivial-do.git
+
+- git:
+    local-name: trivial-mimes
+    uri: https://github.com/Shinmera/trivial-mimes.git
+
+- git:
+    local-name: shasht
+    uri: https://github.com/yitzchak/shasht.git
+
