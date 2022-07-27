@@ -1,33 +1,3 @@
-%%%
-%%% Copyright (c) 2017-2022, Sebastian Koralewski <seba@cs.uni-bremen.de>
-%%%
-%%% All rights reserved.
-%%%
-%%% Redistribution and use in source and binary forms, with or without
-%%% modification, are permitted provided that the following conditions are met:
-%%%
-%%%     * Redistributions of source code must retain the above copyright
-%%%       notice, this list of conditions and the following disclaimer.
-%%%     * Redistributions in binary form must reproduce the above copyright
-%%%       notice, this list of conditions and the following disclaimer in the
-%%%       documentation and/or other materials provided with the distribution.
-%%%     * Neither the name of the Institute for Artificial Intelligence/
-%%%       Universitaet Bremen nor the names of its contributors may be used to
-%%%       endorse or promote products derived from this software without
-%%%       specific prior written permission.
-%%%
-%%% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-%%% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-%%% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-%%% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
-%%% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-%%% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-%%% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-%%% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-%%% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-%%% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-%%% POSSIBILITY OF SUCH DAMAGE.
-
 :- rdf_meta(mem_event_create(r,r,r)).
 :- use_module(library('db/mongo/client')).
 
@@ -79,7 +49,7 @@ mem_episode_stop(NeemPath, EndTime) :-
     kb_project([
         holds(TimeInterval, soma:'hasIntervalEnd', EndTime)
     ]),
-    get_time(CurrentTime), atom_concat(NeemPath,'/',X1), atom_concat(X1,CurrentTime,X2), memorize(X2), mem_clear_memory.
+    get_time(CurrentTime), atom_concat(NeemPath,'/',X1), atom_concat(X1,CurrentTime,X2), memorize(X2), mem_clear_memory,!.
 
 mem_event_set_failed(Action) :- kb_project(action_failed(Action)).
 
@@ -90,7 +60,7 @@ mem_event_add_diagnosis(Situation, Diagnosis) :- kb_project(satisfies(Situation,
 add_subaction_with_task(ParentAction,SubAction,TaskType) :-
     execution_agent(Agent),
     kb_project([
-        new_iri(SubAction, dul:'Action'), has_type(SubAction,soma:'Action'),
+        new_iri(SubAction, dul:'Action'), has_type(SubAction,dul:'Action'),
         new_iri(Task, TaskType), has_type(Task,TaskType), executes_task(SubAction,Task),
         holds(ParentAction,dul:hasConstituent,SubAction), % replacement for has_subevent
         is_performed_by(SubAction,Agent)
@@ -134,20 +104,17 @@ mem_tf_get(Object, ReferenceFrame, Position, Rotation, Timestamp) :-
     time_scope(=(Timestamp), =(Timestamp), QScope),
     tf_get_pose(Object, [ReferenceFrame, Position, Rotation], QScope, _).
 
+
 add_participant_with_role(Action, ObjectId, RoleType) :-
     kb_call([executes_task(Action, Task),
-             triple(Event,dul:'hasTimeInterval',TimeInterval),
-             triple(TimeInterval,soma:'hasIntervalBegin',Start),
-             triple(TimeInterval,soma:'hasIntervalEnd',End)]),
-     kb_project([has_participant(Action,ObjectId),
-                 has_type(Role, RoleType),
-                 has_role(ObjectId,Role) during Action,task_role(Task, Role)]).
-    %kb_project([holds(TimeInterval, soma:'hasIntervalEnd', CurrentTime),new_iri(Role, soma:'AgentRole'),has_type(Role, soma:'AgentRole')]),
-    %kb_project([has_role(Agent,Role) during Event, task_role(Task, Role)]),!.
+            triple(Event,dul:'hasTimeInterval',TimeInterval),
+            triple(TimeInterval,soma:'hasIntervalBegin',Start),
+            triple(TimeInterval,soma:'hasIntervalEnd',End)]),
+    kb_project([has_participant(Action,ObjectId),
+                new_iri(Role, RoleType), has_type(Role, RoleType)]),
+    kb_project(has_role(ObjectId,Role) during Action),!.
 
-%add_participant_with_role(Action, ObjectId, RoleType) :- kb_call(executes_task(Action, Task)), kb_project([has_participant(Action,ObjectId), has_type(Role, RoleType), has_role(ObjectId,Role) during [0.0,0.0]]).
-
-    add_parameter(Task,ParameterType,RegionType) :- kb_project([new_iri(Parameter, ParameterType), has_type(Parameter, ParameterType),
+add_parameter(Task,ParameterType,RegionType) :- kb_project([new_iri(Parameter, ParameterType), has_type(Parameter, ParameterType),
                                                                 new_iri(Region,RegionType),has_type(Region,RegionType),
                                                                 has_assignment(Parameter,Region) during [0.0,0.1],
                                                                 has_parameter(Task, Parameter)]).
