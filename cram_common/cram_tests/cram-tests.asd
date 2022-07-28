@@ -32,23 +32,10 @@
   :author "aniedz"
   :license "BSD"
 
-  :depends-on (cram-process-modules-test
-               cram-math-test
-               cl-bullet-vis-tests
-               cram-btr-spatial-relations-costmap-tests
-               ;; cram-beginner-tutorial-tests
-               cram-manipulation-interfaces-tests
-               cram-common-failures-tests
-               cram-task-tree-export-tests
-               cram-utilities-tests
-               cram-prolog-tests
-               cram-projection-tests
-               cram-fetch-deliver-plans-tests
-               cram-bullet-reasoning-tests
-               cram-pr2-pick-place-demo-tests
-               cram-designators-test
-               cram-bullet-reasoning-belief-state-tests
-               cram-urdf-environment-manipulation-tests)
+  :depends-on (alexandria
+               roslisp-utilities
+               cram-bullet-reasoning-belief-state
+               lisp-unit)
   :components
   ((:module "src"
     :components

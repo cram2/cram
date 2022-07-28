@@ -32,21 +32,5 @@
 
 (defpackage cram-tests
   (:use #:common-lisp
-        #:lisp-unit
-        ;; #:bullet-visualization-test
-        ;; #:cram-btr-spatial-relations-costmap-tests
-        ;; #:cram-beginner-tutorial-tests
-        ;; #:cram-manipulation-interfaces-tests
-        ;; #:cram-common-failures-tests
-        ;; #:cram-task-tree-export-tests
-        ;; #:cram-utilities-tests
-        ;; #:cram-prolog-tests
-        ;; #:cram-projection-tests
-        ;; #:cram-fetch-deliver-plans-tests
-        ;; #:cram-bullet-reasoning-tests
-        ;; #:cram-pr2-pick-place-demo-tests
-        ;; #:cram-designators-tests
-        ;; #:cram-bullet-reasoning-belief-state-tests
-        ;; #:cram-urdf-environment-manipulation-tests
-        )
-  (:export ))
+        #:lisp-unit)
+  (:export #:run-package-tests))

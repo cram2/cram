@@ -30,79 +30,89 @@
 
 (in-package :cram-tests)
 
-(defparameter *packages-under-test*
-  '(;; cram-process-module-tests
-    ;; cram-math-tests
-    bullet-visualization-test
-    cram-btr-spatial-relations-costmap-tests
-    cram-urdf-environment-manipulation-tests
-    cram-beginner-tutorial-tests
-    cram-manipulation-interfaces-tests
-    cram-common-failures-tests
-    cram-task-tree-export-tests
-    cram-utilities-tests
-    cram-prolog-tests
-    cram-projection-tests
-    cram-fetch-deliver-plans-tests
-    cram-bullet-reasoning-tests
-    cram-pr2-pick-place-demo-tests
-    cram-designators-tests
-    cram-bullet-reasoning-belief-state-tests
-    ))
+;; All functionality in this file is meant to be used with scripts/test.sh
+;; but is also works on it's own. That's what the default filenames are for.
 
-(defparameter *results* nil)
+(defparameter *result* nil
+  "The result of lisp-unit's test execution.")
+(defparameter *report* nil
+  "`report' pushes strings to the `*report*' list, `return-report' reverses and creates a string.")
+(defparameter *default-report-file*
+  (concatenate 'string
+               (namestring (ros-load:ros-package-path "cram_tests"))
+               "/reports/test-report-"
+               (format nil "~d" (sb-posix:time))))
 
-(defun run-all-tests ()
-  (setf *results* nil) ;; make a hash-table from that to update results, not throwing them away
-  (unless (eq (roslisp:node-status) :RUNNING)
-    (roslisp-utilities:startup-ros))
-  (loop for package in *packages-under-test* do
-    (format NIL "---~a START---" package)
-    (push `(,package . ,(run-tests)) *results*))
-  (format-results))
+(defun report (data)
+  "Pushes a new `data' line to the report."
+  (push data *report*))
 
-(defun format-results ()
-  "Formats the `*results*' into a readable string."
-  (let* ((no-results (mapcar #'car (remove-if #'cdr *results*)))
-         (results (remove-if-not #'cdr *results*))
-         report-list) ;; every new line is pushed into the report, later returned in reverse
-    (flet ((report (data) (push data report-list)))
-      (report (format nil "~%~%-------------TEST REPORT-------------"))
-      (report (format nil "Packages under test:~%~{  ~a~^~%~}~%" *packages-under-test*))
-      (report (format nil "Missing testdata for the following packages:~%~{  ~a~^~%~}"
-                      (or no-results '(none))))
-      (loop for (package . result) in results do
-        (report (format nil "---~%Package: ~a" package))
-        (report (format nil "  Assertions Passed: ~a, Failed: ~a, Error'd: ~a"
-                        (lisp-unit::pass result)
-                        (lisp-unit::fail result)
-                        (lisp-unit::exerr result)))
-        (report "  Failed Tests:")
-        (if (lisp-unit::failed-tests result)
-            (loop for failed-test-name in (lisp-unit::failed-tests result)
-                  and failed-test = NIL do
-                    (setf failed-test (gethash failed-test-name (lisp-unit::database result)))
-                    (report (format nil "    ~a" failed-test-name))
-                    (loop for failure in (lisp-unit::fail failed-test)
-                          do (report (format nil "      Test: ~a" (lisp-unit::test failure)))
-                             (report (format nil "        Form: ~a" (lisp-unit::form failure)))
-                             (report (format nil "        Expected: ~a" (lisp-unit::expected failure)))
-                             (report (format nil "        Actual: ~a" (lisp-unit::actual failure)))))
-            (report "    NONE"))
-        (report "  Error'd Tests:")
-        (if (lisp-unit::error-tests result)
-            (loop for error-test-name in (lisp-unit::error-tests result)
-                  and error-test = NIL do
-                    (setf error-test (gethash error-test-name (lisp-unit::database result)))
-                    (report (format nil "    ~a" error-test-name))
-                    (report (format nil "      Error: ~a" (lisp-unit::exerr error-test))))
-            (report "    NONE")))
-      (report "-------------END REPORT-------------")
-      (let ((passd (reduce #'+ *results* :key (alexandria:compose #'lisp-unit::pass #'cdr)))
-            (faild (reduce #'+ *results* :key (alexandria:compose #'lisp-unit::fail #'cdr)))
-            (errord (reduce #'+ *results* :key (alexandria:compose #'lisp-unit::exerr #'cdr))))
-        (report (format nil "Total passed: ~:d, failed: ~:d, error'd: ~:d"
-                        passd faild errord))))
-    (format t "~{~a~^~%~}" (reverse report-list))
-    *results*))
+(defun return-report ()
+  "Returns the report in reversed order, because of how `report' works."
+  (format NIL "~{~a~^~%~}" (reverse *report*)))
 
+(defun run-package-tests (package &optional (report-file-path *default-report-file*))
+  (declare (type keyword package)
+           (type string report-file-path))
+  "Run with a specific `package' that is available via asdf.
+If that package is not loaded yet, it will be.
+Exectues all lisp-unit tests in that package, formats it and
+exports the report into a file in the `report-file-path'."
+  (setf *report* nil)
+  (if (not (asdf:find-system package NIL))
+      (format NIL "System and package ~a doesn't exist." package)
+      (progn
+        (unless (find-package package)
+          (asdf:load-system package))
+        (setf btr-belief:*spawn-debug-window* nil)
+        (unless (eq (roslisp:node-status) :RUNNING)
+          ;; doing it here for all the tests without a proper init
+          (roslisp-utilities:startup-ros))
+        (setf *result* (lisp-unit:run-tests :all package))
+        (format-result package)
+        (export-report :filename report-file-path))))
+
+(defun format-result (package &optional (result *result*))
+  (declare (type keyword package))
+  "Formats the `*result*' into a readable report."
+  (report "----------")
+  (if (not *result*)
+      (report (format nil "Package: ~a - No tests defined" package))
+  (let ((passd (lisp-unit::pass result))
+        (faild (lisp-unit::fail result))
+        (errord (lisp-unit::exerr result)))
+    (report (format nil "Package: ~a" package))
+    (report (format nil "  Assertions Passed: ~a, Failed: ~a, Error'd: ~a" passd faild errord))
+    (report "~%  Failed Tests:")
+    (if (lisp-unit::failed-tests result)
+          (loop for failed-test-name in (lisp-unit::failed-tests result)
+                and failed-test = NIL do
+                  (setf failed-test (gethash failed-test-name (lisp-unit::database result)))
+                  (report (format nil "    ~a" failed-test-name))
+                  (loop for failure in (lisp-unit::fail failed-test)
+                        do (report (format nil "      Test: ~a" (lisp-unit::test failure)))
+                           (report (format nil "        Form: ~a" (lisp-unit::form failure)))
+                           (report (format nil "        Expected: ~a" (lisp-unit::expected failure)))
+                           (report (format nil "        Actual: ~a" (lisp-unit::actual failure))))
+                  (report ""))
+          (report "    NONE"))
+      (report "  Error'd Tests:")
+      (if (lisp-unit::error-tests result)
+          (loop for error-test-name in (lisp-unit::error-tests result)
+                and error-test = NIL do
+                  (setf error-test (gethash error-test-name (lisp-unit::database result)))
+                  (report (format nil "    ~a" error-test-name))
+                  (report (format nil "      Error: ~a~%" (lisp-unit::exerr error-test))))
+          (report "    NONE")))))
+
+(defun export-report (&key (filename *default-report-file*) (report (reverse *report*)))
+  (declare (type string filename)
+           (type list report))
+  "Exports the report into a file named `filename'."
+  (with-open-file (report-file filename
+                               :direction :output
+                               :if-exists :append
+                               :if-does-not-exist :create)
+    (dolist (line report)
+      (write-line line report-file))
+    (write-line "" report-file)))
