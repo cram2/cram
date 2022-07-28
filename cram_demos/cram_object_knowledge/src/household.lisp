@@ -1728,3 +1728,8 @@
 
 (defmethod man-int:get-arms-for-object-type :heuristics 20 ((object-type (eql :tray)))
   '(:left :right))
+
+(def-fact-group attachment-knowledge (man-int:unidirectional-attachment)
+
+  (<- (man-int:unidirectional-attachment ?attachment-type)
+    (member ?attachment-type (:popcorn-pot-lid-attachment))))
