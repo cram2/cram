@@ -8,6 +8,9 @@ CRAM is a toolbox for designing, implementing and deploying software on autonomo
 The core packages of CRAM are implemented in Common Lisp (with a little bit of C/C++) with support to the ROS middleware infrastructure.
 
 ----
+### Version
+The branch is currently tested on **20.04**. It is under constant change due the development. If you notice a bug, please report it in an issue.
+
 ### Prerequisite
 
 [ROS installation](http://wiki.ros.org/noetic/Installation) and an [SSH key set up](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/about-ssh)  for your github account.
@@ -15,11 +18,11 @@ The core packages of CRAM are implemented in Common Lisp (with a little bit of C
 ### Workspace Installation
 * `sudo apt install ros-noetic-roslisp-repl`
 * `sudo apt-get install python-rosinstall python-wstool`
-* `cd ~/workspace/ros/src`
+* `cd ~/workspace/src`
 * `wstool init`
-* `wstool merge https://raw.githubusercontent.com/cram2/cram/noetic/cram-20.04.rosinstall`
+* `wstool merge https://raw.githubusercontent.com/cram2/cram/devel/cram-20.04.rosinstall`
 * `wstool update`
-* `cd ~/workspace/ros`
+* `cd ~/workspace/`
 * `rosdep update`
 * `rosdep install --ignore-src --from-paths src/ -r`
 * `catkin_make`
@@ -52,17 +55,7 @@ If changes are made to the code and a **PullRequest** results from it, please ch
   * Unit-test: all-test [Working] 
   * Milestone: setting-demo [Working]
   * Milestone: cleaning-demo [Working]
-  * Small-Cutting: bread-cutting-demo [Working]
-  * Pouring: WIP
-  * Shopping: WIP
-  * ...
-* BOXY
-  * WIP
-* HSR
-  * WIP 
-* Donbot
-  * WIP     
-
+ 
 ----
 
 ### Directory
