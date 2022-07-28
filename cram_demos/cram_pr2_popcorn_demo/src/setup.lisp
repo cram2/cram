@@ -29,7 +29,7 @@
 
 (in-package :demo)
 
-;; roslaunch cram_pr2_pick_place_demo sandbox.launch
+;; roslaunch cram_pr2_popcorn_demo sandbox.launch
 
 (defun init-projection ()
   (def-fact-group costmap-metadata (costmap:costmap-size
