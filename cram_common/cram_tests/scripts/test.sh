@@ -52,7 +52,7 @@ for system in "${systems_under_test[@]}"; do
     timeout 3m /usr/bin/sbcl --dynamic-space-size 8192 --noinform --load $tmp_test_script --quit
     if [ $? -eq 124 ]
     then
-        echo "Tests for system $system timed out after 5 minutes. Terminating."
+        echo "Tests for system $system timed out after 3 minutes. Terminating."
     else
         echo "Finished in $(expr $(date +%s) - $starttime) seconds."
     fi

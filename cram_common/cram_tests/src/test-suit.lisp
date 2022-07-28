@@ -60,7 +60,7 @@ Exectues all lisp-unit tests in that package, formats it and
 exports the report into a file in the `report-file-path'."
   (setf *report* nil)
   (if (not (asdf:find-system package NIL))
-      (format NIL "System and package ~a doesn't exist." package)
+      (format NIL "System ~a doesn't exist." package)
       (progn
         (unless (find-package package)
           (asdf:load-system package))
