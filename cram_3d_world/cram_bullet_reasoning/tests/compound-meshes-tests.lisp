@@ -41,7 +41,6 @@
            (prolog:prolog '(and
                             (btr:clear-bullet-world)
                             (btr:bullet-world ?world)
-                            (btr:debug-window ?world)
                             (assert (btr:object ?world :static-plane
                                      :floor
                                      ((0 0 0) (0 0 0 1))

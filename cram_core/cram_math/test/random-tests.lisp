@@ -26,7 +26,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cram-math-tests)
+(in-package :cram-math-test)
 
 (define-test matrix-sampling-1
   (loop repeat 1000 do

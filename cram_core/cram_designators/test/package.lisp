@@ -28,6 +28,6 @@
 
 (in-package :cl-user)
 
-(defpackage cram-designators-tests
+(defpackage cram-designators-test
   (:use #:common-lisp #:cram-designators
         #:lisp-unit))

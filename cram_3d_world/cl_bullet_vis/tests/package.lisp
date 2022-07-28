@@ -26,7 +26,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defpackage bullet-visualization-test
+(defpackage cl-bullet-vis-tests
   (:nicknames :bt-vis-test)
   (:use #:common-lisp :bt-vis :lisp-unit)
   (:export))

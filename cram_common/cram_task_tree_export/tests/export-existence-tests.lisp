@@ -34,6 +34,7 @@
 ;; roslaunch cram_pr2_pick_place_demo sandbox.launch
 
 (defun demo ()
+  (setf btr:*debug-window* NIL)
   (unless (eq (roslisp:node-status) :RUNNING)
     (roslisp-utilities:startup-ros))
   (urdf-proj:with-projected-robot

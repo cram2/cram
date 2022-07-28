@@ -28,6 +28,6 @@
 
 (in-package :cl-user)
 
-(defpackage cram-math-tests
+(defpackage cram-math-test
   (:use #:common-lisp #:cram-math #:lisp-unit)
   (:export))
