@@ -46,6 +46,10 @@
   (<- (costmap:costmap-resolution ?name 0.04)
     (is-dm-room-urdf-name ?name))
 
+  (<- (costmap:costmap-size :apartment 24 12))
+  (<- (costmap:costmap-origin :apartment -12 -6))
+  (<- (costmap:costmap-resolution :apartment 0.04))
+
   (<- (man-int:object-tf-prefix :iai-kitchen "iai_kitchen/")))
 
 
@@ -57,6 +61,7 @@
   (<- (man-int:object-type-direct-subtype :container-revolute :fridge))
   (<- (man-int:object-type-direct-subtype :container-revolute :oven))
   (<- (man-int:object-type-direct-subtype :container-revolute :dishwasher))
+  (<- (man-int:object-type-direct-subtype :container-revolute :cupboard))
 
   (<- (man-int:object-type-direct-subtype :container :shelf)))
 

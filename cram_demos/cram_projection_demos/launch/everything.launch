@@ -90,7 +90,8 @@
   <group if="$(arg apartment)">
     <param name="kitchen_description"
            command="$(find xacro)/xacro
-                    '$(find iai_apartment)/urdf/apartment.urdf'"/>
+                    '$(find iai_apartment)/urdf/kitchen.urdf'"/>
+                    <!-- '$(find iai_apartment)/urdf/apartment.urdf'"/> -->
   </group>
 
   <!-- environment state publisher -->
