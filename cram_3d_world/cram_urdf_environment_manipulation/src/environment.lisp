@@ -318,7 +318,9 @@ values, the new pose of the link and the joint object that was changed.
                     (cl-urdf:name joint))
                    joint-position)
              (let ((manipulated-joint-pose
-                     (get-urdf-link-pose link-name :iai-kitchen)))
+                     (get-urdf-link-pose
+                      link-name
+                      btr-environment)))
                (setf (btr:joint-state
                       (btr:object btr:*current-bullet-world*
                                   btr-environment)

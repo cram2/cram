@@ -426,10 +426,10 @@ Disregarding the orientation (using the pose2's)."
 
     ;; cutting out drawer costmap
     (costmap:costmap-manipulation-padding ?robot-name ?padding)
-    (costmap:costmap-add-function
-     opened-drawer-cost-function
-     (make-opened-drawer-cost-function ?container-name ?btr-environment ?padding)
-     ?costmap)
+    ;; (costmap:costmap-add-function
+    ;;  opened-drawer-cost-function
+    ;;  (make-opened-drawer-cost-function ?container-name ?btr-environment ?padding)
+    ;;  ?costmap)
 
     ;; cutting out for specific arm costmap
     (costmap:costmap-add-function
@@ -490,10 +490,10 @@ Disregarding the orientation (using the pose2's)."
     (costmap:costmap-manipulation-padding ?robot-name ?padding)
 
     ;; cutting out door costmap
-    (costmap:costmap-add-function
-     opened-door-cost-function
-     (make-opened-door-cost-function ?container-name ?btr-environment ?padding)
-     ?costmap)
+    ;; (costmap:costmap-add-function
+    ;;  opened-door-cost-function
+    ;;  (make-opened-door-cost-function ?container-name ?btr-environment ?padding)
+    ;;  ?costmap)
 
     ;; Commented out for now, since this doesn't work with non-vertical doors
     ;; cutting out for specific arm
