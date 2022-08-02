@@ -503,7 +503,7 @@ Disregarding the orientation (using the pose2's)."
     ;;  ?costmap)
 
     ;; orientate towards the door
-    (lisp-fun get-container-link ?container-name ?btr-environment ?link)
+    (lisp-fun get-environment-link ?container-name ?btr-environment ?link)
     (lisp-fun get-connecting-joint ?link ?joint)
     (lisp-fun cl-urdf:child ?joint ?joint-link)
     (lisp-fun cl-urdf:name ?joint-link ?joint-name)
