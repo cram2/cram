@@ -41,7 +41,7 @@
     (spec:property ?container-designator (:urdf-name ?container-name))
     (spec:property ?container-designator (:part-of ?btr-environment))
     (btr:bullet-world ?world)
-    (lisp-fun get-container-link ?container-name ?btr-environment ?container-link)
+    (lisp-fun get-environment-link ?container-name ?btr-environment ?container-link)
     (lisp-fun get-connecting-joint ?container-link ?joint)
     (lisp-fun cl-urdf:name ?joint ?joint-name)
     (btr:joint-state ?world ?btr-environment ?joint-name ?joint-state)
@@ -66,7 +66,7 @@
   (let ((joint-limits
           (cl-urdf:limits
            (get-connecting-joint
-            (get-container-link container-name btr-environment)))))
+            (get-environment-link container-name btr-environment)))))
     (if (< distance (cl-urdf:lower joint-limits))
         (cl-urdf:lower joint-limits)
         (if (> distance (cl-urdf:upper joint-limits))
