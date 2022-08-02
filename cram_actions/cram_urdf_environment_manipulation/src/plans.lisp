@@ -122,11 +122,12 @@
   ;;;;;;;;;;;;;;;;;;;; GRIPPING ;;;;;;;;;;;;;;;;;;;;;;;;
   (roslisp:ros-info (environment-manipulation manipulate-container)
                     "Gripping")
-  (when (eq ?type :opening)
-    (exe:perform
-     (desig:an action
-               (type gripping)
-               (gripper ?arm))))
+  ;; Gripping now both for closing and opening, as grasp pose can be funny.
+  ;; when (eq ?type :opening)
+  (exe:perform
+   (desig:an action
+             (type gripping)
+             (gripper ?arm)))
 
   ;;;;;;;;;;;;;;;;;;;;;; MANIPULATING ;;;;;;;;;;;;;;;;;;;;;;;
   (roslisp:ros-info (environment-manipulation manipulate-container)
