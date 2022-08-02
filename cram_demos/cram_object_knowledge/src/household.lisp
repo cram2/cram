@@ -140,6 +140,10 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defmethod man-int:get-arms-for-object-type :heuristics 20 ((object-type (eql :tray)))
+  '(:left :right))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (def-fact-group pnp-object-knowledge (man-int:object-rotationally-symmetric
                                       man-int:orientation-matters)
 
@@ -148,12 +152,14 @@
                                  )))
 
   (<- (orientation-matters ?object-type)
-    (member ?object-type (:knife :fork :spoon :cutlery :spatula :weisswurst :bread :big-knife))))
+    (member ?object-type (:knife :fork :spoon :cutlery :spatula :weisswurst
+			  :bread :big-knife))))
 
 (def-fact-group attachment-knowledge (man-int:unidirectional-attachment)
 
   (<- (man-int:unidirectional-attachment ?attachment-type)
     (member ?attachment-type (:popcorn-pot-lid-attachment))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; CUTLERY ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1726,10 +1732,4 @@
   :attachment-rot-matrix man-int:*identity-matrix*)
 
 
-(defmethod man-int:get-arms-for-object-type :heuristics 20 ((object-type (eql :tray)))
-  '(:left :right))
 
-(def-fact-group attachment-knowledge (man-int:unidirectional-attachment)
-
-  (<- (man-int:unidirectional-attachment ?attachment-type)
-    (member ?attachment-type (:popcorn-pot-lid-attachment))))
