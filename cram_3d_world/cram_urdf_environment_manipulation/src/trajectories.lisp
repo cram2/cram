@@ -239,21 +239,24 @@ around `axis' by `angle-max' in steps of 0.1 rad."
   (declare (type cl-transforms-stamped:transform-stamped joint-to-gripper)
            (type cl-transforms:3d-vector axis)
            (type number angle-max))
-  (let ((angle-step (if (>= angle-max 0)
-                        0.1
-                        -0.1)))
-    (loop for angle = 0.0 then (+ angle angle-step)
-          while (<= (abs angle) (abs angle-max))
-          collect
-          (let ((rotation (cl-transforms:axis-angle->quaternion axis angle)))
-            (cl-transforms-stamped:make-transform-stamped
-             (cl-transforms-stamped:frame-id joint-to-gripper)
-             (cl-transforms-stamped:child-frame-id joint-to-gripper)
-             (cl-transforms-stamped:stamp joint-to-gripper)
-             (cl-transforms:rotate rotation (cl-transforms:translation
-                                             joint-to-gripper))
-             (cl-transforms:q* rotation (cl-transforms:rotation
-                                         joint-to-gripper)))))))
+  (let* ((angle-step (if (>= angle-max 0)
+                         0.1
+                         -0.1))
+         (angles (append (loop for angle = 0.0 then (+ angle angle-step)
+                               while (< (abs angle) (abs angle-max))
+                               collect angle)
+                         (list angle-max))))
+    (mapcar (lambda (angle)
+              (let ((rotation (cl-transforms:axis-angle->quaternion axis angle)))
+                (cl-transforms-stamped:make-transform-stamped
+                 (cl-transforms-stamped:frame-id joint-to-gripper)
+                 (cl-transforms-stamped:child-frame-id joint-to-gripper)
+                 (cl-transforms-stamped:stamp joint-to-gripper)
+                 (cl-transforms:rotate rotation (cl-transforms:translation
+                                                 joint-to-gripper))
+                 (cl-transforms:q* rotation (cl-transforms:rotation
+                                             joint-to-gripper)))))
+            angles)))
 
 (defun get-container-to-gripper-transform (object-name
                                            arm
