@@ -265,7 +265,7 @@
   (<- (gripper-joint :tiago-dual :right "gripper_right_left_finger_joint"))
   (<- (gripper-joint :tiago-dual :right "gripper_right_right_finger_joint"))
 
-  (<- (gripper-meter-to-joint-multiplier :tiago-dual 1.0))
+  (<- (gripper-meter-to-joint-multiplier :tiago-dual 0.5))
   (<- (gripper-minimal-position :tiago-dual ?_ 0.0))
   (<- (gripper-convergence-delta :tiago-dual ?_ 0.005))
 

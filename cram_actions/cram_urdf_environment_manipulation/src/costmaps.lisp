@@ -426,10 +426,10 @@ Disregarding the orientation (using the pose2's)."
 
     ;; cutting out drawer costmap
     (costmap:costmap-manipulation-padding ?robot-name ?padding)
-    (costmap:costmap-add-function
-     opened-drawer-cost-function
-     (make-opened-drawer-cost-function ?container-name ?btr-environment ?padding)
-     ?costmap)
+    ;; (costmap:costmap-add-function
+    ;;  opened-drawer-cost-function
+    ;;  (make-opened-drawer-cost-function ?container-name ?btr-environment ?padding)
+    ;;  ?costmap)
 
     ;; cutting out for specific arm costmap
     (costmap:costmap-add-function
@@ -490,10 +490,10 @@ Disregarding the orientation (using the pose2's)."
     (costmap:costmap-manipulation-padding ?robot-name ?padding)
 
     ;; cutting out door costmap
-    (costmap:costmap-add-function
-     opened-door-cost-function
-     (make-opened-door-cost-function ?container-name ?btr-environment ?padding)
-     ?costmap)
+    ;; (costmap:costmap-add-function
+    ;;  opened-door-cost-function
+    ;;  (make-opened-door-cost-function ?container-name ?btr-environment ?padding)
+    ;;  ?costmap)
 
     ;; Commented out for now, since this doesn't work with non-vertical doors
     ;; cutting out for specific arm
@@ -503,7 +503,7 @@ Disregarding the orientation (using the pose2's)."
     ;;  ?costmap)
 
     ;; orientate towards the door
-    (lisp-fun get-container-link ?container-name ?btr-environment ?link)
+    (lisp-fun get-environment-link ?container-name ?btr-environment ?link)
     (lisp-fun get-connecting-joint ?link ?joint)
     (lisp-fun cl-urdf:child ?joint ?joint-link)
     (lisp-fun cl-urdf:name ?joint-link ?joint-name)
