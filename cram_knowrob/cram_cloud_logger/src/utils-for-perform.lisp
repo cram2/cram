@@ -36,6 +36,29 @@
     (setf (gethash "BOWL" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#Bowl'")
     (setf (gethash "CUP" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#Cup'")
     (setf (gethash "DRAWER" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#Drawer'")
+    (setf (gethash "MILK" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#Milk'")
+    (setf (gethash "SPOON" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#Spoon'")
+    (setf (gethash "BREAKFAST-CEREAL" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#Cereal'")
+    lookup-table))
+
+
+(defun get-mesh-lookup-table()
+  (let ((lookup-table (make-hash-table :test 'equal)))
+    (setf (gethash "BOWL" lookup-table) "'package://kitchen_object_meshes/bowl.dae'")
+    (setf (gethash "CUP" lookup-table) "'package://kitchen_object_meshes/cup.dae'")
+    (setf (gethash "MILK" lookup-table) "'package://kitchen_object_meshes/milk.dae'")
+    (setf (gethash "SPOON" lookup-table) "'package://kitchen_object_meshes/spoon.dae'")
+    (setf (gethash "BREAKFAST-CEREAL" lookup-table) "'package://kitchen_object_meshes/cereal.dae'")
+    lookup-table))
+
+
+(defun get-rotation-lookup-table()
+  (let ((lookup-table (make-hash-table :test 'equal)))
+    (setf (gethash "BOWL" lookup-table) "[-1.0,0.0,0.0,1.0]")
+    (setf (gethash "CUP" lookup-table) "[-1.0,0.0,0.0,1.0]")
+    (setf (gethash "MILK" lookup-table) "[0.0,0.0,0.0,1.0]")
+    (setf (gethash "SPOON" lookup-table) "[-1.0,0.0,0.0,1.0]")
+    (setf (gethash "BREAKFAST-CEREAL" lookup-table) "[0.0,0.0,0.0,1.0]")
     lookup-table))
 
 (cpl:define-task-variable *action-parents* '())
@@ -43,7 +66,10 @@
 (defparameter *detected-objects* (make-hash-table :test 'equal))
 (defparameter *episode-name* nil)
 (defparameter *is-logging-enabled* nil)
+(defparameter *retry-numbers* 0)
 (defparameter *ease-object-lookup-table* (get-ease-object-lookup-table))
+(defparameter *mesh-lookup-table* (get-mesh-lookup-table))
+(defparameter *rotation-lookup-table* (get-rotation-lookup-table))
 
 
 (defun clear-detected-objects ()
@@ -79,10 +105,12 @@
         (detected-object-type (get-designator-property-value-str detected-object :TYPE))
         (object-type
           (convert-to-ease-object-type-url detected-object-type)))
+    (print detected-object-type)
     (if (gethash object-name *detected-objects*)
         (print "Object exists")
         (let ((object-id (send-belief-perceived-at object-type
-                                                   (get-transform-of-detected-object detected-object)
+                                                   (gethash detected-object-type *mesh-lookup-table*)
+                                                   (gethash detected-object-type *rotation-lookup-table*)
                                                    (concatenate 'string
                                                                 "'" "http://www.ease-crc.org/ont/SOMA.owl#"
                                                                 (roslisp-utilities:rosify-underscores-lisp-name (make-symbol object-name)) "'"))))
@@ -97,43 +125,37 @@
             (cram-action-name (get-designator-property-value-str designator :TYPE)))
         (cpl:with-failure-handling
             ((cpl:plan-failure (e)
-               ;;(log-cram-finish-action action-id)
                (set-event-status-to-failed action-id)
                (set-event-diagnosis action-id (ccl::get-failure-uri (subseq (write-to-string e) 2 (search " " (write-to-string e)))))
                (let ((action-designator-parameters (desig:properties (or (second (desig:reference designator)) designator))))
                  (log-action-designator-parameters-for-logged-action-designator action-designator-parameters action-id))
                 (ccl::stop-situation action-id)
-               
-               ;;(equate action-id (log-perform-call  (second (desig:reference designator)))))
                (print "plan failure")))
 
-          ;;;;;;;;;;;;;;;; CHECK IF ENVIRONMENT IS A SIMULATION
-          ;;(if cram-projection:*projection-environment*
-          ;;  (send-performed-in-projection action-id "true")
-          ;;  (send-performed-in-projection action-id "false"))
-
-          ;;;;;;;;;;;;;;;; LOG SUBACTIONS
-          ;;(log-cram-sub-action
-          ;; (car *action-parents*)
-          ;; action-id
-          ;; (get-knowrob-action-name cram-action-name designator))
-
-          ;;(log-cram-sibling-action
-          ;; (car *action-parents*) action-id (get-knowrob-action-name cram-action-name designator))
           (push action-id *action-parents*)
           (ccl::start-situation action-id)
+          (print "HERE 0")
           (multiple-value-bind (perform-result action-desig)
               (call-next-method)
-            ;;(let ((referenced-action-id (log-perform-call action-desig)))
             (let ((referenced-action-id "")
                   (action-designator-parameters (desig:properties (or action-desig designator))))
+              (print "HERE 2")
               (log-action-designator-parameters-for-logged-action-designator action-designator-parameters action-id)
+              (when (string-equal cram-action-name "grasping")
+                (print action-designator-parameters))
               (when (string-equal cram-action-name "detecting")
                 (handle-detected-object perform-result))
+              (print "HERE 3")
               (set-event-status-to-succeeded action-id)
+              (print "HERE 4")
               (ccl::stop-situation action-id)
+              (print "HERE 5")
               perform-result))))
-      (call-next-method)))
+       (cpl:with-failure-handling
+            ((cpl:plan-failure (e)
+               (setf *retry-numbers* (+ 1 *retry-numbers*))
+               (print "plan failure")))
+         (call-next-method))))
 
 (defun equate (designator-id referenced-designator-id)
   (send-rdf-query (convert-to-prolog-str designator-id)
