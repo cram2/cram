@@ -45,7 +45,8 @@
 
 (defmethod initialize-instance :after ((map 2d-value-map) &key initial-element)
   (with-slots (width height resolution 2d-value-map) map
-    (setf 2d-value-map (make-array (list (round (/ width resolution)) (round (/ height resolution)))
+    (setf 2d-value-map (make-array (list (round (/ height resolution))
+                                         (round (/ width resolution)))
                                    :initial-element initial-element))))
 
 (defmethod 2d-value-map-lookup ((map 2d-value-map) x y)

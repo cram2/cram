@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2020, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2022, Arthur Niedzwiecki <aniedz@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -29,21 +29,26 @@
 
 (in-package :pr2-sim-pms)
 
-(defun perceive (input-object-designator)
-  (urdf-proj::detect input-object-designator))
+(defun grip (which-gripper action-type &key max-effort)
+  T)
 
-(cpm:def-process-module bullet-perception-pm (motion-designator)
-  (destructuring-bind (command argument-1)
+(cpm:def-process-module empty-gripper-pm (motion-designator)
+  (destructuring-bind (command action-type which-gripper &optional max-effort)
       (desig:reference motion-designator)
     (ecase command
-      (cram-common-designators:detect
-       (perceive argument-1)))))
+      (cram-common-designators:move-gripper-joint
+       (grip which-gripper action-type :max-effort max-effort)))))
 
-(prolog:def-fact-group bullet-perception-pm (cpm:matching-process-module
-                                             cpm:available-process-module)
+(prolog:def-fact-group empty-gripper-pm (cpm:matching-process-module
+                                         cpm:available-process-module)
 
-  (prolog:<- (cpm:matching-process-module ?motion-designator bullet-perception-pm)
-    (desig:desig-prop ?motion-designator (:type :detecting)))
+  (prolog:<- (cpm:matching-process-module ?motion-designator empty-gripper-pm)
+    (or (desig:desig-prop ?motion-designator (:type :gripping))
+        (desig:desig-prop ?motion-designator (:type :moving-gripper-joint))
+        (desig:desig-prop ?motion-designator (:type :opening-gripper))
+        (desig:desig-prop ?motion-designator (:type :closing-gripper))))
 
-  (prolog:<- (cpm:available-process-module bullet-perception-pm)
+  (prolog:<- (cpm:available-process-module ?pm)
+    (prolog:bound ?pm)
+    (prolog:once (prolog:member ?pm (empty-gripper-pm)))
     (prolog:not (cpm:projection-running ?_))))

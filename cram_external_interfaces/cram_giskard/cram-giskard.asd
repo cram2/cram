@@ -31,7 +31,9 @@
   :maintainer "Gayane Kazhoyan"
   :license "BSD"
 
-  :depends-on (roslisp
+  :depends-on (alexandria ; for flatten
+
+               roslisp
                roslisp-utilities
 
                cl-transforms

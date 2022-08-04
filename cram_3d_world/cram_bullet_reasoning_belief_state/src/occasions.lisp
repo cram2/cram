@@ -404,6 +404,8 @@
     (desig:loc-desig? ?some-location-designator)
     (desig:current-designator ?some-location-designator ?location-designator)
     (-> (spec:property ?location-designator (:in ?container-object))
+        ;; If the location is inside a container, the container should be open
+        ;; or the container should be the robot's hand
         (and (desig:current-designator ?container-object ?object-designator)
              (or (desig:desig-prop ?object-designator (:type :robot))
                  (and (rob-int:robot ?robot)
@@ -414,7 +416,13 @@
         (-> (spec:property ?location-designator (:above ?location-object))
             (or (not (man-int:object-is-a-prismatic-container ?location-object))
                 (cpoe:container-state ?location-object :open))
-            (true)))))
+            ;; If the location is w.r.t. some object that is inside another object
+            ;; the outer object should be accessible
+            (-> (and (man-int:location-reference-object ?location-designator ?reference-object)
+                     (desig:current-designator ?reference-object ?object-designator)
+                     (spec:property ?object-designator (:location ?reference-object-location)))
+                (cpoe:location-accessible ?reference-object-location)
+                (true))))))
 
 
 
