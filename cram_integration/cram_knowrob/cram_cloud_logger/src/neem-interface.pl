@@ -1,5 +1,6 @@
 :- rdf_meta(mem_event_create(r,r,r)).
 :- use_module(library('db/mongo/client')).
+:- dynamic execution_agent/1.
 
 mem_clear_memory() :-
     drop_graph(user),
@@ -131,7 +132,7 @@ add_comment(Entity,Comment) :- kb_project(triple(Entity, 'http://www.w3.org/2000
 ros_logger_start :- process_create(path('rosrun'),['mongodb_log', 'mongodb_log.py','__name:=topic_logger', '--mongodb-name', 'roslog', '/tf_projection', '/tf'],[process(PID)]),asserta(ros_logger_pid(PID)).
 ros_logger_stop :-     ros_logger_pid(PID),
     retractall(ros_logger_pid(PID)),
-    process_create(path(rosnode), ['kill', '/topic_logger'], 
+    process_create(path(rosnode), ['kill', '/topic_logger'],
         [process(KillPID)]),process_wait(KillPID, _),
     process_wait(PID, _),
     process_create(path(rosnode),['cleanup'],

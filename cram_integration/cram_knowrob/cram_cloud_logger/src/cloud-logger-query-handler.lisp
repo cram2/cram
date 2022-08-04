@@ -70,7 +70,16 @@
     (setf (gethash ":BACK" lookup-table) "BackGrasp")
     lookup-table))
 
+
+(defun get-object-parameter-role-lookup-table()
+  (let ((lookup-table (make-hash-table :test 'equal)))
+    (setf (gethash "Lowering" lookup-table) "AlteredObject")
+    (setf (gethash "Perceiving" lookup-table) "DetectedObject")
+    (setf (gethash "Reaching" lookup-table) "Destination")
+    lookup-table))
+
 (defparameter *grasp-type-lookup-table* (get-grasp-type-lookup-table))
+(defparameter *object-parameter-role-lookup-table* (get-object-parameter-role-lookup-table))
 
 (defun start-situation (situation-uri)
   (attach-time-to-situation "mem_event_begin" situation-uri))
@@ -112,6 +121,8 @@
   (send-query-1-without-result "mem_event_add_diagnosis" event-prolog-url diagnosis-url))
 
 (defun start-episode ()
+  (setf ccl::*is-logging-enabled* t)
+  (ccl::init-logging)
   (when *episode-name*
     (progn
       (roslisp:ros-info (ccl start-episode)
@@ -418,7 +429,7 @@
 
 (defun send-pose-stamped-list-action-parameter (action-inst list-name pose-stamped-list)
   (let ((pose-stamp (get-last-element-in-list pose-stamped-list)))
-    (if pose-stamp (progn 
+    (if pose-stamp (progn
                      (send-rdf-query (convert-to-prolog-str action-inst)
                                      "knowrob:goalLocation" (convert-to-prolog-str (send-create-pose-stamped pose-stamp)))
                      (if (string-equal "left" list-name)
