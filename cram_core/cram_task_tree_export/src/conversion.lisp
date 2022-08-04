@@ -124,6 +124,7 @@
     `(("header"
        . ,(format-header stamp frame-id)))))
 
+#+commenting-this-out-because-it-needs-cl-transforms-stamped-20-04-version-sorry
 (defmethod format-node ((object cl-transforms-stamped:vector-stamped))
   (with-slots ((x cl-transforms:x) (y cl-transforms:y) (z cl-transforms:z)
                (stamp cl-transforms-stamped:stamp)
