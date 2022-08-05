@@ -496,15 +496,18 @@ a keyword, a number or NIL."
     (make-joint-constraint (list joint-names joint-positions))))
 
 (defun make-gripper-joint-state-constraint (arm joint-angle)
-  (let ((gripper-joint
-          (cut:var-value
-           '?joint
-           (car (prolog:prolog
-                 `(and (rob-int:robot ?robot)
-                       (rob-int:gripper-joint ?robot ,arm ?joint)))))))
-    (when (cut:is-var gripper-joint)
+  (let ((gripper-joints
+          (mapcar (lambda (bindings)
+                    (cut:var-value '?joint bindings))
+                  (cut:force-ll
+                   (prolog:prolog
+                    `(and (rob-int:robot ?robot)
+                          (rob-int:gripper-joint ?robot ,arm ?joint)))))))
+    (unless gripper-joints
       (error "[giskard] Robot gripper joint was not defined."))
-    (make-joint-constraint `((,gripper-joint) (,joint-angle)))))
+    (make-joint-constraint
+     (list gripper-joints
+           (make-list (length gripper-joints) :initial-element joint-angle)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; COLLISIONS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
