@@ -195,16 +195,18 @@
     (t '(0.5 0.5 0.5))))
 
 (defun which-estimator-for-object (object-description)
-  (let ((type (second (find :type object-description :key #'car)))
-        (cad-model (find :cad-model object-description :key #'car))
-        (obj-part (find :obj-part object-description :key #'car)))
-    (if cad-model
-        :templatealignment
-        (if (eq type :spoon)
-            :3destimate ;:2destimate
-            (if obj-part
-                :handleannotator
-                :3destimate)))))
+  :ClusterPosePCAAnnotator
+  ;; (let ((type (second (find :type object-description :key #'car)))
+  ;;       (cad-model (find :cad-model object-description :key #'car))
+  ;;       (obj-part (find :obj-part object-description :key #'car)))
+  ;;   (if cad-model
+  ;;       :templatealignment
+  ;;       (if (eq type :spoon)
+  ;;           :3destimate ;:2destimate
+  ;;           (if obj-part
+  ;;               :handleannotator
+  ;;               :3destimate))))
+  )
 
 (defun find-pose-in-object-designator (object-description)
   (let* ((estimator
@@ -270,7 +272,9 @@
               (:GarnierMineralUltraDry
                :deodorant)
               (:DMRoteBeteSaftBio
-               :juice-box))))
+               :juice-box)
+              (:JeroenCup
+               :jeroen-cup))))
       (setf rs-answer
             (subst-if `(:type ,cram-type)
                       (lambda (x)
@@ -287,10 +291,11 @@
   ;;            (find :location keyword-key-value-pairs-list :key #'car))
   ;;   (setf rs-answer (remove :location rs-answer :key #'car)))
   (setf rs-answer (remove :location rs-answer :key #'car))
-  ;; (when (and (find :color rs-answer :key #'car) ; <- COLOR comes from original query
-  ;;            (find :color keyword-key-value-pairs-list :key #'car))
-  ;;   (setf rs-answer (remove :color rs-answer :key #'car)))
-  (setf rs-answer (remove :color rs-answer :key #'car)) ; <- if we don't do this
+  (when (and (find :color rs-answer :key #'car) ; <- COLOR comes from original query
+             (find :color keyword-key-value-pairs-list :key #'car))
+    (setf rs-answer (remove :color rs-answer :key #'car)))
+  ;; (setf rs-answer (remove :color rs-answer :key #'car))
+                                        ; <- if we don't do this
                                         ; might end up asking about mutliple colors
   (setf rs-answer (remove :material rs-answer :key #'car)) ; <- if we don't do this
                                         ; might end up asking about different materials
@@ -351,7 +356,8 @@
                          `((:pose ((:pose ,pose-stamped-in-base-frame)
                                    (:transform ,transform-stamped-in-base-frame)
                                    (:pose-in-map ,pose-stamped-in-map-frame)
-                                   (:transform-in-map ,transform-stamped-in-map-frame)))))))
+                                   (:transform-in-map ,transform-stamped-in-map-frame)
+                                   (:pose-in-camera ,pose-stamped-in-whatever)))))))
 
           (let ((output-designator
                   (desig:make-designator :object output-properties)))
@@ -364,9 +370,9 @@
 
             output-designator))))))
 
-;;;;;;;;;;;;;;;;; SERVICE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;; ACTION ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun call-robokudo-service (keyword-key-value-pairs-list &key (quantifier :all))
+(defun call-robokudo-action (keyword-key-value-pairs-list &key (quantifier :all))
   (declare (type (or keyword number) quantifier))
   (multiple-value-bind (key-value-pairs-list quantifier)
       (ensure-robokudo-input-parameters keyword-key-value-pairs-list quantifier)

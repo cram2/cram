@@ -106,7 +106,7 @@ look up stuff from TF.")
       ;; use TF to find out object coordinates
       (perceive-in-no-robokudo-mode detect-or-inspect object-designator)
       ;; use RoboKudo to find out object coordinates
-      (call-robokudo-service (desig:properties object-designator)
+      (call-robokudo-action (desig:properties object-designator)
                                  :quantifier (desig:quantifier object-designator))))
 
 
