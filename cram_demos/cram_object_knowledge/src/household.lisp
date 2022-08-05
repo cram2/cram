@@ -62,6 +62,7 @@
   (<- (man-int:object-type-direct-subtype :cereal :breakfast-cereal))
 
   (<- (man-int:object-type-direct-subtype :cup :mug))
+  (<- (man-int:object-type-direct-subtype :cup :jeroen-cup))
 
   (<- (man-int:object-type-direct-subtype :clothing-item :shoe)))
 
