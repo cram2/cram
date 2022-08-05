@@ -7,7 +7,7 @@ import kdl_ik_service.ik
 
 
 def callback(request):
-    # print "Got request %s"%(request)
+    # print("Got request %s"%(request))
     debug_mode = rospy.get_param("ik_debug", False)
     ik_logger = Logger(debug_mode)
 
@@ -53,7 +53,7 @@ def callback(request):
 def server_main():
     rospy.init_node('kdl_ik_service')
     server = rospy.Service('~get_ik', moveit_msgs.srv.GetPositionIK, callback)
-    print "IK server ready."
+    print("IK server ready.")
     rospy.spin()
 
 
@@ -63,7 +63,7 @@ class Logger(object):
 
     def log(self, line):
         if self.display_output:
-            print line
+            print(line)
 
 
 if __name__ == "__main__":
