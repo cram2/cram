@@ -29,7 +29,9 @@
 
 (in-package :rk)
 
-;; (rs:perceive :detect (desig:an object (type milk) (color (blue white)) (shape (box flat))))
+;; (rk:perceive :detect (desig:an object (type jeroen-cup) (color (blue white))))
+
+;; rosrun robokudo start_rk_query.sh
 
 (defparameter *no-robokudo-mode* nil
   "Toggles if we want to use the robokudo service for detecting or just
