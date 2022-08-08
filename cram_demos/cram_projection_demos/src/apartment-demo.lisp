@@ -32,10 +32,10 @@
 (defparameter *apartment-object-spawning-poses*
   '((:jeroen-cup
      "cabinet1_coloksu_level4"
-     ((0.20 -0.1 0.08) (0 0 -1 0)))
+     ((0.20 0.15 0.08) (0 1 0 0)))
     (:cup
      "cabinet1_coloksu_level4"
-     ((0.15 0.15 0.08) (0 0 -1 0)))))
+     ((0.15 -0.1 0.08) (0 0 -1 0)))))
 
 (defparameter *object-grasps*
   '(;; (:cup . (:left-side :right-side :back :front))
@@ -57,6 +57,9 @@
         0.0
         (btr:joint-state (btr:get-environment-object)
                          "cabinet7_door_bottom_left_joint")
+        0.0
+        (btr:joint-state (btr:get-environment-object)
+                         "dishwasher_drawer_middle_joint")
         0.0)
   (btr-belief::publish-environment-joint-state
    (btr:joint-states (btr:get-environment-object)))
@@ -76,81 +79,143 @@
   (sb-ext:gc :full t))
 
 
-(defun apartment-demo ()
+(defun apartment-demo (&key (step 0))
   (urdf-proj:with-simulated-robot
-    (initialize-apartment)
-    (setf btr:*visibility-threshold* 0.7)
-    (when cram-projection:*projection-environment*
-      (spawn-objects-on-fixed-spots
-       :object-types '(:jeroen-cup :cup)
-       :spawning-poses-relative *apartment-object-spawning-poses*))
-    (park-robot (cl-transforms-stamped:make-pose-stamped
-                 cram-tf:*fixed-frame*
-                 0.0
-                 (cl-transforms:make-3d-vector 1.5 1.5 0.0)
-                 (cl-transforms:make-quaternion 0 0 1 0)))
+    (when (<= step 0)
+      (initialize-apartment)
+      (setf btr:*visibility-threshold* 0.7)
+      (when cram-projection:*projection-environment*
+        (spawn-objects-on-fixed-spots
+         :object-types '(:jeroen-cup :cup)
+         :spawning-poses-relative *apartment-object-spawning-poses*))
+      (park-robot (cl-transforms-stamped:make-pose-stamped
+                   cram-tf:*fixed-frame*
+                   0.0
+                   (cl-transforms:make-3d-vector 1.5 1.5 0.0)
+                   (cl-transforms:make-quaternion 0 0 1 0))))
 
-    (let ((?location-in-cupboard
-            (a location
-               (on (an object
-                       (type shelf)
-                       (urdf-name cabinet1-coloksu-level4)
-                       (part-of apartment)
-                       (location (a location
-                                    (in (an object
-                                            (type cupboard)
-                                            (urdf-name cabinet1-door-top-left)
-                                            (part-of apartment)))))))))
-          (?location-on-island
-            (a location
-               (on (an object
-                       (type surface)
-                       (urdf-name island)
-                       (part-of apartment)))
-               (side back)
-               (range 0.4)))
-          (?location-in-dishwasher
-            (a location
-               (above (an object
-                          (type drawer)
-                          (urdf-name cabinet7-drawer-middle)
-                          (part-of apartment)
-                          (location (a location
-                                       (in (an object
-                                               (type dishwasher)
-                                               (urdf-name cabinet7)
-                                               (part-of apartment)))))))
-               (for (desig:an object
-                              (type jeroen-cup)
-                              ;; need a name because of the attachment
-                              (name some-name)))
-               (attachments (jeroen-cup-in-dishwasher)))))
+    (let* ((?object
+             (an object
+                 (type jeroen-cup)
+                 (name jeroen-cup-1)))
+           (?location-in-cupboard
+             (a location
+                (on (an object
+                        (type shelf)
+                        (urdf-name cabinet1-coloksu-level4)
+                        (part-of apartment)
+                        (location (a location
+                                     (in (an object
+                                             (type cupboard)
+                                             (urdf-name cabinet1-door-top-left)
+                                             (part-of apartment)))))))
+                (side (back left))
+                (range-invert 0.2)
+                (orientation upside-down)
+                (for ?object)))
+           (?location-on-island
+             (a location
+                (on (an object
+                        (type surface)
+                        (urdf-name island-countertop)
+                        (part-of apartment)))
+                (side back)
+                (range 0.4)
+                (range-invert 0.3)
+                (for ?object)))
+           (?location-in-dishwasher
+             (a location
+                (above (an object
+                           (type drawer)
+                           (urdf-name dishwasher-drawer-middle)
+                           (part-of apartment)
+                           (location (a location
+                                        (in (an object
+                                                (type dishwasher)
+                                                (urdf-name cabinet7)
+                                                (part-of apartment)))))))
+                (for (desig:an object
+                               (type jeroen-cup)
+                               ;; need a name because of the attachment
+                               (name some-name)))
+                (attachments (jeroen-cup-in-dishwasher-1 jeroen-cup-in-dishwasher-2))))
+           ;; (?location-in-hand
+           ;;   (a location
+           ;;      (in (an object
+           ;;              (type robot)
+           ;;              (name tiago-dual)
+           ;;              (part-of tiago-dual)))))
+           ;; (?location-in-other-hand
+           ;;   (a location
+           ;;      (in (an object
+           ;;              (type robot)
+           ;;              (name tiago-dual)
+           ;;              (part-of tiago-dual)))))
+           (?location-on-island-upside-down
+             (a location
+                (on (an object
+                        (type surface)
+                        (urdf-name island-countertop)
+                        (part-of apartment)))
+                (side (right back))
+                (range-invert 1.5)
+                (orientation upside-down)
+                (for (an object
+                         (type jeroen-cup))))))
 
       ;; bring cup from cupboard to table
-     (exe:perform
-      (an action
-          (type transporting)
-          (object (an object
-                      (type jeroen-cup)
-                      (location ?location-in-cupboard)))
-          (target ?location-on-island)))
+      (when (<= step 1)
+        (exe:perform
+         (an action
+             (type transporting)
+             (object (an object
+                         (type jeroen-cup)
+                         (location ?location-in-cupboard)))
+             (target ?location-on-island))))
 
-     ;; put cup from island into dishwasher
-     (exe:perform
-      (an action
-          (type transporting)
-          (object (an object
-                      (type jeroen-cup)
-                      (location ?location-on-island)))
-          (target ?location-in-dishwasher)))
+      ;; put cup from island into dishwasher
+      (when (<= step 2)
+        (exe:perform
+         (an action
+             (type transporting)
+             (object (an object
+                         (type jeroen-cup)
+                         (name jeroen-cup-1)
+                         (location ?location-on-island)))
+             (target ?location-in-dishwasher))))
 
-      ;; bring cup from dishwasher to cupboard
-      (exe:perform
-       (an action
-           (type transporting)
-           (object (an object
-                       (type jeroen-cup)
-                       (location ?location-in-dishwasher)))
-           (target ?location-in-cupboard)))))
+      ;; put cup from dishwasher onto table upside-down
+      (when (<= step 3)
+        ;; let ((?goal `(cpoe:object-at-location ,?object ,?location-in-hand)))
+        (exe:perform
+         (an action
+             (type transporting)
+             (object (an object
+                         (type jeroen-cup)
+                         (name jeroen-cup-1)
+                         (location ?location-in-dishwasher)))
+             (target ?location-on-island-upside-down))))
 
-    (finalize))
+      ;; regrasp cup
+      ;; (when (<= step 4)
+      ;;   (exe:perform
+      ;;    (an action
+      ;;        (type transporting)
+      ;;        (object (an object
+      ;;                    (type jeroen-cup)
+      ;;                    (name jeroen-cup-1)
+      ;;                    (location ?location-in-hand)))
+      ;;        (target ?location-in-other-hand))))
+
+      ;; bring cup to cupboard
+      (when (<= step 5)
+        (exe:perform
+         (an action
+             (type transporting)
+             (object (an object
+                         (type jeroen-cup)
+                         (name jeroen-cup-1)
+                         (location ?location-on-island-upside-down)))
+             (target ?location-in-cupboard))))))
+
+  (finalize))

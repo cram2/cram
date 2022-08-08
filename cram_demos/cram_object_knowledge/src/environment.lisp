@@ -46,8 +46,8 @@
   (<- (costmap:costmap-resolution ?name 0.04)
     (is-dm-room-urdf-name ?name))
 
-  (<- (costmap:costmap-size :apartment 40 10))
-  (<- (costmap:costmap-origin :apartment -20 -5))
+  (<- (costmap:costmap-size :apartment 10 10))
+  (<- (costmap:costmap-origin :apartment -5 -5))
   (<- (costmap:costmap-resolution :apartment 0.04))
 
   (<- (man-int:object-tf-prefix :iai-kitchen "iai_kitchen/")))
@@ -91,8 +91,12 @@
 
 (defmethod man-int:get-container-opening-distance :heuristics 20
     ((container-name (eql :cabinet7-door-bottom-left)))
-  0.9d0 ; 45 deg
-  ;; 0.95d0 ; 54 deg
+  0.95d0 ; 54 deg
+  )
+
+(defmethod man-int:get-container-opening-distance :heuristics 20
+    ((container-name (eql :cabinet7)))
+  0.95d0 ; 54 deg
   )
 
 ;; (defmethod man-int:get-container-opening-distance :heuristics 20
