@@ -37,10 +37,6 @@
      "cabinet1_coloksu_level4"
      ((0.15 -0.1 0.08) (0 0 -1 0)))))
 
-(defparameter *object-grasps*
-  '(;; (:cup . (:left-side :right-side :back :front))
-    ))
-
 (defun initialize-apartment ()
   (sb-ext:gc :full t)
 
@@ -111,6 +107,7 @@
                                              (part-of apartment)))))))
                 (side (back left))
                 (range-invert 0.2)
+                (range 0.25)
                 (orientation upside-down)
                 (for ?object)))
            (?location-on-island
