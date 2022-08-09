@@ -92,7 +92,9 @@ The parameters are analog to the ones of `get-action-trajectory'."
             manipulated-link-name arm grasp object-environment :grasp))
          (object-name-T-tool-pregrasp-stamped
            (get-container-to-gripper-transform
-            manipulated-link-name arm grasp object-environment :pregrasp)))
+            manipulated-link-name arm grasp object-environment :pregrasp))
+         (joint-axis
+           (get-container-axis object-name object-environment)))
 
     ;; checks if `object-type' is a subtype of :container-prismatic or :container-revolute
     ;; and executes the corresponding MAKE-PRISMATIC-TRAJECTORY or MAKE-REVOLUTE-TRAJECTORY.
@@ -104,20 +106,19 @@ The parameters are analog to the ones of `get-action-trajectory'."
        (make-prismatic-trajectory base-T-object-name-stamped arm action-type
                                   object-name-T-tool-grasp-stamped
                                   object-name-T-tool-pregrasp-stamped
-                                  opening-distance))
+                                  opening-distance joint-axis))
       (:container-revolute
        (make-revolute-trajectory base-T-object-name-stamped arm action-type
                                  object-name-T-tool-grasp-stamped
                                  object-name-T-tool-pregrasp-stamped
-                                 opening-distance
-                                 (get-revolute-axis object-name object-environment)))
+                                 opening-distance joint-axis))
       (T (error "Unsupported container-type: ~a." object-type)))))
 
 
 (defun make-prismatic-trajectory (base-T-object-name-stamped arm action-type
                                   object-name-T-tool-grasp-stamped
                                   object-name-T-tool-pregrasp-stamped
-                                  opening-distance)
+                                  opening-distance axis)
   "Return a list of `man-int::traj-segment's representing a trajectory to open a
 container with prismatic joints.
 `base-T-object-name-stamped' should have `cram-tf:*robot-base-frame*'
@@ -133,25 +134,48 @@ frame of the robot's end effector as the child (eg. `cram-tf:*robot-left-tool-fr
            (type keyword arm action-type)
            (type number opening-distance))
 
-  (mapcar
-   (lambda (label transforms)
-     (man-int:make-traj-segment
-      :label label
-      :poses (mapcar (alexandria:curry #'man-int:calculate-gripper-pose-in-map
-                                       base-T-object-name-stamped arm)
-                     transforms)))
-   `(:reaching
-     :grasping
-     ,action-type
-     :retracting)
-   (list
-    (list object-name-T-tool-pregrasp-stamped)
-    (list object-name-T-tool-grasp-stamped)
-    (list (cram-tf:translate-transform-stamped
-           object-name-T-tool-grasp-stamped :x-offset opening-distance))
-    (list (cram-tf:translate-transform-stamped
-               object-name-T-tool-grasp-stamped :x-offset (+ opening-distance
-                                       *handle-retract-offset*))))))
+  (let* ((traj-poses (get-prismatic-traj-poses object-name-T-tool-grasp-stamped
+                                               :opening-distance opening-distance
+                                               :axis axis))
+         (last-traj-pose (car (last traj-poses))))
+    (mapcar
+     (lambda (label transforms)
+       (man-int:make-traj-segment
+        :label label
+        :poses (mapcar (alexandria:curry #'man-int:calculate-gripper-pose-in-map
+                                         base-T-object-name-stamped arm)
+                       transforms)))
+     `(:reaching
+       :grasping
+       ,action-type
+       :retracting)
+     (list
+      (list object-name-T-tool-pregrasp-stamped)
+      (list object-name-T-tool-grasp-stamped)
+      traj-poses
+      (list (cram-tf:apply-transform
+             last-traj-pose
+             (cl-transforms-stamped:make-transform-stamped
+              (cl-transforms-stamped:child-frame-id last-traj-pose)
+              (cl-transforms-stamped:child-frame-id last-traj-pose)
+              (cl-transforms-stamped:stamp last-traj-pose)
+              (cl-transforms:make-3d-vector
+               0 0 (- *handle-retract-offset*))
+              (cl-transforms:make-identity-rotation))))))))
+
+(defun get-prismatic-traj-poses (object-name-T-tool-grasp-stamped
+                                 &key axis opening-distance)
+  (list
+   (cram-tf:multiply-transform-stampeds
+    (cl-transforms-stamped:frame-id object-name-T-tool-grasp-stamped)
+    (cl-transforms-stamped:child-frame-id object-name-T-tool-grasp-stamped)
+    (cl-transforms-stamped:make-transform-stamped
+     (cl-transforms-stamped:frame-id object-name-T-tool-grasp-stamped)
+     (cl-transforms-stamped:frame-id object-name-T-tool-grasp-stamped)
+     0.0
+     (cl-transforms:v* axis opening-distance)
+     (cl-transforms:make-identity-rotation))
+    object-name-T-tool-grasp-stamped)))
 
 (defun make-revolute-trajectory (base-T-object-name-stamped arm action-type
                                  object-name-T-tool-grasp-stamped
@@ -190,35 +214,15 @@ frame of the robot's end effector as the child (eg. `cram-tf:*robot-left-tool-fr
       (list object-name-T-tool-pregrasp-stamped)
       (list object-name-T-tool-grasp-stamped)
       traj-poses
-      (when last-traj-pose
-        (if (eq action-type :closing)
-            (list (cram-tf:apply-transform
-                   last-traj-pose
-                   (cl-transforms-stamped:make-transform-stamped
-                    (cl-transforms-stamped:child-frame-id last-traj-pose)
-                    (cl-transforms-stamped:child-frame-id last-traj-pose)
-                    (cl-transforms-stamped:stamp last-traj-pose)
-                    (cl-transforms:make-3d-vector
-                     0 0 *handle-retract-offset*)
-                    (cl-transforms:make-identity-rotation)))
-                  (cram-tf:apply-transform
-                   last-traj-pose
-                   (cl-transforms-stamped:make-transform-stamped
-                    (cl-transforms-stamped:child-frame-id last-traj-pose)
-                    (cl-transforms-stamped:child-frame-id last-traj-pose)
-                    (cl-transforms-stamped:stamp last-traj-pose)
-                    (cl-transforms:make-3d-vector
-                     0 0 (- *handle-retract-offset*))
-                    (cl-transforms:make-identity-rotation))))
-            (list (cram-tf:apply-transform
-                   last-traj-pose
-                   (cl-transforms-stamped:make-transform-stamped
-                    (cl-transforms-stamped:child-frame-id last-traj-pose)
-                    (cl-transforms-stamped:child-frame-id last-traj-pose)
-                    (cl-transforms-stamped:stamp last-traj-pose)
-                    (cl-transforms:make-3d-vector
-                     0 0 (- *handle-retract-offset*))
-                    (cl-transforms:make-identity-rotation))))))))))
+      (list (cram-tf:apply-transform
+             last-traj-pose
+             (cl-transforms-stamped:make-transform-stamped
+              (cl-transforms-stamped:child-frame-id last-traj-pose)
+              (cl-transforms-stamped:child-frame-id last-traj-pose)
+              (cl-transforms-stamped:stamp last-traj-pose)
+              (cl-transforms:make-3d-vector
+               0 0 (- *handle-retract-offset*))
+              (cl-transforms:make-identity-rotation))))))))
 
 
 (defun 3d-vector->keyparam-list (v)
@@ -230,13 +234,13 @@ frame of the robot's end effector as the child (eg. `cram-tf:*robot-left-tool-fr
    :ay (cl-transforms:y v)
    :az (cl-transforms:z v)))
 
-(defun get-revolute-traj-poses (joint-to-gripper
+(defun get-revolute-traj-poses (container-T-tool
                                 &key
                                   (axis (cl-transforms:make-3d-vector 0 0 1))
                                   angle-max)
   "Return a list of stamped transforms from of the gripper-frame in the joint-frame rotated
 around `axis' by `angle-max' in steps of 0.1 rad."
-  (declare (type cl-transforms-stamped:transform-stamped joint-to-gripper)
+  (declare (type cl-transforms-stamped:transform-stamped container-T-tool)
            (type cl-transforms:3d-vector axis)
            (type number angle-max))
   (let* ((angle-step (if (>= angle-max 0)
@@ -249,13 +253,13 @@ around `axis' by `angle-max' in steps of 0.1 rad."
     (mapcar (lambda (angle)
               (let ((rotation (cl-transforms:axis-angle->quaternion axis angle)))
                 (cl-transforms-stamped:make-transform-stamped
-                 (cl-transforms-stamped:frame-id joint-to-gripper)
-                 (cl-transforms-stamped:child-frame-id joint-to-gripper)
-                 (cl-transforms-stamped:stamp joint-to-gripper)
-                 (cl-transforms:rotate rotation (cl-transforms:translation
-                                                 joint-to-gripper))
-                 (cl-transforms:q* rotation (cl-transforms:rotation
-                                             joint-to-gripper)))))
+                 (cl-transforms-stamped:frame-id container-T-tool)
+                 (cl-transforms-stamped:child-frame-id container-T-tool)
+                 (cl-transforms-stamped:stamp container-T-tool)
+                 (cl-transforms:rotate rotation
+                                       (cl-transforms:translation container-T-tool))
+                 (cl-transforms:q* rotation
+                                   (cl-transforms:rotation container-T-tool)))))
             angles)))
 
 (defun get-container-to-gripper-transform (object-name
@@ -316,7 +320,7 @@ If :pregrasp, object-name-T-tool-pregrasp is returned, otherwise object-name-T-t
             object-name-T-handle-stamped handle-T-tool-stamped)))
     object-name-T-tool-stamped))
 
-(defun get-revolute-axis (object-name object-environment)
+(defun get-container-axis (object-name object-environment)
   (let* ((door-link (get-environment-link object-name object-environment))
          (door-joint (get-connecting-joint door-link))
          (door-joint-axis (cl-urdf:axis door-joint)))

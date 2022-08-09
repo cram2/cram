@@ -178,34 +178,35 @@
                                    "'http://www.ease-crc.org/ont/SOMA.owl#AlteredObject'"))))
 
 (defun send-object-action-parameter (action-inst action-type object-designator)
-  (let* ((role (gethash action-type *object-parameter-role-lookup-table*))
-         (object-name (get-designator-property-value-str object-designator :NAME))
-         (object-ease-id (get-ease-object-id-of-detected-object-by-name object-name)))
-    (roslisp:ros-info (ccl send-object-action-parameter)
-                      "object-name:~%~a" object-name)
-    (when (not object-ease-id)
-      (let ((owl-name (get-designator-property-value-str object-designator :OWL-NAME)))
-        (when owl-name
-          (roslisp:ros-info (ccl send-object-action-parameter)
-                            "owl-name:~%~a" owl-name)
-          (send-query-1-without-result "add_participant_with_role"
-                                       action-inst
-                                       (concatenate 'string "'" owl-name "'")
-                                       "'http://www.ease-crc.org/ont/SOMA.owl#AlteredObject'"))))
-    (when object-ease-id
-      (roslisp:ros-info (ccl send-object-action-parameter)
-                        "object-ease-id:~%~a" object-ease-id)
-      (if (and (not role) object-ease-id)
-          (send-query-1-without-result "add_participant_with_role"
-                                       action-inst
-                                       object-ease-id
-                                       "'http://www.ease-crc.org/ont/SOMA.owl#Item'")
-          (send-query-1-without-result "add_participant_with_role"
-                                       action-inst
-                                       object-ease-id
-                                       (concatenate 'string
-                                                    "'http://www.ease-crc.org/ont/SOMA.owl#"
-                                                    role "'"))))))
+  (when object-designator
+   (let* ((role (gethash action-type *object-parameter-role-lookup-table*))
+          (object-name (get-designator-property-value-str object-designator :NAME))
+          (object-ease-id (get-ease-object-id-of-detected-object-by-name object-name)))
+     (roslisp:ros-info (ccl send-object-action-parameter)
+                       "object-name:~%~a" object-name)
+     (when (not object-ease-id)
+       (let ((owl-name (get-designator-property-value-str object-designator :OWL-NAME)))
+         (when owl-name
+           (roslisp:ros-info (ccl send-object-action-parameter)
+                             "owl-name:~%~a" owl-name)
+           (send-query-1-without-result "add_participant_with_role"
+                                        action-inst
+                                        (concatenate 'string "'" owl-name "'")
+                                        "'http://www.ease-crc.org/ont/SOMA.owl#AlteredObject'"))))
+     (when object-ease-id
+       (roslisp:ros-info (ccl send-object-action-parameter)
+                         "object-ease-id:~%~a" object-ease-id)
+       (if (and (not role) object-ease-id)
+           (send-query-1-without-result "add_participant_with_role"
+                                        action-inst
+                                        object-ease-id
+                                        "'http://www.ease-crc.org/ont/SOMA.owl#Item'")
+           (send-query-1-without-result "add_participant_with_role"
+                                        action-inst
+                                        object-ease-id
+                                        (concatenate 'string
+                                                     "'http://www.ease-crc.org/ont/SOMA.owl#"
+                                                     role "'")))))))
 
 (defun send-object-name-action-parameter (action-inst object-name)
   (let* ((object-ease-id (get-ease-object-id-of-detected-object-by-name object-name)))
