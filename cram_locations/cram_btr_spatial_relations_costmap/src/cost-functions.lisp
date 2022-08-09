@@ -253,7 +253,7 @@ not upright."
          (container-center-y
            (cl-transforms:y (cl-transforms:origin (btr:pose container-object))))
          (inner-obj-bb-dims
-           (btr:calculate-bb-dims inner-object))
+           (btr:calculate-bb-dims inner-object :initial-pose t))
          (inner-obj-x/2
            (/ (cl-transforms:x inner-obj-bb-dims) 2))
          (inner-obj-y/2
@@ -687,12 +687,16 @@ according to the `tag' provided. Axis-aligned directions generate exactly 4 samp
 sampling is used the number of samples can be modified through the optional `samples' arg."
   (lambda (x y previous-orientations)
     (declare (ignore x y previous-orientations))
-    (cut:lazy-mapcar
-     (lambda (angle)
-       (cl-transforms:axis-angle->quaternion
-        (cl-transforms:make-3d-vector 0 0 1)
-        angle))
-     (ecase tag
-       (:random (loop for i from 1 to samples
-                      collect (random (* 2 pi))))
-       (:axis-aligned `(0.0 ,pi ,(/ pi 2) ,(- (/ pi 2))))))))
+    (let ((upside-down-orientation (cl-transforms:make-quaternion 0 1 0 0)))
+      (cut:lazy-mapcar
+       (lambda (angle)
+         (let ((orientation (cl-transforms:axis-angle->quaternion
+                             (cl-transforms:make-3d-vector 0 0 1)
+                             angle)))
+           (if (eq tag :upside-down)
+               (cl-transforms:q* orientation upside-down-orientation)
+               (print orientation))))
+       (ecase tag
+         (:random (loop for i from 1 to samples
+                                          collect (random (* 2 pi))))
+         ((or :axis-aligned :upside-down) `(0.0 ,pi ,(/ pi 2) ,(- (/ pi 2)))))))))

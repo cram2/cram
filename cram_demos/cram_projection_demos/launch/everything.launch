@@ -27,7 +27,7 @@
   <arg name="environment_gui" default="false" />
 
   <!-- upload the occupancy map or not -->
-  <arg name="occupancy_map" default="true" />
+  <arg name="occupancy_map" default="false" />
 
   <!-- start the tf2 buffer server -->
   <arg name="tf2_buffer" default="false" />

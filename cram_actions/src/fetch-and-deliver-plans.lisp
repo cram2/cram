@@ -110,6 +110,7 @@ turn the robot base such that it looks in the direction of target and look again
 (defun manipulate-environment (&key
                                  ((:type action-type))
                                  ((:object ?object-to-manipulate))
+                                 object-accessible
                                  ((:object-location ?object-location))
                                  ((:arms all-arms))
                                  ((:distance ?distance))
@@ -136,103 +137,104 @@ if yes, relocate and retry, if no collisions, open or close container."
                              (location ?object-location)
                              (goal ?goal)))))
 
-  (cpl:with-failure-handling
-      ((desig:designator-error (e)
-         (roslisp:ros-warn (fd-plans environment) "~a~%Propagating up." e)
-         (cpl:fail 'common-fail:environment-manipulation-impossible
-                   :description "Some designator could not be resolved.")))
+  (unless object-accessible
+    (cpl:with-failure-handling
+        ((desig:designator-error (e)
+           (roslisp:ros-warn (fd-plans environment) "~a~%Propagating up." e)
+           (cpl:fail 'common-fail:environment-manipulation-impossible
+                     :description "Some designator could not be resolved.")))
 
-    (let* ((?arms all-arms)
-           (?arm (cut:lazy-car ?arms))
-           ;; TODO: THIS LET IS A HACK because I'm lazy to make a subaction for accessing
-           (?manipulate-robot-location-with-arm
-             (desig:copy-designator ?manipulate-robot-location
-                                    :new-description `((:arm ,?arm)))))
+      (let* ((?arms all-arms)
+             (?arm (cut:lazy-car ?arms))
+             ;; TODO: THIS LET IS A HACK because I'm lazy to make a subaction for accessing
+             (?manipulate-robot-location-with-arm
+               (desig:copy-designator ?manipulate-robot-location
+                                      :new-description `((:arm ,?arm)))))
 
-      ;; if opening- / closing-container fails, relocate
-      (cpl:with-retry-counters ((relocation-retries 50))
-        (cpl:with-failure-handling
-            (((or common-fail:environment-unreachable) (e)
-               (common-fail:retry-with-loc-designator-solutions
-                   ?manipulate-robot-location-with-arm
-                   relocation-retries
-                   (:error-object-or-string e
-                    :warning-namespace (fd-plans environment)
-                    :reset-designators (list ?manipulate-robot-location-with-arm)
-                    :rethrow-failure 'common-fail:environment-manipulation-impossible)
-                 ;; TODO: what if the another arm is holding an object!
-                 (exe:perform (desig:an action
-                                        (type releasing)))
-                 (setf ?arms
-                       all-arms)
-                 (setf ?arm
-                       (cut:lazy-car ?arms))
-                 (setf (cadr (find :arm (desig:description ?manipulate-robot-location-with-arm)
-                                   :key #'car))
-                       ?arm)
-                 (roslisp:ros-info (fd-plans environment) "Relocating..."))))
+        ;; if opening- / closing-container fails, relocate
+        (cpl:with-retry-counters ((relocation-retries 50))
+          (cpl:with-failure-handling
+              (((or common-fail:environment-unreachable) (e)
+                 (common-fail:retry-with-loc-designator-solutions
+                     ?manipulate-robot-location-with-arm
+                     relocation-retries
+                     (:error-object-or-string e
+                      :warning-namespace (fd-plans environment)
+                      :reset-designators (list ?manipulate-robot-location-with-arm)
+                      :rethrow-failure 'common-fail:environment-manipulation-impossible)
+                   ;; TODO: what if the another arm is holding an object!
+                   (exe:perform (desig:an action
+                                          (type releasing)))
+                   (setf ?arms
+                         all-arms)
+                   (setf ?arm
+                         (cut:lazy-car ?arms))
+                   (setf (cadr (find :arm (desig:description ?manipulate-robot-location-with-arm)
+                                     :key #'car))
+                         ?arm)
+                   (roslisp:ros-info (fd-plans environment) "Relocating..."))))
 
-          ;; if opening- / closing-container fails with this arm, try another arm
-          (cpl:with-retry-counters ((arm-retries 1))
-            (cpl:with-failure-handling
-                (((or common-fail:navigation-goal-in-collision
-                      common-fail:environment-unreachable
-                      common-fail:gripper-low-level-failure
-                      common-fail:manipulation-low-level-failure
-                      desig:designator-error) (e)
-                   (common-fail:retry-with-list-solutions
-                       ?arms
-                       arm-retries
-                       (:error-object-or-string
-                        (format NIL "Manipulation failed: ~a.~%Next." e)
-                        :warning-namespace (fd-plans environment)
-                        :rethrow-failure 'common-fail:environment-unreachable)
-                     ;; TODO: what if the another arm is holding an object!
-                     (exe:perform (desig:an action
-                                            (type releasing)))
-                     (setf ?arm
-                           (cut:lazy-car ?arms))
-                     (setf (cadr (find :arm (desig:description ?manipulate-robot-location-with-arm)
-                                       :key #'car))
-                           ?arm)
-                     (desig:reset ?manipulate-robot-location-with-arm))))
+            ;; if opening- / closing-container fails with this arm, try another arm
+            (cpl:with-retry-counters ((arm-retries 1))
+              (cpl:with-failure-handling
+                  (((or common-fail:navigation-goal-in-collision
+                        common-fail:environment-unreachable
+                        common-fail:gripper-low-level-failure
+                        common-fail:manipulation-low-level-failure
+                        desig:designator-error) (e)
+                     (common-fail:retry-with-list-solutions
+                         ?arms
+                         arm-retries
+                         (:error-object-or-string
+                          (format NIL "Manipulation failed: ~a.~%Next." e)
+                          :warning-namespace (fd-plans environment)
+                          :rethrow-failure 'common-fail:environment-unreachable)
+                       ;; TODO: what if the another arm is holding an object!
+                       (exe:perform (desig:an action
+                                              (type releasing)))
+                       (setf ?arm
+                             (cut:lazy-car ?arms))
+                       (setf (cadr (find :arm (desig:description ?manipulate-robot-location-with-arm)
+                                         :key #'car))
+                             ?arm)
+                       (desig:reset ?manipulate-robot-location-with-arm))))
 
-              ;; navigate, open / close
-              (exe:perform (desig:an action
-                                     (type navigating)
-                                     (location ?manipulate-robot-location-with-arm)))
+                ;; navigate, open / close
+                (exe:perform (desig:an action
+                                       (type navigating)
+                                       (location ?manipulate-robot-location-with-arm)))
 
-              (let ((manipulation-action
-                      (ecase action-type
-                        (:accessing
-                         (let ((?goal
-                                 (if ?distance
-                                     `(cpoe:container-state ,?object-to-manipulate ,?distance)
-                                     `(cpoe:container-state ,?object-to-manipulate :open))))
-                           (desig:an action
-                                     (type opening)
-                                     (arm ?arm)
-                                     (object ?object-to-manipulate)
-                                     (desig:when ?distance
-                                       (distance ?distance))
-                                     (goal ?goal))))
-                        (:sealing
-                         (let ((?goal
-                                 (if ?distance
-                                     `(cpoe:container-state ,?object-to-manipulate ,?distance)
-                                     `(cpoe:container-state ,?object-to-manipulate :closed))))
-                           (desig:an action
-                                     (type closing)
-                                     (arm ?arm)
-                                     (object ?object-to-manipulate)
-                                     (desig:when ?distance
-                                       (distance ?distance))
-                                     (goal ?goal)))))))
+                (let ((manipulation-action
+                        (ecase action-type
+                          (:accessing
+                           (let ((?goal
+                                   (if ?distance
+                                       `(cpoe:container-state ,?object-to-manipulate ,?distance)
+                                       `(cpoe:container-state ,?object-to-manipulate :open))))
+                             (desig:an action
+                                       (type opening)
+                                       (arm ?arm)
+                                       (object ?object-to-manipulate)
+                                       (desig:when ?distance
+                                         (distance ?distance))
+                                       (goal ?goal))))
+                          (:sealing
+                           (let ((?goal
+                                   (if ?distance
+                                       `(cpoe:container-state ,?object-to-manipulate ,?distance)
+                                       `(cpoe:container-state ,?object-to-manipulate :closed))))
+                             (desig:an action
+                                       (type closing)
+                                       (arm ?arm)
+                                       (object ?object-to-manipulate)
+                                       (desig:when ?distance
+                                         (distance ?distance))
+                                       (goal ?goal)))))))
 
-                (proj-reasoning:check-environment-manipulation-collisions manipulation-action)
-                (setf manipulation-action (desig:current-desig manipulation-action))
+                  (proj-reasoning:check-environment-manipulation-collisions manipulation-action)
+                  (setf manipulation-action (desig:current-desig manipulation-action))
 
-                (exe:perform manipulation-action))))))))
+                  (exe:perform manipulation-action)))))))))
 
   ;; Seal the object containing location after sealing the object
   (when (and ?object-location
@@ -845,13 +847,15 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                            (goal ?goal))))
 
   ;; search for the object to find it's exact pose
-  (exe:perform (desig:an action
-                         (type searching)
-                         (object ?object-designator)
-                         (desig:when ?context
-                           (context ?context))
-                         (desig:when ?search-base-location
-                           (robot-location ?search-base-location))))
+  (let ((?goal `(cpoe:object-in-hand ,?object-designator :left-or-right)))
+    (exe:perform (desig:an action
+                           (type searching)
+                           (object ?object-designator)
+                           (desig:when ?context
+                             (context ?context))
+                           (desig:when ?search-base-location
+                             (robot-location ?search-base-location))
+                           (goal ?goal))))
   (setf ?object-designator (desig:current-desig ?object-designator))
   (roslisp:ros-info (pp-plans transport)
                     "Found object of type ~a."
@@ -872,9 +876,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
         #'proj-reasoning:pick-best-parameters-by-distance
 
       ;; fetch the object
-      (let ((?fetch-goal
-              `(cpoe:object-in-hand
-                ,?object-designator :left-or-right)))
+      (let ((?fetch-goal `(cpoe:object-in-hand ,?object-designator :left-or-right)))
         (exe:perform (desig:an action
                                (type fetching)
                                (desig:when ?arms

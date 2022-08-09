@@ -217,7 +217,7 @@ Store found pose into designator or throw error if good pose not found."
                             (cpl:fail 'common-fail:manipulation-goal-in-collision)))))
                     (list left-reach-poses left-grasp-poses left-lift-poses)
                     (list right-reach-poses right-grasp-poses right-lift-poses)
-                    (list :avoid-all :allow-hand :avoid-all))))))
+                    (list :avoid-all :allow-hand :allow-fingers))))))
 
         (btr:restore-world-poses world-pose-info)))))
 
@@ -411,7 +411,9 @@ Store found pose into designator or throw error if good pose not found."
                       (cpl:do-retry env-manip-configuration-retries
                         (setf action-desig (desig:next-solution action-desig))
                         (if action-desig
-                            (cpl:retry)
+                            (progn
+                              (btr:restore-world-poses world-pose-info)
+                              (cpl:retry))
                             (progn
                               (roslisp:ros-warn (coll-check environment)
                                                 "No more env-manip samples to try.~
@@ -452,6 +454,10 @@ Store found pose into designator or throw error if good pose not found."
                         (right-poses-4
                           (desig:desig-prop-value action-referenced :right-retract-poses)))
 
+                   (mapc (lambda (pose)
+                           (btr:add-vis-axis-object pose :id (random 100) :length 0.1))
+                         (append left-poses-3 right-poses-3))
+
                    (urdf-proj::gripper-action gripper-opening arm)
 
                    (roslisp:ros-info (coll-check environment)
@@ -490,4 +496,5 @@ Store found pose into designator or throw error if good pose not found."
                    ;;     ))
                    ))))
 
-        (btr:restore-world-poses world-pose-info)))))
+        (btr:restore-world-poses world-pose-info)
+        (btr:clear-costmap-vis-object)))))
