@@ -17,7 +17,7 @@ The branch is currently tested on **20.04**. It is under constant change due the
 
 ### Workspace Installation
 * `sudo apt install ros-noetic-roslisp-repl`
-* `sudo apt-get install python-rosinstall python-wstool`
+* `sudo apt-get install python3-rosinstall python3-wstool`
 * `cd ~/workspace/src`
 * `wstool init`
 * `wstool merge https://raw.githubusercontent.com/cram2/cram/devel/cram-20.04.rosinstall`
