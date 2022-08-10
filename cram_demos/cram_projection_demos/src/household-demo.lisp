@@ -122,7 +122,12 @@
           object-types))
 
 
-(defun park-robot ()
+(defun park-robot (&optional (?nav-pose
+                              (cl-transforms-stamped:make-pose-stamped
+                               cram-tf:*fixed-frame*
+                               0.0
+                               (cl-transforms:make-identity-vector)
+                               (cl-transforms:make-identity-rotation))))
   (cpl:with-failure-handling
       ((cpl:plan-failure (e)
          (declare (ignore e))
@@ -137,16 +142,11 @@
        (desig:an action
                  (type moving-torso)
                  (joint-angle upper-limit)))
-      (let ((?pose (cl-transforms-stamped:make-pose-stamped
-                    cram-tf:*fixed-frame*
-                    0.0
-                    (cl-transforms:make-identity-vector)
-                    (cl-transforms:make-identity-rotation))))
-        (exe:perform
-         (desig:an action
-                   (type going)
-                   (target (desig:a location
-                                    (pose ?pose))))))
+      (exe:perform
+       (desig:an action
+                 (type going)
+                 (target (desig:a location
+                                  (pose ?nav-pose)))))
       (exe:perform (desig:an action (type opening-gripper) (gripper (left right))))
       (exe:perform (desig:an action (type looking) (direction forward))))))
 

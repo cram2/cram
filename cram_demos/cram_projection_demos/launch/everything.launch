@@ -23,8 +23,11 @@
   <!-- this is mostly used to examine the URDF and use the GUI sliders etc. -->
   <arg name="publish_robot" default="false" />
 
+  <!-- environment joint state is always publishes but GUI can be turned off or on -->
+  <arg name="environment_gui" default="false" />
+
   <!-- upload the occupancy map or not -->
-  <arg name="occupancy_map" default="true" />
+  <arg name="occupancy_map" default="false" />
 
   <!-- start the tf2 buffer server -->
   <arg name="tf2_buffer" default="false" />
@@ -107,7 +110,7 @@
         name="environment_joint_state_publisher" output="screen">
     <remap from="robot_description" to="kitchen_description"/>
     <param name="rate" value="25"/>
-    <param name="use_gui" value="False"/>
+    <param name="use_gui" value="$(arg environment_gui)"/>
     <remap from="joint_states" to="kitchen/joint_states" />
     <rosparam param="source_list">
       - /kitchen/cram_joint_states
@@ -120,9 +123,16 @@
     <remap from="robot_description" to="kitchen_description" />
     <remap from="joint_states" to="kitchen/joint_states" />
   </node>
-  <node pkg="tf" type="static_transform_publisher" name="kitchen_link_broadcaster"
-        args="0 0 0 0 0 0 /map /iai_kitchen/world 25">
-  </node>
+  <group if="$(arg apartment)">
+    <node pkg="tf" type="static_transform_publisher" name="kitchen_link_broadcaster"
+          args="0 0 0 0 0 0 /map /iai_kitchen/apartment_root 25">
+    </node>
+  </group>
+  <group unless="$(arg apartment)">
+    <node pkg="tf" type="static_transform_publisher" name="kitchen_link_broadcaster"
+          args="0 0 0 0 0 0 /map /iai_kitchen/world 25">
+    </node>
+  </group>
 
   <!-- environment occupancy maps  -->
   <group if="$(arg occupancy_map)">

@@ -48,4 +48,5 @@
     ((:file "package")
      (:file "giskard" :depends-on ("package"))
      (:file "perception" :depends-on ("package"))
-     (:file "with-real-robot" :depends-on ("package" "giskard" "perception"))))))
+     (:file "gripper" :depends-on ("package"))
+     (:file "with-real-robot" :depends-on ("package" "giskard" "perception" "gripper"))))))

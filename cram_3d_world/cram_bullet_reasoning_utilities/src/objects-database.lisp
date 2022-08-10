@@ -71,6 +71,7 @@
   (<- (%scenario-object-color :kuehne-essig-essenz (0.06 0.39 0.26 0.3)))
   (<- (%scenario-object-color :domestos-allzweckreiniger (0.06 0.24 0.48)))
   (<- (%scenario-object-color :shoe (0.34 0.32 0.18)))
+  (<- (%scenario-object-color :jeroen-cup (0.19 0.35 0.7)))
 
   ;; Object type shapes
   (<- (scenario-object-shape ?object-type ?shape)
