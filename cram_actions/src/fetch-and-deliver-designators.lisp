@@ -112,8 +112,11 @@ the `look-pose-stamped'."
     (spec:property ?action-designator (:location ?some-location-designator))
     (desig:current-designator ?some-location-designator ?location-designator)
     ;; object
-    (once (or (spec:property ?location-designator (:in ?some-object-designator))
-              (spec:property ?location-designator (:above ?some-object-designator))))
+    (once (or (and (or (spec:property ?location-designator (:in ?some-object-designator))
+                       (spec:property ?location-designator (:above ?some-object-designator)))
+                   (equal ?object-accessible nil))
+              (and (spec:property ?location-designator (:on ?some-object-designator))
+                   (equal ?object-accessible t))))
     (desig:current-designator ?some-object-designator ?object-designator)
     ;; location of the object that we are trying to access
     (once (or (spec:property ?object-designator (:location ?object-location-desig))
@@ -135,6 +138,7 @@ the `look-pose-stamped'."
                                 ?robot-location)))
     (desig:designator :action ((:type ?action-type)
                                (:object ?object-designator)
+                               (:object-accessible ?object-accessible)
                                (:object-location ?object-location-desig)
                                (:arms ?arms)
                                (:distance ?distance)

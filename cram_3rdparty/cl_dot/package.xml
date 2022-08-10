@@ -3,22 +3,18 @@
   <name>cl_dot</name>
   <version>0.9.0</version>
   <description>3rd party library: cl_dot</description>
-  <author>Juho Snellman</author>
-  <maintainer email="michaelw@foldr.org">Michael Weber</maintainer>
+
+  <author>Juho Snellman, Michael Weber</author>
+  <maintainer email="aniedz@cs.uni-bremen.de">Arthur Niedzwiecki</maintainer>
 
   <license>MIT</license>
- 
+
   <url type="website">https://cliki.net/cl-dot</url>
   <url type="bugtracker">https://github.com/cram2/cram_3rdparty/issues</url>
   <url type="repository">https://github.com/cram2/cram_3rdparty</url>
   <url type="repository">https://github.com/michaelw/cl-dot.git</url>
+  <!--external-version>73dfbb6e015a28ebed873266e4e8190e509b43de</external-version-->
 
   <buildtool_depend>catkin</buildtool_depend>
-
-  <build_depend>sbcl</build_depend>
-  <build_depend>alexandria</build_depend> 
-
-  <exec_depend>sbcl</exec_depend>
-  <exec_depend>alexandria</exec_depend>
-
+  <depend>alexandria</depend>
 </package>

@@ -251,7 +251,7 @@
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Orienation Generator ;;;;;;;;;;;;;;;;;;;;;;;;;;
 
   (<- (generate-orientations ?tag ?supporting-rigid-body ?reference-pose ?costmap)
-    (-> (member ?tag (:support-aligned :random :axis-aligned))
+    (-> (member ?tag (:support-aligned :random :axis-aligned :upside-down))
         (-> (equal ?tag :support-aligned)
             (and (lisp-fun btr:calculate-bb-dims ?supporting-rigid-body ?supp-obj-dims)
                  (lisp-fun get-rigid-body-aabb-top-z ?supporting-rigid-body ?supp-obj-z)
@@ -264,7 +264,7 @@
                   (make-z-orientations-generator ?tag)
                   ?costmap)))
         (format "WARNING: ORIENTATION tag in a location can only be:~%~
-                 SUPPORT-ALIGNED, RANDOM or AXIS-ALIGNED.~%~
+                 SUPPORT-ALIGNED, RANDOM, AXIS-ALIGNED or UPSIDE-DOWN.~%~
                  Ignoring ORIENTATION tag.")))
 
   ;;;;;;;;;;;;; LEFT-OF etc. for bullet objects or locations ;;;;;;;;;;;;;;;;;;

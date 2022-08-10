@@ -1,0 +1,21 @@
+<package format="2">
+  <name>cram_tiago_process_modules</name>
+  <version>0.7.0</version>
+  <description>
+     CRAM Middle-layer code for Tiago
+  </description>
+  <author>Gayane Kazhoyan</author>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>cram_process_modules</depend>
+  <depend>cram_designators</depend>
+  <depend>cram_prolog</depend>
+  <depend>cram_tf</depend>
+  <depend>cram_common_designators</depend>
+  <depend>cram_robokudo</depend>
+  <depend>cram_giskard</depend>
+  <depend>cram_joint_states</depend>
+</package>

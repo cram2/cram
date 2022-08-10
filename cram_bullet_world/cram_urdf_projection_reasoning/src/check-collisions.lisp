@@ -217,7 +217,7 @@ Store found pose into designator or throw error if good pose not found."
                             (cpl:fail 'common-fail:manipulation-goal-in-collision)))))
                     (list left-reach-poses left-grasp-poses left-lift-poses)
                     (list right-reach-poses right-grasp-poses right-lift-poses)
-                    (list :avoid-all :allow-hand :avoid-all))))))
+                    (list :avoid-all :allow-hand :allow-fingers))))))
 
         (btr:restore-world-poses world-pose-info)))))
 
@@ -382,7 +382,7 @@ Store found pose into designator or throw error if good pose not found."
 
 
 
-(defun check-environment-manipulation-collisions (action-desig)
+(defun check-environment-manipulation-collisions (action-desig &optional (retries 30))
   (when *projection-checks-enabled*
     (let ((world-pose-info (btr:get-world-objects-pose-info)))
       (unwind-protect
@@ -393,67 +393,108 @@ Store found pose into designator or throw error if good pose not found."
                                     "Desig ~a could not be resolved: ~a~%Cannot manipulate."
                                     action-desig e)
                   (cpl:fail 'common-fail:environment-unreachable
-                            :description "Designator could not be resolved"))
+                            :description "Designator could not be resolved")))
 
-                ((or common-fail:manipulation-goal-in-collision
-                     common-fail:manipulation-low-level-failure) (e)
-                  (declare (ignore e))
-                  (roslisp:ros-warn (coll-check environment)
-                                    "Manipulation pose of ~a is unreachable or colliding.~%~
-                                     Propagating up."
-                                    action-desig)
-                  (cpl:fail 'common-fail:environment-unreachable
-                            :description "Manipulation pose in collision or unreachable.")))
+             ;; When the environment manipulation is unreachable based on projection
+             ;; or if resulting configuration collides with environment,
+             ;; take a new configuration and retry.
+             ;; If no configuration is good, throw `environment-unreachable' failure
+             (cpl:with-retry-counters ((env-manip-configuration-retries retries))
+               (cpl:with-failure-handling
+                   (((or common-fail:manipulation-low-level-failure
+                         common-fail:manipulation-goal-in-collision) (e)
+                      (declare (ignore e))
+                      (roslisp:ros-warn (coll-check environment)
+                                        "Manipulation pose of ~a is unreachable ~
+                                         or colliding.~%Retrying."
+                                        action-desig)
+                      (cpl:do-retry env-manip-configuration-retries
+                        (setf action-desig (desig:next-solution action-desig))
+                        (if action-desig
+                            (progn
+                              (btr:restore-world-poses world-pose-info)
+                              (cpl:retry))
+                            (progn
+                              (roslisp:ros-warn (coll-check environment)
+                                                "No more env-manip samples to try.~
+                                                 Environment unreachable.")
+                              (cpl:fail 'common-fail:environment-unreachable
+                                        :description
+                                        "No more env-manip samples to try."))))
+                      (roslisp:ros-warn (coll-check environment) "No more retries left :'(")
+                      (cpl:fail 'common-fail:environment-unreachable
+                                :description "No more grasp retries left.")))
 
-             (let* ((action-referenced
-                      (second (desig:reference action-desig)))
-                    (action
-                      (desig:desig-prop-value action-referenced :type))
-                    (arm
-                      (desig:desig-prop-value action-referenced :arm))
-                    (joint-name
-                      (desig:desig-prop-value action-referenced :joint-name))
-                    (left-poses-1
-                      (desig:desig-prop-value action-referenced :left-reach-poses))
-                    (right-poses-1
-                      (desig:desig-prop-value action-referenced :right-reach-poses))
-                    (left-poses-2
-                      (desig:desig-prop-value action-referenced :left-grasp-poses))
-                    (right-poses-2
-                      (desig:desig-prop-value action-referenced :right-grasp-poses))
-                    (left-poses-3
-                      (desig:desig-prop-value action-referenced :left-manipulate-poses))
-                    (right-poses-3
-                      (desig:desig-prop-value action-referenced :right-manipulate-poses))
-                    (left-poses-4
-                      (desig:desig-prop-value action-referenced :left-retract-poses))
-                    (right-poses-4
-                      (desig:desig-prop-value action-referenced :right-retract-poses)))
+                 (let* ((action-referenced
+                          (second (desig:reference action-desig)))
+                        (action
+                          (desig:desig-prop-value action-referenced :type))
+                        (arm
+                          (desig:desig-prop-value action-referenced :arm))
+                        (grasp
+                          (desig:desig-prop-value action-referenced :grasp))
+                        (joint-name
+                          (desig:desig-prop-value action-referenced :joint-name))
+                        (gripper-opening
+                          (desig:desig-prop-value action-referenced :gripper-opening))
+                        (left-poses-1
+                          (desig:desig-prop-value action-referenced :left-reach-poses))
+                        (right-poses-1
+                          (desig:desig-prop-value action-referenced :right-reach-poses))
+                        (left-poses-2
+                          (desig:desig-prop-value action-referenced :left-grasp-poses))
+                        (right-poses-2
+                          (desig:desig-prop-value action-referenced :right-grasp-poses))
+                        (left-poses-3
+                          (desig:desig-prop-value action-referenced :left-manipulate-poses))
+                        (right-poses-3
+                          (desig:desig-prop-value action-referenced :right-manipulate-poses))
+                        (left-poses-4
+                          (desig:desig-prop-value action-referenced :left-retract-poses))
+                        (right-poses-4
+                          (desig:desig-prop-value action-referenced :right-retract-poses)))
 
-               (urdf-proj::gripper-action :open arm)
+                   (mapc (lambda (pose)
+                           (btr:add-vis-axis-object pose :id (random 100) :length 0.1))
+                         (append left-poses-3 right-poses-3))
 
-               (roslisp:ros-info (coll-check environment)
-                                 "Trying ~a with joint ~a with arm ~a~%"
-                                 action joint-name arm)
+                   (urdf-proj::gripper-action gripper-opening arm)
 
-               (mapcar (lambda (left-poses right-poses)
-                         (multiple-value-bind (left-poses right-poses)
-                             (cut:equalize-two-list-lengths left-poses right-poses)
-                           (dotimes (i (length left-poses))
-                             (urdf-proj::move-tcp (nth i left-poses) (nth i right-poses)
-                                                  :allow-all)
-                             (unless (< (abs urdf-proj:*debug-short-sleep-duration*) 0.0001)
-                               (cpl:sleep urdf-proj:*debug-short-sleep-duration*)))))
-                       (list left-poses-1 left-poses-2 left-poses-3 left-poses-4)
-                       (list right-poses-1 right-poses-2 right-poses-3 right-poses-4))
-               (when (eq (desig:desig-prop-value action-desig :type) :opening)
-                 (when (btr:robot-colliding-objects-without-attached)
-                   (roslisp:ros-warn (coll-check environment)
-                                     "Robot is in collision with ~a."
-                                     (btr:robot-colliding-objects-without-attached))
-                   (cpl:sleep urdf-proj:*debug-long-sleep-duration*)
-                   (btr:restore-world-poses world-pose-info)
-                   ;; Ignoring collisions with the environment and only reacting to IK fails.
-                   ;; (cpl:fail 'common-fail:manipulation-goal-in-collision)
+                   (roslisp:ros-info (coll-check environment)
+                                     "Trying ~a with joint ~a with arm ~a with grasp ~a~%"
+                                     action joint-name arm grasp)
+
+                   (mapcar
+                    (lambda (left-poses right-poses collision-flag)
+                      (multiple-value-bind (left-poses right-poses)
+                          (cut:equalize-two-list-lengths left-poses right-poses)
+                        (dotimes (i (length left-poses))
+                          (urdf-proj::move-tcp (nth i left-poses) (nth i right-poses)
+                                               :allow-all)
+                          (unless (< (abs urdf-proj:*debug-short-sleep-duration*) 0.0001)
+                            (cpl:sleep urdf-proj:*debug-short-sleep-duration*))
+                          (when (urdf-proj::perform-collision-check
+                                 collision-flag
+                                 (nth i left-poses) (nth i right-poses))
+                            (roslisp:ros-warn (coll-check environment)
+                                              "Robot is in collision with environment.")
+                            (cpl:sleep urdf-proj::*debug-long-sleep-duration*)
+                            (btr:restore-world-poses world-pose-info)
+                            (cpl:fail 'common-fail:manipulation-goal-in-collision)))))
+                    (list left-poses-1 left-poses-2 left-poses-3 left-poses-4)
+                    (list right-poses-1 right-poses-2 right-poses-3 right-poses-4)
+                    (list :avoid-all :avoid-all :allow-all :allow-all))
+                   ;; (when (eq (desig:desig-prop-value action-desig :type) :opening)
+                   ;;   (when (btr:robot-colliding-objects-without-attached)
+                   ;;     (roslisp:ros-warn (coll-check environment)
+                   ;;                       "Robot is in collision with ~a."
+                   ;;                       (btr:robot-colliding-objects-without-attached))
+                   ;;     (cpl:sleep urdf-proj:*debug-long-sleep-duration*)
+                   ;;     (btr:restore-world-poses world-pose-info)
+                   ;;     ;; Ignoring collisions with the environment and only reacting to IK fails.
+                   ;;     ;; (cpl:fail 'common-fail:manipulation-goal-in-collision)
+                   ;;     ))
                    ))))
-        (btr:restore-world-poses world-pose-info)))))
+
+        (btr:restore-world-poses world-pose-info)
+        (btr:clear-costmap-vis-object)))))

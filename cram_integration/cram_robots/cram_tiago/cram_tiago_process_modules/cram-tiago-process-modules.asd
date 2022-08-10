@@ -1,4 +1,5 @@
-;;; Copyright (c) 2018, Christopher Pollok <cpollok@uni-bremen.de>
+;;;
+;;; Copyright (c) 2022, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -26,47 +27,23 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-urdf-environment-manipulation
-  :author "Christopher Pollok"
+(defsystem cram-tiago-process-modules
+  :author "Gayane Kazhoyan"
+  :maintainer "Gayane Kazhoyan"
   :license "BSD"
 
-  :depends-on (roslisp-utilities
-
-               cl-transforms
-               cl-transforms-stamped
-               cl-urdf ; for crawling through urdf for joint and link data
-               cram-tf
-
-               cram-language
-               cram-executive
+  :depends-on (cram-process-modules
                cram-designators
                cram-prolog
-               cram-projection
-               cram-occasions-events
-               cram-utilities ; for EQUALIZE-LISTS-OF-LISTS-LENGTHS
 
-               cram-plan-occasions-events ; for CONTAINER-STATE occasion
-               cram-common-failures
-               cram-mobile-pick-place-plans
-               cram-robot-interfaces ; for REACHABILITY-DESIGNATOR predicate
-               cram-manipulation-interfaces
-               cram-designator-specification
+               cram-tf
+               cram-common-designators
 
-               cl-bullet ; for handling BOUNDING-BOX datastructures
-               cram-bullet-reasoning
-               cram-bullet-reasoning-belief-state
-               cram-bullet-reasoning-utilities
-
-               cram-robot-pose-gaussian-costmap
-               cram-location-costmap)
+               cram-robokudo ; for WITH-REAL-ROBOT
+               cram-giskard
+               cram-joint-states)
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "math" :depends-on ("package"))
-     (:file "environment" :depends-on ("package"))
-     (:file "environment-occasions" :depends-on ("package" "environment"))
-     (:file "costmaps" :depends-on ("package" "math" "environment"))
-     (:file "trajectories" :depends-on ("package" "environment"))
-     (:file "action-designators" :depends-on ("package" "trajectories"))
-     (:file "plans" :depends-on ("package" "environment"))))))
+     (:file "interface" :depends-on ("package"))))))

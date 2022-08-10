@@ -36,7 +36,7 @@
   (<- (costmap:costmap-size :iai-kitchen 12 12))
   (<- (costmap:costmap-origin :iai-kitchen -6 -6))
   (<- (costmap:costmap-resolution :iai-kitchen 0.04))
- 
+
  ;; This is for the old iai_maps from ai-code
  ;; (<- (costmap:costmap-size :iai-oven-area 12 12))
  ;; (<- (costmap:costmap-origin :iai-oven-area -6 -6))
@@ -51,6 +51,9 @@
   (<- (costmap:costmap-resolution ?name 0.04)
     (is-dm-room-urdf-name ?name))
 
+  (<- (costmap:costmap-size :apartment 10 10))
+  (<- (costmap:costmap-origin :apartment -5 -5))
+  (<- (costmap:costmap-resolution :apartment 0.04))
 
   (<- (man-int:object-tf-prefix :iai-kitchen "iai_kitchen/")))
 
@@ -63,6 +66,7 @@
   (<- (man-int:object-type-direct-subtype :container-revolute :fridge))
   (<- (man-int:object-type-direct-subtype :container-revolute :oven))
   (<- (man-int:object-type-direct-subtype :container-revolute :dishwasher))
+  (<- (man-int:object-type-direct-subtype :container-revolute :cupboard))
 
   (<- (man-int:object-type-direct-subtype :container :shelf)))
 
@@ -74,17 +78,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :container)))
-  0.10)
+  0.06)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod man-int:get-action-grasps :heuristics 20 ((object-type (eql :drawer))
-                                                     arm transform)
-  '(:front))
-(defmethod man-int:get-action-grasps :heuristics 20 ((object-type (eql :fridge))
-                                                     arm transform)
-  '(:front))
-(defmethod man-int:get-action-grasps :heuristics 20 ((object-type (eql :container-revolute))
+(defmethod man-int:get-action-grasps :heuristics 20 ((object-type (eql :container))
                                                      arm transform)
   '(:front))
 
@@ -96,6 +94,70 @@
   ;; 0.95d0 ; 54 deg
   )
 
+(defmethod man-int:get-container-opening-distance :heuristics 20
+    ((container-name (eql :cabinet7-door-bottom-left)))
+  0.95d0 ; 54 deg
+  )
+
+(defmethod man-int:get-container-opening-distance :heuristics 20
+    ((container-name (eql :cabinet7)))
+  0.95d0 ; 54 deg
+  )
+
 ;; (defmethod man-int:get-container-opening-distance :heuristics 20
 ;;     ((container-name (eql :iai-fridge-main)))
 ;;   1.0)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *handle-grasp-x-offset* 0.0 "in meters")
+(defparameter *handle-grasp-y-offset* 0.0 "in meters")
+(defparameter *handle-grasp-z-offset* 0.0 "in meters")
+(defparameter *handle-pregrasp-x-offset-open* 0.05 "in meters")
+(defparameter *handle-pregrasp-y-offset-open* 0.05 "in meters")
+(defparameter *handle-pregrasp-x-offset-close* -0.0 "in meters")
+(defparameter *handle-retract-offset* 0.05 "in meters")
+
+;; SIDE grasp for handle along Z
+(man-int:def-object-type-to-gripper-transforms :handle '(:left :right) :left-side
+  :grasp-translation `(0.0d0 ,(- *handle-grasp-y-offset*) ,*handle-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*y-across-z-grasp-rotation*
+  :pregrasp-offsets `(0.0 ,*handle-pregrasp-y-offset-open* 0.0)
+  :2nd-pregrasp-offsets `(0.0 ,*handle-pregrasp-y-offset-open* 0.0)
+  :lift-translation '(0 0 0)
+  :2nd-lift-translation '(0 0 0))
+
+(man-int:def-object-type-to-gripper-transforms :handle '(:left :right) :right-side
+  :grasp-translation `(0.0d0 ,*handle-grasp-y-offset* ,*handle-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-y-across-z-grasp-rotation*
+  :pregrasp-offsets `(0.0 ,(- *handle-pregrasp-y-offset-open*) 0.0)
+  :2nd-pregrasp-offsets `(0.0 ,(- *handle-pregrasp-y-offset-open*) 0.0)
+  :lift-translation '(0 0 0)
+  :2nd-lift-translation '(0 0 0))
+
+;; BACK grasp for handle along Z
+(man-int:def-object-type-to-gripper-transforms :handle '(:left :right) :back
+  :grasp-translation `(,(- *handle-grasp-x-offset*) 0.0d0 ,*handle-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation*
+  :pregrasp-offsets `(,(- *handle-pregrasp-x-offset-open*) 0.0 0.0)
+  :2nd-pregrasp-offsets `(,(- *handle-pregrasp-x-offset-open*) 0.0 0.0)
+  :lift-translation '(0 0 0)
+  :2nd-lift-translation '(0 0 0))
+
+;; FRONT grasp for handle along Z
+(man-int:def-object-type-to-gripper-transforms :handle '(:left :right) :front
+  :grasp-translation `(,*handle-grasp-x-offset* 0.0d0 ,*handle-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
+  :pregrasp-offsets `(,*handle-pregrasp-x-offset-open* 0.0 0.0)
+  :2nd-pregrasp-offsets `(,*handle-pregrasp-x-offset-open* 0.0 0.0)
+  :lift-translation '(0 0 0)
+  :2nd-lift-translation '(0 0 0))
+
+;; FRONT grasp for handle along Y
+(man-int:def-object-type-to-gripper-transforms :handle '(:left :right) :front-along-y
+  :grasp-translation `(,*handle-grasp-x-offset* ,*handle-grasp-y-offset* ,*handle-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-y-grasp-rotation*
+  :pregrasp-offsets `(,*handle-pregrasp-x-offset-open* 0.0 0.0)
+  :2nd-pregrasp-offsets `(,*handle-pregrasp-x-offset-open* 0.0 0.0)
+  :lift-translation '(0 0 0)
+  :2nd-lift-translation '(0 0 0))

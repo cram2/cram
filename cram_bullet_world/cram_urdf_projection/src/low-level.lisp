@@ -238,7 +238,7 @@
                                 (,?tilt-joint ,cropped-tilt-angle))))))
 
         (unless (and (< (abs (- pan-angle cropped-pan-angle)) 0.00001)
-                 (< (abs (- tilt-angle cropped-tilt-angle)) 0.00001))
+                     (< (abs (- tilt-angle cropped-tilt-angle)) 0.00001))
           (cpl:fail 'common-fail:ptu-goal-not-reached
                     :description "Look action wanted to twist the neck"))))))
 
@@ -409,7 +409,7 @@ with the object, calculates similar angle around Y axis and applies the rotation
            (calculate-camera-pose-from-object-pose neck-base-t-object))
 
          (map-t-camera
-            (cl-transforms:transform-pose map-t-neck-base neck-base-t-camera)))
+           (cl-transforms:transform-pose map-t-neck-base neck-base-t-camera)))
     (btr:add-vis-axis-object map-t-camera)
 
     (let* ((camera-t-neck-ee
@@ -1020,29 +1020,29 @@ collision by moving its torso and base"
             (not move-base)))
       (multiple-value-bind (ik-solution-msg joint-values)
           (ik:find-ik-for
-           (ee-pose
-            base-link
-            end-effector-link
-            seed-state-msg
-            validation-function)
-           (ik:with-resampling
-               (:x
-                *base-resampling-x-limit*
-                (- *base-resampling-x-limit*)
-                *base-resampling-step*
-                :disable-resampling disable-base-resampling)
-             (ik:with-resampling
-                 (:y
-                  *base-resampling-y-limit*
-                  (- *base-resampling-y-limit*)
-                  *base-resampling-step*
-                  :disable-resampling disable-base-resampling)
-               (ik:with-resampling
-                   (:z
-                    (- torso-joint-upper-limit current-torso-angle)
-                    (- torso-joint-lower-limit current-torso-angle)
-                    *torso-resampling-step*
-                    :disable-resampling disable-base-resampling)))))
+              (ee-pose
+               base-link
+               end-effector-link
+               seed-state-msg
+               validation-function)
+            (ik:with-resampling
+                (:x
+                 *base-resampling-x-limit*
+                 (- *base-resampling-x-limit*)
+                 *base-resampling-step*
+                 :disable-resampling disable-base-resampling)
+              (ik:with-resampling
+                  (:y
+                   *base-resampling-y-limit*
+                   (- *base-resampling-y-limit*)
+                   *base-resampling-step*
+                   :disable-resampling disable-base-resampling)
+                (ik:with-resampling
+                    (:z
+                     (- torso-joint-upper-limit current-torso-angle)
+                     (- torso-joint-lower-limit current-torso-angle)
+                     *torso-resampling-step*
+                     :disable-resampling disable-base-resampling)))))
         (unless ik-solution-msg
           (cpl:fail 'common-fail:manipulation-low-level-failure
                     :description
@@ -1083,6 +1083,7 @@ collision by moving its torso and base"
     (btr:add-vis-axis-object right-tcp-pose :length 0.1))
   (when left-tcp-pose
     (btr:add-vis-axis-object left-tcp-pose :length 0.1))
+
   (cut:with-vars-strictly-bound (?robot
                                  ?left-tool-frame ?right-tool-frame
                                  ?left-ee-frame ?right-ee-frame
