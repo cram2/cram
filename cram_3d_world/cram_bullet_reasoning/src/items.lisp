@@ -553,6 +553,17 @@ The length, width and height have to be given for the function to work."
                                      :half-extents (ensure-vector size)
                                      :color color))))))
 
+(defmethod add-object ((world bt-world) (type (eql :colored-box)) name pose
+                       &key mass (color '(0.5 0.5 0.5 1.0)) size)
+  (assert size)
+  (make-item world name (list type)
+             (list
+              (make-instance 'rigid-body
+                :name name :mass mass :pose (ensure-pose pose)
+                :collision-shape (make-instance 'colored-box-shape
+                                   :half-extents (ensure-vector size)
+                                   :color color)))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;; ATTACHMENTS ;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun object-attached-to-robot-p (object)
   (when object

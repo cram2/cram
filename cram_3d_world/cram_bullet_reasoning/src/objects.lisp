@@ -304,6 +304,22 @@
                   :collision-shape (make-instance 'colored-sphere-shape
                                      :radius radius :color color))
                 )))
+                
+(defmethod add-object ((world bt-world) (type (eql :rigid-plane-surface)) name pose
+                       &key mass size color)
+  (destructuring-bind (size-x size-y size-z) size
+    (make-object world name
+                 (list
+                  (make-instance
+                      'rigid-body
+                    :name name :mass mass :pose (ensure-pose pose)
+                    :collision-shape (make-instance
+                                         'colored-box-shape
+                                       :half-extents (cl-transforms:make-3d-vector
+                                                      (/ size-x 2)
+                                                      (/ size-y 2)
+                                                      (/ size-z 2))
+                                       :color color))))))
 
 
 

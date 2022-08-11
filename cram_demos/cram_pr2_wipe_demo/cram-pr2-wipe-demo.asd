@@ -41,7 +41,12 @@
                cram-pr2-description
                cram-fetch-deliver-plans
                cram-urdf-environment-manipulation
-               cram-mobile-cut-pour-plans)
+               cram-mobile-cut-pour-plans
+
+               cram-plan-occasions-events
+               cram-manipulation-interfaces
+               cram-robot-interfaces
+               )
 
   :components
   ((:module "src"
@@ -49,4 +54,8 @@
     ((:file "package")
      (:file "demo" :depends-on ("package"))
      (:file "setup" :depends-on ("package"))
+     (:file "trajectories" :depends-on ("package"))
+     (:file "wipe-designators" :depends-on ("package"))
+     (:file "wipe-plans" :depends-on ("package"))
+     (:file "wiping" :depends-on ("package"))
      ))))

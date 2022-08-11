@@ -53,6 +53,7 @@
   (<- (%item-type-shape :weisswurst :rectangle))
   (<- (%item-type-shape :bread :rectangle))
   (<- (%item-type-shape :pancake-maker :circle))
+  (<- (%item-type-shape :colored-box :rectangle))
   (<- (%item-type-shape :spatula :rectangle))
   ;;
   (<- (item-type-shape ?type ?shape)
@@ -86,6 +87,7 @@
   (<- (object-type-padding-size :knife 0.005d0))
   (<- (object-type-padding-size :big-knife 0.005d0))
   (<- (object-type-padding-size :pancake-maker 0.018d0))
+  (<- (object-type-padding-size :colored-box 0.1d0))
   (<- (object-type-padding-size :spatula 0.01d0))
   (<- (object-type-padding-size :cup 0.1d0))
   ;;
