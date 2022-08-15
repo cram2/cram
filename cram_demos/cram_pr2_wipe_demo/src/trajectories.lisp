@@ -4,7 +4,7 @@
 (defun get-wiping-poses (grasp initial-pose surface &optional (angle (cram-math:degrees->radians 100)))
   (print "get-wiping-poses called")
   (defparameter *current-pose* (first initial-pose))
-  
+  (print surface)
 
 
   (let* ((return-poses '())
@@ -13,65 +13,104 @@
          (pose-y (cl-transforms:y (cl-transforms:origin pose)))
          (pose-z (cl-transforms:z (cl-transforms:origin pose)))
          (pose-orientation (cl-transforms:orientation pose))
-         (n 4)
+         (n (+ (floor
+              (* (cl-transforms:y
+                 (cl-bullet::bounding-box-dimensions
+                  (btr::aabb  (btr:object btr:*current-bullet-world* (desig:desig-prop-value surface :name))))) 20)) 1))
          (x-dimensions-object (cl-transforms:x
                                (cl-bullet::bounding-box-dimensions
-                                (btr::aabb  (btr:object btr:*current-bullet-world* 'surface-1)))))
+                                (btr::aabb  (btr:object btr:*current-bullet-world*  (desig:desig-prop-value surface :name))))))
          (y-dimensions-object (cl-transforms:y
                                (cl-bullet::bounding-box-dimensions
-                                (btr::aabb  (btr:object btr:*current-bullet-world* 'surface-1))))))
-    (let* ((x-offset x-dimensions-object )
-           (y-offset (/ y-dimensions-object n)))
+                                (btr::aabb  (btr:object btr:*current-bullet-world* (desig:desig-prop-value surface :name))))))
+          (z-dimensions-object (cl-transforms:z
+                               (cl-bullet::bounding-box-dimensions
+                                (btr::aabb  (btr:object btr:*current-bullet-world* (desig:desig-prop-value surface :name)))))))
 
-      (dotimes (x n)
-        (if (equalp (mod x 2) 0)
-            (progn
-              (setf *current-pose* (calculate-pose-down *current-pose* x-offset y-offset))
-              (push *current-pose* return-poses)
-              )
-            (progn
-              (setf *current-pose* (calculate-pose-up *current-pose* x-offset y-offset))
-              (push *current-pose* return-poses)
-              )
-            )
-      
-        ))
-    (reverse return-poses)
-    )
-   )
+   
+       (let* ((x-offset x-dimensions-object )
+              (y-offset (/ y-dimensions-object n))
+              (z-offset z-dimensions-object))
+
+          (dotimes (x n)
+            (if (equalp (mod x 2) 0)
+                (progn
+                  (setf *current-pose* (calculate-pose-down *current-pose* x-offset y-offset z-offset grasp))
+                  (push *current-pose* return-poses)
+                  )
+                (progn
+                  (setf *current-pose* (calculate-pose-up *current-pose* x-offset y-offset z-offset grasp))
+                  (push *current-pose* return-poses)
+                  ))))
+        (reverse return-poses)
+     ))
 
 
-(defun calculate-pose-down (pose offset-x offset-y)
- 
-   (cram-tf::copy-pose-stamped
-    pose
-    :origin
-    (let ((transform-translation (cl-transforms:origin pose)))
-      (cl-transforms:copy-3d-vector
-       transform-translation
-       :x (+ (- (cl-transforms:x transform-translation) offset-x) (get-gripper-wipe-offset))
+(defun calculate-pose-down (pose offset-x offset-y offset-z grasp)
+
+  (case grasp
+      (:countertop
+       (cram-tf::copy-pose-stamped
+        pose
+        :origin
+        (let ((vector (cl-transforms:origin pose)))
+          (cl-transforms:copy-3d-vector
+           vector
+           :x  (- (cl-transforms:x vector) offset-x) 
            
-       :y (- (cl-transforms:y transform-translation) offset-y)
+           :y  (- (cl-transforms:y vector) offset-y)
           
-       :z (cl-transforms:z transform-translation)))
-    :orientation
-    (cl-transforms:orientation pose)))
+           :z (cl-transforms:z vector)))
+        :orientation
+        (cl-transforms:orientation pose)))
 
-(defun calculate-pose-up (pose offset-x offset-y)
- 
-   (cram-tf::copy-pose-stamped
-    pose
-    :origin
-    (let ((transform-translation (cl-transforms:origin pose)))
-      (cl-transforms:copy-3d-vector
-       transform-translation
-       :x (- (+ (cl-transforms:x transform-translation) offset-x) (get-gripper-wipe-offset))
+      (:vertical   
+       (cram-tf::copy-pose-stamped
+        pose
+        :origin
+        (let ((vector (cl-transforms:origin pose)))
+          (cl-transforms:copy-3d-vector
+           vector
+           :x  (cl-transforms:x vector)  
            
-       :y (- (cl-transforms:y transform-translation) offset-y)
+           :y  (- (cl-transforms:y vector) offset-y)
           
-       :z (cl-transforms:z transform-translation)))
-    :orientation
-    (cl-transforms:orientation pose)))
+           :z  (- (cl-transforms:z vector) offset-z)))
+        :orientation
+        (cl-transforms:orientation pose)))))
+
+(defun calculate-pose-up (pose offset-x offset-y offset-z grasp)
+
+  (case grasp
+    (:countertop
+     (cram-tf::copy-pose-stamped
+      pose
+      :origin
+      (let ((vector (cl-transforms:origin pose)))
+        (cl-transforms:copy-3d-vector
+         vector
+         :x  (+ (cl-transforms:x vector) offset-x) 
+         
+         :y  (- (cl-transforms:y vector) offset-y)
+          
+         :z (cl-transforms:z vector)))
+      :orientation
+      (cl-transforms:orientation pose)))
+
+    (:vertical
+     (cram-tf::copy-pose-stamped
+      pose
+      :origin
+      (let ((vector (cl-transforms:origin pose)))
+        (cl-transforms:copy-3d-vector
+         vector
+         :x  (cl-transforms:x vector) 
+         
+         :y  (- (cl-transforms:y vector) offset-y)
+          
+         :z  (+ (cl-transforms:z vector) offset-z)))
+      :orientation
+      (cl-transforms:orientation pose)))))
 
 
   
@@ -117,10 +156,8 @@
          (bTo
            (man-int:get-object-transform object))  
          (bTb-offset
-           (get-object-type-robot-frame-wipe-approach-transform
-            object-type arm grasp))
-         ;; Since the grippers orientation should not depend on the
-         ;; orientation of the object it is omitted here.
+           (get-object-type-robot-frame-wipe-approach-transform-generic
+             object object-type arm grasp))
          (oTg-std
            (cram-tf:copy-transform-stamped
             (man-int:get-object-type-to-gripper-transform
@@ -139,11 +176,6 @@
             :orientation 
             (cl-tf:rotation bTb-offset)))
          
-  
-
-
-
-
          (wiping-poses
            (get-wiping-poses grasp (list approach-pose) object)))
     (print "in wiping poses")

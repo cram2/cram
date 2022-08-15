@@ -14,6 +14,14 @@
    (cl-transforms:make-3d-vector -0.10d0 2.0d0 0.0d0)
    (cl-transforms:make-quaternion 0.0d0 0.0d0 1.0d0 0.0d0)))
 
+(defparameter *base-pose-surface-kitchen-handle*
+  (cl-transforms-stamped:make-pose-stamped
+   "map" 0.0
+   (cl-transforms:make-3d-vector 0.6d0 1.0d0 0.0d0)
+   (cl-transforms:axis-angle->quaternion
+    (cl-tf:make-3d-vector 0 0 1)
+    0.0)))
+
 (defparameter *base-pose-surface-kitchen*
   (cl-transforms-stamped:make-pose-stamped
    "map" 0.0
@@ -22,19 +30,39 @@
     (cl-tf:make-3d-vector 0 0 1)
     0.0)))
 
-(defparameter *base-pose-surface-kitchen-handle*
-  (cl-transforms-stamped:make-pose-stamped
+(defparameter *base-pose-table*
+    (cl-transforms-stamped:make-pose-stamped
    "map" 0.0
-   (cl-transforms:make-3d-vector 0.6d0 1.0d0 0.0d0)
-   (cl-transforms:axis-angle->quaternion
-    (cl-tf:make-3d-vector 0 0 1)
-                                         0.0)))
+   (cl-transforms:make-3d-vector -2.4d0 0.30d0 0.0d0)
+   (cl-transforms:make-quaternion 0.0d0 0.0d0 1.0d0 0.0d0)))
 
 (defparameter *downward-look-coordinate*
   (cl-transforms-stamped:make-pose-stamped
    "base_footprint" 0.0
    (cl-transforms:make-3d-vector 0.75335d0 0.076d0 0.758d0)
    (cl-transforms:make-quaternion 0.0d0 0.0d0 0.8d0 0.0d0)))
+
+(defparameter *downward-look-coordinate-vertical*
+  (cl-transforms-stamped:make-pose-stamped
+   "base_footprint" 0.0
+   (cl-transforms:make-3d-vector 0.75335d0 0.076d0 0.758d0)
+   (cl-transforms:make-quaternion 0.0d0 0.0d0 1.0d0 0.0d0)))
+
+(defparameter *base-pose-fridge*
+  (cl-transforms-stamped:make-pose-stamped
+   "map" 0.0
+   (cl-transforms:make-3d-vector 0.55d0 -1.0d0 0.0d0)
+   (cl-transforms:axis-angle->quaternion
+    (cl-tf:make-3d-vector 0 0 1)
+    0.0)))
+
+(defparameter *base-pose-handle*
+  (cl-transforms-stamped:make-pose-stamped
+   "map" 0.0
+   (cl-transforms:make-3d-vector 0.55d0 1.6d0 0.0d0)
+   (cl-transforms:axis-angle->quaternion
+    (cl-tf:make-3d-vector 0 0 1)
+    0.0)))
 
 
 
@@ -46,6 +74,7 @@
 (defun start-environment ()
   (roslisp-utilities:startup-ros)
   (spawn-sponge)
+  (btr::add-vis-axis-object 'surface-4)
   )
 
 (defun execute-demo ()
@@ -113,21 +142,34 @@
 (btr::add-object btr:*current-bullet-world* :colored-box 'surface-2 (cl-transforms::make-pose
                                             (cl-transforms:make-3d-vector 1.18 1.48 0.95)
                                             (cl-transforms:axis-angle->quaternion
-                                             (cl-transforms:make-3d-vector -0.5 0.5 1)
-                                             0.0)) :mass 0.0001 :size '(0.01 0.01 0.25)  :color '(0 10 0 0.5))
+                                             (cl-transforms:make-3d-vector 0.0 0.0 1)
+                                             3.15)) :mass 0.0001 :size '(0.01 0.01 0.25)  :color '(0 10 0 0.5))
 
   (btr::add-object btr:*current-bullet-world* :colored-box 'surface-3 (cl-transforms::make-pose
-                                            (cl-transforms:make-3d-vector 1.5 0.8 0.87)
+                                            (cl-transforms:make-3d-vector 1.4 0.8 0.87)
                                             (cl-transforms:axis-angle->quaternion
                                              (cl-transforms:make-3d-vector -0.5 0.5 1)
-                                             0.0)) :mass 0.0001 :size '(0.1 0.3 0.01)  :color '(0 10 0 0.5))
+                                             0.0)) :mass 0.0001 :size '(0.08 0.2 0.01)  :color '(0 10 0 0.5))
 
 
    (btr::add-object btr:*current-bullet-world* :colored-box 'surface-4 (cl-transforms::make-pose
                                             (cl-transforms:make-3d-vector 1.25 -1 0.95)
                                             (cl-transforms:axis-angle->quaternion
-                                             (cl-transforms:make-3d-vector -0.5 0.5 1)
-                                             0.0)) :mass 0.0001 :size '(0.01 0.2 0.25)  :color '(0 10 0 0.5)))
+                                             (cl-transforms:make-3d-vector 0 0 1)
+                                             3.15)) :mass 0.0001 :size '(0.01 0.2 0.25)  :color '(0 10 0 0.5))
+
+  
+     (btr::add-object btr:*current-bullet-world* :colored-box 'surface-5 (cl-transforms::make-pose
+                                            (cl-transforms:make-3d-vector -3.20 0.3 0.75)
+                                            (cl-transforms:axis-angle->quaternion
+                                             (cl-transforms:make-3d-vector 0.5 0.5 1)
+                                             0.0)) :mass 0.0001 :size '(0.15 0.4 0.01)  :color '(0 10 0 0.5))
+
+
+
+
+
+  )
   
  
 
@@ -216,6 +258,7 @@
       (exe:perform
        (desig:an action 
                  (type wiping)
+                 (grasp :countertop)
                  (arm ?arm-for-wiping)
                  (surface ?surface-to-wipe)
                  (collision-mode ?collision-mode)
@@ -259,10 +302,137 @@
       (exe:perform
        (desig:an action 
                  (type wiping)
+                 (grasp :countertop)
                  (arm ?arm-for-wiping)
                  (surface ?surface-to-wipe)
                  (collision-mode ?collision-mode)
                  )))))
+
+
+
+    (pp-plans::park-arms :left-arm T)
+
+      (let ((?navigation-goal *base-pose-table*
+                              ))
+          (exe:perform (desig:an action
+                                 (type going)
+                                 (target (desig:a location 
+                                                  (pose ?navigation-goal))))))
+
+           (let* ((?looking-direction *downward-look-coordinate*))
+            (exe:perform (desig:an action 
+                                   (type looking)
+                                   (target (desig:a location 
+                                                    (pose ?looking-direction))))))
+
+
+
+    (cpl:with-retry-counters ((looking-retry 3))
+          (cpl:with-failure-handling
+              ((common-fail:low-level-failure
+                   (e)
+                 (declare (ignore e))
+                 (cpl:do-retry looking-retry
+                   (cpl:retry))
+                 (roslisp:ros-warn (wipe-demo looking-fail)
+                                   "~%No more retries~%")))
+
+            (let* ((?surface-to-wipe (urdf-proj::detect (desig:an object (type :colored-box))))
+                   (?arm-for-wiping :left)
+                   (?collision-mode nil))
+      
+      (exe:perform
+       (desig:an action 
+                 (type wiping)
+                 (grasp :countertop)
+                 (arm ?arm-for-wiping)
+                 (surface ?surface-to-wipe)
+                 (collision-mode ?collision-mode)
+                 )))))
+
+
+    
+    (pp-plans::park-arms :left-arm T)
+
+      (let ((?navigation-goal *base-pose-fridge*
+                              ))
+          (exe:perform (desig:an action
+                                 (type going)
+                                 (target (desig:a location 
+                                                  (pose ?navigation-goal))))))
+
+           (let* ((?looking-direction *downward-look-coordinate*))
+            (exe:perform (desig:an action 
+                                   (type looking)
+                                   (target (desig:a location 
+                                                    (pose ?looking-direction))))))
+
+
+
+    (cpl:with-retry-counters ((looking-retry 3))
+          (cpl:with-failure-handling
+              ((common-fail:low-level-failure
+                   (e)
+                 (declare (ignore e))
+                 (cpl:do-retry looking-retry
+                   (cpl:retry))
+                 (roslisp:ros-warn (wipe-demo looking-fail)
+                                   "~%No more retries~%")))
+
+            (let* ((?surface-to-wipe (urdf-proj::detect (desig:an object (type :colored-box))))
+                   (?arm-for-wiping :left)
+                   (?collision-mode nil))
+      
+      (exe:perform
+       (desig:an action 
+                 (type wiping)
+                 (grasp :vertical)
+                 (arm ?arm-for-wiping)
+                 (surface ?surface-to-wipe)
+                 (collision-mode ?collision-mode)
+                 )))))
+
+
+      (pp-plans::park-arms :left-arm T)
+
+      (let ((?navigation-goal *base-pose-handle*
+                              ))
+          (exe:perform (desig:an action
+                                 (type going)
+                                 (target (desig:a location 
+                                                  (pose ?navigation-goal))))))
+
+           (let* ((?looking-direction *downward-look-coordinate*))
+            (exe:perform (desig:an action 
+                                   (type looking)
+                                   (target (desig:a location 
+                                                    (pose ?looking-direction))))))
+
+
+
+    (cpl:with-retry-counters ((looking-retry 3))
+          (cpl:with-failure-handling
+              ((common-fail:low-level-failure
+                   (e)
+                 (declare (ignore e))
+                 (cpl:do-retry looking-retry
+                   (cpl:retry))
+                 (roslisp:ros-warn (wipe-demo looking-fail)
+                                   "~%No more retries~%")))
+
+            (let* ((?surface-to-wipe (urdf-proj::detect (desig:an object (type :colored-box))))
+                   (?arm-for-wiping :left)
+                   (?collision-mode nil))
+      
+      (exe:perform
+       (desig:an action 
+                 (type wiping)
+                 (grasp :vertical)
+                 (arm ?arm-for-wiping)
+                 (surface ?surface-to-wipe)
+                 (collision-mode ?collision-mode)
+                 )))))
+
 
 
 
