@@ -87,7 +87,9 @@
     (setof ?object (cpoe:object-in-hand ?object ?_) ?objects)
     (member ?object ?objects))
   ;;
-  (<- (cpoe:object-in-hand ?object :left-or-right)
+  (<- (cpoe:object-in-hand ?object ?arm)
+    (bound ?arm)
+    (equal ?arm :left-or-right)
     (or (cpoe:object-in-hand ?object :left)
         (cpoe:object-in-hand ?object :right)))
 
