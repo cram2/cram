@@ -32,6 +32,6 @@
 (defmacro with-unreal-robot (&body body)
   `(cram-process-modules:with-process-modules-running
        (unreal:urobosim-perception-pm
-        pr2-pms::pr2-grippers-pm pr2-pms::pr2-ptu-pm giskard:giskard-pm joints:joint-state-pm)
+        pr2-pms::pr2-grippers-pm pr2-pms::pr2-ptu-pm giskard:giskard-pm joints:joint-state-pm common-desig:wait-pm)
      (cpl-impl::named-top-level (:name :top-level)
        ,@body)))
