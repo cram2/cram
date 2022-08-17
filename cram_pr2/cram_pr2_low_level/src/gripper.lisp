@@ -142,7 +142,7 @@ goal: ~a, current: ~a, delta: ~a." goal-position current-position convergence-de
   "`goal-position' can be :open, :close, :grip or a joint position."
   (multiple-value-bind (goal-position max-effort)
        (ensure-gripper-input-parameters position max-effort)
-    (flet ((move-the-hand-yo (l-or-r)
+    (flet ((move-the-hand-yo (l-or-r) 
              (multiple-value-bind (result status)
                  (cpl:with-failure-handling
                      ((simple-error (e)
@@ -170,8 +170,11 @@ goal: ~a, current: ~a, delta: ~a." goal-position current-position convergence-de
                (values result status)
                ;; return the joint state, which is our observation
                (joints:full-joint-states-as-hash-table))))
-      (if (and left-or-right (listp left-or-right))
-          (cpl:par
-            (move-the-hand-yo (first left-or-right))
-            (move-the-hand-yo (second left-or-right)))
+      
+        (if (listp left-or-right)
+            (if (= (length left-or-right) 2) 
+                (cpl:par
+                  (move-the-hand-yo (first left-or-right))
+                  (move-the-hand-yo (second left-or-right)))
+                (move-the-hand-yo (first left-or-right)))
           (move-the-hand-yo left-or-right)))))

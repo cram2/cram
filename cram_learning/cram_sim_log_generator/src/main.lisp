@@ -76,6 +76,7 @@
            (roslisp:ros-warn (pp-plans demo) "Failure happened: ~a~%Skipping..." e)
            (return)))
       (pr2-unreal-pms:with-unreal-robot (demo::setting-demo objects)))
+      ;; (urdf-proj:with-simulated-robot (demo::setting-demo objects)))
       ;; (pr2-unreal-pms:with-unreal-robot (demo::cleaning-demo objects)))
 
     (push ccl::*retry-numbers* *main-result*)
