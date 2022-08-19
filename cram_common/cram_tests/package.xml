@@ -8,6 +8,5 @@
   <buildtool_depend>catkin</buildtool_depend>
   <exec_depend>alexandria</exec_depend>
   <exec_depend>roslisp_utilities</exec_depend>
-  <exec_depend>cram-bullet-reasoning-belief-state</exec_depend>
   <exec_depend>lisp_unit</exec_depend>
 </package>

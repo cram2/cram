@@ -28,8 +28,10 @@ systems_under_test=(":cram-process-modules-test"\
                         ":cram-designators-test"\
                         ":cram-bullet-reasoning-belief-state-tests")
 
+report_path=$(echo "$(rospack find cram_tests)/reports")
+mkdir -p $report_path
 # testreport will be put into this file
-report_file=$(echo "$(rospack find cram_tests)/reports/$(date "+%F-%T")")
+report_file=$(echo "$report_path/$(date "+%F-%T")")
 # temporary package-specific lisp file
 tmp_test_script=$(echo "$(rospack find cram_tests)/scripts/tmp-test-script.lisp")
 
