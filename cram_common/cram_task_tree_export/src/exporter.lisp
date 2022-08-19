@@ -33,7 +33,7 @@
 (defparameter *export-file-path* "/tmp/task_tree_export.dot")
 
 (defmethod cl-dot:object-node ((node task-tree-node))
-  (let ((node-label (format nil "~a" (format-node (node->designator node)))))
+  (let ((node-label (format-node node)))
     (make-instance 'cl-dot:node
       :attributes `(:label (:left ,node-label) ; text-align left
                     :shape :box))))

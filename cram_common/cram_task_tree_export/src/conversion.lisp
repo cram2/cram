@@ -33,28 +33,28 @@
 (defparameter *add-type* NIL
   "Adds the TYPE to each entry in the formatted tree.")
 
-(defmethod format-node ((atom_ T))
+(defmethod format-desig ((atom_ T))
   atom_)
 
-(defmethod format-node ((symbol_ symbol))
+(defmethod format-desig ((symbol_ symbol))
   symbol_)
 
-(defmethod format-node ((string_ string))
+(defmethod format-desig ((string_ string))
   string_)
 
-(defmethod format-node ((number_ number))
+(defmethod format-desig ((number_ number))
   number_)
 
-(defmethod format-node ((list_ cons))
-  (mapcar #'format-node list_))
+(defmethod format-desig ((list_ cons))
+  (mapcar #'format-desig list_))
 
-(defmethod format-node ((desig cram-designators:designator))
+(defmethod format-desig ((desig cram-designators:designator))
   (let ((desig-desc (cram-designators:description desig)))
     (mapcar (lambda (key-value)
               `(,@(when *add-type*
                     (type-of (second key-value)))
                 (,(first key-value)
-                 ,(format-node (second key-value)))))
+                 ,(format-desig (second key-value)))))
             desig-desc)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -77,16 +77,16 @@
     ("z" . ,z)
     ("w" . ,w)))
 
-(defmethod format-node ((object cl-transforms:pose))
+(defmethod format-desig ((object cl-transforms:pose))
   (with-slots ((origin cl-transforms:origin)
                (orientation cl-transforms:orientation))
       object
     `(("origin"
-       . ,(format-node origin))
+       . ,(format-desig origin))
       ("orientation"
-       . ,(format-node orientation)))))
+       . ,(format-desig orientation)))))
 
-(defmethod format-node ((object cl-transforms:3d-vector))
+(defmethod format-desig ((object cl-transforms:3d-vector))
   (with-slots ((x cl-transforms:x)
                (y cl-transforms:y)
                (z cl-transforms:z))
@@ -95,7 +95,7 @@
       ("y" . ,y)
       ("z" . ,z))))
 
-(defmethod format-node ((object cl-transforms:quaternion))
+(defmethod format-desig ((object cl-transforms:quaternion))
   (with-slots ((x cl-transforms:x)
                (y cl-transforms:y)
                (z cl-transforms:z)
@@ -106,25 +106,25 @@
       ("z" . ,z)
       ("w" . ,w))))
 
-(defmethod format-node ((object cl-transforms:transform))
+(defmethod format-desig ((object cl-transforms:transform))
   (with-slots ((origin cl-transforms:translation)
                (orientation cl-transforms:rotation))
       object
     `(("translation"
-       . ,(format-node origin))
+       . ,(format-desig origin))
       ("rotation"
-       . ,(format-node orientation)))))
+       . ,(format-desig orientation)))))
 
 
 
-(defmethod format-node ((object cl-transforms-stamped:stamped))
+(defmethod format-desig ((object cl-transforms-stamped:stamped))
   (with-slots ((stamp cl-transforms-stamped:stamp)
                (frame-id cl-transforms-stamped:frame-id))
       object
     `(("header"
        . ,(format-header stamp frame-id)))))
 
-(defmethod format-node ((object cl-transforms-stamped:vector-stamped))
+(defmethod format-desig ((object cl-transforms-stamped:vector-stamped))
   (with-slots ((x cl-transforms:x) (y cl-transforms:y) (z cl-transforms:z)
                (stamp cl-transforms-stamped:stamp)
                (frame-id cl-transforms-stamped:frame-id))
@@ -134,7 +134,7 @@
        ("vector"
         . ,(format-point x y z)))))
 
-(defmethod format-node ((object cl-transforms-stamped:point-stamped))
+(defmethod format-desig ((object cl-transforms-stamped:point-stamped))
   (with-slots ((x cl-transforms:x) (y cl-transforms:y) (z cl-transforms:z)
                (stamp cl-transforms-stamped:stamp)
                (frame-id cl-transforms-stamped:frame-id))
@@ -144,7 +144,7 @@
       ("point"
        . ,(format-point x y z)))))
 
-(defmethod format-node ((object cl-transforms-stamped:pose-stamped))
+(defmethod format-desig ((object cl-transforms-stamped:pose-stamped))
   (with-slots ((origin cl-transforms:origin)
                (orientation cl-transforms:orientation)
                (stamp cl-transforms-stamped:stamp)
@@ -163,7 +163,7 @@
               ("orientation"
                . ,(format-quaternion q1 q2 q3 w)))))))))
 
-(defmethod format-node ((object cl-transforms-stamped:transform-stamped))
+(defmethod format-desig ((object cl-transforms-stamped:transform-stamped))
   (with-slots ((origin cl-transforms:translation)
                (orientation cl-transforms:rotation)
                (stamp cl-transforms-stamped:stamp)
