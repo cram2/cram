@@ -91,4 +91,7 @@
                                                   ;; for toy parts colors
                                                   "assembly-demo"
                                                   ;; for clearing grasps
-                                                  "household-demo"))))))
+                                                  "household-demo"))
+     (:file "apartment-demo" :depends-on ("package" "utils"
+                                                    ;; for initializing
+                                                    "household-demo"))))))

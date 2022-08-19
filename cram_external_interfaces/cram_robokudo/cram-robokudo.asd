@@ -1,7 +1,4 @@
-;;;
-;;; Copyright (c) 2019, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
-;;;                     Arthur Niedzwiecki <niedzwiecki@uni-bremen.de>
-;;;                     Amar <amar@uni-bremen.de>
+;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -29,11 +26,28 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cl-user)
+(defsystem cram-robokudo
+  :author "Gayane Kazhoyan"
+  :maintainer "Gayane Kazhoyan"
+  :license "BSD"
 
-(defpackage cram-pick-place-tutorial
-  (:nicknames #:pp-tut)
-  (:use #:common-lisp #:cram-prolog
-        #:desig #:exe #:cram-urdf-projection #:cram-common-failures)
-  (:export))
-
+  :depends-on (alexandria
+               yason
+               roslisp
+               roslisp-utilities
+               cl-transforms
+               cl-transforms-stamped
+               cram-tf
+               cram-common-failures
+               cram-designators
+               cram-process-modules
+               cram-prolog
+               cram-common-designators
+               cram-simple-actionlib-client
+               robokudo_msgs-msg)
+  :components
+  ((:module "src"
+    :components
+    ((:file "package")
+     (:file "action-client" :depends-on ("package"))
+     (:file "process-module" :depends-on ("package" "action-client"))))))

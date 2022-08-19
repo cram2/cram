@@ -69,6 +69,7 @@
   (<- (man-int:object-type-direct-subtype :cereal :breakfast-cereal))
 
   (<- (man-int:object-type-direct-subtype :cup :mug))
+  (<- (man-int:object-type-direct-subtype :cup :jeroen-cup))
 
   (<- (man-int:object-type-direct-subtype :clothing-item :shoe)))
 
@@ -140,6 +141,10 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defmethod man-int:get-arms-for-object-type :heuristics 20 ((object-type (eql :tray)))
+  '(:left :right))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (def-fact-group pnp-object-knowledge (man-int:object-rotationally-symmetric
                                       man-int:orientation-matters)
 
@@ -148,12 +153,14 @@
                                  )))
 
   (<- (orientation-matters ?object-type)
-    (member ?object-type (:knife :fork :spoon :cutlery :spatula :weisswurst :bread :big-knife))))
+    (member ?object-type (:knife :fork :spoon :cutlery :spatula :weisswurst
+			  :bread :big-knife))))
 
 (def-fact-group attachment-knowledge (man-int:unidirectional-attachment)
 
   (<- (man-int:unidirectional-attachment ?attachment-type)
     (member ?attachment-type (:popcorn-pot-lid-attachment))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; CUTLERY ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -517,6 +524,80 @@
   :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
   :pregrasp-offsets `(,*cup-pregrasp-xy-offset* 0.0 ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(,*cup-pregrasp-xy-offset* 0.0 0.0)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;; jeroen-cup ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *jeroen-cup-grasp-xy-offset* 0.02 "in meters")
+(defparameter *jeroen-cup-grasp-z-offset* 0.0 "in meters")
+(defparameter *jeroen-cup-pregrasp-xy-offset* 0.15 "in meters")
+(defparameter *jeroen-cup-pregrasp-z-offset* 0.0 "in meters")
+(defparameter *jeroen-cup-top-grasp-x-offset* 0.0"in meters")
+(defparameter *jeroen-cup-top-grasp-z-offset* 0.03 "in meters")
+(defparameter *jeroen-cup-bottom-pregrasp-z-offset* 0.01 "in meters")
+(defparameter *jeroen-cup-bottom-lift-z-offset* 0.01 "in meters")
+
+;; TOP grasp
+(man-int:def-object-type-to-gripper-transforms :jeroen-cup '(:left :right) :top
+  :grasp-translation `(,(- *jeroen-cup-top-grasp-x-offset*) 0.0d0 ,*jeroen-cup-top-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+(man-int:def-object-type-to-gripper-transforms :jeroen-cup '(:left :right) :top2
+  :grasp-translation `(0.0d0 ,(- *jeroen-cup-top-grasp-x-offset*) ,*jeroen-cup-top-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+;; BOTTOM grasp
+(man-int:def-object-type-to-gripper-transforms :jeroen-cup '(:left :right) :bottom
+  :grasp-translation `(0.0d0 0.0d0 ,(- *jeroen-cup-grasp-z-offset*))
+  :grasp-rot-matrix man-int:*-z-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,(- *jeroen-cup-bottom-pregrasp-z-offset*))
+  :2nd-pregrasp-offsets `(0.0 0 ,(- *jeroen-cup-bottom-pregrasp-z-offset*))
+  :lift-translation `(0 0 ,*jeroen-cup-bottom-lift-z-offset*)
+  :2nd-lift-translation `(0 0 ,*jeroen-cup-bottom-lift-z-offset*))
+
+;; SIDE grasp
+(man-int:def-object-type-to-gripper-transforms :jeroen-cup '(:left :right) :left-side
+  :grasp-translation `(0.0d0 ,(- *jeroen-cup-grasp-xy-offset*) ,*jeroen-cup-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*y-across-z-flipped-grasp-rotation*
+  :pregrasp-offsets `(0.0 ,*jeroen-cup-pregrasp-xy-offset* ,*jeroen-cup-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 ,*jeroen-cup-pregrasp-xy-offset* 0.0)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+(man-int:def-object-type-to-gripper-transforms :jeroen-cup '(:left :right) :right-side
+  :grasp-translation `(0.0d0 ,*jeroen-cup-grasp-xy-offset* ,*jeroen-cup-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-y-across-z-flipped-grasp-rotation*
+  :pregrasp-offsets `(0.0 ,(- *jeroen-cup-pregrasp-xy-offset*) ,*jeroen-cup-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 ,(- *jeroen-cup-pregrasp-xy-offset*) 0.0)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+;; BACK grasp
+(man-int:def-object-type-to-gripper-transforms :jeroen-cup '(:left :right) :back
+  :grasp-translation `(,*jeroen-cup-grasp-xy-offset* 0.0d0 ,*jeroen-cup-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation-2*
+  :pregrasp-offsets `(,(- *jeroen-cup-pregrasp-xy-offset*) 0.0 ,*jeroen-cup-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(,(- *jeroen-cup-pregrasp-xy-offset*) 0.0 0.0)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+;; FRONT grasp
+(man-int:def-object-type-to-gripper-transforms :jeroen-cup '(:left :right) :front
+  :grasp-translation `(,(- *jeroen-cup-grasp-xy-offset*) 0.0d0 ,*jeroen-cup-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
+  :pregrasp-offsets `(,*jeroen-cup-pregrasp-xy-offset* 0.0 ,*jeroen-cup-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(,*jeroen-cup-pregrasp-xy-offset* 0.0 0.0)
   :lift-translation *lift-offset*
   :2nd-lift-translation *lift-offset*)
 
@@ -1725,11 +1806,14 @@
   :attachment-translation `(0.04 0.0 0.03)
   :attachment-rot-matrix man-int:*identity-matrix*)
 
+;;;;;;;;;;;;;;;;;; Predefined poses for apartment kitchen ;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod man-int:get-arms-for-object-type :heuristics 20 ((object-type (eql :tray)))
-  '(:left :right))
+(man-int:def-object-type-in-other-object-transform :jeroen-cup :drawer
+  :jeroen-cup-in-dishwasher-1
+  :attachment-translation `(-0.2 0.15 0.13)
+  :attachment-rot-matrix man-int:*rotation-around-x-180-matrix*)
 
-(def-fact-group attachment-knowledge (man-int:unidirectional-attachment)
-
-  (<- (man-int:unidirectional-attachment ?attachment-type)
-    (member ?attachment-type (:popcorn-pot-lid-attachment))))
+(man-int:def-object-type-in-other-object-transform :jeroen-cup :drawer
+  :jeroen-cup-in-dishwasher-2
+  :attachment-translation `(-0.2 0.15 0.13)
+  :attachment-rot-matrix man-int:*rotation-around-y-180-matrix*)
