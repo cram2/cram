@@ -40,7 +40,7 @@
 (defparameter *default-report-file*
   (concatenate 'string
                (namestring (ros-load:ros-package-path "cram_tests"))
-               "/reports/test-report-"
+               "reports/test-report-"
                (format nil "~d" (sb-posix:time))))
 
 (defun report (data)
@@ -71,7 +71,8 @@ exports the report into a file in the `report-file-path'."
         (setf *result* (lisp-unit:run-tests :all package))
         (format-result package)
         (export-report :filename report-file-path)))
-  (print (return-report)))
+  (print (return-report))
+  (print (format nil "Report written to ~a." report-file-path)))
 
 (defun format-result (package &optional (result *result*))
   (declare (type keyword package))
