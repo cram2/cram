@@ -51,6 +51,7 @@ a threshold (if T) to signal a failure.")
                                ((:right-retract-poses ?right-retract-poses))
                                joint-name
                                ((:link-name ?link-name))
+                               ((:door-joint-pose ?door-joint-pose))
                                ((:environment-name ?environment-name))
                                ((:environment-object ?environment-object))
                                ((:container-object ?container-designator))
@@ -148,6 +149,8 @@ a threshold (if T) to signal a failure.")
                      (object (desig:an object (name ?environment-name)))
                      (container-object ?container-designator)
                      (link ?link-name)
+                     (desig:when ?door-joint-pose
+                       (door-joint-pose ?door-joint-pose))
                      (desig:when ?absolute-distance
                        (distance ?absolute-distance))
                      (desig:when (eq ?arm :left)
@@ -169,9 +172,9 @@ a threshold (if T) to signal a failure.")
            (desig:an action
                      (type monitoring-joint-state)
                      (gripper ?arm)))
-          ;; sleep for two seconds,
+          ;; sleep for one second,
           ;; maybe the action is nearly finished, so there is no need to fail
-          (cpl:sleep 2)
+          (cpl:sleep 1)
           (cpl:fail 'common-fail:gripper-closed-completely
                     :description "Handle slipped")))
         ;; in unreal the gripper wiggles so much it falsely detects slipping

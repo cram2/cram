@@ -228,6 +228,8 @@
     (spec:property ?action-designator (:link ?handle-link))
     (once (or (spec:property ?action-designator (:distance ?joint-angle))
               (equal ?joint-angle NIL)))
+    (once (or (spec:property ?action-designator (:door-joint-pose ?door-joint-pose))
+              (equal ?door-joint-pose NIL)))
     ;; infer the missing parameters
     (infer-motion-flags ?action-designator
                         ?prefer-base ?move-base
@@ -241,6 +243,7 @@
                                (:collision-object-b-link ?handle-link)
                                (:prefer-base ?prefer-base)
                                (:move-base ?move-base)
+                               (:door-joint-pose ?door-joint-pose)
                                (:align-planes-left ?align-planes-left)
                                (:align-planes-right ?align-planes-right))
                       ?resolved-action-designator))
