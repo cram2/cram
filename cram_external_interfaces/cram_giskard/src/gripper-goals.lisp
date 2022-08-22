@@ -42,12 +42,14 @@
 
 (defun ensure-gripper-goal-input (action-type-or-position arm effort)
   (declare (type (or number keyword) action-type-or-position)
-           (type keyword arm)
+           (type (or keyword list) arm)
            (type (or number null) effort))
+  (unless (listp arm)
+    (setf arm (list arm)))
   (let* ((bindings
            (car (prolog:prolog
                  `(and (rob-int:robot ?robot)
-                       (rob-int:gripper-joint ?robot ,arm ?gripper-joint)
+                       (rob-int:gripper-joint ?robot ,(first arm) ?gripper-joint)
                        (rob-int:joint-lower-limit ?robot ?gripper-joint ?lower-limit)
                        (rob-int:joint-upper-limit ?robot ?gripper-joint ?upper-limit)
                        (rob-int:gripper-meter-to-joint-multiplier ?robot ?mult)))))
@@ -119,7 +121,7 @@
                               action-timeout
                               action-type-or-position arm effort)
   (declare (type (or number null) action-timeout effort)
-           (type keyword arm)
+           (type (or keyword list) arm)
            (type (or number keyword) action-type-or-position))
 
   (let* ((position-and-effort
@@ -129,9 +131,14 @@
          (effort
            (second position-and-effort)))
 
-    (call-action
-     :action-goal (make-gripper-action-goal arm goal-joint-angle effort)
-     :action-timeout action-timeout
-     ;; :check-goal-function (lambda ()
-     ;;                        (ensure-gripper-goal-reached arm goal-joint-angle))
-     )))
+    (unless (listp arm)
+      (setf arm (list arm)))
+
+    (mapcar (lambda (arm-element)
+              (call-action
+               :action-goal (make-gripper-action-goal arm-element goal-joint-angle effort)
+               :action-timeout action-timeout
+               ;; :check-goal-function (lambda ()
+               ;;                        (ensure-gripper-goal-reached arm goal-joint-angle))
+               ))
+            arm)))

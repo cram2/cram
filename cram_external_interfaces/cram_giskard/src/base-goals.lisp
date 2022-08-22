@@ -54,15 +54,21 @@
            (type (or keyword number null) base-velocity))
   (make-giskard-goal
    :constraints (list
-                 (make-cartesian-constraint
-                  cram-tf:*odom-frame* cram-tf:*robot-base-frame* pose
-                  :avoid-collisions-much t
-                  :max-velocity *base-max-velocity-fast-xy*)
-                 (make-base-collision-avoidance-hint-constraint
-                  *base-collision-avoidance-hint-link*
-                  (cl-transforms-stamped:make-vector-stamped
-                   cram-tf:*fixed-frame* 0.0
-                   *base-collision-avoidance-hint-vector*))
+                 (if (eq (rob-int:get-robot-name) :tiago-dual)
+                     (make-diffdrive-base-goal
+                      cram-tf:*odom-frame* cram-tf:*robot-base-frame* pose
+                      :avoid-collisions-much t
+                      :max-velocity *base-max-velocity-fast-xy*)
+                     (make-cartesian-constraint
+                      cram-tf:*odom-frame* cram-tf:*robot-base-frame* pose
+                      :avoid-collisions-much t
+                      :max-velocity *base-max-velocity-fast-xy*))
+                 (when (eq (rob-int:get-environment-name) :iai-kitchen)
+                   (make-base-collision-avoidance-hint-constraint
+                    *base-collision-avoidance-hint-link*
+                    (cl-transforms-stamped:make-vector-stamped
+                     cram-tf:*fixed-frame* 0.0
+                     *base-collision-avoidance-hint-vector*)))
                  (if (eq base-velocity :slow)
                      (make-base-velocity-constraint
                       *base-max-velocity-slow-xy* *base-max-velocity-slow-theta*)

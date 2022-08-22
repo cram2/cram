@@ -85,22 +85,36 @@
                    ;;     cram-tf:*robot-base-frame* 0.0
                    ;;     (cl-transforms:make-3d-vector 0 0 1))))
                    (when unmovable-joints
-                     (make-unmovable-joints-constraint unmovable-joints))
+                     (make-unmovable-joints-constraint
+                      (append
+                       unmovable-joints
+                       (when (eq (rob-int:get-robot-name) :tiago-dual)
+                         (mapcar (lambda (binds)
+                                   (cut:var-value '?joint binds))
+                                 (cut:force-ll
+                                  (prolog:prolog
+                                   `(and (rob-int:robot ?robot-name)
+                                         (rob-int:gripper-joint ?robot-name ?_ ?joint)))))))))
                    (make-base-velocity-constraint
                     *base-max-velocity-slow-xy* *base-max-velocity-slow-theta*)
                    (make-head-pointing-at-hand-constraint
                     (if left-pose
                         :left
-                        :right)))
+                        :right))
+                   (when (eq (rob-int:get-robot-name) :tiago-dual)
+                     (make-diffdrive-cartesian-goal-arm-constraint
+                      (if left-pose
+                          cram-tf:*robot-left-tool-frame*
+                          cram-tf:*robot-right-tool-frame*))))
      :cartesian-constraints (list (when left-pose
                                     (make-cartesian-constraint
                                      pose-base-frame
-                                     cram-tf:*robot-left-tool-frame*
+                                     cram-tf:*robot-left-wrist-frame*
                                      left-pose))
                                   (when right-pose
                                     (make-cartesian-constraint
                                      pose-base-frame
-                                     cram-tf:*robot-right-tool-frame*
+                                     cram-tf:*robot-right-wrist-frame*
                                      right-pose)))
      :collisions (ecase collision-mode
                    (:avoid-all (make-avoid-all-collision))
@@ -114,11 +128,11 @@
                                    arms (rob-int:get-environment-name)))))
                    (:allow-fingers (alexandria:flatten
                                     (list ;; (make-avoid-all-collision)
-                                    (make-allow-fingers-collision
-                                     arms collision-object-b
-                                     collision-object-b-link)
-                                    (make-allow-fingers-collision
-                                     arms (rob-int:get-environment-name)))))
+                                     (make-allow-fingers-collision
+                                      arms collision-object-b
+                                      collision-object-b-link)
+                                     (make-allow-fingers-collision
+                                      arms (rob-int:get-environment-name)))))
                    (:allow-arm (alexandria:flatten
                                 (list ;; (make-avoid-all-collision)
                                  (make-allow-arm-collision
@@ -128,7 +142,7 @@
                                   arms (rob-int:get-environment-name)))))
                    (:allow-attached (make-avoid-all-collision)
                                         ; attached objects are handled by giskard
-                                    )))))
+                    )))))
 
 (defun make-arm-joint-action-goal (joint-state-left joint-state-right
                                    align-planes-left align-planes-right
@@ -161,33 +175,68 @@
                   :max-velocity *base-max-velocity-slow-xy*
                   ;; :avoid-collisions-much t
                   )
-                 (when align-planes-left
-                   (make-align-planes-tool-frame-constraint
-                    :left
-                    (cl-transforms-stamped:make-vector-stamped
-                     cram-tf:*robot-base-frame* 0.0
-                     (cl-transforms:make-3d-vector 0 0 1))
-                    (cl-transforms-stamped:make-vector-stamped
-                     cram-tf:*robot-base-frame* 0.0
-                     (cl-transforms:make-3d-vector 0 0 1))))
-                 (when align-planes-right
-                   (make-align-planes-tool-frame-constraint
-                    :right
-                    (cl-transforms-stamped:make-vector-stamped
-                     cram-tf:*robot-base-frame* 0.0
-                     (cl-transforms:make-3d-vector 0 0 1))
-                    (cl-transforms-stamped:make-vector-stamped
-                     cram-tf:*robot-base-frame* 0.0
-                     (cl-transforms:make-3d-vector 0 0 1)))))
+                 ;; (when align-planes-left
+                 ;;   (make-align-planes-tool-frame-constraint
+                 ;;    :left
+                 ;;    (cl-transforms-stamped:make-vector-stamped
+                 ;;     cram-tf:*robot-base-frame* 0.0
+                 ;;     (cl-transforms:make-3d-vector 0 0 1))
+                 ;;    (cl-transforms-stamped:make-vector-stamped
+                 ;;     cram-tf:*robot-base-frame* 0.0
+                 ;;     (cl-transforms:make-3d-vector 0 0 1))))
+                 ;; (when align-planes-right
+                 ;;   (make-align-planes-tool-frame-constraint
+                 ;;    :right
+                 ;;    (cl-transforms-stamped:make-vector-stamped
+                 ;;     cram-tf:*robot-base-frame* 0.0
+                 ;;     (cl-transforms:make-3d-vector 0 0 1))
+                 ;;    (cl-transforms-stamped:make-vector-stamped
+                 ;;     cram-tf:*robot-base-frame* 0.0
+                 ;;     (cl-transforms:make-3d-vector 0 0 1))))
+                 )
    :joint-constraints (list (make-joint-constraint joint-state-left)
                             (make-joint-constraint joint-state-right))
    :collisions (list (make-avoid-all-collision))))
 
 
 
-(defun ensure-arm-cartesian-goal-input (frame goal-pose)
+(defun ensure-arm-cartesian-goal-input (frame goal-pose arm)
   (when goal-pose
-    (cram-tf:ensure-pose-in-frame goal-pose frame)))
+    (let* ((tool-pose-in-correct-base-frame
+             (cram-tf:ensure-pose-in-frame goal-pose frame))
+           (tool-frame
+             (if (eq arm :left)
+                 cram-tf:*robot-left-tool-frame*
+                 cram-tf:*robot-right-tool-frame*))
+           (tool-transform-in-correct-base-frame
+             (cram-tf:pose-stamped->transform-stamped
+              tool-pose-in-correct-base-frame
+              tool-frame))
+           (wrist-frame
+             (if (eq arm :left)
+                 cram-tf:*robot-left-wrist-frame*
+                 cram-tf:*robot-right-wrist-frame*))
+           (ee-P-tcp
+             (cut:var-value
+              '?ee-P-tcp
+              (car
+               (prolog:prolog
+                `(and (rob-int:robot ?robot-name)
+                      (rob-int:tcp-in-ee-pose ?robot-name ?ee-P-tcp))))))
+           (tool-T-wrist
+             (cl-transforms-stamped:transform->transform-stamped
+              tool-frame
+              wrist-frame
+              0.0
+              (cl-transforms:transform-inv
+               (cl-transforms:pose->transform ee-P-tcp))))
+           (wrist-pose-in-correct-base-frame
+             (cram-tf:multiply-transform-stampeds
+              frame wrist-frame
+              tool-transform-in-correct-base-frame
+              tool-T-wrist
+              :result-as-pose-or-transform :pose)))
+      wrist-pose-in-correct-base-frame)))
 
 (defun ensure-arm-joint-goal-input (goal-configuration arm)
   (if (and (listp goal-configuration)
@@ -257,9 +306,9 @@
       (setf pose-base-frame cram-tf:*odom-frame*)
       (setf pose-base-frame cram-tf:*robot-base-frame*))
   (setf goal-pose-left
-        (ensure-arm-cartesian-goal-input pose-base-frame goal-pose-left))
+        (ensure-arm-cartesian-goal-input pose-base-frame goal-pose-left :left))
   (setf goal-pose-right
-        (ensure-arm-cartesian-goal-input pose-base-frame goal-pose-right))
+        (ensure-arm-cartesian-goal-input pose-base-frame goal-pose-right :right))
 
   (cram-tf:visualize-marker
    (list goal-pose-left goal-pose-right)

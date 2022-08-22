@@ -58,14 +58,16 @@
         :arm argument-1
         :handle-link (fifth rest-args)
         :joint-angle (second rest-args)
-        :prefer-base (eighth rest-args)))
+        :prefer-base (eighth rest-args)
+        :joint-pose (nth 11 rest-args)))
       (cram-common-designators:move-arm-push
        (giskard:call-environment-manipulation-action
         :open-or-close :close
         :arm argument-1
         :handle-link (fifth rest-args)
         :joint-angle (second rest-args)
-        :prefer-base (eighth rest-args)))
+        :prefer-base (eighth rest-args)
+        :joint-pose (nth 11 rest-args)))
       (cram-common-designators:move-head
        (when argument-1
          (giskard:call-neck-action

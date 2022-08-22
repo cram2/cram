@@ -51,7 +51,9 @@
 (defun make-giskard-goal (&key
                             constraints joint-constraints cartesian-constraints
                             collisions
-                            (goal-type :plan_and_execute_and_cut_off_shaking))
+                            (goal-type ;:plan_only
+                                       :plan_and_execute_and_cut_off_shaking
+                                       ))
   (roslisp:make-message
    'giskard_msgs-msg:MoveGoal
    :type (roslisp:symbol-code 'giskard_msgs-msg:MoveGoal goal-type)
@@ -279,6 +281,25 @@
         ,@(when (and (eq open-or-close :open) goal-joint-state)
             `(("goal_joint_state" . ,goal-joint-state))))))))
 
+(defun make-diffdrive-base-arch-constraint (door-joint-point-stamped-in-map)
+  (declare (type cl-transforms-stamped:point-stamped door-joint-point-stamped-in-map))
+  (roslisp:make-message
+   'giskard_msgs-msg:constraint
+   :type
+   "DiffDriveTangentialToPoint"
+   :parameter_value_pair
+   (alist->json-string
+    `(("goal_point" . ,door-joint-point-stamped-in-map)))))
+
+(defun make-diffdrive-cartesian-goal-arm-constraint (tip-link)
+  (declare (type string tip-link))
+  (roslisp:make-message
+   'giskard_msgs-msg:constraint
+   :type
+   "KeepHandInWorkspace"
+   :parameter_value_pair
+))
+
 (defun make-grasp-bar-constraint (arm root-link
                                   tip-grasp-axis
                                   bar-axis bar-center bar-length)
@@ -341,8 +362,37 @@
                           :weight_above_ca ; that's the default weight anyway
                           ))))))))
 
+(defun make-diffdrive-base-goal (root-frame tip-frame goal-pose
+                                 &key max-velocity avoid-collisions-much)
+  (declare (type string root-frame tip-frame)
+           (type cl-transforms-stamped:pose-stamped goal-pose)
+           (type (or number null) max-velocity)
+           (type boolean avoid-collisions-much))
+  (roslisp:make-message
+   'giskard_msgs-msg:constraint
+   :type
+   "DiffDriveBaseGoal"
+   :parameter_value_pair
+   (alist->json-string
+    `(("root_link" . ,root-frame)
+      ("tip_link" . ,tip-frame)
+      ("goal_pose"
+       . (("message_type" . "geometry_msgs/PoseStamped")
+          ("message" . ,(to-hash-table goal-pose))))
+      ,@(when max-velocity
+          `(("max_linear_velocity" . ,max-velocity)))
+      ,@(if avoid-collisions-much
+          `(("weight" . ,(roslisp-msg-protocol:symbol-code
+                          'giskard_msgs-msg:constraint
+                          :weight_below_ca
+                          )))
+          `(("weight" . ,(roslisp-msg-protocol:symbol-code
+                          'giskard_msgs-msg:constraint
+                          :weight_above_ca ; that's the default weight anyway
+                          ))))))))
+
 (defun make-joint-constraint (joint-state &optional weights)
-"`joint-state' is a list of two elements: (joint-names joint-positions).
+  "`joint-state' is a list of two elements: (joint-names joint-positions).
 `weights' is a list of the same length as `joint-names' and `joint-positions',
 a keyword, a number or NIL."
   (declare (type list joint-state)
