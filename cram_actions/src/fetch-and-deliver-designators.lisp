@@ -125,6 +125,10 @@ the `look-pose-stamped'."
     (-> (spec:property ?action-designator (:arms ?arms))
         (true)
         (setof ?arm (man-int:robot-free-hand ?robot ?arm) ?arms))
+    ;; grasps
+    (-> (spec:property ?action-designator (:grasps ?grasps))
+        (true)
+        (equal ?grasps NIL))
     ;; distance
     (once (or (spec:property ?action-designator (:distance ?distance))
               (equal ?distance NIL)))
@@ -141,6 +145,7 @@ the `look-pose-stamped'."
                                (:object-accessible ?object-accessible)
                                (:object-location ?object-location-desig)
                                (:arms ?arms)
+                               (:grasps ?grasps)
                                (:distance ?distance)
                                (:robot-location ?robot-location))
                       ?resolved-action-designator))

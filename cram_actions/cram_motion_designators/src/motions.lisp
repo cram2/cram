@@ -133,7 +133,8 @@
                                                    ?collision-object-a
                                                    ?move-base ?prefer-base
                                                    ?align-planes-left
-                                                   ?align-planes-right))
+                                                   ?align-planes-right
+                                                   ?joint-pose))
     (or (and (property ?designator (:type :pushing))
              (equal ?push-or-pull move-arm-push))
         (and (property ?designator (:type :pulling))
@@ -155,6 +156,8 @@
               (equal ?move-base nil)))
     (once (or (desig:desig-prop ?designator (:prefer-base ?prefer-base))
               (equal ?prefer-base nil)))
+    (once (or (desig:desig-prop ?designator (:door-joint-pose ?joint-pose))
+              (equal ?joint-pose nil)))
     (once (or (desig:desig-prop ?designator (:align-planes-left ?align-planes-left))
               (equal ?align-planes-left nil)))
     (once (or (desig:desig-prop ?designator (:align-planes-right ?align-planes-right))
