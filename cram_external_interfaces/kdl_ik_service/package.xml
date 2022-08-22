@@ -1,4 +1,8 @@
-<package format="2">
+<?xml version="1.0"?>
+<?xml-model
+  href="http://download.ros.org/schema/package_format3.xsd"
+  schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
   <name>kdl_ik_service</name>
   <version>0.7.0</version>
   <description>KDL Based IK solver</description>
@@ -11,7 +15,8 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <exec_depend>rospy</exec_depend>
-  <exec_depend>python_orocos_kdl</exec_depend>
+  <exec_depend condition="$ROS_DISTRO != noetic">python_orocos_kdl</exec_depend>
+  <exec_depend condition="$ROS_DISTRO == noetic">python3-pykdl</exec_depend>
   <exec_depend>urdfdom_py</exec_depend>
   <exec_depend>kdl_parser_py</exec_depend>
   <exec_depend>moveit_msgs</exec_depend>
