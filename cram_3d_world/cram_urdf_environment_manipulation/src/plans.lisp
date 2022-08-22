@@ -47,6 +47,7 @@
                                ((:right-retract-poses ?right-retract-poses))
                                joint-name
                                ((:link-name ?link-name))
+                               ((:door-joint-pose ?door-joint-pose))
                                ((:environment-name ?environment-name))
                                ((:environment-object ?environment-object))
                                ((:container-object ?container-designator))
@@ -152,6 +153,8 @@
                    (object (desig:an object (name ?environment-name)))
                    (container-object ?container-designator)
                    (link ?link-name)
+                   (desig:when ?door-joint-pose)
+                     (door-joint-pose ?door-joint-pose)
                    (desig:when ?absolute-distance
                      (distance ?absolute-distance))
                    (desig:when (eq ?arm :left)

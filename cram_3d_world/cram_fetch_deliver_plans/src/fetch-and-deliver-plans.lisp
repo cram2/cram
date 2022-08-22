@@ -111,6 +111,7 @@ turn the robot base such that it looks in the direction of target and look again
                                  object-accessible
                                  ((:object-location ?object-location))
                                  ((:arms all-arms))
+                                 ((:grasps ?grasps))
                                  ((:distance ?distance))
                                  ((:robot-location ?manipulate-robot-location))
                                &allow-other-keys)
@@ -212,6 +213,7 @@ if yes, relocate and retry, if no collisions, open or close container."
                              (desig:an action
                                        (type opening)
                                        (arm ?arm)
+                                       (grasps ?grasps)
                                        (object ?object-to-manipulate)
                                        (desig:when ?distance
                                          (distance ?distance))
@@ -224,6 +226,7 @@ if yes, relocate and retry, if no collisions, open or close container."
                              (desig:an action
                                        (type closing)
                                        (arm ?arm)
+                                       (grasps ?grasps)
                                        (object ?object-to-manipulate)
                                        (desig:when ?distance
                                          (distance ?distance))
