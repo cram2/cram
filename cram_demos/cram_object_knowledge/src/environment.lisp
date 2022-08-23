@@ -109,7 +109,9 @@
 (defparameter *handle-grasp-y-offset* 0.0 "in meters")
 (defparameter *handle-grasp-z-offset* 0.0 "in meters")
 (defparameter *handle-pregrasp-x-offset-open* 0.05 "in meters")
+(defparameter *handle-2nd-pregrasp-x-offset-open* 0.01 "in meters")
 (defparameter *handle-pregrasp-y-offset-open* 0.05 "in meters")
+(defparameter *handle-2nd-pregrasp-y-offset-open* 0.01 "in meters")
 (defparameter *handle-pregrasp-x-offset-close* -0.0 "in meters")
 (defparameter *handle-retract-offset* 0.05 "in meters")
 
@@ -118,7 +120,7 @@
   :grasp-translation `(0.0d0 ,(- *handle-grasp-y-offset*) ,*handle-grasp-z-offset*)
   :grasp-rot-matrix man-int:*y-across-z-grasp-rotation*
   :pregrasp-offsets `(0.0 ,*handle-pregrasp-y-offset-open* 0.0)
-  :2nd-pregrasp-offsets `(0.0 ,*handle-pregrasp-y-offset-open* 0.0)
+  :2nd-pregrasp-offsets `(0.0 ,*handle-2nd-pregrasp-y-offset-open* 0.0)
   :lift-translation '(0 0 0)
   :2nd-lift-translation '(0 0 0))
 
@@ -126,7 +128,7 @@
   :grasp-translation `(0.0d0 ,*handle-grasp-y-offset* ,*handle-grasp-z-offset*)
   :grasp-rot-matrix man-int:*-y-across-z-grasp-rotation*
   :pregrasp-offsets `(0.0 ,(- *handle-pregrasp-y-offset-open*) 0.0)
-  :2nd-pregrasp-offsets `(0.0 ,(- *handle-pregrasp-y-offset-open*) 0.0)
+  :2nd-pregrasp-offsets `(0.0 ,(- *handle-2nd-pregrasp-y-offset-open*) 0.0)
   :lift-translation '(0 0 0)
   :2nd-lift-translation '(0 0 0))
 
@@ -135,7 +137,7 @@
   :grasp-translation `(,(- *handle-grasp-x-offset*) 0.0d0 ,*handle-grasp-z-offset*)
   :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation*
   :pregrasp-offsets `(,(- *handle-pregrasp-x-offset-open*) 0.0 0.0)
-  :2nd-pregrasp-offsets `(,(- *handle-pregrasp-x-offset-open*) 0.0 0.0)
+  :2nd-pregrasp-offsets `(,(- *handle-2nd-pregrasp-x-offset-open*) 0.0 0.0)
   :lift-translation '(0 0 0)
   :2nd-lift-translation '(0 0 0))
 
@@ -144,7 +146,7 @@
   :grasp-translation `(,*handle-grasp-x-offset* 0.0d0 ,*handle-grasp-z-offset*)
   :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
   :pregrasp-offsets `(,*handle-pregrasp-x-offset-open* 0.0 0.0)
-  :2nd-pregrasp-offsets `(,*handle-pregrasp-x-offset-open* 0.0 0.0)
+  :2nd-pregrasp-offsets `(,*handle-2nd-pregrasp-x-offset-open* 0.0 0.0)
   :lift-translation '(0 0 0)
   :2nd-lift-translation '(0 0 0))
 
@@ -153,6 +155,6 @@
   :grasp-translation `(,*handle-grasp-x-offset* ,*handle-grasp-y-offset* ,*handle-grasp-z-offset*)
   :grasp-rot-matrix man-int:*x-across-y-grasp-rotation*
   :pregrasp-offsets `(,*handle-pregrasp-x-offset-open* 0.0 0.0)
-  :2nd-pregrasp-offsets `(,*handle-pregrasp-x-offset-open* 0.0 0.0)
+  :2nd-pregrasp-offsets `(,*handle-2nd-pregrasp-x-offset-open* 0.0 0.0)
   :lift-translation '(0 0 0)
   :2nd-lift-translation '(0 0 0))
