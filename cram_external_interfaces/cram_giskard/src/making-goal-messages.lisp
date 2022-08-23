@@ -289,7 +289,10 @@
    "DiffDriveTangentialToPoint"
    :parameter_value_pair
    (alist->json-string
-    `(("goal_point" . ,door-joint-point-stamped-in-map)))))
+    `(("goal_point"
+       . (("message_type" . "geometry_msgs/PointStamped")
+          ("message" . ,(to-hash-table
+                         door-joint-point-stamped-in-map))))))))
 
 (defun make-diffdrive-cartesian-goal-arm-constraint (tip-link)
   (declare (type string tip-link))
@@ -298,7 +301,8 @@
    :type
    "KeepHandInWorkspace"
    :parameter_value_pair
-))
+   (alist->json-string
+    `(("tip_link" . ,tip-link)))))
 
 (defun make-grasp-bar-constraint (arm root-link
                                   tip-grasp-axis
