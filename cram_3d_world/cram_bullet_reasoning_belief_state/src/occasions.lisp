@@ -33,7 +33,7 @@
 (defparameter *torso-convergence-delta* 0.01 "In meters")
 (defparameter *gripper-joint-convergence-delta* 0.005 "In meters")
 (defparameter *arm-joints-convergence-delta* 0.0174 "In radians, about 1 deg.")
-(defparameter *ee-position-convergence-delta* 0.02 "In meters")
+(defparameter *ee-position-convergence-delta* 0.01 "In meters")
 (defparameter *ee-rotation-convergence-delta* 0.07 "In radians, about 4 deg.")
 (defparameter *looking-convergence-delta* 0.01 "In meters")
 (defparameter *looking-convergence-joints-delta* 0.07 "In radians, about 4 deg.")
