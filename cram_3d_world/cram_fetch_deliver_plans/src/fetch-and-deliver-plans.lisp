@@ -213,7 +213,8 @@ if yes, relocate and retry, if no collisions, open or close container."
                              (desig:an action
                                        (type opening)
                                        (arm ?arm)
-                                       (grasps ?grasps)
+                                       (desig:when ?grasps
+                                         (grasps ?grasps))
                                        (object ?object-to-manipulate)
                                        (desig:when ?distance
                                          (distance ?distance))
@@ -226,7 +227,8 @@ if yes, relocate and retry, if no collisions, open or close container."
                              (desig:an action
                                        (type closing)
                                        (arm ?arm)
-                                       (grasps ?grasps)
+                                       (desig:when ?grasps
+                                         (grasps ?grasps))
                                        (object ?object-to-manipulate)
                                        (desig:when ?distance
                                          (distance ?distance))
