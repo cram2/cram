@@ -121,16 +121,21 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; JSON CONSTRAINTS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun make-avoid-joint-limits-constraint (&optional (percentage
-                                                      *avoid-joint-limits-percentage*))
-  (declare (type number percentage))
+(defun make-avoid-joint-limits-constraint (&key
+                                             (percentage
+                                              *avoid-joint-limits-percentage*)
+                                             joint-list)
+  (declare (type number percentage)
+           (type list joint-list))
   (roslisp:make-message
    'giskard_msgs-msg:constraint
    :type
    "AvoidJointLimits"
    :parameter_value_pair
    (alist->json-string
-    `(("percentage" . ,percentage)))))
+    `(("percentage" . ,percentage)
+      ,@(when joint-list
+          `(("joint_list" . ,(map 'vector #'identity joint-list))))))))
 
 
 (defun make-prefer-base-constraint (&key
@@ -281,7 +286,8 @@
         ,@(when (and (eq open-or-close :open) goal-joint-state)
             `(("goal_joint_state" . ,goal-joint-state))))))))
 
-(defun make-diffdrive-base-arch-constraint (door-joint-point-stamped-in-map)
+(defun make-diffdrive-base-arch-constraint (door-joint-point-stamped-in-map
+                                            &key small-weight)
   (declare (type cl-transforms-stamped:point-stamped door-joint-point-stamped-in-map))
   (roslisp:make-message
    'giskard_msgs-msg:constraint
@@ -292,7 +298,11 @@
     `(("goal_point"
        . (("message_type" . "geometry_msgs/PointStamped")
           ("message" . ,(to-hash-table
-                         door-joint-point-stamped-in-map))))))))
+                         door-joint-point-stamped-in-map))))
+      ,@(when small-weight
+          `(("weight" . ,(roslisp-msg-protocol:symbol-code
+                          'giskard_msgs-msg:constraint
+                          :weight_below_ca))))))))
 
 (defun make-diffdrive-cartesian-goal-arm-constraint (tip-link)
   (declare (type string tip-link))
@@ -623,11 +633,12 @@ a keyword, a number or NIL."
   (let* ((robot-links-table (cl-urdf:links rob-int:*robot-urdf*))
          (link-parent-alist
            (mapcar (lambda (link-name)
-                     `(,link-name
-                       . ,(cl-urdf:name
-                           (cl-urdf:parent
-                            (cl-urdf:from-joint
-                             (gethash link-name robot-links-table))))))
+                     (let ((link-object
+                             (gethash link-name robot-links-table)))
+                       (when link-object
+                         `(,link-name
+                           . ,(cl-urdf:name
+                               (cl-urdf:parent (cl-urdf:from-joint link-object)))))))
                    link-names)))
     ;; remove all whose parent is in `link-names'
     (mapcar #'car
@@ -649,7 +660,7 @@ a keyword, a number or NIL."
                          (car
                           (prolog:prolog
                            `(and (rob-int:robot ?robot)
-                                 (rob-int:arm-links ?robot ,arm ?arm-links))))))
+                                 (rob-int:arm-links ?robot ,arm . ?arm-links))))))
                     arms)))
          collision-group2)
     (when body-b
