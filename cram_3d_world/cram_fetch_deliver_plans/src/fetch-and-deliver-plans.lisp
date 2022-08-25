@@ -108,22 +108,27 @@ turn the robot base such that it looks in the direction of target and look again
 (defun manipulate-environment (&key
                                  ((:type action-type))
                                  ((:object ?object-to-manipulate))
+
                                  object-accessible
                                  ((:object-location ?object-location))
-                                 ((:arms all-arms))
+                                 ((:outer-robot-location ?outer-robot-location))
+                                 ((:outer-arms ?outer-arms))
+                                 ((:outer-grasps ?outer-grasps))
+
+                                 ((:robot-location ?robot-location))
+                                 ((:arms ?all-arms))
                                  ((:grasps ?grasps))
                                  ((:distance ?distance))
-                                 ((:robot-location ?manipulate-robot-location))
                                &allow-other-keys)
   (declare (type keyword action-type)
-           (type list all-arms)
+           (type list ?all-arms ?grasps ?outer-arms ?outer-grasps)
            (type desig:object-designator ?object-to-manipulate)
            (type (or desig:location-designator null) ?object-location)
            (type (or number null) ?distance)
-           ;; here, ?manipulate-robot-location can only be null within the function
+           ;; here, ?robot-location can only be null within the function
            ;; but one should not pass a NULL location as argument,
            ;; otherwise it will just cpl:fail straight away.
-           (type (or null desig:location-designator) ?manipulate-robot-location))
+           (type (or null desig:location-designator) ?robot-location ?outer-robot-location))
   "Navigate to reachable location, check if opening/closing trajectory causes collisions,
 if yes, relocate and retry, if no collisions, open or close container."
 
@@ -134,6 +139,12 @@ if yes, relocate and retry, if no collisions, open or close container."
       (exe:perform (desig:an action
                              (type accessing)
                              (location ?object-location)
+                             (desig:when ?outer-arms
+                               (arms ?outer-arms))
+                             (desig:when ?outer-grasps
+                               (grasps ?outer-grasps))
+                             (desig:when ?outer-robot-location
+                               (robot-location ?outer-robot-location))
                              (goal ?goal)))))
 
   (unless object-accessible
@@ -143,11 +154,11 @@ if yes, relocate and retry, if no collisions, open or close container."
            (cpl:fail 'common-fail:environment-manipulation-impossible
                      :description "Some designator could not be resolved.")))
 
-      (let* ((?arms all-arms)
+      (let* ((?arms ?all-arms)
              (?arm (cut:lazy-car ?arms))
              ;; TODO: THIS LET IS A HACK because I'm lazy to make a subaction for accessing
-             (?manipulate-robot-location-with-arm
-               (desig:copy-designator ?manipulate-robot-location
+             (?robot-location-with-arm
+               (desig:copy-designator ?robot-location
                                       :new-description `((:arm ,?arm)))))
 
         ;; if opening- / closing-container fails, relocate
@@ -155,20 +166,20 @@ if yes, relocate and retry, if no collisions, open or close container."
           (cpl:with-failure-handling
               (((or common-fail:environment-unreachable) (e)
                  (common-fail:retry-with-loc-designator-solutions
-                     ?manipulate-robot-location-with-arm
+                     ?robot-location-with-arm
                      relocation-retries
                      (:error-object-or-string e
                       :warning-namespace (fd-plans environment)
-                      :reset-designators (list ?manipulate-robot-location-with-arm)
+                      :reset-designators (list ?robot-location-with-arm)
                       :rethrow-failure 'common-fail:environment-manipulation-impossible)
                    ;; TODO: what if the another arm is holding an object!
                    (exe:perform (desig:an action
                                           (type releasing)))
                    (setf ?arms
-                         all-arms)
+                         ?all-arms)
                    (setf ?arm
                          (cut:lazy-car ?arms))
-                   (setf (cadr (find :arm (desig:description ?manipulate-robot-location-with-arm)
+                   (setf (cadr (find :arm (desig:description ?robot-location-with-arm)
                                      :key #'car))
                          ?arm)
                    (roslisp:ros-info (fd-plans environment) "Relocating..."))))
@@ -193,15 +204,15 @@ if yes, relocate and retry, if no collisions, open or close container."
                                               (type releasing)))
                        (setf ?arm
                              (cut:lazy-car ?arms))
-                       (setf (cadr (find :arm (desig:description ?manipulate-robot-location-with-arm)
+                       (setf (cadr (find :arm (desig:description ?robot-location-with-arm)
                                          :key #'car))
                              ?arm)
-                       (desig:reset ?manipulate-robot-location-with-arm))))
+                       (desig:reset ?robot-location-with-arm))))
 
                 ;; navigate, open / close
                 (exe:perform (desig:an action
                                        (type navigating)
-                                       (location ?manipulate-robot-location-with-arm)))
+                                       (location ?robot-location-with-arm)))
 
                 (let ((manipulation-action
                         (ecase action-type
@@ -246,6 +257,12 @@ if yes, relocate and retry, if no collisions, open or close container."
       (exe:perform (desig:an action
                              (type sealing)
                              (location ?object-location)
+                             (desig:when ?outer-arms
+                               (arms ?outer-arms))
+                             (desig:when ?outer-grasps
+                               (grasps ?outer-grasps))
+                             (desig:when ?outer-robot-location
+                               (robot-location ?outer-robot-location))
                              (goal ?goal))))))
 
 
@@ -747,11 +764,32 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
 (defun transport (&key
                     ((:object ?object-designator))
                     ((:context ?context))
+
+                    ((:access-search-robot-location ?access-search-robot-location))
+                    ((:seal-search-robot-location ?seal-search-robot-location))
+                    ((:access-seal-search-arms ?access-seal-search-arms))
+                    ((:access-seal-search-grasps ?access-seal-search-grasps))
+                    ((:access-search-outer-robot-location ?access-search-outer-robot-location))
+                    ((:seal-search-outer-robot-location ?seal-search-outer-robot-location))
+                    ((:access-seal-search-outer-arms ?access-seal-search-outer-arms))
+                    ((:access-seal-search-outer-grasps ?access-seal-search-outer-grasps))
+
+                    ((:access-deliver-robot-location ?access-deliver-robot-location))
+                    ((:seal-deliver-robot-location ?seal-deliver-robot-location))
+                    ((:access-seal-deliver-arms ?access-seal-deliver-arms))
+                    ((:access-seal-deliver-grasps ?access-seal-deliver-grasps))
+                    ((:access-deliver-outer-robot-location ?access-deliver-outer-robot-location))
+                    ((:seal-deliver-outer-robot-location ?seal-deliver-outer-robot-location))
+                    ((:access-seal-deliver-outer-arms ?access-seal-deliver-outer-arms))
+                    ((:access-seal-deliver-outer-grasps ?access-seal-deliver-outer-grasps))
+
                     ((:search-location ?search-location))
-                    ((:search-robot-location ?search-base-location))
+                    ((:search-robot-location ?search-robot-location))
+
                     ((:fetch-robot-location ?fetch-robot-location))
                     ((:arms ?arms))
                     ((:grasps ?grasps))
+
                     ((:deliver-location ?delivering-location))
                     ((:deliver-robot-location ?deliver-robot-location))
                   &allow-other-keys)
@@ -766,6 +804,18 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
     (exe:perform (desig:an action
                            (type accessing)
                            (location ?delivering-location)
+                           (desig:when ?access-deliver-robot-location
+                             (robot-location ?access-deliver-robot-location))
+                           (desig:when ?access-seal-deliver-arms
+                             (arms ?access-seal-deliver-arms))
+                           (desig:when ?access-seal-deliver-grasps
+                             (grasps ?access-seal-deliver-grasps))
+                           (desig:when ?access-deliver-outer-robot-location
+                             (outer-robot-location ?access-deliver-outer-robot-location))
+                           (desig:when ?access-seal-deliver-outer-arms
+                             (outer-arms ?access-seal-deliver-outer-arms))
+                           (desig:when ?access-seal-deliver-outer-grasps
+                             (outer-grasps ?access-seal-deliver-outer-grasps))
                            (goal ?goal))))
 
   ;; if we are not sure about the exact location of search-location, find it
@@ -780,6 +830,18 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
     (exe:perform (desig:an action
                            (type accessing)
                            (location ?search-location)
+                           (desig:when ?access-search-robot-location
+                             (robot-location ?access-search-robot-location))
+                           (desig:when ?access-seal-search-arms
+                             (arms ?access-seal-search-arms))
+                           (desig:when ?access-seal-search-grasps
+                             (grasps ?access-seal-search-grasps))
+                           (desig:when ?access-search-outer-robot-location
+                             (outer-robot-location ?access-search-outer-robot-location))
+                           (desig:when ?access-seal-search-outer-arms
+                             (outer-arms ?access-seal-search-outer-arms))
+                           (desig:when ?access-seal-search-outer-grasps
+                             (outer-grasps ?access-seal-search-outer-grasps))
                            (goal ?goal))))
 
   ;; search for the object to find it's exact pose
@@ -789,8 +851,8 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                            (object ?object-designator)
                            (desig:when ?context
                              (context ?context))
-                           (desig:when ?search-base-location
-                             (robot-location ?search-base-location))
+                           (desig:when ?search-robot-location
+                             (robot-location ?search-robot-location))
                            (goal ?goal))))
   (setf ?object-designator (desig:current-desig ?object-designator))
   (roslisp:ros-info (pp-plans transport)
@@ -854,6 +916,18 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
     (exe:perform (desig:an action
                            (type sealing)
                            (location ?search-location)
+                           (desig:when ?seal-search-robot-location
+                             (robot-location ?seal-search-robot-location))
+                           (desig:when ?access-seal-search-arms
+                             (arms ?access-seal-search-arms))
+                           (desig:when ?access-seal-search-grasps
+                             (grasps ?access-seal-search-grasps))
+                           (desig:when ?seal-search-outer-robot-location
+                             (outer-robot-location ?seal-search-outer-robot-location))
+                           (desig:when ?access-seal-search-outer-arms
+                             (outer-arms ?access-seal-search-outer-arms))
+                           (desig:when ?access-seal-search-outer-grasps
+                             (outer-grasps ?access-seal-search-outer-grasps))
                            (goal ?goal))))
 
   ;; reset the target location
@@ -861,6 +935,18 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
     (exe:perform (desig:an action
                            (type sealing)
                            (location ?delivering-location)
+                           (desig:when ?seal-deliver-robot-location
+                             (robot-location ?seal-deliver-robot-location))
+                           (desig:when ?access-seal-deliver-arms
+                             (arms ?access-seal-deliver-arms))
+                           (desig:when ?access-seal-deliver-grasps
+                             (grasps ?access-seal-deliver-grasps))
+                           (desig:when ?seal-deliver-outer-robot-location
+                             (outer-robot-location ?seal-deliver-outer-robot-location))
+                           (desig:when ?access-seal-deliver-outer-arms
+                             (outer-arms ?access-seal-deliver-outer-arms))
+                           (desig:when ?access-seal-deliver-outer-grasps
+                             (outer-grasps ?access-seal-deliver-outer-grasps))
                            (goal ?goal))))
 
   (desig:current-desig ?object-designator))
