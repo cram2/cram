@@ -40,13 +40,36 @@
                  (mapcar 'cdr (cpl-impl:task-tree-node-children node))))
 
 (defun node-valid (node)
-  "Checks if given node execution :SUCCEEDED.
-Moves step-by-step down through slots 'task', 'status' and 'value'"
+  "Checks if given node has any kind of sexp to be valid."
+  (slot-value (cpl-impl:task-tree-node-code node) 'cpl-impl::sexp))
+
+(defun node-status (node)
   (let ((slinky (cpl-impl:task-tree-node-code node)))
-    (and (setf slinky (slot-value slinky 'task))
-         (setf slinky (slot-value slinky 'status))
-         (setf slinky (slot-value slinky 'value))
-         (eq slinky :SUCCEEDED))))
+    (when slinky
+      (setf slinky (slot-value slinky 'task))
+      (when slinky
+        (setf slinky (slot-value slinky 'status))
+        (when slinky
+          (slot-value slinky 'value))))))
+
+(defun node-failure (node)
+  (when node
+    (let ((slinky (cpl-impl:task-tree-node-code node)))
+      (when slinky
+      (setf slinky (slot-value slinky 'task))
+      (when slinky
+        (setf slinky (slot-value slinky 'result))
+        (when slinky
+          (type-of slinky)))))))
+
+(defun format-node (node)
+  (let ((status (node-status node)))
+    (when node
+      (format nil "~{~a~^~%~}"
+              `(,status
+                ,@(unless (eq status :SUCCEEDED)
+                    `(,(node-failure node)))
+                ,(format-desig (node->designator node)))))))
 
 (defun node->designator (node)
   "Provides a node's designator, if it has any."
