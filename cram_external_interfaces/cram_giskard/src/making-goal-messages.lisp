@@ -380,7 +380,7 @@
                           ))))))))
 
 (defun make-diffdrive-base-goal (root-frame tip-frame goal-pose
-                                 &key max-velocity avoid-collisions-much)
+                                 &key max-velocity avoid-collisions-much always-forward)
   (declare (type string root-frame tip-frame)
            (type cl-transforms-stamped:pose-stamped goal-pose)
            (type (or number null) max-velocity)
@@ -396,6 +396,8 @@
       ("goal_pose"
        . (("message_type" . "geometry_msgs/PoseStamped")
           ("message" . ,(to-hash-table goal-pose))))
+      ,@(when always-forward
+          `(("always_forward" . T)))
       ,@(when max-velocity
           `(("max_linear_velocity" . ,max-velocity)))
       ,@(if avoid-collisions-much

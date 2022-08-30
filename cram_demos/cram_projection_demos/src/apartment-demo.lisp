@@ -287,15 +287,32 @@
     ;;        (target ?location-in-other-hand))))
 
     ;; bring cup to cupboard
-    (when (<= step 5)
-      (exe:perform
-       (an action
-           (type transporting)
-           (object (an object
-                       (type jeroen-cup)
-                       (name jeroen-cup-1)
-                       ;; (location ?location-on-island-upside-down)
-                       (location ?location-on-island)))
-           (target ?location-in-cupboard)))))
+    ;; (when (<= step 5)
+    ;;   (exe:perform
+    ;;    (an action
+    ;;        (type transporting)
+    ;;        (object (an object
+    ;;                    (type jeroen-cup)
+    ;;                    (name jeroen-cup-1)
+    ;;                    ;; (location ?location-on-island-upside-down)
+    ;;                    (location ?location-on-island)))
+    ;;        (search-robot-location (a location
+    ;;                                  (pose ?delivering-counter-top-robot-pose)))
+    ;;        (fetch-robot-location (a location
+    ;;                                 (pose ?delivering-counter-top-robot-pose)))
+    ;;        (arms (right))
+    ;;        (grasps (front))
+    ;;        (access-deliver-outer-robot-location (a location
+    ;;                                                (poses ?accessing-cupboard-door-robot-poses)))
+    ;;        (access-seal-search-outer-arms (left))
+    ;;        (access-search-outer-grasps (right-side))
+
+    ;;        (target ?location-in-cupboard)
+    ;;        (deliver-robot-location (a location
+    ;;                                   (pose ?delivering-counter-top-robot-pose)))
+    ;;        (seal-search-outer-robot-location (a location
+    ;;                                             (pose ?sealing-cupboard-door-robot-pose)))
+    ;;        (seal-search-outer-grasps (right-side)))))
+    )
 
   (finalize))

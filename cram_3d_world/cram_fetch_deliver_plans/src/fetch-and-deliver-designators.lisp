@@ -511,6 +511,8 @@ the `look-pose-stamped'."
       (:seal-deliver-robot-location ?seal-deliver-robot-location-designator)
       (:access-seal-deliver-arms ?access-seal-deliver-arms)
       (:access-seal-deliver-grasps ?access-seal-deliver-grasps)
+      (:access-deliver-outer-robot-location ?access-deliver-outer-robot-location-designator)
+      (:seal-deliver-outer-robot-location ?seal-deliver-outer-robot-location-designator)
       (:access-seal-deliver-outer-arms ?access-seal-deliver-outer-arms)
       (:access-seal-deliver-outer-grasps ?access-seal-deliver-outer-grasps)
 

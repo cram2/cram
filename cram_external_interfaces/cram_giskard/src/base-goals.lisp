@@ -40,28 +40,28 @@
 (defparameter *base-collision-avoidance-hint-link*
   "kitchen_island" "A link name from the environment URDF.")
 (defparameter *base-max-velocity-fast-xy*
-  ;; 0.5
   0.25 "In meters/s")
 (defparameter *base-max-velocity-fast-theta*
   0.4 "In rad/s, about 23 deg/s.")
 (defparameter *base-max-velocity-slow-xy*
-  0.25
-  ;; 0.04
+  0.04
   "In meters/s")
 (defparameter *base-max-velocity-slow-theta*
-  0.4;; 0.07
+  0.07
   "In rad/s, about 11.5 deg.")
 
-(defun make-giskard-base-action-goal (pose base-velocity)
+(defun make-giskard-base-action-goal (pose base-velocity &key always-forward)
   (declare (type cl-transforms-stamped:pose-stamped pose)
-           (type (or keyword number null) base-velocity))
+           (type (or keyword number null) base-velocity)
+           (type boolean always-forward))
   (make-giskard-goal
    :constraints (list
                  (if (eq (rob-int:get-robot-name) :tiago-dual)
                      (make-diffdrive-base-goal
                       cram-tf:*odom-frame* cram-tf:*robot-base-frame* pose
                       :avoid-collisions-much t
-                      :max-velocity *base-max-velocity-fast-xy*)
+                      :max-velocity *base-max-velocity-fast-xy*
+                      :always-forward always-forward)
                      (make-cartesian-constraint
                       cram-tf:*odom-frame* cram-tf:*robot-base-frame* pose
                       :avoid-collisions-much t
@@ -117,9 +117,25 @@
 
   (cram-tf:visualize-marker goal-pose :r-g-b-list '(0 1 0))
 
-  (call-action
-   :action-goal (make-giskard-base-action-goal goal-pose base-velocity)
-   :action-timeout action-timeout
-   :check-goal-function (lambda (result status)
-                          (declare (ignore result status))
-                          (ensure-base-goal-reached goal-pose))))
+  (cpl:with-retry-counters ((nav-retries 1))
+    (cpl:with-failure-handling
+
+        ((common-fail:navigation-goal-not-reached (e)
+           (roslisp:ros-warn (giskard base) "Navigation failed: ~a~%" e)
+           (cpl:do-retry nav-retries
+             (roslisp:ros-warn (giskard base) "Retrying.")
+             (call-action
+              :action-goal (make-giskard-base-action-goal goal-pose base-velocity
+                                                          :always-forward T)
+              :action-timeout action-timeout
+              :check-goal-function (lambda (result status)
+                                     (declare (ignore result status))
+                                     (ensure-base-goal-reached goal-pose))))
+           (roslisp:ros-warn (giskard base) "Failing to action level.")))
+
+      (call-action
+       :action-goal (make-giskard-base-action-goal goal-pose base-velocity)
+       :action-timeout action-timeout
+       :check-goal-function (lambda (result status)
+                              (declare (ignore result status))
+                              (ensure-base-goal-reached goal-pose))))))

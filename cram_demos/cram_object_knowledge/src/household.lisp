@@ -509,7 +509,7 @@
 (defparameter *jeroen-cup-bottom-lift-z-offset* 0.01 "in meters")
 (defparameter *jeroen-cup-postgrasp-x-offset* 0.4 "in meters")
 (defparameter *jeroen-cup-postgrasp-y-offset* 0.2 "in meters")
-(defparameter *jeroen-cup-surface-lift-offset* 0.2 "in meters")
+(defparameter *jeroen-cup-surface-lift-offset* 0.3 "in meters")
 
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms :jeroen-cup '(:left :right) :top
@@ -565,26 +565,25 @@
 
 ;; FRONT grasp
 (man-int:def-object-type-to-gripper-transforms :jeroen-cup '(:left :right) :front
-  :location-type :surface
   :grasp-translation `(,(- *jeroen-cup-grasp-xy-offset*) 0.0d0 ,*jeroen-cup-grasp-z-offset*)
   :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
   :pregrasp-offsets `(,*jeroen-cup-pregrasp-xy-offset* 0.0 ,*jeroen-cup-pregrasp-z-offset*)
   :2nd-pregrasp-offsets `(,*jeroen-cup-2nd-pregrasp-xy-offset* 0.0 0.0)
-  :lift-translation *lift-offset*
+  :lift-translation `(0.0 0.0 ,*jeroen-cup-surface-lift-offset*)
   :2nd-lift-translation `(0.0 0.0 ,*jeroen-cup-surface-lift-offset*))
 ;; grasp
-(defmethod man-int:get-object-type-to-gripper-transform ((object-type (eql :jeroen-cup))
-                                                         object-name
-                                                         arm
-                                                         (grasp (eql :front)))
-  (make-arm-transform
-   object-name arm
-   (- *jeroen-cup-grasp-xy-offset*) 0.0 *jeroen-cup-grasp-z-offset*
-   man-int:*x-across-z-grasp-rotation*))
+;; (defmethod man-int:get-object-type-to-gripper-transform ((object-type (eql :jeroen-cup))
+;;                                                          object-name
+;;                                                          arm
+;;                                                          (grasp (eql :front)))
+;;   (make-arm-transform
+;;    object-name arm
+;;    (- *jeroen-cup-grasp-xy-offset*) 0.0 *jeroen-cup-grasp-z-offset*
+;;    man-int:*x-across-z-grasp-rotation*))
 ;; pregrasp
 (defmethod man-int:get-object-type-to-gripper-pregrasp-transforms ((type (eql :jeroen-cup))
                                                                    object-name
-                                                                   arm
+                                                                   (arm (eql :left))
                                                                    (grasp (eql :front))
                                                                    (location (eql :shelf))
                                                                    grasp-transform)
@@ -602,7 +601,36 @@
                 *jeroen-cup-7th-pregrasp-xy-offset*)))
 ;; postgrasp
 (defmethod man-int:get-object-type-wrt-base-frame-lift-transforms ((type (eql :jeroen-cup))
-                                                                   arm
+                                                                   (arm (eql :left))
+                                                                   (grasp (eql :front))
+                                                                   (location (eql :shelf)))
+  (list
+   (make-base-transform
+    0.0 0.0 *lift-z-offset*)
+   (make-base-transform
+    (- *jeroen-cup-postgrasp-x-offset*) *jeroen-cup-postgrasp-y-offset* *lift-z-offset*)))
+;; pregrasp
+(defmethod man-int:get-object-type-to-gripper-pregrasp-transforms ((type (eql :jeroen-cup))
+                                                                   object-name
+                                                                   (arm (eql :right))
+                                                                   (grasp (eql :front))
+                                                                   (location (eql :shelf))
+                                                                   grasp-transform)
+  (mapcar (lambda (x-offset)
+            (make-arm-transform
+             object-name arm
+             x-offset 0.0 *jeroen-cup-pregrasp-z-offset*
+             man-int:*x-across-z-grasp-rotation*))
+          (list *jeroen-cup-pregrasp-xy-offset*
+                *jeroen-cup-2nd-pregrasp-xy-offset*
+                *jeroen-cup-3rd-pregrasp-xy-offset*
+                *jeroen-cup-4th-pregrasp-xy-offset*
+                *jeroen-cup-5th-pregrasp-xy-offset*
+                *jeroen-cup-6th-pregrasp-xy-offset*
+                *jeroen-cup-7th-pregrasp-xy-offset*)))
+;; postgrasp
+(defmethod man-int:get-object-type-wrt-base-frame-lift-transforms ((type (eql :jeroen-cup))
+                                                                   (arm (eql :right))
                                                                    (grasp (eql :front))
                                                                    (location (eql :shelf)))
   (list
