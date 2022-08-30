@@ -132,7 +132,8 @@
       ((cpl:plan-failure (e)
          (declare (ignore e))
          (return)))
-    (cpl:par
+    (;; cpl:par
+     cpl:seq
       (exe:perform
        (desig:an action
                  (type positioning-arm)

@@ -44,13 +44,13 @@
   (declare (type cl-transforms-stamped:pose-stamped goal-pose))
   (let ((neck-joints (first (get-neck-joint-names-and-positions-list))))
     (make-giskard-goal
-     :constraints `(,(make-pointing-constraint
-                      root-link
-                      camera-link
-                      goal-pose)
-                    ;; for PTU heads align planes doesn't make sense
-                    ,@(when (> (length neck-joints) 2)
-                        `((make-align-planes-constraint
+     :constraints (list (make-pointing-constraint
+                         root-link
+                         camera-link
+                         goal-pose)
+                        ;; for PTU heads align planes doesn't make sense
+                        (when (> (length neck-joints) 2)
+                          (make-align-planes-constraint
                            root-link
                            camera-link
                            (cl-transforms-stamped:make-vector-stamped
@@ -58,21 +58,30 @@
                             (cl-transforms:make-3d-vector 1 0 0))
                            (cl-transforms-stamped:make-vector-stamped
                             camera-link 0.0
-                            (cl-transforms:make-3d-vector 0 -1 0)))))
-                    ;; (cl-transforms-stamped:make-vector-stamped
-                    ;;  "rs_camera_depth_optical_frame" 0.0
-                    ;;  (cl-transforms:make-3d-vector 0 0 1))
-                    )
-     :cartesian-constraints (when camera-offset
-                              (make-cartesian-constraint
-                               root-link camera-link
-                               (cram-tf:strip-transform-stamped
-                                (cram-tf:apply-transform
-                                 (cl-transforms-stamped:transform->transform-stamped
-                                  cram-tf:*fixed-frame* cram-tf:*fixed-frame* 0.0
-                                  *donbot-camera-offset*)
-                                 (cram-tf:pose-stamped->transform-stamped
-                                  goal-pose "goal_pose")))))
+                            (cl-transforms:make-3d-vector 0 -1 0))))
+                        ;; (when (eq (rob-int:get-robot-name) :tiago-dual)
+                        ;;   (make-unmovable-joints-constraint
+                        ;;    (mapcar (lambda (binds)
+                        ;;              (cut:var-value '?joint binds))
+                        ;;            (cut:force-ll
+                        ;;             (prolog:prolog
+                        ;;              `(and (rob-int:robot ?robot-name)
+                        ;;                    (rob-int:gripper-joint ?robot-name ?_ ?joint)))))))
+                        ;; (cl-transforms-stamped:make-vector-stamped
+                        ;;  "rs_camera_depth_optical_frame" 0.0
+                        ;;  (cl-transforms:make-3d-vector 0 0 1))
+                        )
+     :cartesian-constraints (when (eq (rob-int:get-robot-name) :iai-donbot)
+                              (when camera-offset
+                                (make-cartesian-constraint
+                                 root-link camera-link
+                                 (cram-tf:strip-transform-stamped
+                                  (cram-tf:apply-transform
+                                   (cl-transforms-stamped:transform->transform-stamped
+                                    cram-tf:*fixed-frame* cram-tf:*fixed-frame* 0.0
+                                    *donbot-camera-offset*)
+                                   (cram-tf:pose-stamped->transform-stamped
+                                    goal-pose "goal_pose"))))))
      :collisions (make-avoid-all-collision))))
 
 (defun make-neck-joint-action-goal (joint-state)

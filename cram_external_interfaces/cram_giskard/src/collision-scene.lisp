@@ -175,7 +175,10 @@
                    :type (roslisp:symbol-code
                           'giskard_msgs-msg:worldbody
                           :mesh_body)
-                   :mesh mesh-path)
+                   :mesh mesh-path
+                   :scale (roslisp:make-msg
+                           'geometry_msgs-msg:vector3
+                           :x 1.0 :y 1.0 :z 1.0))
                   (roslisp:make-msg
                    'giskard_msgs-msg:worldbody
                    :type (roslisp:symbol-code

@@ -130,19 +130,32 @@
                (goal ?goal))))
   (roslisp:ros-info (pick-place pick-up) "Lifting")
   (cpl:pursue
-    (cpl:with-failure-handling
-        ((common-fail:manipulation-low-level-failure (e)
-           (roslisp:ros-warn (pp-plans pick-up)
-                             "Manipulation messed up: ~a~%Ignoring."
-                             e)
-           (return)))
-      (let ((?goal `(cpoe:tool-frames-at ,?left-lift-poses ,?right-lift-poses)))
-        (exe:perform
-         (desig:an action
-                   (type lifting)
-                   (left-poses ?left-lift-poses)
-                   (right-poses ?right-lift-poses)
-                   (goal ?goal)))))
+    (cpl:pursue
+      (cpl:with-failure-handling
+          ((common-fail:manipulation-low-level-failure (e)
+             (roslisp:ros-warn (pp-plans pick-up)
+                               "Manipulation messed up: ~a~%Ignoring."
+                               e)
+             (return)))
+        (let ((?goal `(cpoe:tool-frames-at ,?left-lift-poses ,?right-lift-poses)))
+          (exe:perform
+           (desig:an action
+                     (type lifting)
+                     (left-poses ?left-lift-poses)
+                     (right-poses ?right-lift-poses)
+                     (goal ?goal)))))
+      (loop do
+        (cpl:with-failure-handling
+            ((common-fail:gripper-low-level-failure (e)
+               (roslisp:ros-warn (pp-plans pick-up)
+                                 "Gripper continuous gripping messed up: ~a~%Ignoring."
+                                 e)
+               (return)))
+          (exe:perform
+           (desig:an action
+                     (type gripping)
+                     (gripper ?arm)
+                     (effort ?grip-effort))))))
     (cpl:seq
       (exe:perform
        (desig:an action
@@ -151,13 +164,26 @@
       (cpl:fail 'common-fail:gripper-closed-completely
                 :description "Object slipped")))
   (roslisp:ros-info (pick-place place) "Parking")
-  (exe:perform
-   (desig:an action
-             (type parking-arms)
-             ;; TODO: this will not work with dual-arm grasping
-             ;; but as our ?arm is declared as a keyword,
-             ;; for now this code is the right code
-             (arms (?arm)))))
+  (cpl:pursue
+    (exe:perform
+     (desig:an action
+               (type parking-arms)
+               ;; TODO: this will not work with dual-arm grasping
+               ;; but as our ?arm is declared as a keyword,
+               ;; for now this code is the right code
+               (arms (?arm))))
+    (loop do
+      (cpl:with-failure-handling
+          ((common-fail:gripper-low-level-failure (e)
+             (roslisp:ros-warn (pp-plans pick-up)
+                               "Gripper continuous gripping messed up: ~a~%Ignoring."
+                               e)
+             (return)))
+        (exe:perform
+         (desig:an action
+                   (type gripping)
+                   (gripper ?arm)
+                   (effort ?grip-effort)))))))
 
 
 
@@ -274,19 +300,32 @@
      :object-designator ?object-designator
      :location-designator ?target-location-designator))
   (roslisp:ros-info (pick-place place) "Retracting")
-  (cpl:with-failure-handling
-      ((common-fail:manipulation-low-level-failure (e)
-         (roslisp:ros-warn (pp-plans pick-up)
-                           "Manipulation messed up: ~a~%Ignoring."
-                           e)
-         (return)))
-    (let ((?goal `(cpoe:tool-frames-at ,?left-retract-poses ,?right-retract-poses)))
-      (exe:perform
-       (desig:an action
-                 (type retracting)
-                 (left-poses ?left-retract-poses)
-                 (right-poses ?right-retract-poses)
-                 (goal ?goal)))))
+  (cpl:pursue
+    (cpl:with-failure-handling
+        ((common-fail:manipulation-low-level-failure (e)
+           (roslisp:ros-warn (pp-plans pick-up)
+                             "Manipulation messed up: ~a~%Ignoring."
+                             e)
+           (return)))
+      (let ((?goal `(cpoe:tool-frames-at ,?left-retract-poses ,?right-retract-poses)))
+        (exe:perform
+         (desig:an action
+                   (type retracting)
+                   (left-poses ?left-retract-poses)
+                   (right-poses ?right-retract-poses)
+                   (goal ?goal)))))
+    (loop do
+      (cpl:with-failure-handling
+          ((common-fail:gripper-low-level-failure (e)
+             (roslisp:ros-warn (pp-plans pick-up)
+                               "Gripper continuous opening messed up: ~a~%Ignoring."
+                               e)
+             (return)))
+        (exe:perform
+         (desig:an action
+                   (type setting-gripper)
+                   (gripper ?arm)
+                   (position ?gripper-opening))))))
   (roslisp:ros-info (pick-place place) "Parking")
   (exe:perform
    (desig:an action

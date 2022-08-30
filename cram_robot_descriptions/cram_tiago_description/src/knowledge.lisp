@@ -59,7 +59,12 @@
   (cl-transforms:make-pose
    ;; The X should've been 0.150575d0, but the grasping frame is defined
    ;; on Tiago in such a shitty way that have to use a custom offset :/
-   (cl-transforms:make-3d-vector 0.24d0 0 0)
+   ;; This offset is in iai_tiago URDF: (cl-transforms:make-3d-vector 0.24d0 0 0)
+   ;; The iai_tiago has FT sensors on the wrist, which the real robot does not.
+   ;; This offset is in tiago real robot URDF as published by the robot x_x:
+   ;; (cl-transforms:make-3d-vector 0.22d0 0 0)
+   ;; Giving the tool frame a bit more space inside to have more stable grasps:
+   (cl-transforms:make-3d-vector 0.21d0 0 0)
    (cl-transforms-stamped:make-quaternion 0.7071054825100438d0
                                           -1.2986782349788673d-6
                                           1.298673464711353d-6
@@ -236,7 +241,13 @@
                                       "arm_right_6_joint"
                                       "arm_right_7_joint")))
 
-  (<- (hand-links :tiago-dual :left ("gripper_left_link"
+  (<- (hand-links :tiago-dual :left ("arm_left_5_link"
+                                     "arm_left_6_link"
+                                     "arm_left_7_link"
+                                     "arm_left_tool_link"
+                                     "wrist_left_ft_link"
+                                     "wrist_left_ft_tool_link"
+                                     "gripper_left_link"
                                      "gripper_left_left_finger_link"
                                      "gripper_left_right_finger_link"
                                      "gripper_left_tool_link")))
@@ -291,20 +302,18 @@
                           ;;  ("arm_left_7_joint" 0.0))
                           )
     (robot-joint-states :tiago-dual :arm :left :carry-top ?joint-states))
-  (<- (robot-joint-states :tiago-dual :arm :left :carry ?joint-states
-                          ;; (("arm_left_1_joint" -1.0)
-                          ;;  ("arm_left_2_joint" 0.0)
-                          ;;  ("arm_left_3_joint" 1.5)
-                          ;;  ("arm_left_4_joint" 2.2)
-                          ;;  ("arm_left_5_joint" -1.5)
-                          ;;  ("arm_left_6_joint" 0.5)
-                          ;;  ("arm_left_7_joint" 0.0))
-                          )
-    (robot-joint-states :tiago-dual :arm :left :carry-top ?joint-states))
+  (<- (robot-joint-states :tiago-dual :arm :left :carry
+                          (("arm_left_1_joint" 0.3)
+                           ("arm_left_2_joint" -0.87)
+                           ("arm_left_3_joint" 1.68)
+                           ("arm_left_4_joint" 1.7)
+                           ("arm_left_5_joint" -0.6)
+                           ("arm_left_6_joint" 1.12)
+                           ("arm_left_7_joint" -0.09))))
   (<- (robot-joint-states :tiago-dual :arm :left :carry-top (("arm_left_1_joint" 0.27)
                                                              ("arm_left_2_joint" -1.07)
                                                              ("arm_left_3_joint" 1.5)
-                                                             ("arm_left_4_joint" 1.96)
+                                                             ("arm_left_4_joint" 2.0)
                                                              ("arm_left_5_joint" -2.0)
                                                              ("arm_left_6_joint" 1.2)
                                                              ("arm_left_7_joint" 0.5))))

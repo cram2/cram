@@ -33,7 +33,7 @@
   (actionlib-client:make-simple-action-client
    'giskard-action
    "giskard/command" "giskard_msgs/MoveAction"
-   120))
+   180))
 
 (roslisp-utilities:register-ros-init-function make-giskard-action-client)
 
@@ -65,8 +65,9 @@
        (roslisp:ros-warn (giskard action-client)
                          "Giskard action timed out."))
       (:aborted
-       (roslisp:ros-warn (giskard cartesian)
-                         "Giskard action aborted.~%Result: ~a" result)))
+       (roslisp:ros-warn (giskard action-client)
+                         ;; "Giskard action aborted.~%Result: ~a" result
+                         "Giskard action aborted.")))
 
     (when (and result
                (member (roslisp:symbol-code

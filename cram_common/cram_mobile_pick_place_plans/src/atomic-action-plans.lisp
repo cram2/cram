@@ -90,6 +90,7 @@
                                 ((:collision-object-a ?collision-object-a))
                                 ((:move-base ?move-base))
                                 ((:prefer-base ?prefer-base))
+                                ((:straight-line ?straight-line))
                                 ((:align-planes-left ?align-planes-left))
                                 ((:align-planes-right ?align-planes-right))
                               &allow-other-keys)
@@ -97,7 +98,8 @@
            (type (or null keyword) ?collision-mode)
            (type (or null symbol) ?collision-object-b ?collision-object-a)
            (type (or null string symbol) ?collision-object-b-link)
-           (type boolean ?move-base ?prefer-base ?align-planes-left ?align-planes-right))
+           (type boolean ?move-base ?prefer-base ?straight-line
+                 ?align-planes-left ?align-planes-right))
   "Move arms through all but last poses of `left-poses' and `right-poses',
 while ignoring failures; and execute the last pose with propagating the failures."
 
@@ -137,6 +139,8 @@ while ignoring failures; and execute the last pose with propagating the failures
                           (move-base ?move-base))
                         (desig:when ?prefer-base
                           (prefer-base ?prefer-base))
+                        (desig:when ?straight-line
+                          (straight-line ?straight-line))
                         (desig:when ?align-planes-left
                           (align-planes-left ?align-planes-left))
                         (desig:when ?align-planes-right
@@ -175,6 +179,8 @@ while ignoring failures; and execute the last pose with propagating the failures
                   (move-base ?move-base))
                 (desig:when ?prefer-base
                   (prefer-base ?prefer-base))
+                (desig:when ?straight-line
+                  (straight-line ?straight-line))
                 (desig:when ?align-planes-left
                   (align-planes-left ?align-planes-left))
                 (desig:when ?align-planes-right
@@ -196,6 +202,7 @@ while ignoring failures; and execute the last pose with propagating the failures
                                  ((:prefer-base ?prefer-base))
                                  ((:align-planes-left ?align-planes-left))
                                  ((:align-planes-right ?align-planes-right))
+                                 ((:door-joint-pose ?door-joint-pose))
                                &allow-other-keys)
   (declare (type keyword ?type ?arm)
            (type list ?poses)
@@ -233,7 +240,9 @@ With a continuous motion planner one could have fluent arch trajectories etc.
                  (desig:when ?align-planes-left
                    (align-planes-left ?align-planes-left))
                  (desig:when ?align-planes-right
-                   (align-planes-right ?align-planes-right))))
+                   (align-planes-right ?align-planes-right))
+                 (desig:when ?door-joint-pose
+                   (door-joint-pose ?door-joint-pose))))
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
@@ -348,8 +357,8 @@ In any case, issue ROBOT-STATE-CHANGED event."
                      (gripper ?left-or-right)
                      (desig:when ?effort
                        (effort ?effort))))
-           (roslisp:ros-info (pick-place grip) "Assert grasp into knowledge base")
            (when object-designator
+             (roslisp:ros-info (pick-place grip) "Assert grasp into knowledge base")
              (cram-occasions-events:on-event
               (make-instance 'cpoe:object-attached-robot
                 :arm ?left-or-right
@@ -475,7 +484,8 @@ equate resulting designator to the original one."
                    :object-designator resulting-designators
                    :perception-source :whatever))
                 (desig:equate ?object-designator resulting-designator)))
-          (desig:current-desig resulting-designator))))))
+          (desig:current-desig resulting-designator)
+          resulting-designator)))))
 
 
 (defun monitor-joint-state (&key

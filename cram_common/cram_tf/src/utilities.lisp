@@ -391,6 +391,10 @@ Multiply from the right with the yTz transform -- xTy * yTz == xTz."
 (defun values-converged (values goal-values deltas)
   (flet ((value-converged (value goal-value delta)
            (<= (abs (- value goal-value)) delta)))
+    ;; if both values are NIL, assume they converged...
+    (when (and (null goal-values)
+               (null values))
+      (return-from values-converged T))
     ;; correct arguments
     (if (listp values)
         (if (or (atom goal-values)

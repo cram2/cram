@@ -30,11 +30,11 @@
 (in-package :giskard)
 
 (defparameter *base-convergence-delta-xy*
-  0.05 "in meters.")
+  0.10 "in meters.")
 (defparameter *base-convergence-delta-theta*
-  0.1 "in radiants, about 6 degrees.")
+  0.2 "in radiants, about 12 degrees.")
 (defparameter *base-collision-avoidance-distance*
-  0.2 "In meters.")
+  0.15 "In meters.")
 (defparameter *base-collision-avoidance-hint-vector*
   (cl-transforms:make-3d-vector 0 -1 0))
 (defparameter *base-collision-avoidance-hint-link*
@@ -45,9 +45,12 @@
 (defparameter *base-max-velocity-fast-theta*
   0.4 "In rad/s, about 23 deg/s.")
 (defparameter *base-max-velocity-slow-xy*
-  0.04 "In meters/s")
+  0.25
+  ;; 0.04
+  "In meters/s")
 (defparameter *base-max-velocity-slow-theta*
-  0.07 "In rad/s, about 11.5 deg.")
+  0.4;; 0.07
+  "In rad/s, about 11.5 deg.")
 
 (defun make-giskard-base-action-goal (pose base-velocity)
   (declare (type cl-transforms-stamped:pose-stamped pose)
@@ -63,17 +66,25 @@
                       cram-tf:*odom-frame* cram-tf:*robot-base-frame* pose
                       :avoid-collisions-much t
                       :max-velocity *base-max-velocity-fast-xy*))
+                 ;; (when (eq (rob-int:get-robot-name) :tiago-dual)
+                 ;;   (make-unmovable-joints-constraint
+                 ;;    (mapcar (lambda (binds)
+                 ;;              (cut:var-value '?joint binds))
+                 ;;            (cut:force-ll
+                 ;;             (prolog:prolog
+                 ;;              `(and (rob-int:robot ?robot-name)
+                 ;;                    (rob-int:gripper-joint ?robot-name ?_ ?joint)))))))
                  (when (eq (rob-int:get-environment-name) :iai-kitchen)
                    (make-base-collision-avoidance-hint-constraint
                     *base-collision-avoidance-hint-link*
                     (cl-transforms-stamped:make-vector-stamped
                      cram-tf:*fixed-frame* 0.0
                      *base-collision-avoidance-hint-vector*)))
-                 (if (eq base-velocity :slow)
-                     (make-base-velocity-constraint
-                      *base-max-velocity-slow-xy* *base-max-velocity-slow-theta*)
-                     (make-base-velocity-constraint
-                      *base-max-velocity-fast-xy* *base-max-velocity-fast-theta*))
+                 ;; (if (eq base-velocity :slow)
+                 ;;     (make-base-velocity-constraint
+                 ;;      *base-max-velocity-slow-xy* *base-max-velocity-slow-theta*)
+                 ;;     (make-base-velocity-constraint
+                 ;;      *base-max-velocity-fast-xy* *base-max-velocity-fast-theta*))
                  (make-head-pointing-constraint
                   (cl-transforms-stamped:make-pose-stamped
                    cram-tf:*robot-base-frame* 0.0

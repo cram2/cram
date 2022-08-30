@@ -46,16 +46,64 @@
                   *base-max-velocity-slow-xy* *base-max-velocity-slow-theta*)
                  (make-open-or-close-constraint
                   open-or-close arm handle-link joint-state)
-                 (when (eq (rob-int:get-robot-name) :tiago-dual)
+                 (when (and (eq (rob-int:get-robot-name) :tiago-dual)
+                            (eq handle-link :handle-cab1-top-door))
                    (make-diffdrive-base-arch-constraint hinge-point-stamped))
-                 (make-avoid-joint-limits-constraint)
+                 (make-avoid-joint-limits-constraint
+                  :joint-list (cut:var-value
+                               '?joints
+                               (car
+                                (prolog:prolog
+                                 `(and (rob-int:robot ?robot-name)
+                                       (rob-int:arm-joints
+                                        ?robot-name ,arm ?joints))))))
+                 ;; (when (eq (rob-int:get-robot-name) :tiago-dual)
+                 ;;   (make-unmovable-joints-constraint
+                 ;;    (mapcar (lambda (binds)
+                 ;;              (cut:var-value '?joint binds))
+                 ;;            (cut:force-ll
+                 ;;             (prolog:prolog
+                 ;;              `(and (rob-int:robot ?robot-name)
+                 ;;                    (rob-int:gripper-joint ?robot-name ?_ ?joint)))))))
                  (make-head-pointing-at-hand-constraint arm))
    :collisions (make-constraints-vector
-                (ecase open-or-close
-                  (:open (make-allow-hand-collision
-                          (list arm) (rob-int:get-environment-name) handle-link))
-                  (:close (make-allow-arm-collision
-                           (list arm) (rob-int:get-environment-name)))))))
+                (make-allow-hand-collision
+                 (list arm) (rob-int:get-environment-name) ;; handle-link
+                 ))))
+
+(defun make-environment-manipulation-pregoal (arm handle-link
+                                              &optional hinge-point-stamped)
+  (declare (type keyword arm)
+           (type symbol handle-link)
+           (type (or null cl-transforms-stamped:point-stamped) hinge-point-stamped))
+  (make-giskard-goal
+   :constraints (list
+                 (when (eq (rob-int:get-robot-name) :tiago-dual)
+                   (make-diffdrive-base-arch-constraint
+                    hinge-point-stamped :small-weight t))
+                 (make-avoid-joint-limits-constraint
+                  :joint-list (cut:var-value
+                               '?joints
+                               (car
+                                (prolog:prolog
+                                 `(and (rob-int:robot ?robot-name)
+                                       (rob-int:arm-joints
+                                        ?robot-name ,arm ?joints))))))
+                 (make-head-pointing-at-hand-constraint arm)
+                 (let ((wrist-link
+                         (if (eq arm :left)
+                             cram-tf:*robot-left-wrist-frame*
+                             cram-tf:*robot-right-wrist-frame*)))
+                   (make-cartesian-constraint
+                    cram-tf:*odom-frame*
+                    wrist-link
+                    (cl-transforms-stamped:pose->pose-stamped
+                     wrist-link 0.0
+                     (cl-transforms:make-identity-pose)))))
+   :collisions (make-constraints-vector
+                (make-allow-hand-collision
+                 (list arm) (rob-int:get-environment-name) ;; handle-link
+                 ))))
 
 (defun call-environment-manipulation-action (&key
                                                action-timeout
@@ -73,19 +121,35 @@
                               cram-tf:*fixed-frame*
                               0.0
                               (cl-transforms:origin joint-pose))))
+    (when (and (eq (rob-int:get-robot-name) :tiago-dual)
+               (eq handle-link :handle-cab1-top-door))
+      (call-action
+       :action-goal (make-environment-manipulation-pregoal
+                     arm handle-link joint-point-stamped)
+       :action-timeout action-timeout))
 
     (call-action
      :action-goal (make-environment-manipulation-goal
                    open-or-close arm handle-link joint-angle prefer-base
                    joint-point-stamped)
      :action-timeout action-timeout
-     :check-goal-function (lambda (result status)
-                            (declare (ignore result))
-                            (when (or (not status)
-                                      (member status '(:preempted :aborted :timeout)))
-                              (make-instance
-                                  'common-fail:environment-manipulation-goal-not-reached
-                                :description "Giskard action failed.")))))
+     ;; :check-goal-function (lambda (result status)
+     ;;                        (when (or (not status)
+     ;;                                  (member status '(:preempted :aborted :timeout)))
+     ;;                          (when (or (not (eq (rob-int:get-robot-name) :tiago-dual))
+     ;;                                    (and result
+     ;;                                         (remove
+     ;;                                          :FOLLOWJOINTTRAJECTORY_GOAL_TOLERANCE_VIOLATED
+     ;;                                          (map 'list (lambda (error-code)
+     ;;                                                       (roslisp:code-symbol
+     ;;                                                        'giskard_msgs-msg:moveresult
+     ;;                                                        error-code))
+     ;;                                               (roslisp:msg-slot-value
+     ;;                                                result :error_codes)))))
+     ;;                            (make-instance
+     ;;                                'common-fail:environment-manipulation-goal-not-reached
+     ;;                              :description "Giskard action failed."))))
+     ))
   ;; (if (eq open-or-close :open)
   ;;     (dotimes (i 2)
   ;;       (call-action

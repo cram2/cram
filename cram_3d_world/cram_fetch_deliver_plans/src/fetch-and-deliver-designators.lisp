@@ -402,13 +402,12 @@ the `look-pose-stamped'."
         (true)
         (equal ?access-seal-deliver-outer-grasps NIL))
 
-    ;; access search location robot base
+    ;; access / seal search location robot base
     (-> (desig:desig-prop ?action-designator
                           (:access-search-robot-location ?some-as-robot-loc-desig))
         (desig:current-designator ?some-as-robot-loc-desig
                                   ?access-search-robot-location-designator)
         (equal ?access-search-robot-location-designator NIL))
-    ;; seal search location robot base
     (-> (desig:desig-prop ?action-designator
                           (:seal-search-robot-location ?some-ss-robot-loc-desig))
         (desig:current-designator ?some-ss-robot-loc-desig
@@ -424,13 +423,12 @@ the `look-pose-stamped'."
                           (:access-seal-search-grasps ?access-seal-search-grasps))
         (true)
         (equal ?access-seal-search-grasps NIL))
-    ;; access search outer location robot base
+    ;; access / seal search outer location robot base
     (-> (desig:desig-prop ?action-designator
                           (:access-search-outer-robot-location ?some-aso-robot-loc-desig))
         (desig:current-designator ?some-aso-robot-loc-desig
                                   ?access-search-outer-robot-location-designator)
         (equal ?access-search-outer-robot-location-designator NIL))
-    ;; seal search outer location robot base
     (-> (desig:desig-prop ?action-designator
                           (:seal-search-outer-robot-location ?some-sso-robot-loc-desig))
         (desig:current-designator ?some-sso-robot-loc-desig
@@ -443,9 +441,14 @@ the `look-pose-stamped'."
         (equal ?access-seal-search-outer-arms NIL))
     ;; access / seal search outer grasps
     (-> (desig:desig-prop ?action-designator
-                          (:access-seal-search-outer-grasps ?access-seal-search-outer-grasps))
+                          (:access-search-outer-grasps ?access-search-outer-grasps))
         (true)
-        (equal ?access-seal-search-outer-grasps NIL))
+        (equal ?access-search-outer-grasps NIL))
+    (-> (desig:desig-prop ?action-designator
+                          (:seal-search-outer-grasps ?seal-search-outer-grasps))
+        (true)
+        (equal ?seal-search-outer-grasps NIL))
+
 
     ;; search location robot base
     (-> (desig:desig-prop ?action-designator
@@ -501,7 +504,8 @@ the `look-pose-stamped'."
       (:access-search-outer-robot-location ?access-search-outer-robot-location-designator)
       (:seal-search-outer-robot-location ?seal-search-outer-robot-location-designator)
       (:access-seal-search-outer-arms ?access-seal-search-outer-arms)
-      (:access-seal-search-outer-grasps ?access-seal-search-outer-grasps)
+      (:access-search-outer-grasps ?access-search-outer-grasps)
+      (:seal-search-outer-grasps ?seal-search-outer-grasps)
 
       (:access-deliver-robot-location ?access-deliver-robot-location-designator)
       (:seal-deliver-robot-location ?seal-deliver-robot-location-designator)

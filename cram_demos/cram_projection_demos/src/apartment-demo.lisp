@@ -32,7 +32,7 @@
 (defparameter *apartment-object-spawning-poses*
   '((:jeroen-cup
      "cabinet1_coloksu_level4"
-     ((0.20 0.05 0.08) (0 1 0 0)))
+     ((0.20 0.05 0.08) (1 0 0 0)))
     (:cup
      "cabinet1_coloksu_level4"
      ((0.15 -0.1 0.08) (0 0 -1 0)))))
@@ -77,6 +77,8 @@
 
 (defun apartment-demo (&key (step 0))
   ;;urdf-proj:with-simulated-robot
+  (setf proj-reasoning::*projection-checks-enabled* nil)
+  (setf btr:*visibility-threshold* 0.7)
   (when (<= step 0)
     (initialize-apartment)
     ;; (btr-belief:vary-kitchen-urdf '(("handle_cab1_top_door_joint"
@@ -86,9 +88,6 @@
     ;; (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
     ;; (btr-belief:spawn-world)
 
-    (setf proj-reasoning::*projection-checks-enabled* nil)
-
-    (setf btr:*visibility-threshold* 0.7)
     (when cram-projection:*projection-environment*
       (spawn-objects-on-fixed-spots
        :object-types '(:jeroen-cup :cup)
@@ -142,8 +141,7 @@
                                               (part-of apartment)))))))
               (for (desig:an object
                              (type jeroen-cup)
-                             ;; need a name because of the attachment
-                             (name some-name)))
+                             (name jeroen-cup-1)))
               (attachments (jeroen-cup-in-dishwasher-1 jeroen-cup-in-dishwasher-2))))
          ;; (?location-in-hand
          ;;   (a location
@@ -167,73 +165,115 @@
               (range-invert 1.5)
               (orientation upside-down)
               (for (an object
-                       (type jeroen-cup)))))
+                       (type jeroen-cup)
+                       (name jeroen-cup-1)))))
 
 
          ;; hard-coded stuff for real-world demo
-         (?accessing-cupboard-door-pose
+         (?accessing-cupboard-door-robot-pose
            (cl-transforms-stamped:make-pose-stamped
             "map"
             0.0
             (cl-transforms:make-3d-vector 1.3861795354091224 2.0873920232286345 0.0d0)
             (cl-transforms:make-quaternion 0.0d0 0.0d0 1 0)))
-         (?accessing-cupboard-door-robot-location
-           (a location
-              (pose ?accessing-cupboard-door-pose)))
-         (?accessing-dishwasher-door-pose
+         (?accessing-cupboard-door-another-robot-pose
            (cl-transforms-stamped:make-pose-stamped
             "map"
             0.0
-            (cl-transforms:make-3d-vector  1.6 3.5 0.0d0)
-            (cl-transforms:make-quaternion 0.0d0 0.0d0 0 1)))
-         (?detecting-cupboard-pose
+            (cl-transforms:make-3d-vector 1.23 2.0 0.0d0)
+            (cl-transforms:make-quaternion 0.0d0 0.0d0 1 0)))
+         (?accessing-cupboard-door-robot-poses
+           (list ?accessing-cupboard-door-robot-pose
+                 ?accessing-cupboard-door-another-robot-pose))
+         (?detecting-cupboard-robot-pose
            (cl-transforms-stamped:make-pose-stamped
             "map"
             0.0
             (cl-transforms:make-3d-vector 1.2624905511520543d0 2.002821242371188d0 0.0d0)
-            (cl-transforms:make-quaternion 0.0d0 0.0d0 -0.980183726892722d0 0.19809053873088875d0))))
+            (cl-transforms:make-quaternion 0.0d0 0.0d0 -0.980183726892722d0 0.19809053873088875d0)))
+         (?on-counter-top-cup-pose
+           (cl-transforms-stamped:make-pose-stamped
+            "map"
+            0.0
+            (cl-transforms:make-3d-vector 2.38 2.7 1.0126)
+            (cl-transforms:make-quaternion 0 0 1 0)))
+         (?delivering-counter-top-robot-pose
+           (cl-transforms-stamped:make-pose-stamped
+            "map"
+            0.0
+            (cl-transforms:make-3d-vector 1.6 2.2 0.0d0)
+            (cl-transforms:make-quaternion 0.0d0 0.0d0 0.3 1)))
+         (?sealing-cupboard-door-robot-pose
+           (cl-transforms-stamped:make-pose-stamped
+            "map"
+            0.0
+            (cl-transforms:make-3d-vector 1.6861833377510809 1.0873920171726708 0.0)
+            (cl-transforms:make-quaternion 0.0d0 0.0d0 0.9238795325112867 0.3826834323650899)))
+         (?accessing-dishwasher-door-robot-pose
+           (cl-transforms-stamped:make-pose-stamped
+            "map"
+            0.0
+            (cl-transforms:make-3d-vector 1.6 3.5 0.0d0)
+            (cl-transforms:make-quaternion 0.0d0 0.0d0 0 1))))
 
     ;; bring cup from cupboard to table
     (when (<= step 1)
-      (exe:perform
-       (an action
-           (type transporting)
-           (object (an object
-                       (type jeroen-cup)
-                       (location ?location-in-cupboard)))
-           (access-seal-search-outer-arms (left))
-           (access-seal-search-outer-grasps (right-side))
-           (access-search-outer-robot-location ?accessing-cupboard-door-robot-location)
-           (search-robot-location (a location
-                                     (pose ?detecting-cupboard-pose)))
-           (fetch-robot-location (a location
-                                     (pose ?detecting-cupboard-pose)))
-           (arms (left))
-           (grasps (front))
-           (target ?location-on-island))))
+      (let ((?goal `(and (cpoe:object-at-location ,(an object
+                                                       (type jeroen-cup)
+                                                       (name jeroen-cup-1))
+                                                  ,(a location
+                                                      (pose ?on-counter-top-cup-pose)))
+                         (cpoe:location-reset ,?location-in-cupboard))))
+        (exe:perform
+         (an action
+             (type transporting)
+             (object (an object
+                         (type jeroen-cup)
+                         (name jeroen-cup-1)
+                         (location ?location-in-cupboard)))
+             (access-search-outer-robot-location (a location
+                                                    (poses ?accessing-cupboard-door-robot-poses)))
+             (access-seal-search-outer-arms (left))
+             (access-search-outer-grasps (right-side))
+             (search-robot-location (a location
+                                       (pose ?detecting-cupboard-robot-pose)))
+             (fetch-robot-location (a location
+                                      (pose ?detecting-cupboard-robot-pose)))
+             (arms (left))
+             (grasps (front))
+             (target (a location
+                        (pose ?on-counter-top-cup-pose))
+                     ;; ?location-on-island
+                     )
+             (deliver-robot-location (a location
+                                        (pose ?delivering-counter-top-robot-pose)))
+             (seal-search-outer-robot-location (a location
+                                                  (pose ?sealing-cupboard-door-robot-pose)))
+             (seal-search-outer-grasps (right-side))
+             (goal ?goal)))))
 
     ;; put cup from island into dishwasher
-    (when (<= step 2)
-      (exe:perform
-       (an action
-           (type transporting)
-           (object (an object
-                       (type jeroen-cup)
-                       (name jeroen-cup-1)
-                       (location ?location-on-island)))
-           (target ?location-in-dishwasher))))
+    ;; (when (<= step 2)
+    ;;   (exe:perform
+    ;;    (an action
+    ;;        (type transporting)
+    ;;        (object (an object
+    ;;                    (type jeroen-cup)
+    ;;                    (name jeroen-cup-1)
+    ;;                    (location ?location-on-island)))
+    ;;        (target ?location-in-dishwasher))))
 
     ;; put cup from dishwasher onto table upside-down
-    (when (<= step 3)
-      ;; let ((?goal `(cpoe:object-at-location ,?object ,?location-in-hand)))
-      (exe:perform
-       (an action
-           (type transporting)
-           (object (an object
-                       (type jeroen-cup)
-                       (name jeroen-cup-1)
-                       (location ?location-in-dishwasher)))
-           (target ?location-on-island-upside-down))))
+    ;; (when (<= step 3)
+    ;;   ;; let ((?goal `(cpoe:object-at-location ,?object ,?location-in-hand)))
+    ;;   (exe:perform
+    ;;    (an action
+    ;;        (type transporting)
+    ;;        (object (an object
+    ;;                    (type jeroen-cup)
+    ;;                    (name jeroen-cup-1)
+    ;;                    (location ?location-in-dishwasher)))
+    ;;        (target ?location-on-island-upside-down))))
 
     ;; regrasp cup
     ;; (when (<= step 4)
@@ -254,7 +294,8 @@
            (object (an object
                        (type jeroen-cup)
                        (name jeroen-cup-1)
-                       (location ?location-on-island-upside-down)))
+                       ;; (location ?location-on-island-upside-down)
+                       (location ?location-on-island)))
            (target ?location-in-cupboard)))))
 
   (finalize))

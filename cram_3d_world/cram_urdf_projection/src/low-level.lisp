@@ -1092,7 +1092,7 @@ collision by moving its torso and base"
     (btr:add-vis-axis-object right-tcp-pose :length 0.1))
   (when left-tcp-pose
     (btr:add-vis-axis-object left-tcp-pose :length 0.1))
-
+  ;; (break)
   (cut:with-vars-strictly-bound (?robot
                                  ?left-tool-frame ?right-tool-frame
                                  ?left-ee-frame ?right-ee-frame

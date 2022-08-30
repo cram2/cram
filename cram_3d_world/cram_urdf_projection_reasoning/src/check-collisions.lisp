@@ -483,7 +483,9 @@ Store found pose into designator or throw error if good pose not found."
                             (cpl:fail 'common-fail:manipulation-goal-in-collision)))))
                     (list left-poses-1 left-poses-2 left-poses-3 left-poses-4)
                     (list right-poses-1 right-poses-2 right-poses-3 right-poses-4)
-                    (list :avoid-all :avoid-all :allow-all :allow-all))
+                    (list :avoid-all
+                          :allow-all ;; :avoid-all
+                          :allow-all :allow-all))
                    ;; (when (eq (desig:desig-prop-value action-desig :type) :opening)
                    ;;   (when (btr:robot-colliding-objects-without-attached)
                    ;;     (roslisp:ros-warn (coll-check environment)

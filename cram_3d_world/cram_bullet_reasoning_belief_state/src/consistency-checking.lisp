@@ -42,11 +42,16 @@ Anything beyond this distance will cause a correction method to be triggered
 to try and correct the unstable object.
 If this threshold is NIL, no correction will happen.")
 
+(defparameter *perception-instability-correction-threshold* 0.03
+  "Once instability has been detected and the consistency checking kicks in,
+correct the pose in all axes where the offset is above this threshold.
+If the threshold is 0, correct along all axes.")
+
 (defparameter *perception-noise-correction-offset* 0.01
   "First distance in meters, with which the unstable perceived object will be
 counter-moved when it falls down upon simulation.")
 
-(defparameter *perception-noise-correction-iterations* 5
+(defparameter *perception-noise-correction-iterations* 10
   "Number of distances to try the correction approach with. In times.")
 
 (defparameter *perception-noise-correction-step* 0.01
@@ -80,7 +85,8 @@ Returns a list of ((:axis-1 sign-1) (:axis-2 sign-2)...)."
         with correction
         for distance in dist-list
         for axis in '(:x :y :z)
-        do (when (> (abs distance) *perception-instability-threshold*)
+        do (print distance)
+           (when (> (abs distance) *perception-instability-correction-threshold*)
              (push (/ distance (abs distance)) correction)
              (push axis correction))
         finally (return correction)))
@@ -112,7 +118,10 @@ Returns a list of ((:axis-1 sign-1) (:axis-2 sign-2)...)."
                 then (+ offset *perception-noise-correction-step*)
               for iteration from 1 to *perception-noise-correction-iterations*
               do (let* ((scaled-correction
-                          (mapcar (lambda (x) (if (numberp x) (* x offset) x))
+                          (mapcar (lambda (x)
+                                    (if (numberp x)
+                                        (* x offset)
+                                        x))
                                   object-pose-correction))
                         (object-corrected-pose
                           (apply #'cram-tf:translate-pose object-pose scaled-correction)))

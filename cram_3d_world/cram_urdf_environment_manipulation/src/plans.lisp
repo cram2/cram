@@ -77,8 +77,9 @@
                  (type looking)
                  (target (desig:a location
                                   (pose ?look-pose)))))))
-  (cpl:par
-    (roslisp:ros-info (env-manip plan) "Opening gripper and reaching")
+  (;cpl:par
+   cpl:seq
+   (roslisp:ros-info (env-manip plan) "Opening gripper and reaching")
     (let ((?goal `(cpoe:gripper-joint-at ,?arm ,?gripper-opening)))
       (exe:perform
        (desig:an action
@@ -100,6 +101,7 @@
                      (type reaching)
                      (left-poses ?left-reach-poses)
                      (right-poses ?right-reach-poses)
+                     (application-context ?type)
                      (goal ?goal)))))))
   (cpl:with-retry-counters ((grasp-retries 2))
     (cpl:with-failure-handling
@@ -125,10 +127,20 @@
                     "Gripping")
   ;; Gripping now both for closing and opening, as grasp pose can be funny.
   ;; when (eq ?type :opening)
-  (exe:perform
-   (desig:an action
-             (type gripping)
-             (gripper ?arm)))
+  (if (eq ?type :opening)
+      (exe:perform
+       (desig:an action
+                 (type gripping)
+                 (gripper ?arm)))
+      (cpl:with-failure-handling
+          ((common-fail:gripper-low-level-failure (e)
+             (roslisp:ros-warn (env-plans manipulate)
+                               "Gripping didn't work: ~a.~%Ignoring..." e)
+             (return)))
+        (exe:perform
+         (desig:an action
+                   (type gripping)
+                   (gripper ?arm)))))
 
   ;;;;;;;;;;;;;;;;;;;;;; MANIPULATING ;;;;;;;;;;;;;;;;;;;;;;;
   (roslisp:ros-info (environment-manipulation manipulate-container)
@@ -169,7 +181,7 @@
                  (gripper ?arm)))
       ;; sleep for half a second,
       ;; maybe the action is nearly finished, so there is no need to fail
-      (cpl:sleep 1)
+      (cpl:sleep 10000)
       (cpl:fail 'common-fail:gripper-closed-completely
                 :description "Handle slipped")))
 
@@ -204,6 +216,7 @@
                  (type retracting)
                  (left-poses ?left-retract-poses)
                  (right-poses ?right-retract-poses)
+                 (application-context ?type)
                  (goal ?goal)))))
   (exe:perform
    (desig:an action

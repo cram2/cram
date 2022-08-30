@@ -348,15 +348,18 @@
          . ,root-link))))))
 
 (defun make-cartesian-constraint (root-frame tip-frame goal-pose
-                                  &key max-velocity avoid-collisions-much)
+                                  &key max-velocity avoid-collisions-much
+                                    straight-line)
   (declare (type string root-frame tip-frame)
            (type cl-transforms-stamped:pose-stamped goal-pose)
            (type (or number null) max-velocity)
-           (type boolean avoid-collisions-much))
+           (type boolean avoid-collisions-much straight-line))
   (roslisp:make-message
    'giskard_msgs-msg:constraint
    :type
-   "CartesianPose"
+   (if straight-line
+       "CartesianPoseStraight"
+       "CartesianPose")
    :parameter_value_pair
    (alist->json-string
     `(("root_link" . ,root-frame)

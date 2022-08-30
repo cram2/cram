@@ -46,19 +46,46 @@
                                          collision-object-b
                                          collision-object-b-link
                                          collision-object-a
-                                         prefer-base allow-base
+                                         prefer-base allow-base straight-line
                                          align-planes-left align-planes-right
                                          unmovable-joints)
   (declare (type (or null cl-transforms-stamped:pose-stamped) left-pose right-pose)
            (type (or null string) pose-base-frame)
-           (type boolean prefer-base align-planes-left align-planes-right)
+           (type boolean prefer-base straight-line
+                 align-planes-left align-planes-right)
            (type (or null list) unmovable-joints))
   (let ((arms (append (when left-pose '(:left))
                       (when right-pose '(:right)))))
     (make-giskard-goal
      :constraints (list
-                   (make-avoid-joint-limits-constraint)
-                   (when allow-base
+                   (when left-pose
+                     (make-cartesian-constraint
+                      pose-base-frame cram-tf:*robot-left-wrist-frame* left-pose
+                      :straight-line straight-line
+                      :avoid-collisions-much nil))
+                   (when right-pose
+                     (make-cartesian-constraint
+                      pose-base-frame cram-tf:*robot-right-wrist-frame* right-pose
+                      :straight-line straight-line
+                      :avoid-collisions-much nil))
+                   ;; (make-avoid-joint-limits-constraint
+                   ;;  :joint-list (append (when left-pose
+                   ;;                        (cut:var-value
+                   ;;                         '?joints
+                   ;;                         (car
+                   ;;                          (prolog:prolog
+                   ;;                           `(and (rob-int:robot ?robot-name)
+                   ;;                                 (rob-int:arm-joints
+                   ;;                                  ?robot-name :left ?joints))))))
+                   ;;                      (when right-pose
+                   ;;                        (cut:var-value
+                   ;;                         '?joints
+                   ;;                         (car
+                   ;;                          (prolog:prolog
+                   ;;                           `(and (rob-int:robot ?robot-name)
+                   ;;                                 (rob-int:arm-joints
+                   ;;                                  ?robot-name :right ?joints))))))))
+                   (when prefer-base
                      (make-prefer-base-constraint
                       :base-weight (if prefer-base
                                        *prefer-base-low-cost*
@@ -87,35 +114,28 @@
                    (when unmovable-joints
                      (make-unmovable-joints-constraint
                       (append
-                       unmovable-joints
-                       (when (eq (rob-int:get-robot-name) :tiago-dual)
-                         (mapcar (lambda (binds)
-                                   (cut:var-value '?joint binds))
-                                 (cut:force-ll
-                                  (prolog:prolog
-                                   `(and (rob-int:robot ?robot-name)
-                                         (rob-int:gripper-joint ?robot-name ?_ ?joint)))))))))
-                   (make-base-velocity-constraint
-                    *base-max-velocity-slow-xy* *base-max-velocity-slow-theta*)
-                   (make-head-pointing-at-hand-constraint
-                    (if left-pose
-                        :left
-                        :right))
+                       (when unmovable-joints
+                         unmovable-joints)
+                       ;; (when (eq (rob-int:get-robot-name) :tiago-dual)
+                       ;;   (mapcar (lambda (binds)
+                       ;;             (cut:var-value '?joint binds))
+                       ;;           (cut:force-ll
+                       ;;            (prolog:prolog
+                       ;;             `(and (rob-int:robot ?robot-name)
+                       ;;                   (rob-int:gripper-joint ?robot-name ?_ ?joint))))))
+                       )))
+                   ;; (make-base-velocity-constraint
+                   ;;  *base-max-velocity-slow-xy* *base-max-velocity-slow-theta*)
+                   ;; (make-head-pointing-at-hand-constraint
+                   ;;  (if left-pose
+                   ;;      :left
+                   ;;      :right))
                    (when (eq (rob-int:get-robot-name) :tiago-dual)
                      (make-diffdrive-cartesian-goal-arm-constraint
                       (if left-pose
                           cram-tf:*robot-left-tool-frame*
-                          cram-tf:*robot-right-tool-frame*))))
-     :cartesian-constraints (list (when left-pose
-                                    (make-cartesian-constraint
-                                     pose-base-frame
-                                     cram-tf:*robot-left-wrist-frame*
-                                     left-pose))
-                                  (when right-pose
-                                    (make-cartesian-constraint
-                                     pose-base-frame
-                                     cram-tf:*robot-right-wrist-frame*
-                                     right-pose)))
+                          cram-tf:*robot-right-tool-frame*)))
+                   )
      :collisions (ecase collision-mode
                    (:avoid-all (make-avoid-all-collision))
                    (:allow-all (make-allow-all-collision))
@@ -140,7 +160,7 @@
                                   collision-object-b-link)
                                  (make-allow-arm-collision
                                   arms (rob-int:get-environment-name)))))
-                   (:allow-attached (make-avoid-all-collision)
+                   (:allow-attached ;; (make-avoid-all-collision)
                                         ; attached objects are handled by giskard
                     )))))
 
@@ -175,6 +195,14 @@
                   :max-velocity *base-max-velocity-slow-xy*
                   ;; :avoid-collisions-much t
                   )
+                 ;; (when (eq (rob-int:get-robot-name) :tiago-dual)
+                 ;;   (make-unmovable-joints-constraint
+                 ;;    (mapcar (lambda (binds)
+                 ;;              (cut:var-value '?joint binds))
+                 ;;            (cut:force-ll
+                 ;;             (prolog:prolog
+                 ;;              `(and (rob-int:robot ?robot-name)
+                 ;;                    (rob-int:gripper-joint ?robot-name ?_ ?joint)))))))
                  ;; (when align-planes-left
                  ;;   (make-align-planes-tool-frame-constraint
                  ;;    :left
@@ -285,14 +313,15 @@
                                     collision-mode
                                     collision-object-b collision-object-b-link
                                     collision-object-a
-                                    move-base prefer-base
+                                    move-base prefer-base straight-line
                                     align-planes-left align-planes-right
                                     unmovable-joints)
   (declare (type (or number null) action-timeout)
            (type (or cl-transforms-stamped:pose-stamped null)
                  goal-pose-left goal-pose-right)
            (type (or string null) pose-base-frame)
-           (type boolean move-base prefer-base align-planes-left align-planes-right)
+           (type boolean move-base prefer-base straight-line
+                 align-planes-left align-planes-right)
            (type (or list null) unmovable-joints))
 
   (unless (or goal-pose-left goal-pose-right)
@@ -324,16 +353,18 @@
                  :collision-object-a collision-object-a
                  :allow-base move-base
                  :prefer-base prefer-base
+                 :straight-line straight-line
                  :align-planes-left align-planes-left
                  :align-planes-right align-planes-right
                  :unmovable-joints unmovable-joints)
    :action-timeout action-timeout
-   :check-goal-function (lambda (result status)
-                          (declare (ignore result status))
-                          (or (ensure-arm-cartesian-goal-reached
-                               goal-pose-left cram-tf:*robot-left-tool-frame*)
-                              (ensure-arm-cartesian-goal-reached
-                               goal-pose-right cram-tf:*robot-right-tool-frame*)))))
+   ;; :check-goal-function (lambda (result status)
+   ;;                        (declare (ignore result status))
+   ;;                        (or (ensure-arm-cartesian-goal-reached
+   ;;                             goal-pose-left cram-tf:*robot-left-tool-frame*)
+   ;;                            (ensure-arm-cartesian-goal-reached
+   ;;                             goal-pose-right cram-tf:*robot-right-tool-frame*)))
+   ))
 
 
 
@@ -346,20 +377,33 @@
            (type (or number null) action-timeout)
            (type boolean avoid-collisions-not-much))
 
-  (let ((joint-state-left
-          (ensure-arm-joint-goal-input goal-configuration-left :left))
-        (joint-state-right
-          (ensure-arm-joint-goal-input goal-configuration-right :right)))
+  (cpl:with-retry-counters ((park-retries 1))
+    (cpl:with-failure-handling
 
-    (call-action
-     :action-goal (make-arm-joint-action-goal
-                   joint-state-left joint-state-right
-                   align-planes-left align-planes-right
-                   :try-harder avoid-collisions-not-much)
-     :action-timeout action-timeout
-     :check-goal-function (lambda (result status)
-                            (declare (ignore result status))
-                            (or (ensure-arm-joint-goal-reached
-                                 goal-configuration-left :left)
-                                (ensure-arm-joint-goal-reached
-                                 goal-configuration-right :right))))))
+        ((common-fail:manipulation-goal-not-reached (e)
+           (roslisp:ros-warn (giskard joint-goal) "~a~%" e)
+           (cpl:do-retry park-retries
+             (roslisp:ros-warn (giskard joint-goal) "Retrying.")
+             (call-neck-joint-action :goal-configuration '(("head_1_joint" -1.0)
+                                                           ("head_2_joint" -1.0)))
+             (cpl:retry))
+           (roslisp:ros-warn (giskard joint-goal) "Ignoring.")
+           (return)))
+
+      (let ((joint-state-left
+              (ensure-arm-joint-goal-input goal-configuration-left :left))
+            (joint-state-right
+              (ensure-arm-joint-goal-input goal-configuration-right :right)))
+
+        (call-action
+         :action-goal (make-arm-joint-action-goal
+                       joint-state-left joint-state-right
+                       align-planes-left align-planes-right
+                       :try-harder avoid-collisions-not-much)
+         :action-timeout action-timeout
+         :check-goal-function (lambda (result status)
+                                (declare (ignore result status))
+                                (or (ensure-arm-joint-goal-reached
+                                     goal-configuration-left :left)
+                                    (ensure-arm-joint-goal-reached
+                                     goal-configuration-right :right))))))))

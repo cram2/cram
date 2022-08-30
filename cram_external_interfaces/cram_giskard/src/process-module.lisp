@@ -43,6 +43,7 @@
         :collision-object-a (fifth rest-args)
         :move-base (sixth rest-args)
         :prefer-base (seventh rest-args)
+        :straight-line (tenth rest-args)
         :align-planes-left (eighth rest-args)
         :align-planes-right (ninth rest-args)))
       (cram-common-designators:move-joints

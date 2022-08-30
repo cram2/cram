@@ -30,7 +30,7 @@
 
 (in-package :env-man)
 
-(defparameter *handle-retract-offset* 0.05 "in meters")
+(defparameter *handle-retract-offset* 0.50 "in meters")
 
 (defmethod man-int:get-action-trajectory :heuristics 20 ((action-type (eql :opening))
                                                          arm
