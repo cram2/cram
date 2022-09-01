@@ -92,11 +92,12 @@
       (spawn-objects-on-fixed-spots
        :object-types '(:jeroen-cup :cup)
        :spawning-poses-relative *apartment-object-spawning-poses*))
-    (park-robot (cl-transforms-stamped:make-pose-stamped
-                 cram-tf:*fixed-frame*
-                 0.0
-                 (cl-transforms:make-3d-vector 1.5 1.5 0.0)
-                 (cl-transforms:make-quaternion 0 0 1 0))))
+    ;; (park-robot (cl-transforms-stamped:make-pose-stamped
+    ;;              cram-tf:*fixed-frame*
+    ;;              0.0
+    ;;              (cl-transforms:make-3d-vector 1.5 1.5 0.0)
+    ;;              (cl-transforms:make-quaternion 0 0 1 0)))
+    )
 
   (let* ((?object
            (an object
@@ -195,14 +196,14 @@
            (cl-transforms-stamped:make-pose-stamped
             "map"
             0.0
-            (cl-transforms:make-3d-vector 2.38 2.7 1.0126)
+            (cl-transforms:make-3d-vector 2.38 2.6 1.0126)
             (cl-transforms:make-quaternion 0 0 1 0)))
          (?delivering-counter-top-robot-pose
            (cl-transforms-stamped:make-pose-stamped
             "map"
             0.0
             (cl-transforms:make-3d-vector 1.6 2.2 0.0d0)
-            (cl-transforms:make-quaternion 0.0d0 0.0d0 0.3 1)))
+            (cl-transforms:make-quaternion 0.0d0 0.0d0 -0.1 1)))
          (?sealing-cupboard-door-robot-pose
            (cl-transforms-stamped:make-pose-stamped
             "map"

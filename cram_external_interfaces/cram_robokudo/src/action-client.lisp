@@ -362,8 +362,8 @@
                 pose-stamped-in-base-frame
                 (roslisp-utilities:rosify-underscores-lisp-name name))))
 
-        (cram-tf:visualize-marker pose-stamped-in-whatever :r-g-b-list '(0 0 1) :id 1234)
-        (cram-tf:visualize-marker pose-stamped-in-map-frame :r-g-b-list '(1 0 0) :id 1235)
+        ;; (cram-tf:visualize-marker pose-stamped-in-whatever :r-g-b-list '(0 0 1) :id 1234)
+        ;; (cram-tf:visualize-marker pose-stamped-in-map-frame :r-g-b-list '(1 0 0) :id 1235)
 
         (let* ((properties-without-pose
                  (remove :pose combined-properties :key #'car))

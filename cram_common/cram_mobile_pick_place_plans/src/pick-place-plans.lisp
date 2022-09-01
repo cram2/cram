@@ -64,8 +64,8 @@
            (ignore location-type))
   "Open gripper, reach traj, grasp traj, close gripper, issue grasping event, lift."
 
-  (cram-tf:visualize-marker (man-int:get-object-pose ?object-designator)
-                            :r-g-b-list '(1 1 0) :id 300)
+  ;; (cram-tf:visualize-marker (man-int:get-object-pose ?object-designator)
+  ;;                           :r-g-b-list '(1 1 0) :id 300)
 
   (unless robot-arm-is-also-a-neck
     (roslisp:ros-info (pick-place pick-up) "Looking")
