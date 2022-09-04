@@ -11,7 +11,6 @@
                ((:right-wipe-poses ?right-wipe-poses))
                ((:right-approach-poses ?right-approach-poses))
              &allow-other-keys)
-  (print "My action designator is executable")
   ;; (print ?arm)
   ;; (print ?surface)
   ;; (print ?collision-mode)
@@ -36,7 +35,7 @@
                           (left-poses ?current-left-wipe-poses)
                           (desig:when ?collision-mode
                             (collision-mode ?collision-mode)))))
-  (sleep 1.0)
+  (sleep 0.1)
 
   (loop while ?left-wipe-poses
 
@@ -50,7 +49,7 @@
                         (left-poses ?current-left-wipe-poses)
                         (desig:when ?collision-mode
                           (collision-mode ?collision-mode)))))
-           (sleep 1.0)
+          (sleep 0.1)
   ))
 
 

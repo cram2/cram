@@ -77,7 +77,26 @@
           
            :z  (- (cl-transforms:z vector) offset-z)))
         :orientation
-        (cl-transforms:orientation pose)))))
+        (cl-transforms:orientation pose)))
+  
+  (:knife
+       (cram-tf::copy-pose-stamped
+        pose
+        :origin
+        (let ((vector (cl-transforms:origin pose)))
+          (cl-transforms:copy-3d-vector
+           vector
+           :x  (- (cl-transforms:x vector) offset-x) 
+           
+           :y  (- (cl-transforms:y vector) offset-y)
+          
+           :z (cl-transforms:z vector)))
+        :orientation
+        (cl-transforms:orientation pose))
+
+   )))
+
+
 
 (defun calculate-pose-up (pose offset-x offset-y offset-z grasp)
 
@@ -110,7 +129,26 @@
           
          :z  (+ (cl-transforms:z vector) offset-z)))
       :orientation
-      (cl-transforms:orientation pose)))))
+      (cl-transforms:orientation pose)))
+
+   (:knife
+       (cram-tf::copy-pose-stamped
+        pose
+        :origin
+        (let ((vector (cl-transforms:origin pose)))
+          (cl-transforms:copy-3d-vector
+           vector
+           :x  (+ (cl-transforms:x vector) offset-x) 
+           
+           :y  (- (cl-transforms:y vector) offset-y)
+          
+           :z (cl-transforms:z vector)))
+        :orientation
+        (cl-transforms:orientation pose))
+
+    )))
+
+  
 
 
   

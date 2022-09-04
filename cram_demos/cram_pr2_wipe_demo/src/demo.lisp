@@ -64,6 +64,14 @@
     (cl-tf:make-3d-vector 0 0 1)
     0.0)))
 
+(defparameter *base-pose-plate*
+  (cl-transforms-stamped:make-pose-stamped
+   "map" 0.0
+   (cl-transforms:make-3d-vector -2.1 0.75d0 0.00d0)
+   (cl-transforms:axis-angle->quaternion
+    (cl-tf:make-3d-vector 0 0 1)
+    0.0)))
+
 
 
 ;;Plan -> Function -> Designator -> Trajectory 
@@ -86,13 +94,13 @@
 
 (defun spawn-sponge ()
   ;;Placeholder for sponge
-  (btr-utils:spawn-object 'bowl-1 :bowl
-                                 :pose (cl-transforms:make-pose
-                                        (cl-tf:make-3d-vector -0.8 1.3 0.9)
-                                        (cl-tf:make-identity-rotation)))
+  ;; (btr-utils:spawn-object 'bowl-1 :bowl
+  ;;                                :pose (cl-transforms:make-pose
+  ;;                                       (cl-tf:make-3d-vector -0.8 1.3 0.9)
+  ;;                                       (cl-tf:make-identity-rotation)))
   (btr-utils:spawn-object 'plate-1 :plate
                                  :pose (cl-transforms:make-pose
-                                        (cl-tf:make-3d-vector -0.8 0.8 0.88)
+                                        (cl-tf:make-3d-vector -1.4 0.8 0.86)
                                         (cl-tf:make-identity-rotation)))
   
   (btr-utils:spawn-object 'knife-1 :knife
@@ -165,6 +173,14 @@
                                              (cl-transforms:make-3d-vector 0.5 0.5 1)
                                              0.0)) :mass 0.0001 :size '(0.15 0.4 0.01)  :color '(0 10 0 0.5))
 
+      (btr::add-object btr:*current-bullet-world* :colored-box 'surface-6 (cl-transforms::make-pose
+                                            (cl-transforms:make-3d-vector -1.4 0.8 0.88)
+                                            (cl-transforms:axis-angle->quaternion
+                                             (cl-transforms:make-3d-vector 0.5 0.5 1)
+                                             0.0)) :mass 0.0001 :size '(0.05 0.075 0.01)  :color '(0 10 0 0.5))
+
+    
+
 
 
 
@@ -206,23 +222,34 @@
                    (cpl:retry))
                  (roslisp:ros-warn (wipe-demo looking-fail)
                                  "~%No more retries~%")))
-        (let ((?grasping-arm (list :right))
-              (?perceived-object (urdf-proj::detect (desig:an object (type :bowl)))))
-          (pp-plans::park-arms :arm ?grasping-arm)
+        (let ((?grasping-arm (list :left))
+              (?perceived-object (urdf-proj::detect (desig:an object (type :knife)))))
+          
 
           ;; (exe:perform (desig:an action
           ;;                        (type picking-up)
-          ;;                          (grasp :top)
-          ;;                          (object ?perceived-object))))))))
-)))))
+          ;;                          (grasp :front)
+          ;;                          (object ?perceived-object)))
+          ))))
 
-        (sleep 2.0)
+  
 
 
 
-  (urdf-proj:with-simulated-robot
+        
+
+
+
+
+
+ 
+
+
+      
+
+  
      
-
+   
         ;;Sponge in hand, moving to the surface to wipe.
         (let ((?navigation-goal-surface *base-pose-surface*))
           (exe:perform (desig:an action
@@ -436,44 +463,85 @@
 
 
 
-    ;;  (pp-plans::park-arms :left-arm T)
 
-    ;;   (let ((?navigation-goal *base-pose-surface-kitchen-handle*
-    ;;                           ))
-    ;;       (exe:perform (desig:an action
-    ;;                              (type going)
-    ;;                              (target (desig:a location 
-    ;;                                               (pose ?navigation-goal))))))
+         (pp-plans::park-arms :left-arm T)
 
-    ;;        (let* ((?looking-direction *downward-look-coordinate*))
-    ;;         (exe:perform (desig:an action 
-    ;;                                (type looking)
-    ;;                                (target (desig:a location 
-    ;;                                                 (pose ?looking-direction))))))
+      (let ((?navigation-goal *base-pose*
+                              ))
+          (exe:perform (desig:an action
+                                 (type going)
+                                 (target (desig:a location 
+                                                  (pose ?navigation-goal))))))
+
+           (let* ((?looking-direction *downward-look-coordinate*))
+            (exe:perform (desig:an action 
+                                   (type looking)
+                                   (target (desig:a location 
+                                                    (pose ?looking-direction))))))
+
+
+      (cpl:with-retry-counters ((looking-retry 3))
+          (cpl:with-failure-handling
+              ((common-fail:low-level-failure
+                   (e)
+                 (declare (ignore e))
+                 (cpl:do-retry looking-retry
+                   (cpl:retry))
+                 (roslisp:ros-warn (wipe-demo looking-fail)
+                                 "~%No more retries~%")))
+        (let ((?grasping-arm (list :left))
+              (?perceived-object (urdf-proj::detect (desig:an object (type :knife)))))
+          
+
+          (exe:perform (desig:an action
+                                 (type picking-up)
+                                 (arm ?grasping-arm)
+                                   (grasp :top)
+                                   (object ?perceived-object))))))
 
 
 
-    ;; (cpl:with-retry-counters ((looking-retry 3))
-    ;;       (cpl:with-failure-handling
-    ;;           ((common-fail:low-level-failure
-    ;;                (e)
-    ;;              (declare (ignore e))
-    ;;              (cpl:do-retry looking-retry
-    ;;                (cpl:retry))
-    ;;              (roslisp:ros-warn (wipe-demo looking-fail)
-    ;;                                "~%No more retries~%")))
+     (pp-plans::park-arms :left-arm T)
 
-    ;;         (let* ((?surface-to-wipe (urdf-proj::detect (desig:an object (type :colored-box))))
-    ;;                (?arm-for-wiping :left)
-    ;;                (?collision-mode nil))
+      (let ((?navigation-goal *base-pose-plate*
+                              ))
+          (exe:perform (desig:an action
+                                 (type going)
+                                 (target (desig:a location 
+                                                  (pose ?navigation-goal))))))
+
+           (let* ((?looking-direction *downward-look-coordinate*))
+            (exe:perform (desig:an action 
+                                   (type looking)
+                                   (target (desig:a location 
+                                                    (pose ?looking-direction))))))
+
+
+
+         (cpl:with-retry-counters ((looking-retry 3))
+          (cpl:with-failure-handling
+              ((common-fail:low-level-failure
+                   (e)
+                 (declare (ignore e))
+                 (cpl:do-retry looking-retry
+                   (cpl:retry))
+                 (roslisp:ros-warn (wipe-demo looking-fail)
+                                   "~%No more retries~%")))
+
+            (let* ((?surface-to-wipe (urdf-proj::detect (desig:an object (type :colored-box))))
+                   (?arm-for-wiping :left)
+                   (?collision-mode nil))
       
-    ;;   (exe:perform
-    ;;    (desig:an action 
-    ;;              (type wiping)
-    ;;              (arm ?arm-for-wiping)
-    ;;              (surface ?surface-to-wipe)
-    ;;              (collision-mode ?collision-mode)
-    ;;              )))))
+      (exe:perform
+       (desig:an action 
+                 (type wiping)
+                 (grasp :knife)
+                 (arm ?arm-for-wiping)
+                 (surface ?surface-to-wipe)
+                 (collision-mode ?collision-mode)
+                 )))))
+
+
 
 
 
@@ -481,26 +549,7 @@
 
 
 
-      )
-
-
-
-
-
-
-    
-    )
-        
-
-  
-  
-  
-
-
-
-
-
-
+      ))
 
 (defun start ()
   (roslisp:start-ros-node "bullet_world")
