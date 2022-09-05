@@ -174,6 +174,8 @@
     (desig:designator :action ((:type ?action-type)
                                (:left-poses ?left-poses)
                                (:right-poses ?right-poses)
+                               ;; TODO: check if :avoid-all is possible to achieve
+                               ;; with environment manipulation as application-context
                                (:collision-mode :allow-hand)
                                (:collision-object-b ?collision-object-b)
                                (:collision-object-b-link ?object-link)
