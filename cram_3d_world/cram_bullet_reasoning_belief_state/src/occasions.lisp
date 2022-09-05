@@ -501,14 +501,17 @@
 
   ;; if ?location-designator is in the robot hand, check if object-in-hand
   (<- (%object-at-location ?world ?object ?location-designator)
-    (cpoe:object-in-hand ?object)
+    (cpoe:object-in-hand ?object ?_ ?_ ?object-holding-link)
     (desig:loc-desig? ?location-designator)
     (desig:current-designator ?location-designator ?current-location-designator)
     (or (desig:desig-prop ?current-location-designator (:on ?robot-designator))
         (desig:desig-prop ?current-location-designator (:in ?robot-designator)))
     (desig:current-designator ?robot-designator ?current-robot-designator)
     (spec:property ?current-robot-designator (:part-of ?robot-name))
-    (rob-int:robot ?robot-name))
+    (rob-int:robot ?robot-name)
+    (-> (spec:property ?current-robot-designator (:urdf-name ?robot-link))
+        (equal ?robot-link ?object-holding-link)
+        (true)))
 
   ;; compare the exact poses
   (<- (%object-at-location ?world ?object ?location-designator)
