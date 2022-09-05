@@ -507,9 +507,10 @@
 (defparameter *jeroen-cup-top-grasp-z-offset* 0.03 "in meters")
 (defparameter *jeroen-cup-bottom-pregrasp-z-offset* 0.01 "in meters")
 (defparameter *jeroen-cup-bottom-lift-z-offset* 0.01 "in meters")
-(defparameter *jeroen-cup-postgrasp-x-offset* 0.4 "in meters")
-(defparameter *jeroen-cup-postgrasp-y-offset* 0.2 "in meters")
+(defparameter *jeroen-cup-postgrasp-x-offset* 0.2 "in meters")
+(defparameter *jeroen-cup-postgrasp-y-offset* 0.0 "in meters")
 (defparameter *jeroen-cup-surface-lift-offset* 0.3 "in meters")
+(defparameter *jeroen-cup-lift-z-offset* 0.05 "in meters")
 
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms :jeroen-cup '(:left :right) :top
@@ -543,16 +544,16 @@
   :grasp-rot-matrix man-int:*y-across-z-flipped-grasp-rotation*
   :pregrasp-offsets `(0.0 ,*jeroen-cup-pregrasp-xy-offset* ,*jeroen-cup-pregrasp-z-offset*)
   :2nd-pregrasp-offsets `(0.0 ,*jeroen-cup-pregrasp-xy-offset* 0.0)
-  :lift-translation *lift-offset*
-  :2nd-lift-translation *lift-offset*)
+  :lift-translation `(0.0 0.0 ,*jeroen-cup-lift-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*jeroen-cup-lift-z-offset*))
 
 (man-int:def-object-type-to-gripper-transforms :jeroen-cup '(:left :right) :right-side
   :grasp-translation `(0.0d0 ,*jeroen-cup-grasp-xy-offset* ,*jeroen-cup-grasp-z-offset*)
   :grasp-rot-matrix man-int:*-y-across-z-flipped-grasp-rotation*
   :pregrasp-offsets `(0.0 ,(- *jeroen-cup-pregrasp-xy-offset*) ,*jeroen-cup-pregrasp-z-offset*)
   :2nd-pregrasp-offsets `(0.0 ,(- *jeroen-cup-pregrasp-xy-offset*) 0.0)
-  :lift-translation *lift-offset*
-  :2nd-lift-translation *lift-offset*)
+  :lift-translation `(0.0 0.0 ,*jeroen-cup-lift-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*jeroen-cup-lift-z-offset*))
 
 ;; BACK grasp
 (man-int:def-object-type-to-gripper-transforms :jeroen-cup '(:left :right) :back
@@ -560,8 +561,8 @@
   :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation-2*
   :pregrasp-offsets `(,(- *jeroen-cup-pregrasp-xy-offset*) 0.0 ,*jeroen-cup-pregrasp-z-offset*)
   :2nd-pregrasp-offsets `(,(- *jeroen-cup-pregrasp-xy-offset*) 0.0 0.0)
-  :lift-translation *lift-offset*
-  :2nd-lift-translation *lift-offset*)
+  :lift-translation `(0.0 0.0 ,*jeroen-cup-lift-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*jeroen-cup-lift-z-offset*))
 
 ;; FRONT grasp
 (man-int:def-object-type-to-gripper-transforms :jeroen-cup '(:left :right) :front
@@ -606,9 +607,11 @@
                                                                    (grasp (eql :front))
                                                                    (location (eql :shelf)))
   (list (make-base-transform
-         0.0 0.0 *lift-z-offset*)
+         0.0 0.0 *jeroen-cup-lift-z-offset*)
         (make-base-transform
-         (- *jeroen-cup-postgrasp-x-offset*) *jeroen-cup-postgrasp-y-offset* *lift-z-offset*)))
+         (- *jeroen-cup-postgrasp-x-offset*)
+         *jeroen-cup-postgrasp-y-offset*
+         *jeroen-cup-lift-z-offset*)))
 ;; postgrasp right hand
 (defmethod man-int:get-object-type-wrt-base-frame-lift-transforms ((type (eql :jeroen-cup))
                                                                    (arm (eql :right))
@@ -764,6 +767,7 @@
 (defparameter *milk-grasp-xy-offset* 0.01 "in meters")
 (defparameter *milk-grasp-z-offset* 0.03 "in meters")
 (defparameter *milk-pregrasp-xy-offset* 0.15 "in meters")
+(defparameter *milk-2nd-pregrasp-xy-offset* 0.05 "in meters")
 (defparameter *milk-lift-z-offset* 0.15 "in meters")
 
 ;; BACK grasp
@@ -771,7 +775,7 @@
   :grasp-translation `(,*milk-grasp-xy-offset* 0.0d0 ,*milk-grasp-z-offset*)
   :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation*
   :pregrasp-offsets `(,(- *milk-pregrasp-xy-offset*) 0.0 ,*milk-lift-z-offset*)
-  :2nd-pregrasp-offsets `(,(- *milk-pregrasp-xy-offset*) 0.0 0.0)
+  :2nd-pregrasp-offsets `(,(- *milk-2nd-pregrasp-xy-offset*) 0.0 0.0)
   :lift-translation `(0.0 0.0 ,*milk-lift-z-offset*)
   :2nd-lift-translation `(0.0 0.0 ,*milk-lift-z-offset*))
 
@@ -780,7 +784,7 @@
   :grasp-translation `(,(- *milk-grasp-xy-offset*) 0.0d0 ,*milk-grasp-z-offset*)
   :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
   :pregrasp-offsets `(,*milk-pregrasp-xy-offset* 0.0 ,*milk-lift-z-offset*)
-  :2nd-pregrasp-offsets `(,*milk-pregrasp-xy-offset* 0.0 0.0)
+  :2nd-pregrasp-offsets `(,*milk-2nd-pregrasp-xy-offset* 0.0 0.0)
   :lift-translation `(0.0 0.0 ,*milk-lift-z-offset*)
   :2nd-lift-translation `(0.0 0.0 ,*milk-lift-z-offset*))
 
@@ -789,7 +793,7 @@
   :grasp-translation `(0.0d0 ,(- *milk-grasp-xy-offset*) ,*milk-grasp-z-offset*)
   :grasp-rot-matrix man-int:*y-across-z-grasp-rotation*
   :pregrasp-offsets `(0.0 ,*milk-pregrasp-xy-offset* ,*milk-lift-z-offset*)
-  :2nd-pregrasp-offsets `(0.0 ,*milk-pregrasp-xy-offset* 0.0)
+  :2nd-pregrasp-offsets `(0.0 ,*milk-2nd-pregrasp-xy-offset* 0.0)
   :lift-translation `(0.0 0.0 ,*milk-lift-z-offset*)
   :2nd-lift-translation `(0.0 0.0 ,*milk-lift-z-offset*))
 
@@ -797,7 +801,7 @@
   :grasp-translation `(0.0d0 ,*milk-grasp-xy-offset* ,*milk-grasp-z-offset*)
   :grasp-rot-matrix man-int:*-y-across-z-grasp-rotation*
   :pregrasp-offsets `(0.0 ,(- *milk-pregrasp-xy-offset*) ,*milk-lift-z-offset*)
-  :2nd-pregrasp-offsets `(0.0 ,(- *milk-pregrasp-xy-offset*) 0.0)
+  :2nd-pregrasp-offsets `(0.0 ,(- *milk-2nd-pregrasp-xy-offset*) 0.0)
   :lift-translation `(0.0 0.0 ,*milk-lift-z-offset*)
   :2nd-lift-translation `(0.0 0.0 ,*milk-lift-z-offset*))
 
