@@ -100,6 +100,7 @@
                      (type reaching)
                      (left-poses ?left-reach-poses)
                      (right-poses ?right-reach-poses)
+                     (application-context ?type)
                      (goal ?goal)))))))
   (cpl:with-retry-counters ((grasp-retries 2))
     (cpl:with-failure-handling
@@ -204,6 +205,7 @@
                  (type retracting)
                  (left-poses ?left-retract-poses)
                  (right-poses ?right-retract-poses)
+                 (application-context ?type)
                  (goal ?goal)))))
   (exe:perform
    (desig:an action
