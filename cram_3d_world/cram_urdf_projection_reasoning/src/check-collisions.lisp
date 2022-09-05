@@ -454,9 +454,9 @@ Store found pose into designator or throw error if good pose not found."
                         (right-poses-4
                           (desig:desig-prop-value action-referenced :right-retract-poses)))
 
-                   (mapc (lambda (pose)
-                           (btr:add-vis-axis-object pose :id (random 100) :length 0.1))
-                         (append left-poses-3 right-poses-3))
+                   ;; (mapc (lambda (pose)
+                   ;;         (btr:add-vis-axis-object pose :id (random 100) :length 0.1))
+                   ;;       (append left-poses-3 right-poses-3))
 
                    (urdf-proj::gripper-action gripper-opening arm)
 
