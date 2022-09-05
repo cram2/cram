@@ -124,12 +124,22 @@
   ;;;;;;;;;;;;;;;;;;;; GRIPPING ;;;;;;;;;;;;;;;;;;;;;;;;
   (roslisp:ros-info (environment-manipulation manipulate-container)
                     "Gripping")
-  ;; Gripping now both for closing and opening, as grasp pose can be funny.
-  ;; when (eq ?type :opening)
-  (exe:perform
-   (desig:an action
-             (type gripping)
-             (gripper ?arm)))
+  ;; Gripping both for closing and opening, as grasp pose can be funny.
+  ;; But for now, when gripping fails during closing, ignore the failure.
+  (if (eq ?type :opening)
+      (exe:perform
+       (desig:an action
+                 (type gripping)
+                 (gripper ?arm)))
+      (cpl:with-failure-handling
+          ((common-fail:gripper-low-level-failure (e)
+             (roslisp:ros-warn (env-plans manipulate)
+                               "Gripping didn't work: ~a.~%Ignoring..." e)
+             (return)))
+        (exe:perform
+         (desig:an action
+                   (type gripping)
+                   (gripper ?arm)))))
 
   ;;;;;;;;;;;;;;;;;;;;;; MANIPULATING ;;;;;;;;;;;;;;;;;;;;;;;
   (roslisp:ros-info (environment-manipulation manipulate-container)
