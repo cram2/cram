@@ -41,17 +41,26 @@
         (desig:desig-prop ?motion-designator (:type :going))
         (desig:desig-prop ?motion-designator (:type :moving-torso))
         (desig:desig-prop ?motion-designator (:type :looking))
-        (desig:desig-prop ?motion-designator (:type :gripping))
+        ;; (desig:desig-prop ?motion-designator (:type :gripping))
+        ;; (desig:desig-prop ?motion-designator (:type :opening-gripper))
+        ;; (desig:desig-prop ?motion-designator (:type :closing-gripper))
+        ;; (desig:desig-prop ?motion-designator (:type :moving-gripper-joint))
+        ))
+
+  (<- (cpm:matching-process-module ?motion-designator grippers-pm)
+    (or (desig:desig-prop ?motion-designator (:type :gripping))
         (desig:desig-prop ?motion-designator (:type :opening-gripper))
         (desig:desig-prop ?motion-designator (:type :closing-gripper))
         (desig:desig-prop ?motion-designator (:type :moving-gripper-joint))))
 
-  (<- (cpm:available-process-module giskard:giskard-pm)
+
+  (<- (cpm:available-process-module ?pm)
+    (member ?pm (grippers-pm giskard:giskard-pm))
     (not (cpm:projection-running ?_))))
 
 (defmacro with-real-robot (&body body)
   `(cram-process-modules:with-process-modules-running
-       (rk:robokudo-perception-pm giskard:giskard-pm joints:joint-state-pm
+       (rk:robokudo-perception-pm giskard:giskard-pm grippers-pm joints:joint-state-pm
                                   btr-belief:world-state-detecting-pm common-desig:wait-pm)
      (cpl-impl::named-top-level (:name :top-level)
        ,@body)))

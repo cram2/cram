@@ -35,15 +35,24 @@
   :depends-on (cram-process-modules
                cram-designators
                cram-prolog
+               cram-language ; for grippers
 
                cram-tf
                cram-common-designators
+               cram-common-failures ; for grippers
 
                cram-robokudo ; for WITH-REAL-ROBOT
                cram-giskard
-               cram-joint-states)
+               cram-joint-states
+
+               teleop_tools_msgs-msg ; for grippers action client
+               cram-simple-actionlib-client
+               roslisp
+               roslisp-utilities)
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "interface" :depends-on ("package"))))))
+     (:file "grippers" :depends-on ("package"))
+     (:file "interface" :depends-on ("package"
+                                     "grippers"))))))
