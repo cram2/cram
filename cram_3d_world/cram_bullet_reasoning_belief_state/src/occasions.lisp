@@ -1,6 +1,7 @@
 ;;;
 ;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;;               2020, Christopher Pollok <cpollok@uni-bremen.de>
+;;;               2022, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -37,6 +38,8 @@
 (defparameter *ee-rotation-convergence-delta* 0.07 "In radians, about 4 deg.")
 (defparameter *looking-convergence-delta* 0.01 "In meters")
 (defparameter *looking-convergence-joints-delta* 0.07 "In radians, about 4 deg.")
+(defparameter *object-position-convergence-delta* 0.35 "In meters")
+(defparameter *object-rotation-convergence-delta* 0.70 "In radians, about 40 deg.")
 
 (def-fact-group occasions (cpoe:object-in-hand
                            cpoe:object-at-location
@@ -506,6 +509,26 @@
     (desig:current-designator ?robot-designator ?current-robot-designator)
     (spec:property ?current-robot-designator (:part-of ?robot-name))
     (rob-int:robot ?robot-name))
+
+  ;; compare the exact poses
+  (<- (%object-at-location ?world ?object ?location-designator)
+    (lisp-type ?location-designator desig:location-designator)
+    (btr:bullet-world ?world)
+    (lisp-fun desig:current-desig ?location-designator ?current-location)
+    (lisp-pred identity ?current-location)
+    (desig:designator-groundings ?current-location ?all-poses)
+    (once (member ?target-pose ?all-poses))
+    (object-designator-name ?object ?object-name)
+    (or (btr:object-pose ?world ?object-name ?object-pose)
+        (btr:object-bottom-pose ?world ?object-name ?object-pose))
+    (symbol-value cram-tf:*fixed-frame* ?fixed-frame)
+    (lisp-fun cl-transforms-stamped:pose->pose-stamped ?fixed-frame 0.0
+              ?object-pose ?object-pose-stamped)
+    (symbol-value *object-position-convergence-delta* ?delta-pos)
+    (symbol-value *object-rotation-convergence-delta* ?delta-rot)
+    (lisp-pred cram-tf:pose-stampeds-converged
+               ?object-pose-stamped ?target-pose
+               ?delta-pos ?delta-rot))
 
   (<- (%joint-at ?joint ?goal-state ?delta)
     (rob-int:robot ?robot)
