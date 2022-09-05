@@ -101,7 +101,8 @@
                                               ?collision-object-a
                                               ?move-base ?prefer-base
                                               ?align-planes-left
-                                              ?align-planes-right))
+                                              ?align-planes-right
+                                              ?straight-line))
     (property ?designator (:type :moving-tcp))
     (once (or (property ?designator (:left-pose ?left-pose))
               (equal ?left-pose nil)))
@@ -120,6 +121,8 @@
               (equal ?move-base nil)))
     (once (or (desig:desig-prop ?designator (:prefer-base ?prefer-base))
               (equal ?prefer-base nil)))
+    (once (or (desig:desig-prop ?designator (:straight-line ?straight-line))
+              (equal ?straight-line nil)))
     (once (or (desig:desig-prop ?designator (:align-planes-left ?align-planes-left))
               (equal ?align-planes-left nil)))
     (once (or (desig:desig-prop ?designator (:align-planes-right ?align-planes-right))
