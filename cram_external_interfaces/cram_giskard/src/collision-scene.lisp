@@ -155,6 +155,7 @@
                                            pose
                                            mesh-path
                                            dimensions
+                                           scale
                                            joint-state-topic
                                            parent-link
                                            parent-link-group)
@@ -169,13 +170,16 @@
                 (cl-transforms:make-identity-rotation))))
   (unless dimensions
     (setf dimensions '(1.0 1.0 1.0)))
+  (unless scale
+    (setf scale (cl-transforms:make-identity-vector)))
   (let ((body (if mesh-path
                   (roslisp:make-msg
                    'giskard_msgs-msg:worldbody
                    :type (roslisp:symbol-code
                           'giskard_msgs-msg:worldbody
                           :mesh_body)
-                   :mesh mesh-path)
+                   :mesh mesh-path
+                   :scale (cl-transforms-stamped:to-msg scale))
                   (roslisp:make-msg
                    'giskard_msgs-msg:worldbody
                    :type (roslisp:symbol-code

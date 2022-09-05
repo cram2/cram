@@ -48,14 +48,49 @@
                   open-or-close arm handle-link joint-state)
                  (when (eq (rob-int:get-robot-name) :tiago-dual)
                    (make-diffdrive-base-arch-constraint hinge-point-stamped))
-                 (make-avoid-joint-limits-constraint)
+                 (make-avoid-joint-limits-constraint
+                  :joint-list (cut:var-value
+                               '?joints
+                               (car
+                                (prolog:prolog
+                                 `(and (rob-int:robot ?robot-name)
+                                       (rob-int:arm-joints ?robot-name ,arm ?joints))))))
                  (make-head-pointing-at-hand-constraint arm))
    :collisions (make-constraints-vector
-                (ecase open-or-close
-                  (:open (make-allow-hand-collision
-                          (list arm) (rob-int:get-environment-name) handle-link))
-                  (:close (make-allow-arm-collision
-                           (list arm) (rob-int:get-environment-name)))))))
+                (make-allow-hand-collision
+                 (list arm) (rob-int:get-environment-name) handle-link))))
+
+(defun make-environment-manipulation-diffdrive-pregoal (arm handle-link
+                                                        &optional hinge-point-stamped)
+  (declare (type keyword arm)
+           (type symbol handle-link)
+           (type (or null cl-transforms-stamped:point-stamped) hinge-point-stamped))
+  (make-giskard-goal
+   :constraints (list
+                 (let ((wrist-link
+                         (if (eq arm :left)
+                             cram-tf:*robot-left-wrist-frame*
+                             cram-tf:*robot-right-wrist-frame*)))
+                   (make-cartesian-constraint
+                    cram-tf:*odom-frame*
+                    wrist-link
+                    (cl-transforms-stamped:pose->pose-stamped
+                     wrist-link 0.0
+                     (cl-transforms:make-identity-pose))))
+                 (when (eq (rob-int:get-robot-name) :tiago-dual)
+                   (make-diffdrive-base-arch-constraint hinge-point-stamped :small-weight t))
+                 (make-avoid-joint-limits-constraint
+                  :joint-list (cut:var-value
+                               '?joints
+                               (car
+                                (prolog:prolog
+                                 `(and (rob-int:robot ?robot-name)
+                                       (rob-int:arm-joints
+                                        ?robot-name ,arm ?joints))))))
+                 (make-head-pointing-at-hand-constraint arm))
+   :collisions (make-constraints-vector
+                (make-allow-hand-collision
+                 (list arm) (rob-int:get-environment-name) handle-link))))
 
 (defun call-environment-manipulation-action (&key
                                                action-timeout
@@ -73,6 +108,12 @@
                               cram-tf:*fixed-frame*
                               0.0
                               (cl-transforms:origin joint-pose))))
+
+    (when (eq (rob-int:get-robot-name) :tiago-dual)
+      (call-action
+       :action-goal (make-environment-manipulation-diffdrive-pregoal
+                     arm handle-link joint-point-stamped)
+       :action-timeout action-timeout))
 
     (call-action
      :action-goal (make-environment-manipulation-goal

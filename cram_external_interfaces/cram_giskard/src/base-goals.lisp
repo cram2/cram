@@ -58,7 +58,8 @@
                      (make-diffdrive-base-goal
                       cram-tf:*odom-frame* cram-tf:*robot-base-frame* pose
                       :avoid-collisions-much t
-                      :max-velocity *base-max-velocity-fast-xy*)
+                      :max-velocity *base-max-velocity-fast-xy*
+                      :always-forward nil)
                      (make-cartesian-constraint
                       cram-tf:*odom-frame* cram-tf:*robot-base-frame* pose
                       :avoid-collisions-much t
@@ -106,6 +107,7 @@
 
   (cram-tf:visualize-marker goal-pose :r-g-b-list '(0 1 0))
 
+  ;; Trying with slow velocity should happen on the motion level, not action level.
   (call-action
    :action-goal (make-giskard-base-action-goal goal-pose base-velocity)
    :action-timeout action-timeout
