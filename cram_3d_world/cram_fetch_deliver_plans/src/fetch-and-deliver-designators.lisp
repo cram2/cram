@@ -379,6 +379,7 @@ the `look-pose-stamped'."
                           (:access-seal-deliver-grasps ?access-seal-deliver-grasps))
         (true)
         (equal ?access-seal-deliver-grasps NIL))
+
     ;; access deliver outer location robot base
     (-> (desig:desig-prop ?action-designator
                           (:access-deliver-outer-robot-location ?some-ado-robot-loc-desig))
@@ -424,6 +425,7 @@ the `look-pose-stamped'."
                           (:access-seal-search-grasps ?access-seal-search-grasps))
         (true)
         (equal ?access-seal-search-grasps NIL))
+
     ;; access search outer location robot base
     (-> (desig:desig-prop ?action-designator
                           (:access-search-outer-robot-location ?some-aso-robot-loc-desig))
@@ -441,11 +443,17 @@ the `look-pose-stamped'."
                           (:access-seal-search-outer-arms ?access-seal-search-outer-arms))
         (true)
         (equal ?access-seal-search-outer-arms NIL))
-    ;; access / seal search outer grasps
+    ;; access search outer grasps
     (-> (desig:desig-prop ?action-designator
-                          (:access-seal-search-outer-grasps ?access-seal-search-outer-grasps))
+                          (:access-search-outer-grasps ?access-search-outer-grasps))
         (true)
-        (equal ?access-seal-search-outer-grasps NIL))
+        (equal ?access-search-outer-grasps NIL))
+    ;; seal search outer grasps
+    (-> (desig:desig-prop ?action-designator
+                          (:seal-search-outer-grasps ?seal-search-outer-grasps))
+        (true)
+        (equal ?seal-search-outer-grasps NIL))
+
 
     ;; search location robot base
     (-> (desig:desig-prop ?action-designator
@@ -501,12 +509,15 @@ the `look-pose-stamped'."
       (:access-search-outer-robot-location ?access-search-outer-robot-location-designator)
       (:seal-search-outer-robot-location ?seal-search-outer-robot-location-designator)
       (:access-seal-search-outer-arms ?access-seal-search-outer-arms)
-      (:access-seal-search-outer-grasps ?access-seal-search-outer-grasps)
+      (:access-search-outer-grasps ?access-search-outer-grasps)
+      (:seal-search-outer-grasps ?seal-search-outer-grasps)
 
       (:access-deliver-robot-location ?access-deliver-robot-location-designator)
       (:seal-deliver-robot-location ?seal-deliver-robot-location-designator)
       (:access-seal-deliver-arms ?access-seal-deliver-arms)
       (:access-seal-deliver-grasps ?access-seal-deliver-grasps)
+      (:access-deliver-outer-robot-location ?access-deliver-outer-robot-location-designator)
+      (:seal-deliver-outer-robot-location ?seal-deliver-outer-robot-location-designator)
       (:access-seal-deliver-outer-arms ?access-seal-deliver-outer-arms)
       (:access-seal-deliver-outer-grasps ?access-seal-deliver-outer-grasps)
 

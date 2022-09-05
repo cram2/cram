@@ -169,7 +169,7 @@ if yes, relocate and retry, if no collisions, open or close container."
                      ?robot-location-with-arm
                      relocation-retries
                      (:error-object-or-string e
-                      :warning-namespace (fd-plans environment)
+                      :warning-namespace (fd-plans environment outer)
                       :reset-designators (list ?robot-location-with-arm)
                       :rethrow-failure 'common-fail:environment-manipulation-impossible)
                    ;; TODO: what if the another arm is holding an object!
@@ -772,7 +772,8 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                     ((:access-search-outer-robot-location ?access-search-outer-robot-location))
                     ((:seal-search-outer-robot-location ?seal-search-outer-robot-location))
                     ((:access-seal-search-outer-arms ?access-seal-search-outer-arms))
-                    ((:access-seal-search-outer-grasps ?access-seal-search-outer-grasps))
+                    ((:access-search-outer-grasps ?access-search-outer-grasps))
+                    ((:seal-search-outer-grasps ?seal-search-outer-grasps))
 
                     ((:access-deliver-robot-location ?access-deliver-robot-location))
                     ((:seal-deliver-robot-location ?seal-deliver-robot-location))
@@ -840,12 +841,13 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                              (outer-robot-location ?access-search-outer-robot-location))
                            (desig:when ?access-seal-search-outer-arms
                              (outer-arms ?access-seal-search-outer-arms))
-                           (desig:when ?access-seal-search-outer-grasps
-                             (outer-grasps ?access-seal-search-outer-grasps))
+                           (desig:when ?access-search-outer-grasps
+                             (outer-grasps ?access-search-outer-grasps))
                            (goal ?goal))))
 
   ;; search for the object to find it's exact pose
-  (let ((?goal `(cpoe:object-in-hand ,?object-designator :left-or-right)))
+  (let ((?goal `(or (cpoe:object-in-hand ,?object-designator :left-or-right)
+                    (cpoe:object-at-location ,?object-designator ,?delivering-location))))
     (exe:perform (desig:an action
                            (type searching)
                            (object ?object-designator)
@@ -874,7 +876,8 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
         #'proj-reasoning:pick-best-parameters-by-distance
 
       ;; fetch the object
-      (let ((?fetch-goal `(cpoe:object-in-hand ,?object-designator :left-or-right)))
+      (let ((?fetch-goal `(or (cpoe:object-in-hand ,?object-designator :left-or-right)
+                              (cpoe:object-at-location ,?object-designator ,?delivering-location))))
         (exe:perform (desig:an action
                                (type fetching)
                                (desig:when ?arms
@@ -926,8 +929,8 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                              (outer-robot-location ?seal-search-outer-robot-location))
                            (desig:when ?access-seal-search-outer-arms
                              (outer-arms ?access-seal-search-outer-arms))
-                           (desig:when ?access-seal-search-outer-grasps
-                             (outer-grasps ?access-seal-search-outer-grasps))
+                           (desig:when ?seal-search-outer-grasps
+                             (outer-grasps ?seal-search-outer-grasps))
                            (goal ?goal))))
 
   ;; reset the target location
