@@ -505,8 +505,9 @@
 (defparameter *jeroen-cup-pregrasp-z-offset* 0.0 "in meters")
 (defparameter *jeroen-cup-top-grasp-x-offset* 0.0"in meters")
 (defparameter *jeroen-cup-top-grasp-z-offset* 0.03 "in meters")
-(defparameter *jeroen-cup-bottom-pregrasp-z-offset* 0.01 "in meters")
-(defparameter *jeroen-cup-bottom-lift-z-offset* 0.01 "in meters")
+(defparameter *jeroen-cup-bottom-grasp-z-offset* 0.03 "in meters")
+(defparameter *jeroen-cup-bottom-pregrasp-z-offset* 0.05 "in meters")
+(defparameter *jeroen-cup-bottom-lift-z-offset* 0.05 "in meters")
 (defparameter *jeroen-cup-postgrasp-x-offset* 0.2 "in meters")
 (defparameter *jeroen-cup-postgrasp-y-offset* 0.0 "in meters")
 (defparameter *jeroen-cup-surface-lift-offset* 0.3 "in meters")
@@ -531,7 +532,7 @@
 
 ;; BOTTOM grasp
 (man-int:def-object-type-to-gripper-transforms :jeroen-cup '(:left :right) :bottom
-  :grasp-translation `(0.0d0 0.0d0 ,(- *jeroen-cup-grasp-z-offset*))
+  :grasp-translation `(0.0d0 0.0d0 ,(- *jeroen-cup-bottom-grasp-z-offset*))
   :grasp-rot-matrix man-int:*-z-across-x-grasp-rotation*
   :pregrasp-offsets `(0.0 0.0 ,(- *jeroen-cup-bottom-pregrasp-z-offset*))
   :2nd-pregrasp-offsets `(0.0 0 ,(- *jeroen-cup-bottom-pregrasp-z-offset*))
@@ -1576,10 +1577,15 @@
 
 (man-int:def-object-type-in-other-object-transform :jeroen-cup :drawer
   :jeroen-cup-in-dishwasher-1
-  :attachment-translation `(-0.2 0.15 0.13)
+  :attachment-translation `(-0.2 -0.15 0.13)
   :attachment-rot-matrix man-int:*rotation-around-x-180-matrix*)
 
 (man-int:def-object-type-in-other-object-transform :jeroen-cup :drawer
   :jeroen-cup-in-dishwasher-2
-  :attachment-translation `(-0.2 0.15 0.13)
+  :attachment-translation `(-0.2 -0.15 0.13)
   :attachment-rot-matrix man-int:*rotation-around-y-180-matrix*)
+
+(man-int:def-object-type-in-other-object-transform :jeroen-cup :shelf
+  :jeroen-cup-on-shelf
+  :attachment-translation `(0.20 0.05 0.08)
+  :attachment-rot-matrix man-int:*rotation-around-x-180-matrix*)
