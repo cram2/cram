@@ -116,28 +116,28 @@ in a value of 1.0"
                                                 start-y (resolution grid) (origin-y grid))
                          below (map-coordinate->array-index
                                 end-y (resolution grid) (origin-y grid))
-                           by (/ (resolution costmap-metadata) (resolution grid))
+                       by (/ (resolution costmap-metadata) (resolution grid))
                        for y-destination-index from (map-coordinate->array-index
                                                      start-y (resolution costmap-metadata)
                                                      (origin-y costmap-metadata))
                          below (map-coordinate->array-index
                                 end-y (resolution costmap-metadata)
                                 (origin-y costmap-metadata))
-                           by (/ (resolution costmap-metadata)
-                                 (resolution costmap-metadata))
+                       by (/ (resolution costmap-metadata)
+                             (resolution costmap-metadata))
                        do (loop for x-source-index from (map-coordinate->array-index
                                                          start-x (resolution grid) (origin-x grid))
                                   below (map-coordinate->array-index
                                          end-x (resolution grid) (origin-x grid))
-                                    by (/ (resolution costmap-metadata) (resolution grid))
+                                by (/ (resolution costmap-metadata) (resolution grid))
                                 for x-destination-index from (map-coordinate->array-index
                                                               start-x (resolution costmap-metadata)
                                                               (origin-x costmap-metadata))
                                   below (map-coordinate->array-index
                                          end-x (resolution costmap-metadata)
                                          (origin-x costmap-metadata))
-                                    by (/ (resolution costmap-metadata)
-                                          (resolution costmap-metadata))
+                                by (/ (resolution costmap-metadata)
+                                      (resolution costmap-metadata))
                                 do (setf
                                     (aref matrix
                                           (truncate y-destination-index)
@@ -208,10 +208,9 @@ Optionally an angle `theta' can be given in radiant, if the input `matrix' needs
            ;; but simply setf
            ;; as we cannot setf values into the output matrix if it already has values,
            ;; we need an extra clean matrix to put the input in, and then add to the original
-           (let ((empty-output-matrix
-                   (cma:make-double-matrix
-                    (truncate (width costmap-metadata) (resolution costmap-metadata))
-                    (truncate (height costmap-metadata) (resolution costmap-metadata)))))
+           (let* ((array-width (truncate (width costmap-metadata) (resolution costmap-metadata)))
+                  (array-height (truncate (height costmap-metadata) (resolution costmap-metadata)))
+                  (empty-output-matrix (cma:make-double-matrix array-width array-height)))
 
              ;; If we look top down on the costmap visualization,
              ;; `start' is on the right bottom corner, `end' in on the top left.
@@ -285,14 +284,14 @@ Optionally an angle `theta' can be given in radiant, if the input `matrix' needs
                                               y-coordinate-maybe-rotated-mid
                                               sin-theta cos-theta
                                               rotation-point-x rotation-point-y)))
-                                      (setf y-coordinate-maybe-rotated
-                                            (second new-x-and-y)
-                                            x-coordinate-maybe-rotated
-                                            (first new-x-and-y)
-                                            y-coordinate-maybe-rotated-mid
-                                            (second new-x-and-y-mid)
-                                            x-coordinate-maybe-rotated-mid
-                                            (first new-x-and-y-mid))
+                                       (setf y-coordinate-maybe-rotated
+                                             (second new-x-and-y)
+                                             x-coordinate-maybe-rotated
+                                             (first new-x-and-y)
+                                             y-coordinate-maybe-rotated-mid
+                                             (second new-x-and-y-mid)
+                                             x-coordinate-maybe-rotated-mid
+                                             (first new-x-and-y-mid))
                                        ;; check if the rotated points are out-of-bounds
                                        (when (or (< y-coordinate-maybe-rotated
                                                     destination-origin-y)
@@ -310,7 +309,7 @@ Optionally an angle `theta' can be given in radiant, if the input `matrix' needs
                                                     destination-origin-x)
                                                  (>= x-coordinate-maybe-rotated-mid
                                                      destination-end-x))
-                                        (continue))))
+                                         (continue))))
 
                                    ;; Get the indices from the input matrix to get the value
                                    ;; Get the corresponding indices from the maybe rotated point
@@ -337,17 +336,29 @@ Optionally an angle `theta' can be given in radiant, if the input `matrix' needs
                                            (map-coordinate->array-index
                                             x-coordinate-maybe-rotated-mid
                                             (resolution costmap-metadata) destination-origin-x)))
-
-                                     ;; Save the value from the rotated input-matrix in the
-                                     ;; corresponding field in the output-matrix.
-                                     (setf (aref empty-output-matrix
-                                                 y-destination-index x-destination-index)
-                                           (aref matrix
-                                                 y-input-index x-input-index)
-                                           (aref empty-output-matrix
-                                                 y-destination-index-mid x-destination-index-mid)
-                                           (aref matrix
-                                                 y-input-index x-input-index)))))
+                                     ;; check if the indices are out of bounds
+                                     (unless (or (< y-destination-index 0)
+                                               (>= y-destination-index array-height)
+                                               (< x-destination-index 0)
+                                               (>= x-destination-index array-width)
+                                               (< y-destination-index-mid 0)
+                                               (>= y-destination-index-mid array-height)
+                                               (< x-destination-index-mid 0)
+                                               (>= x-destination-index-mid array-width)
+                                               (< y-input-index 0)
+                                               (>= y-input-index array-height)
+                                               (< x-input-index 0)
+                                               (>= x-input-index array-width))
+                                       ;; Save the value from the rotated input-matrix in the
+                                       ;; corresponding field in the output-matrix.
+                                       (setf (aref empty-output-matrix
+                                                   y-destination-index x-destination-index)
+                                             (aref matrix
+                                                   y-input-index x-input-index)
+                                             (aref empty-output-matrix
+                                                   y-destination-index-mid x-destination-index-mid)
+                                             (aref matrix
+                                                   y-input-index x-input-index))))))
 
                      finally (return (cma:m+ output-matrix empty-output-matrix)))))))
     (make-instance 'map-costmap-generator
