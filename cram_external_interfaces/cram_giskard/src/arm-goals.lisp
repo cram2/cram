@@ -102,8 +102,8 @@
                    ;;     (cl-transforms:make-3d-vector 0 0 1))))
                    (when unmovable-joints
                      (make-unmovable-joints-constraint unmovable-joints))
-                   (make-base-velocity-constraint
-                    *base-max-velocity-slow-xy* *base-max-velocity-slow-theta*)
+                   ;; (make-base-velocity-constraint
+                   ;;  *base-max-velocity-slow-xy* *base-max-velocity-slow-theta*)
                    (make-head-pointing-at-hand-constraint
                     (if left-pose
                         :left
@@ -115,12 +115,18 @@
                           cram-tf:*robot-right-tool-frame*)))
                    (when left-pose
                      (make-cartesian-constraint
-                      pose-base-frame cram-tf:*robot-left-wrist-frame* left-pose
+                      pose-base-frame
+                      ;; cram-tf:*robot-left-wrist-frame*
+                      cram-tf:*robot-left-tool-frame*
+                      left-pose
                       :straight-line straight-line
                       :avoid-collisions-much nil))
                    (when right-pose
                      (make-cartesian-constraint
-                      pose-base-frame cram-tf:*robot-right-wrist-frame* right-pose
+                      pose-base-frame
+                      ;; cram-tf:*robot-right-wrist-frame*
+                      cram-tf:*robot-right-tool-frame*
+                      right-pose
                       :straight-line straight-line
                       :avoid-collisions-much nil)))
      :collisions (ecase collision-mode
@@ -157,22 +163,22 @@
            (type boolean align-planes-left align-planes-right))
   (make-giskard-goal
    :constraints (list
-                 (make-ee-velocity-constraint
-                  :left
-                  (if try-harder
-                      (/ *arm-max-velocity-slow-xy* 3.0)
-                      *arm-max-velocity-slow-xy*)
-                  (if try-harder
-                      (/ *arm-max-velocity-slow-theta* 3.0)
-                      *arm-max-velocity-slow-theta*))
-                 (make-ee-velocity-constraint
-                  :right
-                  (if try-harder
-                      (/ *arm-max-velocity-slow-xy* 3.0)
-                      *arm-max-velocity-slow-xy*)
-                  (if try-harder
-                      (/ *arm-max-velocity-slow-theta* 3.0)
-                      *arm-max-velocity-slow-theta*))
+                 ;; (make-ee-velocity-constraint
+                 ;;  :left
+                 ;;  (if try-harder
+                 ;;      (/ *arm-max-velocity-slow-xy* 3.0)
+                 ;;      *arm-max-velocity-slow-xy*)
+                 ;;  (if try-harder
+                 ;;      (/ *arm-max-velocity-slow-theta* 3.0)
+                 ;;      *arm-max-velocity-slow-theta*))
+                 ;; (make-ee-velocity-constraint
+                 ;;  :right
+                 ;;  (if try-harder
+                 ;;      (/ *arm-max-velocity-slow-xy* 3.0)
+                 ;;      *arm-max-velocity-slow-xy*)
+                 ;;  (if try-harder
+                 ;;      (/ *arm-max-velocity-slow-theta* 3.0)
+                 ;;      *arm-max-velocity-slow-theta*))
                  (make-cartesian-constraint
                   cram-tf:*odom-frame* cram-tf:*robot-base-frame*
                   (cl-transforms-stamped:pose->pose-stamped
@@ -241,7 +247,8 @@
               tool-transform-in-correct-base-frame
               tool-T-wrist
               :result-as-pose-or-transform :pose)))
-      wrist-pose-in-correct-base-frame)))
+      ;; wrist-pose-in-correct-base-frame
+      tool-pose-in-correct-base-frame)))
 
 (defun ensure-arm-joint-goal-input (goal-configuration arm)
   (if (and (listp goal-configuration)

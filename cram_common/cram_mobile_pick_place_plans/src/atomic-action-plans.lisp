@@ -120,34 +120,34 @@ while ignoring failures; and execute the last pose with propagating the failures
                    (roslisp:ros-warn (pick-place move-arms-in-sequence) "~a~%Ignoring." e)
                    (return)))
 
-              (exe:perform
-               (desig:a motion
-                        (type moving-tcp)
-                        (desig:when ?left-pose
-                          (left-pose ?left-pose))
-                        (desig:when ?right-pose
-                          (right-pose ?right-pose))
-                        (desig:when ?collision-mode
-                          (collision-mode ?collision-mode))
-                        (desig:when ?collision-object-b
-                          (collision-object-b ?collision-object-b))
-                        (desig:when ?collision-object-b-link
-                          (collision-object-b-link ?collision-object-b-link))
-                        (desig:when ?collision-object-a
-                          (collision-object-a ?collision-object-a))
-                        (desig:when ?move-base
-                          (move-base ?move-base))
-                        (desig:when ?prefer-base
-                          (prefer-base ?prefer-base))
-                        (desig:when ?straight-line
-                          (straight-line ?straight-line))
-                        (desig:when ?align-planes-left
-                          (align-planes-left ?align-planes-left))
-                        (desig:when ?align-planes-right
-                          (align-planes-right ?align-planes-right))))
-
-              (cram-occasions-events:on-event
-               (make-instance 'cram-plan-occasions-events:robot-state-changed))))
+              (unwind-protect
+                   (exe:perform
+                    (desig:a motion
+                             (type moving-tcp)
+                             (desig:when ?left-pose
+                               (left-pose ?left-pose))
+                             (desig:when ?right-pose
+                               (right-pose ?right-pose))
+                             (desig:when ?collision-mode
+                               (collision-mode ?collision-mode))
+                             (desig:when ?collision-object-b
+                               (collision-object-b ?collision-object-b))
+                             (desig:when ?collision-object-b-link
+                               (collision-object-b-link ?collision-object-b-link))
+                             (desig:when ?collision-object-a
+                               (collision-object-a ?collision-object-a))
+                             (desig:when ?move-base
+                               (move-base ?move-base))
+                             (desig:when ?prefer-base
+                               (prefer-base ?prefer-base))
+                             (desig:when ?straight-line
+                               (straight-line ?straight-line))
+                             (desig:when ?align-planes-left
+                               (align-planes-left ?align-planes-left))
+                             (desig:when ?align-planes-right
+                               (align-planes-right ?align-planes-right))))
+                (cram-occasions-events:on-event
+                 (make-instance 'cram-plan-occasions-events:robot-state-changed)))))
 
           left-poses right-poses))
 
@@ -160,34 +160,34 @@ while ignoring failures; and execute the last pose with propagating the failures
            ;; propagate failures up
            (roslisp:ros-error (pick-place move-arms-in-sequence) "~a~%Failing." e)))
 
-      (exe:perform
-       (desig:a motion
-                (type moving-tcp)
-                (desig:when ?left-pose
-                  (left-pose ?left-pose))
-                (desig:when ?right-pose
-                  (right-pose ?right-pose))
-                (desig:when ?collision-mode
-                  (collision-mode ?collision-mode))
-                (desig:when ?collision-object-b
-                  (collision-object-b ?collision-object-b))
-                (desig:when ?collision-object-b-link
-                  (collision-object-b-link ?collision-object-b-link))
-                (desig:when ?collision-object-a
-                  (collision-object-a ?collision-object-a))
-                (desig:when ?move-base
-                  (move-base ?move-base))
-                (desig:when ?prefer-base
-                  (prefer-base ?prefer-base))
-                (desig:when ?straight-line
-                  (straight-line ?straight-line))
-                (desig:when ?align-planes-left
-                  (align-planes-left ?align-planes-left))
-                (desig:when ?align-planes-right
-                  (align-planes-right ?align-planes-right))))
-
-      (cram-occasions-events:on-event
-       (make-instance 'cram-plan-occasions-events:robot-state-changed)))))
+      (unwind-protect
+           (exe:perform
+            (desig:a motion
+                     (type moving-tcp)
+                     (desig:when ?left-pose
+                       (left-pose ?left-pose))
+                     (desig:when ?right-pose
+                       (right-pose ?right-pose))
+                     (desig:when ?collision-mode
+                       (collision-mode ?collision-mode))
+                     (desig:when ?collision-object-b
+                       (collision-object-b ?collision-object-b))
+                     (desig:when ?collision-object-b-link
+                       (collision-object-b-link ?collision-object-b-link))
+                     (desig:when ?collision-object-a
+                       (collision-object-a ?collision-object-a))
+                     (desig:when ?move-base
+                       (move-base ?move-base))
+                     (desig:when ?prefer-base
+                       (prefer-base ?prefer-base))
+                     (desig:when ?straight-line
+                       (straight-line ?straight-line))
+                     (desig:when ?align-planes-left
+                       (align-planes-left ?align-planes-left))
+                     (desig:when ?align-planes-right
+                       (align-planes-right ?align-planes-right))))
+        (cram-occasions-events:on-event
+         (make-instance 'cram-plan-occasions-events:robot-state-changed))))))
 
 (defun manipulate-environment (&key
                                  ((:type ?type))

@@ -77,8 +77,9 @@
                  (type looking)
                  (target (desig:a location
                                   (pose ?look-pose)))))))
-  (cpl:par
-    (roslisp:ros-info (env-manip plan) "Opening gripper and reaching")
+  (;cpl:par
+   cpl:seq
+   (roslisp:ros-info (env-manip plan) "Opening gripper and reaching")
     (let ((?goal `(cpoe:gripper-joint-at ,?arm ,?gripper-opening)))
       (exe:perform
        (desig:an action
@@ -86,14 +87,15 @@
                  (gripper ?arm)
                  (position ?gripper-opening)
                  (goal ?goal))))
-    (cpl:with-retry-counters ((reach-retries 2))
+    (cpl:with-retry-counters ((reach-retries 0))
       (cpl:with-failure-handling
           ((common-fail:manipulation-low-level-failure (e)
              (roslisp:ros-warn (env-plans manipulate)
-                               "Manipulation messed up: ~a~%Failing."
+                               "Manipulation messed up: ~a~%Retrying once then ignoring."
                                e)
              (cpl:do-retry reach-retries
-               (cpl:retry))))
+               (cpl:retry))
+             (return)))
         (let ((?goal `(cpoe:tool-frames-at ,?left-reach-poses ,?right-reach-poses)))
           (exe:perform
            (desig:an action
@@ -102,14 +104,15 @@
                      (right-poses ?right-reach-poses)
                      (application-context ?type)
                      (goal ?goal)))))))
-  (cpl:with-retry-counters ((grasp-retries 2))
+  (cpl:with-retry-counters ((grasp-retries 1))
     (cpl:with-failure-handling
         ((common-fail:manipulation-low-level-failure (e)
            (roslisp:ros-warn (env-plans manipulate)
                              "Manipulation messed up: ~a~%Failing."
                              e)
            (cpl:do-retry grasp-retries
-             (cpl:retry))))
+             (cpl:retry))
+           (return)))
       (let ((?goal `(cpoe:tool-frames-at ,?left-grasp-poses ,?right-grasp-poses)))
         (exe:perform
          (desig:an action
@@ -148,10 +151,9 @@
     (cpl:with-failure-handling
         ((common-fail:manipulation-low-level-failure (e)
            (roslisp:ros-warn (env-plans manipulate)
-                             "Manipulation messed up: ~a~%Failing."
+                             "Manipulation messed up: ~a~%Ignoring."
                              e)
-           ;; (return)
-           ))
+           (return)))
       (let ((?push-or-pull
               (if (eq ?type :opening)
                   :pulling
@@ -178,9 +180,12 @@
        (desig:an action
                  (type monitoring-joint-state)
                  (gripper ?arm)))
-      ;; sleep for half a second,
-      ;; maybe the action is nearly finished, so there is no need to fail
-      (cpl:sleep 1)
+      (if (eq ?type :opening)
+          ;; sleep for half a second,
+          ;; maybe the action is nearly finished, so there is no need to fail
+          (cpl:sleep 1)
+          ;; if closing, then wait until the trajectory finishes, slipping is not a problem
+          (cpl:sleep 1000))
       (cpl:fail 'common-fail:gripper-closed-completely
                 :description "Handle slipped")))
 

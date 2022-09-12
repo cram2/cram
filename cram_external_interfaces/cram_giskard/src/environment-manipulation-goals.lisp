@@ -42,8 +42,8 @@
    :constraints (list
                  (when prefer-base
                    (make-prefer-base-constraint :do-not-rotate T))
-                 (make-base-velocity-constraint
-                  *base-max-velocity-slow-xy* *base-max-velocity-slow-theta*)
+                 ;; (make-base-velocity-constraint
+                 ;;  *base-max-velocity-slow-xy* *base-max-velocity-slow-theta*)
                  (make-open-or-close-constraint
                   open-or-close arm handle-link joint-state)
                  (when (eq (rob-int:get-robot-name) :tiago-dual)

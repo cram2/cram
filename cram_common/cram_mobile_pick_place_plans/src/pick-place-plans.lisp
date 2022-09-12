@@ -80,8 +80,9 @@
                  (type looking)
                  (target (desig:a location
                                   (pose ?look-pose)))))))
-  (cpl:par
-    (roslisp:ros-info (pick-place pick-up) "Opening gripper and reaching")
+  (;cpl:par
+   cpl:seq
+   (roslisp:ros-info (pick-place pick-up) "Opening gripper and reaching")
     (let ((?goal `(cpoe:gripper-joint-at ,?arm ,?gripper-opening)))
       (exe:perform
        (desig:an action
@@ -148,6 +149,10 @@
        (desig:an action
                  (type monitoring-joint-state)
                  (gripper ?arm)))
+      (cram-occasions-events:on-event
+       (make-instance 'cpoe:object-detached-robot
+         :arm ?arm
+         :object-designator ?object-designator))
       (cpl:fail 'common-fail:gripper-closed-completely
                 :description "Object slipped")))
   (roslisp:ros-info (pick-place place) "Parking")
@@ -206,29 +211,30 @@
                  (target (desig:a location
                                   (pose ?look-pose)))))))
   (roslisp:ros-info (pick-place place) "Reaching")
-  (cpl:with-failure-handling
-      ((common-fail:manipulation-low-level-failure (e)
-         (roslisp:ros-warn (pp-plans pick-up)
-                           "Manipulation messed up: ~a~%Ignoring."
-                           e)
-         ;; (return)
-         ))
-    (let ((?goal `(cpoe:tool-frames-at ,?left-reach-poses ,?right-reach-poses)))
-      (exe:perform
-       (desig:an action
-                 (type reaching)
-                 (location ?target-location-designator)
-                 (left-poses ?left-reach-poses)
-                 (right-poses ?right-reach-poses)
-                 (goal ?goal)))))
+  (cpl:with-retry-counters ((reach-retries 1))
+    (cpl:with-failure-handling
+        ((common-fail:manipulation-low-level-failure (e)
+           (roslisp:ros-warn (pp-plans pick-up)
+                             "Manipulation messed up: ~a~%Ignoring."
+                             e)
+           (cpl:do-retry reach-retries
+             (cpl:retry))
+           (return)))
+      (let ((?goal `(cpoe:tool-frames-at ,?left-reach-poses ,?right-reach-poses)))
+        (exe:perform
+         (desig:an action
+                   (type reaching)
+                   (location ?target-location-designator)
+                   (left-poses ?left-reach-poses)
+                   (right-poses ?right-reach-poses)
+                   (goal ?goal))))))
   (roslisp:ros-info (pick-place place) "Putting")
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
          (roslisp:ros-warn (pp-plans pick-up)
                            "Manipulation messed up: ~a~%Ignoring."
                            e)
-         ;; (return)
-         ))
+         (return)))
     (let ((?goal `(cpoe:tool-frames-at ,?left-put-poses ,?right-put-poses)))
       (exe:perform
        (desig:an action
@@ -240,7 +246,7 @@
                  (right-poses ?right-put-poses)
                  (goal ?goal)))))
   (when ?placing-location-name
-    (roslisp:ros-info (boxy-plans connect) "Asserting assemblage connection in knowledge base")
+    (roslisp:ros-info (pp-plans put) "Asserting assemblage connection in knowledge base")
     (if other-object-is-a-robot
         (cram-occasions-events:on-event
          (make-instance 'cpoe:object-attached-robot

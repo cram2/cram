@@ -50,7 +50,8 @@
   (<- (costmap:costmap-origin :apartment -5 -5))
   (<- (costmap:costmap-resolution :apartment 0.04))
 
-  (<- (man-int:object-tf-prefix :iai-kitchen "iai_kitchen/")))
+  (<- (man-int:object-tf-prefix ?environment "iai_kitchen/")
+    (member ?environment (:iai-kitchen :apartment :dm-shelves :dm-room :store :storage))))
 
 
 (def-fact-group environment-object-type-hierarchy (man-int:object-type-direct-subtype)
@@ -93,12 +94,12 @@
 
 (defmethod man-int:get-container-opening-distance :heuristics 20
     ((container-name (eql :cabinet7-door-bottom-left)))
-  0.95d0 ; 54 deg
+  0.9d0 ; 54 deg
   )
 
 (defmethod man-int:get-container-opening-distance :heuristics 20
     ((container-name (eql :cabinet7)))
-  0.95d0 ; 54 deg
+  0.9d0 ; 54 deg
   )
 
 ;; (defmethod man-int:get-container-opening-distance :heuristics 20
@@ -110,10 +111,10 @@
 (defparameter *handle-grasp-x-offset* 0.0 "in meters")
 (defparameter *handle-grasp-y-offset* 0.0 "in meters")
 (defparameter *handle-grasp-z-offset* 0.0 "in meters")
-(defparameter *handle-pregrasp-x-offset-open* 0.06 "in meters")
-(defparameter *handle-2nd-pregrasp-x-offset-open* 0.02 "in meters")
-(defparameter *handle-pregrasp-y-offset-open* 0.06 "in meters")
-(defparameter *handle-2nd-pregrasp-y-offset-open* 0.02 "in meters")
+(defparameter *handle-pregrasp-x-offset-open* 0.15 "in meters")
+(defparameter *handle-2nd-pregrasp-x-offset-open* 0.15 "in meters")
+(defparameter *handle-pregrasp-y-offset-open* 0.15 "in meters")
+(defparameter *handle-2nd-pregrasp-y-offset-open* 0.15 "in meters")
 (defparameter *handle-pregrasp-x-offset-close* -0.0 "in meters")
 ;; (defparameter *handle-retract-offset* 0.15 "in meters") ; defined in env-manip
 (defparameter *handle-side-grasp-x-offset* 0.0  "in meters")

@@ -79,30 +79,28 @@
   ;;urdf-proj:with-simulated-robot
   (setf proj-reasoning::*projection-checks-enabled* nil)
   (setf btr:*visibility-threshold* 0.7)
-  (when (<= step 0)
-    (initialize-apartment)
-    ;; (btr-belief:vary-kitchen-urdf '(("handle_cab1_top_door_joint"
-    ;;                                  ((-0.038d0 -0.5d0 -0.08d0)
-    ;;                                   (0.706825181105366d0 0.0d0
-    ;;                                    0.0d0 0.7073882691671998d0)))))
-    ;; (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
-    ;; (btr-belief:spawn-world)
-
-    (when cram-projection:*projection-environment*
-      (spawn-objects-on-fixed-spots
-       :object-types '(:jeroen-cup :cup)
-       :spawning-poses-relative *apartment-object-spawning-poses*))
-    (park-robot (cl-transforms-stamped:make-pose-stamped
-                 cram-tf:*fixed-frame*
-                 0.0
-                 (cl-transforms:make-3d-vector 1.5 1.5 0.0)
-                 (cl-transforms:make-quaternion 0 0 0.5 0.5))))
 
   (let* ((?object
            (an object
                (type jeroen-cup)
                (name jeroen-cup-1)))
          (?location-in-cupboard
+           (a location
+              (on (an object
+                      (type shelf)
+                      (urdf-name cabinet1-coloksu-level4)
+                      (part-of apartment)
+                      (location (a location
+                                   (in (an object
+                                           (type cupboard)
+                                           (urdf-name cabinet1-door-top-left)
+                                           (part-of apartment)))))))
+              (side (back left))
+              (range-invert 0.2)
+              (range 0.25)
+              (orientation upside-down)
+              (for ?object)))
+         (?location-in-cupboard-with-attachment
            (a location
               (on (an object
                       (type shelf)
@@ -167,6 +165,13 @@
 
 
          ;; hard-coded stuff for real-world demo
+         (?initial-parking-pose
+           (cl-transforms-stamped:make-pose-stamped
+            cram-tf:*fixed-frame*
+            0.0
+            (cl-transforms:make-3d-vector 1.5 1.5 0.0)
+            (cl-transforms:make-quaternion 0 0 0.5 0.5)))
+
          (?accessing-cupboard-door-robot-pose
            (cl-transforms-stamped:make-pose-stamped
             "map"
@@ -188,6 +193,13 @@
             0.0
             (cl-transforms:make-3d-vector 1.1 2.002821242371188d0 0.0d0)
             (cl-transforms:make-quaternion 0.0d0 0.0d0 -1 0)))
+         (?fetching-cupboard-right-hand-robot-pose
+           (cl-transforms-stamped:make-pose-stamped
+            "map"
+            0.0
+            (cl-transforms:make-3d-vector 1.3668892503154677d0 1.6951934636420103d0 0.0d0)
+            (cl-transforms:make-quaternion 0.0d0 0.0d0 0.9298226390305793d0
+                                           -0.36800561314986846d0)))
          (?sealing-cupboard-door-robot-pose
            (cl-transforms-stamped:make-pose-stamped
             "map"
@@ -219,12 +231,18 @@
             0.0
             (cl-transforms:make-3d-vector 2.43 2.6 1.0126)
             (cl-transforms:make-quaternion 0 1 0 0)))
+         (?on-counter-top-cup-look-pose
+           (cl-transforms-stamped:make-pose-stamped
+            "map"
+            0.0
+            (cl-transforms:make-3d-vector 2.1 2.6 1.0126)
+            (cl-transforms:make-quaternion 0 1 0 0)))
 
          (?accessing-dishwasher-door-robot-pose
            (cl-transforms-stamped:make-pose-stamped
             "map"
             0.0
-            (cl-transforms:make-3d-vector 1.6 3.5 0.0d0)
+            (cl-transforms:make-3d-vector 1.7 3.0 0.0d0)
             (cl-transforms:make-quaternion 0.0d0 0.0d0 0 1)))
          (?accessing-dishwasher-drawer-robot-pose
            (cl-transforms-stamped:make-pose-stamped
@@ -245,6 +263,22 @@
             (cl-transforms:make-3d-vector 1.6 3.4182098388671873d0 0.0d0)
             (cl-transforms:make-quaternion 0.0d0 0.0d0 0.555830717086792d0 0.8312955498695374d0))))
 
+    ;; park robot into the initial position
+    (when (<= step 0)
+      (initialize-apartment)
+      ;; (btr-belief:vary-kitchen-urdf '(("handle_cab1_top_door_joint"
+      ;;                                  ((-0.038d0 -0.5d0 -0.08d0)
+      ;;                                   (0.706825181105366d0 0.0d0
+      ;;                                    0.0d0 0.7073882691671998d0)))))
+      ;; (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
+      ;; (btr-belief:spawn-world)
+
+      (when cram-projection:*projection-environment*
+        (spawn-objects-on-fixed-spots
+         :object-types '(:jeroen-cup :cup)
+         :spawning-poses-relative *apartment-object-spawning-poses*))
+      (park-robot ?initial-parking-pose))
+
     ;; bring cup from cupboard to table
     (when (<= step 1)
       (let ((?goal `(and (cpoe:object-at-location ,(an object
@@ -258,6 +292,7 @@
              (type transporting)
              (object (an object
                          (type jeroen-cup)
+                         (color blue)
                          (name jeroen-cup-1)
                          (location ?location-in-cupboard)))
              (access-search-outer-robot-location (a location
@@ -265,10 +300,16 @@
              (access-seal-search-outer-arms (left))
              (access-search-outer-grasps (back))
              (search-robot-location (a location
-                                       (pose ?detecting-cupboard-robot-pose)))
+                                       (pose ?detecting-cupboard-robot-pose
+                                             ;; ?fetching-cupboard-right-hand-robot-pose
+                                             )))
              (fetch-robot-location (a location
-                                      (pose ?detecting-cupboard-robot-pose)))
-             (arms (left))
+                                      (pose ?detecting-cupboard-robot-pose
+                                            ;; ?fetching-cupboard-right-hand-robot-pose
+                                            )))
+             (arms (left
+                    ;; right
+                    ))
              (grasps (front))
              (target (a location
                         (pose ?on-counter-top-cup-pose))
@@ -288,6 +329,7 @@
            (type transporting)
            (object (an object
                        (type jeroen-cup)
+                       (color blue)
                        (name jeroen-cup-1)
                        (location ?location-on-island)))
            (target ?location-in-dishwasher)
@@ -323,6 +365,7 @@
            (type transporting)
            (object (an object
                        (type jeroen-cup)
+                       (color blue)
                        (name jeroen-cup-1)
                        (location ?location-in-dishwasher)))
            (grasps (bottom))
@@ -357,9 +400,11 @@
            (object (an object
                        (type jeroen-cup)
                        (name jeroen-cup-1)
-                       (location ?location-on-island-upside-down)
-                       ;; (location ?location-on-island)
-                       ))
+                       (color blue)
+                       ;; (location ?location-on-island-upside-down)
+                       (location (a location
+                                    (pose ;; ?on-counter-top-cup-upsidedown-pose
+                                          ?on-counter-top-cup-look-pose)))))
 
            (access-deliver-outer-robot-location (a location
                                                    (poses ?accessing-cupboard-door-robot-poses)))
@@ -375,8 +420,9 @@
            (arms (left))
            (grasps (front))
 
-           (target ?location-in-cupboard)
+           (target ?location-in-cupboard-with-attachment)
            (deliver-robot-location (a location
-                                      (pose ?detecting-cupboard-robot-pose)))))))
+                                      (pose ;; ?detecting-cupboard-robot-pose
+                                            ?initial-parking-pose)))))))
 
   (finalize))

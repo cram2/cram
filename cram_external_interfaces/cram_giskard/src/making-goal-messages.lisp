@@ -367,16 +367,16 @@
        . (("message_type" . "geometry_msgs/PoseStamped")
           ("message" . ,(to-hash-table goal-pose))))
       ,@(when max-velocity
-          `(("max_linear_velocity" . ,max-velocity)))
+          `(("reference_velocity" . ,max-velocity)))
       ,@(if avoid-collisions-much
-          `(("weight" . ,(roslisp-msg-protocol:symbol-code
-                          'giskard_msgs-msg:constraint
-                          :weight_below_ca
-                          )))
-          `(("weight" . ,(roslisp-msg-protocol:symbol-code
-                          'giskard_msgs-msg:constraint
-                          :weight_above_ca ; that's the default weight anyway
-                          ))))))))
+            `(("weight" . ,(roslisp-msg-protocol:symbol-code
+                            'giskard_msgs-msg:constraint
+                            :weight_below_ca
+                            )))
+            `(("weight" . ,(roslisp-msg-protocol:symbol-code
+                            'giskard_msgs-msg:constraint
+                            :weight_above_ca ; that's the default weight anyway
+                            ))))))))
 
 (defun make-diffdrive-base-goal (root-frame tip-frame goal-pose
                                  &key max-velocity avoid-collisions-much always-forward)
@@ -398,7 +398,7 @@
       ,@(when always-forward
           `(("always_forward" . T)))
       ,@(when max-velocity
-          `(("max_linear_velocity" . ,max-velocity)))
+          `(("reference_velocity" . ,max-velocity)))
       ,@(if avoid-collisions-much
           `(("weight" . ,(roslisp-msg-protocol:symbol-code
                           'giskard_msgs-msg:constraint
