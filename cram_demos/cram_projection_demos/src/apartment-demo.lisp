@@ -201,25 +201,34 @@
             0.0
             (cl-transforms:make-3d-vector 1.1 2.002821242371188d0 0.0d0)
             (cl-transforms:make-quaternion 0.0d0 0.0d0 -1 0)))
-         (?fetching-cupboard-right-hand-robot-pose
-           (cl-transforms-stamped:make-pose-stamped
-            "map"
-            0.0
-            (cl-transforms:make-3d-vector 1.3668892503154677d0 1.6951934636420103d0 0.0d0)
-            (cl-transforms:make-quaternion 0.0d0 0.0d0 0.9298226390305793d0
-                                           -0.36800561314986846d0)))
+         ;; (?fetching-cupboard-right-hand-robot-pose
+         ;;   (cl-transforms-stamped:make-pose-stamped
+         ;;    "map"
+         ;;    0.0
+         ;;    (cl-transforms:make-3d-vector 1.3668892503154677d0 1.6951934636420103d0 0.0d0)
+         ;;    (cl-transforms:make-quaternion 0.0d0 0.0d0 0.9298226390305793d0
+         ;;                                   -0.36800561314986846d0)))
          (?sealing-cupboard-door-robot-pose
            (cl-transforms-stamped:make-pose-stamped
             "map"
             0.0
             (cl-transforms:make-3d-vector 1.6 1.0873920171726708 0.0)
             (cl-transforms:make-quaternion 0.0d0 0.0d0 -1 0)))
+         (?sealing-cupboard-door-another-robot-pose
+           (cl-transforms-stamped:make-pose-stamped
+            "map"
+            0.0
+            (cl-transforms:make-3d-vector 1.7 1.0873920171726708 0.0)
+            (cl-transforms:make-quaternion 0.0d0 0.0d0 -1 0)))
+         (?sealing-cupboard-door-robot-poses
+           (list ?sealing-cupboard-door-robot-pose
+                 ?sealing-cupboard-door-another-robot-pose))
 
          (?on-counter-top-cup-pose
            (cl-transforms-stamped:make-pose-stamped
             "map"
             0.0
-            (cl-transforms:make-3d-vector 2.43 2.6 1.0126)
+            (cl-transforms:make-3d-vector 2.4 2.6 1.0126)
             (cl-transforms:make-quaternion 0 0 1 0)))
          (?delivering-counter-top-robot-pose
            (cl-transforms-stamped:make-pose-stamped
@@ -237,7 +246,7 @@
            (cl-transforms-stamped:make-pose-stamped
             "map"
             0.0
-            (cl-transforms:make-3d-vector 2.43 2.6 1.0126)
+            (cl-transforms:make-3d-vector 2.4 2.6 1.0126)
             (cl-transforms:make-quaternion 0 1 0 0)))
          (?on-counter-top-cup-look-pose
            (cl-transforms-stamped:make-pose-stamped
@@ -326,7 +335,7 @@
              (deliver-robot-location (a location
                                         (pose ?delivering-counter-top-robot-pose)))
              (seal-search-outer-robot-location (a location
-                                                  (pose ?sealing-cupboard-door-robot-pose)))
+                                                  (poses ?sealing-cupboard-door-robot-poses)))
              (seal-search-outer-grasps (back))
              (goal ?goal)))))
 
@@ -417,28 +426,31 @@
            (access-deliver-outer-robot-location (a location
                                                    (poses ?accessing-cupboard-door-robot-poses)))
            (seal-deliver-outer-robot-location (a location
-                                                 (pose ?sealing-cupboard-door-robot-pose)))
+                                                 (poses ?sealing-cupboard-door-robot-poses)))
            (access-seal-deliver-outer-arms (left))
            (access-seal-deliver-outer-grasps (back))
 
            (search-robot-location (a location
-                                     (pose ?delivering-counter-top-robot-pose)))
+                                     (poses (?delivering-counter-top-robot-pose
+                                             ?fetching-counter-top-robot-pose))))
            (fetch-robot-location (a location
-                                    (pose ?delivering-counter-top-robot-pose)))
+                                    (poses (?delivering-counter-top-robot-pose
+                                            ?fetching-counter-top-robot-pose))))
            (arms (left))
            (grasps (front))
 
            (target ?location-in-cupboard-with-attachment)
            (deliver-robot-location (a location
-                                      (pose ;; ?detecting-cupboard-robot-pose
-                                            ?initial-parking-pose)))))))
+                                      (pose ?detecting-cupboard-robot-pose
+                                       ;; ?initial-parking-pose
+                                       )))))))
 
   (finalize))
 
 
 
 (defun apartment-demo-pouring-only (&key (step 0))
-"copy and pasted stuff from apartment-demo above so i can later just add the pouring part in the real demo"
+  "copy and pasted stuff from apartment-demo above so i can later just add the pouring part in the real demo"
   ;;(urdf-proj:with-simulated-robot
   (setf proj-reasoning::*projection-checks-enabled* nil)
   (setf btr:*visibility-threshold* 0.7)
@@ -483,63 +495,63 @@
             (cl-transforms:make-quaternion 0 1 0 0)))
          )
 
-         (when (<= step 0)
-           (initialize-apartment)
-           ;; (btr-belief:vary-kitchen-urdf '(("handle_cab1_top_door_joint"
-           ;;                                  ((-0.038d0 -0.5d0 -0.08d0)
-           ;;                                   (0.706825181105366d0 0.0d0
-           ;;                                    0.0d0 0.7073882691671998d0)))))
-           ;; (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
-           ;; (btr-belief:spawn-world)
+    (when (<= step 0)
+      (initialize-apartment)
+      ;; (btr-belief:vary-kitchen-urdf '(("handle_cab1_top_door_joint"
+      ;;                                  ((-0.038d0 -0.5d0 -0.08d0)
+      ;;                                   (0.706825181105366d0 0.0d0
+      ;;                                    0.0d0 0.7073882691671998d0)))))
+      ;; (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
+      ;; (btr-belief:spawn-world)
 
-           (when cram-projection:*projection-environment*
-             (spawn-objects-on-fixed-spots
-              :object-types '(:jeroen-cup :cup)
-              :spawning-poses-relative *apartment-object-spawning-poses-pouring*))
-           (park-robot ?initial-parking-pose)
+      (when cram-projection:*projection-environment*
+        (spawn-objects-on-fixed-spots
+         :object-types '(:jeroen-cup :cup)
+         :spawning-poses-relative *apartment-object-spawning-poses-pouring*))
+      (park-robot ?initial-parking-pose)
 
-           ;; pick-up cup to pour
-           (when (<= step 1)
+      ;; pick-up cup to pour
+      (when (<= step 1)
 
-         ;;       (exe:perform
-         ;; (an action
-         ;;     (type transporting)
-         ;;     (object (an object
-         ;;                 (type jeroen-cup)
-         ;;                 (color blue)
-         ;;                 (name jeroen-cup-1)
-             ;;                 (location ?location-in-cupboard)))
-             ;; (cpl:par
-             ;;   (exe:perform (desig:an action
-             ;;                          (type parking-arms)))
+        ;;       (exe:perform
+        ;; (an action
+        ;;     (type transporting)
+        ;;     (object (an object
+        ;;                 (type jeroen-cup)
+        ;;                 (color blue)
+        ;;                 (name jeroen-cup-1)
+        ;;                 (location ?location-in-cupboard)))
+        ;; (cpl:par
+        ;;   (exe:perform (desig:an action
+        ;;                          (type parking-arms)))
 
-               (exe:perform (desig:a motion
-                          (type looking)
-                          (pose ?on-counter-top-cup-look-pose))))
+        (exe:perform (desig:a motion
+                              (type looking)
+                              (pose ?on-counter-top-cup-look-pose))))
 
-                 
-             (let* ((?object-desig
-                      (desig:an object
-                                (type jeroen-cup)
-                                (color blue)
-                                (name jeroen-cup-1)
-                                (location ?location-on-island)))
-                    (?perceived-object-desig
-                      (exe:perform (desig:an action
-                                             (type detecting)
-                                             (object ?object-desig)))))
-
-;;               ?perceived-object-desig
-               ;; (dotimes (i 3)
-               ;;   (exe:perform (desig:an action
-               ;;                          (type looking)
-               ;;                          (object ?perceived-object-desig))))
+      
+      (let* ((?object-desig
+               (desig:an object
+                         (type jeroen-cup)
+                         (color blue)
+                         (name jeroen-cup-1)
+                         (location ?location-on-island)))
+             (?perceived-object-desig
                (exe:perform (desig:an action
-                                      (type picking-up)
-                                      (arm :right)
-                                      (grasp :left-side)
-                                      (object ?perceived-object-desig))))
+                                      (type detecting)
+                                      (object ?object-desig)))))
+
+        ;;               ?perceived-object-desig
+        ;; (dotimes (i 3)
+        ;;   (exe:perform (desig:an action
+        ;;                          (type looking)
+        ;;                          (object ?perceived-object-desig))))
+        (exe:perform (desig:an action
+                               (type picking-up)
+                               (arm :right)
+                               (grasp :left-side)
+                               (object ?perceived-object-desig))))
 
 
 
-           )))
+      )))

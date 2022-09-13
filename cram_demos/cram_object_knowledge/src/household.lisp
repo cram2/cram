@@ -493,7 +493,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;; jeroen-cup ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter *jeroen-cup-grasp-xy-offset* 0.0 "in meters")
+(defparameter *jeroen-cup-grasp-xy-offset* 0.04 "in meters")
 (defparameter *jeroen-cup-grasp-z-offset* 0.0 "in meters")
 (defparameter *jeroen-cup-pregrasp-xy-offset* 0.20 "in meters")
 (defparameter *jeroen-cup-2nd-pregrasp-xy-offset* 0.07 "in meters")
@@ -511,7 +511,7 @@
 (defparameter *jeroen-cup-postgrasp-x-offset* 0.2 "in meters")
 (defparameter *jeroen-cup-postgrasp-y-offset* 0.0 "in meters")
 (defparameter *jeroen-cup-surface-lift-offset* 0.3 "in meters")
-(defparameter *jeroen-cup-lift-z-offset* 0.05 "in meters")
+(defparameter *jeroen-cup-lift-z-offset* 0.03 "in meters")
 
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms :jeroen-cup '(:left :right) :top
@@ -609,12 +609,13 @@
                                                                    (grasp (eql :front))
                                                                    (location (eql :shelf)))
   (list (make-base-transform
-         0.0 0.0 *jeroen-cup-lift-z-offset*)
-        ;; (make-base-transform
-        ;;  (- *jeroen-cup-postgrasp-x-offset*)
-        ;;  *jeroen-cup-postgrasp-y-offset*
-        ;;  *jeroen-cup-lift-z-offset*)
-        ))
+         0.0
+         0.0
+         *jeroen-cup-lift-z-offset*)
+        (make-base-transform
+         (- *jeroen-cup-postgrasp-x-offset*)
+         *jeroen-cup-postgrasp-y-offset*
+         *jeroen-cup-lift-z-offset*)))
 ;; postgrasp right hand
 (defmethod man-int:get-object-type-wrt-base-frame-lift-transforms ((type (eql :jeroen-cup))
                                                                    (arm (eql :right))
@@ -1618,5 +1619,5 @@
 
 (man-int:def-object-type-in-other-object-transform :jeroen-cup :shelf
   :jeroen-cup-on-shelf
-  :attachment-translation `(0.20 0.05 0.08)
+  :attachment-translation `(0.20 0.08 0.10)
   :attachment-rot-matrix man-int:*rotation-around-x-180-matrix*)

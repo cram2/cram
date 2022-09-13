@@ -166,8 +166,8 @@
                    (object (desig:an object (name ?environment-name)))
                    (container-object ?container-designator)
                    (link ?link-name)
-                   (desig:when ?door-joint-pose)
-                     (door-joint-pose ?door-joint-pose)
+                   (desig:when ?door-joint-pose
+                     (door-joint-pose ?door-joint-pose))
                    (desig:when ?absolute-distance
                      (distance ?absolute-distance))
                    (desig:when (eq ?arm :left)

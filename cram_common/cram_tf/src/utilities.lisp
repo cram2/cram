@@ -143,11 +143,12 @@
      (cl-transforms:make-3d-vector x y z)
      (cl-transforms:make-quaternion q1 q2 q3 w))))
 
-(defun ensure-pose-in-frame (pose frame &key use-current-ros-time use-zero-time)
+(defun ensure-pose-in-frame (pose frame
+                             &key use-current-ros-time use-zero-time transformer)
   (declare (type (or null cl-transforms:pose cl-transforms-stamped:pose-stamped)))
   (when pose
     (cl-transforms-stamped:transform-pose-stamped
-     *transformer*
+     (or transformer *transformer*)
      :pose (let ((pose-stamped
                    (cl-transforms-stamped:ensure-pose-stamped pose frame 0.0)))
              (if use-zero-time
@@ -157,10 +158,11 @@
      :timeout *tf-default-timeout*
      :use-current-ros-time use-current-ros-time)))
 
-(defun ensure-point-in-frame (point frame &key use-current-ros-time use-zero-time)
+(defun ensure-point-in-frame (point frame
+                              &key use-current-ros-time use-zero-time transformer)
   (declare (type (or cl-transforms:point cl-transforms-stamped:point-stamped)))
   (cl-transforms-stamped:transform-point-stamped
-   *transformer*
+   (or transformer *transformer*)
    :point (if (typep point 'cl-transforms-stamped:point-stamped)
               (if use-zero-time
                   (with-slots (frame-id origin) point
@@ -173,7 +175,7 @@
    :use-current-ros-time use-current-ros-time))
 
 (defun ensure-transform-in-frame (transform frame
-                                  &key use-current-ros-time use-zero-time)
+                                  &key use-current-ros-time use-zero-time transformer)
   (declare (type (or null cl-transforms-stamped:transform-stamped)))
   (when transform
     (let* ((child-frame
@@ -182,7 +184,8 @@
              (ensure-pose-in-frame (strip-transform-stamped transform)
                                    frame
                                    :use-current-ros-time use-current-ros-time
-                                   :use-zero-time use-zero-time)))
+                                   :use-zero-time use-zero-time
+                                   :transformer transformer)))
       (pose-stamped->transform-stamped new-pose-stamped child-frame))))
 
 (defun translate-pose (pose &key (x 0.0) (y 0.0) (z 0.0))

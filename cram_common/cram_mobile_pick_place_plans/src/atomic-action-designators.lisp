@@ -180,7 +180,8 @@
                                (:collision-object-b ?collision-object-b)
                                (:collision-object-b-link ?object-link)
                                (:prefer-base ?prefer-base)
-                               (:move-base ?move-base)
+                               (:move-base NIL;; ?move-base
+                                           )
                                (:straight-line T)
                                (:align-planes-left ?align-planes-left)
                                (:align-planes-right ?align-planes-right))

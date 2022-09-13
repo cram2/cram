@@ -373,7 +373,7 @@
      :action-timeout action-timeout
      :check-goal-function (lambda (result status)
                             (declare (ignore result status))
-                            (or (ensure-arm-joint-goal-reached
-                                 goal-configuration-left :left)
-                                (ensure-arm-joint-goal-reached
-                                 goal-configuration-right :right))))))
+                            (and (ensure-arm-joint-goal-reached
+                                  goal-configuration-left :left)
+                                 (ensure-arm-joint-goal-reached
+                                  goal-configuration-right :right))))))

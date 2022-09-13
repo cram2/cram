@@ -37,6 +37,7 @@
                roslisp-utilities
                cl-transforms
                cl-transforms-stamped
+               cl-tf2
                cram-tf
                cram-common-failures
                cram-designators

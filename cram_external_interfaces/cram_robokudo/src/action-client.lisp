@@ -29,6 +29,13 @@
 
 (in-package :rk)
 
+(defvar *robokudo-tf-buffer-client* nil)
+
+(defun init-tf-buffer-client ()
+  (setf *robokudo-tf-buffer-client* (make-instance 'cl-tf2:buffer-client)))
+
+(roslisp-utilities:register-ros-init-function init-tf-buffer-client)
+
 (defparameter *ros-action* "robokudo/query")
 
 (defun make-robokudo-action-client ()
@@ -38,6 +45,7 @@
    120))
 
 (roslisp-utilities:register-ros-init-function make-robokudo-action-client)
+
 
 ;;;;;;;;;;;;;;;;;;; INPUT ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -335,7 +343,8 @@
                    (cram-tf:ensure-pose-in-frame
                     pose-stamped-in-whatever
                     cram-tf:*fixed-frame*
-                    :use-zero-time t)
+                    ;; :use-current-ros-time t
+                    :transformer *robokudo-tf-buffer-client*)
                    pose-stamped-in-whatever))
              (pose-stamped-in-map-frame
                (cl-transforms-stamped:copy-pose-stamped
@@ -357,7 +366,8 @@
                    (cram-tf:ensure-pose-in-frame
                     pose-stamped-in-map-frame
                     cram-tf:*robot-base-frame*
-                    :use-zero-time t)
+                    ;; :use-current-ros-time t
+                    :transformer *robokudo-tf-buffer-client*)
                    pose-stamped-in-whatever))
              (transform-stamped-in-base-frame
                (cram-tf:pose-stamped->transform-stamped

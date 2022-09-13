@@ -104,10 +104,12 @@
            (type boolean prefer-base)
            (type (or cl-transforms:pose null) joint-pose))
 
-  (let ((joint-point-stamped (cl-transforms-stamped:make-point-stamped
-                              cram-tf:*fixed-frame*
-                              0.0
-                              (cl-transforms:origin joint-pose))))
+  (let ((joint-point-stamped
+          (when joint-pose
+            (cl-transforms-stamped:make-point-stamped
+             cram-tf:*fixed-frame*
+             0.0
+             (cl-transforms:origin joint-pose)))))
 
     (when (eq (rob-int:get-robot-name) :tiago-dual)
       (call-action
