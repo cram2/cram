@@ -37,6 +37,14 @@
      "cabinet1_coloksu_level4"
      ((0.15 -0.1 0.08) (0 0 -1 0)))))
 
+(defparameter *apartment-object-spawning-poses-pouring*
+  '((:jeroen-cup
+     "island_countertop"
+     ((0.30 0.05 0.1) (0 0 0 1)))
+    (:cup
+     "cabinet1_coloksu_level4"
+     ((0.15 -0.1 0.08) (0 0 -1 0)))))
+
 (defun initialize-apartment ()
   (sb-ext:gc :full t)
 
@@ -426,3 +434,113 @@
                                             ?initial-parking-pose)))))))
 
   (finalize))
+
+
+
+(defun apartment-demo-pouring-only (&key (step 0))
+"copy and pasted stuff from apartment-demo above so i can later just add the pouring part in the real demo"
+  ;;(urdf-proj:with-simulated-robot
+  (setf proj-reasoning::*projection-checks-enabled* nil)
+  (setf btr:*visibility-threshold* 0.7)
+  (let* ((?object
+           (an object
+               (type jeroen-cup)
+               (name jeroen-cup-1)))
+         (?location-on-island
+           (a location
+              (on (an object
+                      (type surface)
+                      (urdf-name island-countertop)
+                      (part-of apartment)))
+              (side back)
+              (range 0.4)
+              (range-invert 0.3)
+              (for ?object)))
+         ;; hard-coded stuff for real-world demo
+         (?initial-parking-pose
+           (cl-transforms-stamped:make-pose-stamped
+            cram-tf:*fixed-frame*
+            0.0
+            (cl-transforms:make-3d-vector 1.6 2.8 0.0)
+            (cl-transforms:make-quaternion 0 0 0 1)))
+         (?fetching-counter-top-robot-pose
+           (cl-transforms-stamped:make-pose-stamped
+            "map"
+            0.0
+            (cl-transforms:make-3d-vector 1.7642620086669922d0 2.8088844299316404d0 0.0d0)
+            (cl-transforms:make-quaternion 0.0d0 0.0d0 -0.145986869931221d0 0.9892865419387817d0)))
+         ;; (?on-counter-top-cup-upsidedown-pose
+         ;;   (cl-transforms-stamped:make-pose-stamped
+         ;;    "map"
+         ;;    0.0
+         ;;    (cl-transforms:make-3d-vector 2.43 2.6 1.0126)
+         ;;    (cl-transforms:make-quaternion 0 1 0 0)))
+         (?on-counter-top-cup-look-pose
+           (cl-transforms-stamped:make-pose-stamped
+            "map"
+            0.0
+            (cl-transforms:make-3d-vector 2.39 2.76 1.0126)
+            (cl-transforms:make-quaternion 0 1 0 0)))
+         )
+
+         (when (<= step 0)
+           (initialize-apartment)
+           ;; (btr-belief:vary-kitchen-urdf '(("handle_cab1_top_door_joint"
+           ;;                                  ((-0.038d0 -0.5d0 -0.08d0)
+           ;;                                   (0.706825181105366d0 0.0d0
+           ;;                                    0.0d0 0.7073882691671998d0)))))
+           ;; (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
+           ;; (btr-belief:spawn-world)
+
+           (when cram-projection:*projection-environment*
+             (spawn-objects-on-fixed-spots
+              :object-types '(:jeroen-cup :cup)
+              :spawning-poses-relative *apartment-object-spawning-poses-pouring*))
+           (park-robot ?initial-parking-pose)
+
+           ;; pick-up cup to pour
+           (when (<= step 1)
+
+         ;;       (exe:perform
+         ;; (an action
+         ;;     (type transporting)
+         ;;     (object (an object
+         ;;                 (type jeroen-cup)
+         ;;                 (color blue)
+         ;;                 (name jeroen-cup-1)
+             ;;                 (location ?location-in-cupboard)))
+             ;; (cpl:par
+             ;;   (exe:perform (desig:an action
+             ;;                          (type parking-arms)))
+
+               (exe:perform (desig:a motion
+                          (type looking)
+                          (pose ?on-counter-top-cup-look-pose))))
+
+                 
+             (let* ((?object-desig
+                      (desig:an object
+                                (type jeroen-cup)
+                                (color blue)
+                                (name jeroen-cup-1)
+                                (location ?location-on-island)))
+                    (?perceived-object-desig
+                      (exe:perform (desig:an action
+                                             (type detecting)
+                                             (object ?object-desig)))))
+
+;;               ?perceived-object-desig
+               ;; (dotimes (i 3)
+               ;;   (exe:perform (desig:an action
+               ;;                          (type looking)
+               ;;                          (object ?perceived-object-desig))))
+               (exe:perform (desig:an action
+                                      (type picking-up)
+                                      (arm :right)
+                                      (grasp :left-side)
+                                      (object ?perceived-object-desig))))
+
+
+
+         
+           ))))
