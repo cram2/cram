@@ -458,6 +458,7 @@
            (an object
                (type jeroen-cup)
                (name jeroen-cup-1)))
+         
          (?location-on-island
            (a location
               (on (an object
@@ -468,30 +469,34 @@
               (range 0.4)
               (range-invert 0.3)
               (for ?object)))
+         
          ;; hard-coded stuff for real-world demo
          (?initial-parking-pose
            (cl-transforms-stamped:make-pose-stamped
             cram-tf:*fixed-frame*
             0.0
-            (cl-transforms:make-3d-vector 1.6 2.8 0.0)
+            (cl-transforms:make-3d-vector 1.6 3.0 0.0)
             (cl-transforms:make-quaternion 0 0 0 1)))
-         (?fetching-counter-top-robot-pose
+
+           (?second-cup-park-pose
+           (cl-transforms-stamped:make-pose-stamped
+            cram-tf:*fixed-frame*
+            0.0
+            (cl-transforms:make-3d-vector 1.6 2.4 0.0)
+            (cl-transforms:make-quaternion 0 0 0 1)))
+         
+         (?on-counter-top-source-cup-look-pose
            (cl-transforms-stamped:make-pose-stamped
             "map"
             0.0
-            (cl-transforms:make-3d-vector 1.7642620086669922d0 2.8088844299316404d0 0.0d0)
-            (cl-transforms:make-quaternion 0.0d0 0.0d0 -0.145986869931221d0 0.9892865419387817d0)))
-         ;; (?on-counter-top-cup-upsidedown-pose
-         ;;   (cl-transforms-stamped:make-pose-stamped
-         ;;    "map"
-         ;;    0.0
-         ;;    (cl-transforms:make-3d-vector 2.43 2.6 1.0126)
-         ;;    (cl-transforms:make-quaternion 0 1 0 0)))
-         (?on-counter-top-cup-look-pose
+            (cl-transforms:make-3d-vector 2.49 3.0 1.0126)
+            (cl-transforms:make-quaternion 0 1 0 0)))
+         
+         (?on-counter-top-target-cup-look-pose
            (cl-transforms-stamped:make-pose-stamped
             "map"
             0.0
-            (cl-transforms:make-3d-vector 2.39 2.76 1.0126)
+            (cl-transforms:make-3d-vector 2.49 2.35 1.0126)
             (cl-transforms:make-quaternion 0 1 0 0)))
          )
 
@@ -508,50 +513,109 @@
         (spawn-objects-on-fixed-spots
          :object-types '(:jeroen-cup :cup)
          :spawning-poses-relative *apartment-object-spawning-poses-pouring*))
+      (park-robot ?initial-parking-pose))
+
+    ;; get all the object designators
+    ;;we pour from red to blue so red=source blue=target
+    
+    (when (<= step 1)
       (park-robot ?initial-parking-pose)
+      (exe:perform
+       (desig:an action
+                 (type going)
+                 (target (desig:a location
+                                  (pose ?initial-parking-pose)))))
 
-      ;; pick-up cup to pour
-      (when (<= step 1)
-
-        ;;       (exe:perform
-        ;; (an action
-        ;;     (type transporting)
-        ;;     (object (an object
-        ;;                 (type jeroen-cup)
-        ;;                 (color blue)
-        ;;                 (name jeroen-cup-1)
-        ;;                 (location ?location-in-cupboard)))
-        ;; (cpl:par
-        ;;   (exe:perform (desig:an action
-        ;;                          (type parking-arms)))
-
-        (exe:perform (desig:a motion
-                              (type looking)
-                              (pose ?on-counter-top-cup-look-pose))))
+      (exe:perform (desig:a motion
+                            (type looking)
+                            (pose ?on-counter-top-source-cup-look-pose)))
 
       
-      (let* ((?object-desig
+      (let* ((?source-object-desig
                (desig:an object
                          (type jeroen-cup)
                          (color blue)
                          (name jeroen-cup-1)
                          (location ?location-on-island)))
-             (?perceived-object-desig
+             
+             (?source-perceived-object-desig
                (exe:perform (desig:an action
                                       (type detecting)
-                                      (object ?object-desig)))))
+                                      (object ?source-object-desig)))))
 
-        ;;               ?perceived-object-desig
-        ;; (dotimes (i 3)
-        ;;   (exe:perform (desig:an action
-        ;;                          (type looking)
-        ;;                          (object ?perceived-object-desig))))
+        ;;TODO: Pick-up has parking in the end this need to be changed
+        ;;or with constraints
         (exe:perform (desig:an action
                                (type picking-up)
-                               (arm :right)
-                               (grasp :left-side)
-                               (object ?perceived-object-desig))))
+                               (arm :left)
+                               (grasp :front)
+                               (object ?source-perceived-object-desig)))
+        
+        ;;)
+        ;;)
+        ;;(when (<= step 2)
+        
+        (exe:perform
+         (desig:an action
+                   (type going)
+                   (target (desig:a location
+                                    (pose ?second-cup-park-pose)))))
+
+        (exe:perform (desig:a motion
+                              (type looking)
+                              (pose ?on-counter-top-target-cup-look-pose)))
+        (let* ((?target-object-desig
+                 (desig:an object
+                           (type jeroen-cup)
+                           (color blue)
+                           (name jeroen-cup-1)
+                           (location ?location-on-island)))
+               
+               (?target-perceived-object-desig
+                 (exe:perform (desig:an action
+                                        (type detecting)
+                                        (object ?target-object-desig)))))
+          ;;)
+          ;;)
+
+          ;;(when (<= step 3)
+          
+
+          (exe:perform
+           (desig:an action
+                     (type pouring)
+                     (source-object ?source-perceived-object-desig)
+                     (target-object ?target-perceived-object-desig))))))))
+
+         ;;
+        ;; (when (<= step 2)
+
+        ;;      (?target-object-desig
+        ;;        (desig:an object
+        ;;                  (type jeroen-cup)
+        ;;                  (color blue)
+        ;;                  (name jeroen-cup-1)
+        ;;                  (location ?location-on-island)))
+        ;;         (?target-perceived-object-desig
+        ;;        (exe:perform (desig:an action
+        ;;                               (type detecting)
+        ;;                               (object ?target-object-desig)))))
+      ;;   (exe:perform (desig:a motion
+      ;;                         (type looking)
+      ;;                         (pose ?on-counter-top-bowl-look-pose)))
+
+      
+      ;; (let* ((?target-object-desig
+      ;;          (desig:an object
+      ;;                    (type jeroen-cup)
+      ;;                    (color blue)
+      ;;                    (name jeroen-cup-1)
+      ;;                    (location ?location-on-island)))
+      ;;        (?target-perceived-object-desig
+      ;;          (exe:perform (desig:an action
+      ;;                                 (type detecting)
+      ;;                                 (object ?target-object-desig)))))
+      ;;   ?perceived-object-desig
+  
 
 
-
-      )))
