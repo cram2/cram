@@ -33,6 +33,5 @@
   (:nicknames #:pr2-w-demo #:demo)
   (:use #:common-lisp #:cram-prolog
         #:desig #:exe)
-  (:export
-   #:mTb))
+  (:export))
 

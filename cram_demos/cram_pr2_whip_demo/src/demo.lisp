@@ -151,13 +151,7 @@
                              cram-tf:*fixed-frame*
                              0 
                              (btr:object-pose 'whisk-1)))
-      
-           (setf ?pose-container (cl-tf:pose->pose-stamped
-                             cram-tf:*fixed-frame*
-                             0 
-                             (btr:object-pose 'big-bowl-1)))
-      
-                       
+           
             (cram-executive:perform
            (desig:an action
                      (type looking)
@@ -180,28 +174,44 @@
                                    (grasp :top)))
                                    
       
-      (cram-executive:perform
-       (desig:an action
-		 (type looking)
-		 (target (desig:a location (pose ?pose-container)))))    
-      ;;        ;bowl                            
-      ;;       (try-looking ?pose-container)    
+
+      )))
+
+(defun start-mix ()
+  (urdf-proj::with-simulated-robot
+    (btr-utils::park-robot)
+  (let ((?pose-container (cl-tf:pose->pose-stamped
+			  cram-tf:*fixed-frame*
+			  0 
+			  (btr:object-pose 'big-bowl-1))))
+    
+    (cram-executive:perform
+     (desig:an action
+	       (type looking)
+	       (target (desig:a location (pose ?pose-container)))))
+    
+    (let ((?object-container(urdf-proj::detect
+			     (desig:an object (type big-bowl)))))
       
+
+      ;; (exe:perform (desig:an action
+      ;;                        (type ) - how to look up types again
+      ;;                        (arm (:left))
+      ;;                        (object ?object-container)
+      ;;                        (grasp :left-top)))
       
-      (setf ?object-container(urdf-proj::detect (desig:an object (type big-bowl))))
-      
-      
-      
-      ;;             ;mixing                       
       (exe:perform (desig:an action
-			     (type mixing)
-			     (object ?object-container)
-					;(object ?object-utensil);WIP default assume whisk
-			     ;;(arm (:right)) 
-			     ))       
+                             (type whisking)
+			     (context :mix)
+                             (arm (:right))
+                             (object ?object-container)
+                             (grasp :top)))))))
 
-      )))                                 
-
+(defun testdesig()
+(urdf-proj::with-simulated-robot 
+	(exe:perform (desig:an action 
+               (type my-action-designator)))
+      ))
                                      
   ;;###############################################################################
   ;;                                    spawn
@@ -330,6 +340,52 @@
 
 
 
+
+
+
+;; ======================== NEW STUFF van van ======================
+
+(defparameter *sink-nav-goal*
+  (cl-transforms-stamped:make-pose-stamped
+   "map"
+   0.0
+   (cl-transforms:make-3d-vector 0.75d0 0.70d0 0.0)
+   (cl-transforms:make-identity-rotation)))
+(defparameter *island-nav-goal*
+  (cl-transforms-stamped:make-pose-stamped
+   "map"
+   0.0
+   (cl-transforms:make-3d-vector -0.2d0 2d0 0.0)
+   (cl-transforms:make-quaternion 0 0 1 0)))
+(defparameter *island-left-nav-goal*
+  (cl-transforms-stamped:make-pose-stamped
+   "map"
+   0.0
+   (cl-transforms:make-3d-vector -0.2d0 0.8 0.0)
+   (cl-transforms:make-quaternion 0 0 1 0)))
+(defparameter *look-goal*
+  (cl-transforms-stamped:make-pose-stamped
+   "base_footprint"
+   0.0
+   (cl-transforms:make-3d-vector 0.5d0 0.0d0 1.0d0)
+   (cl-transforms:make-identity-rotation)))
+
+(defun go-to-sink-or-island (&optional (sink-or-island :sink))
+  (let ((?navigation-goal (ecase sink-or-island
+                            (:sink *sink-nav-goal*)
+                            (:island *island-nav-goal*)
+                            (:island-left *island-left-nav-goal*)))
+        (?ptu-goal *look-goal*))
+    (cpl:par
+      (exe:perform (desig:an action
+                             (type parking-arms)))
+      (exe:perform (desig:a motion
+                            (type going)
+                            (pose ?navigation-goal))))
+    (exe:perform (desig:a motion
+                          (type looking)
+                          (pose ?ptu-goal)))))
+
 (defun pick-object (&optional (?object-type :breakfast-cereal) (?arm :right) (?location :sink))
   (go-to-sink-or-island ?location)
   (let* ((?object-desig
@@ -344,5 +400,57 @@
                              (object ?perceived-object-desig))))
       (exe:perform (desig:an action
                              (type picking-up)
-                             (arm ?arm)
+                             (arm (?arm))
+			     (grasp :front)
                              (object ?perceived-object-desig)))))
+
+(defun detect-object (&optional (?object-type :breakfast-cereal) (?arm :right) (?location :sink))
+  (go-to-sink-or-island ?location)
+  (let* ((?object-desig
+           (desig:an object (type ?object-type)))
+         (?perceived-object-desig
+           (exe:perform (desig:an action
+                                  (type detecting)
+                                  (object ?object-desig)))))
+    ?perceived-object-desig))
+
+(defun flip-on-object (&optional (?object-type :pancake-maker)
+			 (?arm :right)
+			 (?grasp :front)
+			 (?location :island-left))
+  (go-to-sink-or-island ?location)
+  (let* ((?object-desig
+           (desig:an object (type ?object-type)))
+         (?perceived-object-desig
+           (exe:perform (desig:an action
+                                  (type detecting)
+                                  (object ?object-desig)))))
+    (dotimes (i 3)
+      (exe:perform (desig:an action
+                             (type looking)
+                             (object ?perceived-object-desig))))
+
+    ;;TODO this is how i call the  desig you need to change nothing here but
+    ;;spawn your bowl and call the right function in prolog.lisp
+      (exe:perform (desig:an action
+                             (type flipping)
+                             (arm (?arm))
+                             (object ?perceived-object-desig)
+                             (grasp ?grasp)
+                             ))))
+
+
+(defun fluffy ()
+  (demo::initialize)
+   (btr-utils:spawn-object 'green-dot
+                              :pancake-maker
+                              :color '(0 1 0 0.5)
+                              :pose '((-0.95 0.9 0.9) (0 0 0 1)))
+  (btr-utils:spawn-object 'spatula-1 :spatula
+			  :pose '((-0.757560920715332d0
+				   2.2969093322753906d0
+				   0.9060400644938151d0)
+				  (0.00949473213404417d0
+				   0.00448471587151289d0
+				   0.9999244213104248d0
+				   -0.00640013488009572d0))))

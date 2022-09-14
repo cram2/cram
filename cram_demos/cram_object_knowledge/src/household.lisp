@@ -201,6 +201,15 @@
 
 (defparameter *spatula-grasp-z-offset* 0.0 "in meters") ; because TCP is not at the edge
 
+;;front
+(man-int:def-object-type-to-gripper-transforms :spatula '(:left :right) :front
+  :grasp-translation `(-0.15 0.0 ,*spatula-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation*
+  :pregrasp-offsets `(-0.15 0.0 ,*cutlery-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(-0.15 0.0 ,*cutlery-pregrasp-z-offset*)
+  :lift-translation `(0.0 0.0 ,*cutlery-pregrasp-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*cutlery-pregrasp-z-offset*))
+
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms :spatula '(:left :right) :top
   :grasp-translation `(0.0 0.0 ,*spatula-grasp-z-offset*)
@@ -1704,3 +1713,59 @@
 (defparameter *big-bowl-pregrasp-z-offset* 0.30 "in meters")
 (defparameter *big-bowl-grasp-z-offset* 0.06 "in meters")
 
+;side-grasps
+(man-int:def-object-type-to-gripper-transforms '(:big-bowl) '(:left :right) :top
+  :grasp-translation `(0.0 ,(- *big-bowl-grasp-xy-offset*) 0.0d0 ,*big-bowl-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,*big-bowl-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(*big-bowl-grasp-xy-offset*, 0.0 ,*big-bowl-pregrasp-z-offset*)
+  :lift-translation `(0.0 0.0 ,*big-bowl-pregrasp-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*big-bowl-pregrasp-z-offset*))
+  
+  (man-int:def-object-type-to-gripper-transforms '(:big-bowl)
+    '(:left :right) :right-top
+  :grasp-translation `(0.0,*big-bowl-grasp-xy-offset* ,*big-bowl-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+    :pregrasp-offsets `(0.0 0.0 ,*big-bowl-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,*big-bowl-pregrasp-z-offset*)
+  :lift-translation `(0.0 0.0 ,*big-bowl-pregrasp-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*big-bowl-pregrasp-z-offset*))
+
+;; right-TOP grasp
+(man-int:def-object-type-to-gripper-transforms '(:big-bowl)
+    '(:left :right) :left-top
+  :grasp-translation `(0.0,(- *big-bowl-grasp-xy-offset*) 0.0d0 ,*big-bowl-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+    :pregrasp-offsets `(0.0 0.0 ,*big-bowl-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0, *big-bowl-grasp-xy-offset* ,*big-bowl-pregrasp-z-offset*)
+  :lift-translation `(0.0 0.0 ,*big-bowl-pregrasp-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*big-bowl-pregrasp-z-offset*))
+;;TODO: tina add stuff here
+;;hier ist ja garnichts defined?
+;;grr ich mach das jetzt erstmal fuer den pancake-mixer  aber du musst
+;;hier auch sachen fuer big-bowl define, wie fuer whisk
+;;kannst dich da ja an der normalen bowl orientieren...
+;;basicly das selbe wie fuer pancake-maker
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; pancake-maker ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *pancake-maker-diameter* 0.26 "in meters")
+(defparameter *pancake-maker-grasp-y-offset* (- (/ *pancake-maker-diameter* 2) 0.015) "in meters")
+(defparameter *pancake-maker-grasp-z-offset* 0.015 "in meters")
+(defparameter *pancake-maker-grasp-roll-offset* (/ pi 6))
+(defparameter *pancake-maker-pregrasp-y-offset* 0.2 "in meters")
+(defparameter *pancake-maker-2nd-pregrasp-z-offset* 0.03 "in meters") ; grippers can't go into table
+
+;; SIDE grasp
+(man-int:def-object-type-to-gripper-transforms '(:pancake-maker) '(:left :right) :front
+  :grasp-translation `(0.0 ,*pancake-maker-grasp-y-offset* ,*pancake-maker-grasp-z-offset*)
+  :grasp-rot-matrix
+  `((0             1 0)
+    (,(sin *pancake-maker-grasp-roll-offset*)     0 ,(- (cos *pancake-maker-grasp-roll-offset*)))
+    (,(- (cos *pancake-maker-grasp-roll-offset*)) 0 ,(- (sin *pancake-maker-grasp-roll-offset*))))
+  :pregrasp-offsets `(0.0 ,*pancake-maker-pregrasp-y-offset* ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 ,*pancake-maker-pregrasp-y-offset* ,*pancake-maker-2nd-pregrasp-z-offset*)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)

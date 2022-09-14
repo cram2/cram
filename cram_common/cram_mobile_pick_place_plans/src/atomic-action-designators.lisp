@@ -80,6 +80,41 @@
              (man-int:location-always-reachable ?location-designator))
         (equal ?move-base nil)
         (equal ?move-base t)))
+  
+  ;;TODO: tina think about this
+  ;;defining a new atomic actiond esignator
+  ;;the only difference to approaching one
+  ;;is literly collision-mode
+  ;;this one here does AVOID ALL that means
+  ;;that the robot is trying to achieve the pose
+  ;;without touchin anything with either the object
+  ;;hand
+  ;;or arm
+  ;;or base
+  ;;for approaching "allow-all" since object will hit objects
+  ;;ask vanessa for list
+
+  
+  (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
+                                                  ?resolved-action-designator))
+    (or (spec:property ?action-designator (:type :blending)))
+    (spec:property ?action-designator (:type ?action-type))
+    (once (or (spec:property ?action-designator (:left-poses ?left-poses))
+              (equal ?left-poses nil)))
+    (once (or (spec:property ?action-designator (:right-poses ?right-poses))
+              (equal ?right-poses nil)))
+    (once (or (spec:property ?action-designator (:collision-mode ?collision))
+              (equal ?collision :avoid-all)))
+    (infer-motion-flags ?action-designator
+                        ?_ ?move-base ?align-planes-left ?align-planes-right)
+    (desig:designator :action ((:type ?action-type)
+                               (:left-poses ?left-poses)
+                               (:right-poses ?right-poses)
+                               (:collision-mode ?collision)
+                               (:move-base ?move-base)
+                               (:align-planes-left ?align-planes-left)
+                               (:align-planes-right ?align-planes-right))
+                      ?resolved-action-designator))
 
   (<- (infer-align-planes ?action-designator ?align-planes-left ?align-planes-right)
     ;; infer if we should keep the object in hand upright
@@ -89,7 +124,7 @@
         (equal ?align-planes-left nil))
     (-> (cpoe:object-in-hand ?_ :right)
         (equal ?align-planes-right t)
-        (equal ?align-planes-right nil)))
+        (Equal ?align-planes-right nil)))
 
   (<- (infer-motion-flags ?action-designator
                           ?prefer-base ?move-base
