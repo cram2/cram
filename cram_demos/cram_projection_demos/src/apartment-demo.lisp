@@ -228,7 +228,7 @@
            (cl-transforms-stamped:make-pose-stamped
             "map"
             0.0
-            (cl-transforms:make-3d-vector 2.4 2.6 1.0126)
+            (cl-transforms:make-3d-vector 2.37 2.6 1.0126)
             (cl-transforms:make-quaternion 0 0 1 0)))
          (?delivering-counter-top-robot-pose
            (cl-transforms-stamped:make-pose-stamped
@@ -246,7 +246,7 @@
            (cl-transforms-stamped:make-pose-stamped
             "map"
             0.0
-            (cl-transforms:make-3d-vector 2.4 2.6 1.0126)
+            (cl-transforms:make-3d-vector 2.37 2.6 1.0126)
             (cl-transforms:make-quaternion 0 1 0 0)))
          (?on-counter-top-cup-look-pose
            (cl-transforms-stamped:make-pose-stamped
