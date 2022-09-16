@@ -577,6 +577,15 @@ a keyword, a number or NIL."
      (list gripper-joints
            (make-list (length gripper-joints) :initial-element joint-angle)))))
 
+(defun make-enable-velocity-trajectory-tracking-constraint ()
+  (roslisp:make-message
+   'giskard_msgs-msg:constraint
+   :type
+   "EnableVelocityTrajectoryTracking"
+   :parameter_value_pair
+   (alist->json-string
+    `(("enabled" . T)))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; COLLISIONS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun make-allow-all-collision ()

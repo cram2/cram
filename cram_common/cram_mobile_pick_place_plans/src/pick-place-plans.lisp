@@ -53,6 +53,7 @@
                   ((:right-grasp-poses ?right-grasp-poses))
                   ((:left-lift-poses ?left-lift-poses))
                   ((:right-lift-poses ?right-lift-poses))
+                  park-arms
                 &allow-other-keys)
   (declare (type desig:object-designator ?object-designator)
            (type keyword ?arm ?grasp)
@@ -155,14 +156,15 @@
          :object-designator ?object-designator))
       (cpl:fail 'common-fail:gripper-closed-completely
                 :description "Object slipped")))
-  (roslisp:ros-info (pick-place place) "Parking")
-  (exe:perform
-   (desig:an action
-             (type parking-arms)
-             ;; TODO: this will not work with dual-arm grasping
-             ;; but as our ?arm is declared as a keyword,
-             ;; for now this code is the right code
-             (arms (?arm)))))
+  (when park-arms
+    (roslisp:ros-info (pick-place place) "Parking")
+    (exe:perform
+     (desig:an action
+               (type parking-arms)
+               ;; TODO: this will not work with dual-arm grasping
+               ;; but as our ?arm is declared as a keyword,
+               ;; for now this code is the right code
+               (arms (?arm))))))
 
 
 

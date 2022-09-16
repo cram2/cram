@@ -162,6 +162,9 @@
         (equal ?robot-arm-is-also-a-neck T)
         (equal ?robot-arm-is-also-a-neck NIL))
 
+    (once (or (spec:property ?action-designator (:park-arms ?park-arms))
+              (equal ?park-arms T)))
+
     ;; put together resulting action designator
     (desig:designator :action ((:type :picking-up)
                                (:object ?current-object-desig)
@@ -177,7 +180,8 @@
                                (:left-grasp-poses ?left-grasp-poses)
                                (:right-grasp-poses ?right-grasp-poses)
                                (:left-lift-poses ?left-lift-poses)
-                               (:right-lift-poses ?right-lift-poses))
+                               (:right-lift-poses ?right-lift-poses)
+                               (:park-arms ?park-arms))
                       ?resolved-action-designator))
 
 

@@ -48,10 +48,12 @@
                                          collision-object-a
                                          prefer-base allow-base straight-line
                                          align-planes-left align-planes-right
-                                         unmovable-joints)
+                                         unmovable-joints
+                                         precise-tracking)
   (declare (type (or null cl-transforms-stamped:pose-stamped) left-pose right-pose)
            (type (or null string) pose-base-frame)
-           (type boolean prefer-base straight-line align-planes-left align-planes-right)
+           (type boolean prefer-base straight-line
+                 align-planes-left align-planes-right precise-tracking)
            (type (or null list) unmovable-joints))
   (let ((arms (append (when left-pose '(:left))
                       (when right-pose '(:right)))))
@@ -113,6 +115,8 @@
                       (if left-pose
                           cram-tf:*robot-left-tool-frame*
                           cram-tf:*robot-right-tool-frame*)))
+                   (when precise-tracking
+                     (make-enable-velocity-trajectory-tracking-constraint))
                    (when left-pose
                      (make-cartesian-constraint
                       pose-base-frame
@@ -299,12 +303,13 @@
                                     collision-object-a
                                     move-base prefer-base straight-line
                                     align-planes-left align-planes-right
-                                    unmovable-joints)
+                                    unmovable-joints
+                                    precise-tracking)
   (declare (type (or number null) action-timeout)
            (type (or cl-transforms-stamped:pose-stamped null)
                  goal-pose-left goal-pose-right)
            (type (or string null) pose-base-frame)
-           (type boolean move-base prefer-base straight-line
+           (type boolean move-base prefer-base straight-line precise-tracking
                  align-planes-left align-planes-right)
            (type (or list null) unmovable-joints))
 
@@ -340,7 +345,8 @@
                  :straight-line straight-line
                  :align-planes-left align-planes-left
                  :align-planes-right align-planes-right
-                 :unmovable-joints unmovable-joints)
+                 :unmovable-joints unmovable-joints
+                 :precise-tracking precise-tracking)
    :action-timeout action-timeout
    :check-goal-function (lambda (result status)
                           (declare (ignore result status))
@@ -373,7 +379,7 @@
      :action-timeout action-timeout
      :check-goal-function (lambda (result status)
                             (declare (ignore result status))
-                            (and (ensure-arm-joint-goal-reached
-                                  goal-configuration-left :left)
-                                 (ensure-arm-joint-goal-reached
-                                  goal-configuration-right :right))))))
+                            (or (ensure-arm-joint-goal-reached
+                                 goal-configuration-left :left)
+                                (ensure-arm-joint-goal-reached
+                                 goal-configuration-right :right))))))

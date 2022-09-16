@@ -93,13 +93,14 @@
                                 ((:straight-line ?straight-line))
                                 ((:align-planes-left ?align-planes-left))
                                 ((:align-planes-right ?align-planes-right))
+                                ((:precise-tracking ?precise-tracking))
                               &allow-other-keys)
   (declare (type (or list cl-transforms-stamped:pose-stamped) left-poses right-poses)
            (type (or null keyword) ?collision-mode)
            (type (or null symbol) ?collision-object-b ?collision-object-a)
            (type (or null string symbol) ?collision-object-b-link)
            (type boolean ?move-base ?prefer-base ?straight-line
-                 ?align-planes-left ?align-planes-right))
+                 ?align-planes-left ?align-planes-right ?precise-tracking))
   "Move arms through all but last poses of `left-poses' and `right-poses',
 while ignoring failures; and execute the last pose with propagating the failures."
 
@@ -142,6 +143,8 @@ while ignoring failures; and execute the last pose with propagating the failures
                                (prefer-base ?prefer-base))
                              (desig:when ?straight-line
                                (straight-line ?straight-line))
+                             (desig:when ?precise-tracking
+                               (precise-tracking ?precise-tracking))
                              (desig:when ?align-planes-left
                                (align-planes-left ?align-planes-left))
                              (desig:when ?align-planes-right
@@ -182,6 +185,8 @@ while ignoring failures; and execute the last pose with propagating the failures
                        (prefer-base ?prefer-base))
                      (desig:when ?straight-line
                        (straight-line ?straight-line))
+                     (desig:when ?precise-tracking
+                       (precise-tracking ?precise-tracking))
                      (desig:when ?align-planes-left
                        (align-planes-left ?align-planes-left))
                      (desig:when ?align-planes-right

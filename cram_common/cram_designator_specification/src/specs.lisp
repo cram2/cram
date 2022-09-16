@@ -180,7 +180,13 @@
     (lisp-pred typep ?designator desig:action-designator)
     (member ?key (:function))
     (property-member (?key ?value) ?designator)
-    (assert-type ?value (or function null) "ACTION SPEC:PROPERTY")))
+    (assert-type ?value (or function null) "ACTION SPEC:PROPERTY"))
+
+  (<- (%property ?designator (?key ?value))
+    (lisp-pred typep ?designator desig:action-designator)
+    (member ?key (:park-arms))
+    (property-member (?key ?value) ?designator)
+    (assert-type ?value boolean "ACTION SPEC:PROPERTY")))
 
 
 (def-fact-group location-designator-specs (%property)

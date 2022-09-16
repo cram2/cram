@@ -183,6 +183,7 @@
                                (:move-base NIL;; ?move-base
                                            )
                                (:straight-line T)
+                               (:precise-tracking T)
                                (:align-planes-left ?align-planes-left)
                                (:align-planes-right ?align-planes-right))
                       ?resolved-action-designator))
