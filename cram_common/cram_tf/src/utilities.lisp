@@ -225,9 +225,19 @@
       (cl-transforms:pose
        (cl-transforms:copy-pose pose :orientation new-orientation)))))
 
+(defun copy-transform-stamped (transform-stamped &key frame-id child-frame-id stamp
+                                                   translation rotation)
+  (cl-transforms-stamped:make-transform-stamped
+   (or frame-id (cl-transforms-stamped:frame-id transform-stamped))
+   (or child-frame-id (cl-transforms-stamped:child-frame-id transform-stamped))
+   (or stamp (cl-transforms-stamped:stamp transform-stamped))
+   (or translation (cl-transforms-stamped:translation transform-stamped))
+   (or rotation (cl-transforms-stamped:rotation transform-stamped))))
+
 (defun rotate-pose-in-own-frame (pose axis angle)
+  (print axis)
   (let* ((pose-orientation
-           (cl-transforms:orientation pose))
+           (cl-transforms:rotation pose))
          (new-orientation
            (cl-transforms:q*
             pose-orientation
@@ -242,7 +252,10 @@
       (cl-transforms-stamped:pose-stamped
        (cl-transforms-stamped:copy-pose-stamped pose :orientation new-orientation))
       (cl-transforms:pose
-       (cl-transforms:copy-pose pose :orientation new-orientation)))))
+       (cl-transforms:copy-pose pose :orientation new-orientation))
+      (cl-transforms-stamped:transform-stamped
+       (copy-transform-stamped pose :rotation new-orientation)
+       ))))
 
 (defun rotate-transform-in-own-frame (transform axis angle)
   (let* ((transform-rotation
@@ -343,14 +356,6 @@ Multiply from the right with the yTz transform -- xTy * yTz == xTz."
    (cl-transforms-stamped:translation transform-stamped)
    (cl-transforms:rotation transform-stamped)))
 
-(defun copy-transform-stamped (transform-stamped &key frame-id child-frame-id stamp
-                                                   translation rotation)
-  (cl-transforms-stamped:make-transform-stamped
-   (or frame-id (cl-transforms-stamped:frame-id transform-stamped))
-   (or child-frame-id (cl-transforms-stamped:child-frame-id transform-stamped))
-   (or stamp (cl-transforms-stamped:stamp transform-stamped))
-   (or translation (cl-transforms-stamped:translation transform-stamped))
-   (or rotation (cl-transforms-stamped:rotation transform-stamped))))
 
 (defun translate-transform-stamped (transform
                                     &key (x-offset 0.0) (y-offset 0.0) (z-offset 0.0))

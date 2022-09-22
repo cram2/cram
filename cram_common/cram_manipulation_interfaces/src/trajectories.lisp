@@ -596,6 +596,9 @@ so we assume that all the source contents drops into the target right away."
                                                  location
                                                  objects-acted-on
                                                  &key tilt-angle side)
+  (print side)
+  (print grasp)
+  (print "this is in pouring trajectories")
   (let* ((source-object
            (first objects-acted-on))
          (source-object-name
@@ -617,21 +620,19 @@ so we assume that all the source contents drops into the target right away."
             side grasp))
          (so-T-stdg
            (get-object-type-to-gripper-transform
-            source-object-type source-object-name arm grasp))
+            target-object-type target-object-name arm side))
          (to-T-stdg
            (reduce #'cram-tf:apply-transform
                    `(,to-T-so ,so-T-stdg)
                    :from-end T))
          (to-T-so-tilts
-           (case grasp
-             (:front (cram-tf:rotate-pose-in-own-frame
-                      to-T-so :y tilt-angle))
-             (:side (case arm
-                      (:left (cram-tf:rotate-pose-in-own-frame
-                              to-T-so :x tilt-angle))
-                      (:right (cram-tf:rotate-pose-in-own-frame
-                               to-T-so :x (- tilt-angle)))
-                      (t (error "arm can only be :left or :right"))))
+           (case side
+             (:top-front (cram-tf:rotate-pose-in-own-frame
+                      to-T-so :z tilt-angle))
+             (:top-left (cram-tf:rotate-pose-in-own-frame
+                          to-T-so :x tilt-angle))
+             (:top-right (cram-tf:rotate-pose-in-own-frame
+                           to-T-so :y (- tilt-angle)))
              (t (error "can only pour from :side or :front"))))
          (to-T-stdg-tilts
            (reduce #'cram-tf:apply-transform
@@ -648,7 +649,134 @@ so we assume that all the source contents drops into the target right away."
               :tilting-down
               :tilting-up
               :retracting)
-            `(,to-T-stdg
-              ,to-T-stdg-tilts
-              ,to-T-stdg
-              ,to-T-stdg))))
+            `((,to-T-stdg)
+              (,to-T-stdg-tilts)
+              (,to-T-stdg)
+              (,to-T-stdg)))))
+
+
+;; (defmethod man-int:get-action-trajectory :heuristics 20 ((action-type (eql :pouring))
+;;                                                          arm
+;;                                                          grasp
+;;                                                          location
+;;                                                          objects-acted-on
+;;                                                          &key )
+;;   (let* ((object
+;;            (car objects-acted-on))
+;;          (object-name
+;;            (desig:desig-prop-value object :name))
+;;          (object-type
+;;            (desig:desig-prop-value object :type))
+;;          (bTo
+;;            (man-int:get-object-transform object))
+;;          ;; The first part of the btb-offset transform encodes the
+;;          ;; translation difference between the gripper and the
+;;          ;; object. The static defined orientation of bTb-offset
+;;          ;; describes how the gripper should be orientated to approach
+;;          ;; the object in which something should be poured into. This
+;;          ;; depends mostly on the defined coordinate frame of the
+;;          ;; object and how objects should be rotated to pour something
+;;          ;; out of them.
+;;          (bTb-offset
+;;            (man-int::get-object-type-robot-frame-tilt-approach-transform
+;;             object-type arm grasp))
+;;          ;; Since the grippers orientation should not depend on the
+;;          ;; orientation of the object it is omitted here.
+;;          (oTg-std
+;;            (cram-tf:copy-transform-stamped
+;;             (man-int:get-object-type-to-gripper-transform
+;;              object-type object-name arm grasp)
+;;             :rotation (cl-tf:make-identity-rotation)))
+;;          (approach-pose
+;;            (cl-tf:copy-pose-stamped 
+;;             (man-int:calculate-gripper-pose-in-base
+;;               (cram-tf:apply-transform
+;;                (cram-tf:copy-transform-stamped 
+;;                 bTb-offset
+;;                 :rotation (cl-tf:make-identity-rotation))
+;;                bTo)
+;;               arm oTg-std)
+;;             :orientation 
+;;             (cl-tf:rotation bTb-offset)))
+     
+;;          (tilting-poses
+;;            (get-tilting-poses grasp (list approach-pose))))
+;;     (mapcar (lambda (label poses-in-base)
+;;               (man-int:make-traj-segment
+;;                :label label
+;;                :poses (mapcar 
+;;                        (lambda (pose-in-base)
+;;                          (let ((mTb (cram-tf:pose->transform-stamped
+;;                                      cram-tf:*fixed-frame*
+;;                                      cram-tf:*robot-base-frame*
+;;                                      0.0
+;;                                      (btr:pose (btr:get-robot-object))))
+;;                                (bTg-std
+;;                                  (cram-tf:pose-stamped->transform-stamped
+;;                                   pose-in-base
+;;                                   (cl-tf:child-frame-id bTo))))
+;;                            (cl-tf:ensure-pose-stamped
+;;                             (cram-tf:apply-transform mTb bTg-std))))
+;;                        poses-in-base)))
+
+;;               ;; (mapcar (lambda (label transforms)
+;;               ;; (make-traj-segment
+;;               ;;  :label label
+;;               ;;  :poses (mapcar (alexandria:curry #'calculate-gripper-pose-in-map
+;;               ;;                                   b-T-to arm)
+;;               ;;                 transforms)))
+;;             '(:approach
+;;               :tilting)
+;;             `((,approach-pose)
+;;               ,tilting-poses))))
+
+(defun get-tilting-poses (grasp approach-poses &optional (angle (cram-math:degrees->radians 100)))
+  (mapcar (lambda (?approach-pose)
+            ;;depending on the grasp the angle to tilt is different
+            (case grasp
+              (:top-front (rotate-once-pose ?approach-pose (+ angle) :y))
+              (:top-left (rotate-once-pose ?approach-pose (+ angle) :x))
+              (:top-right (rotate-once-pose ?approach-pose (- angle) :x))
+              (:top (rotate-once-pose ?approach-pose (- angle) :y))
+              (t (error "can only pour from :top-side, :top  or :top-front"))))
+          approach-poses))
+
+;;helper function for tilting
+;;rotate the pose around the axis in an angle
+(defun rotate-once-pose (pose angle axis)
+  (cl-transforms-stamped:copy-pose-stamped
+   pose
+   :orientation (let ((pose-orientation (cl-transforms:orientation pose)))
+                  (cl-tf:normalize
+                   (cl-transforms:q*
+                    (cl-transforms:axis-angle->quaternion
+                     (case axis
+                       (:x (cl-transforms:make-3d-vector 1 0 0))
+                       (:y (cl-transforms:make-3d-vector 0 1 0))
+                       (:z (cl-transforms:make-3d-vector 0 0 1))
+                       (t (error "in ROTATE-ONCE-POSE forgot to specify axis properly: ~a" axis)))
+                     angle)
+                    pose-orientation)))))
+
+
+
+
+
+(defgeneric get-object-type-robot-frame-tilt-approach-transform (object-type arm grasp)
+  (:documentation "Returns a transform stamped")
+  (:method (object-type arm grasp)
+    (call-with-specific-type #'man-int:get-object-type-robot-frame-tilt-approach-transform
+                             object-type arm grasp)))
+
+(defmethod get-object-type-robot-frame-tilt-approach-transform :around (object-type arm grasp)
+  (destructuring-bind
+      ((x y z) (ax ay az aw))
+      (call-next-method)
+    (cl-tf:transform->transform-stamped
+     cram-tf:*robot-base-frame*
+     cram-tf:*robot-base-frame*
+     0.0
+     (cl-tf:pose->transform
+      (cl-transforms:make-pose
+       (cl-transforms:make-3d-vector x y z)
+       (cl-transforms:make-quaternion ax ay az aw))))))

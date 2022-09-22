@@ -71,7 +71,7 @@
 
   (<- (%property ?designator (?object-key ?object))
     (lisp-pred typep ?designator desig:motion-designator)
-    (member ?object-key (:object :objects))
+    (member ?object-key (:object :objects :source-object :target-object))
     (property-member (?object-key ?object) ?designator)
     (assert-type ?object desig:object-designator "MOTION SPEC:PROPERTY"))
 
@@ -136,7 +136,7 @@
                                   :arm :direction :grasp :camera :type
                                   :context :link :configuration
                                   :left-configuration :right-configuration
-                                  :collision-mode))
+                                  :collision-mode :side))
     (property-member (?keyword-or-list-key ?value) ?designator)
     (assert-type ?value (or keyword list) "ACTION SPEC:PROPERTY"))
 

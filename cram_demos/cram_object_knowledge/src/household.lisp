@@ -928,7 +928,7 @@
 (defparameter *bowl-grasp-x-offset* 0.08 "in meters")
 (defparameter *bowl-tilted-pregrasp-x-offset* 0.08 "in meters")
 ;; (defparameter *edeka-red-bowl-grasp-z-offset* 0.0 "in meters")
-(defparameter *bowl-grasp-z-offset* 0.02 "in meters")
+(defparameter *bowl-grasp-z-offset* 0.15 "in meters")
 (defparameter *bowl-tilted-grasp-z-offset* 0.04 "in meters")
 (defparameter *bowl-pregrasp-z-offset* 0.20 "in meters")
 

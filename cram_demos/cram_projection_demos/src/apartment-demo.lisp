@@ -40,10 +40,10 @@
 (defparameter *apartment-object-spawning-poses-pouring*
   '((:jeroen-cup
      "island_countertop"
-     ((0.30 0.05 0.1) (0 0 0 1)))
-    (:cup
-     "cabinet1_coloksu_level4"
-     ((0.15 -0.1 0.08) (0 0 -1 0)))))
+     ((0.34 -0.9 0.1) (0 0 0 -1)))
+    (:bowl
+     "island_countertop"
+     ((0.34 0.5 0.1) (0 0 0 -1)))))
 
 (defun initialize-apartment ()
   (sb-ext:gc :full t)
@@ -452,9 +452,9 @@
 (defun apartment-demo-pouring-only (&key (step 0))
   "copy and pasted stuff from apartment-demo above so i can later just add the pouring part in the real demo"
   ;;(urdf-proj:with-simulated-robot
-  (setf proj-reasoning::*projection-checks-enabled* nil)
+  (setf proj-reasoning::*projection-checks-enabled* t)
   (setf btr:*visibility-threshold* 0.7)
-  (let* ((?object
+   (let* ((?source-object
            (an object
                (type jeroen-cup)
                (name jeroen-cup-1)))
@@ -468,7 +468,23 @@
               (side back)
               (range 0.4)
               (range-invert 0.3)
-              (for ?object)))
+              (for ?source-object)))
+
+         (?target-object
+           (an object
+               (type bowl)
+               (name bowl-1)))
+         
+         (?location-on-island-target
+           (a location
+              (on (an object
+                      (type surface)
+                      (urdf-name island-countertop)
+                      (part-of apartment)))
+              (side back)
+              (range 0.4)
+              (range-invert 0.3)
+              (for ?target-object)))
          
          ;; hard-coded stuff for real-world demo
          (?initial-parking-pose
@@ -499,7 +515,6 @@
             (cl-transforms:make-3d-vector 2.49 2.35 1.0126)
             (cl-transforms:make-quaternion 0 1 0 0)))
          )
-
     (when (<= step 0)
       (initialize-apartment)
       ;; (btr-belief:vary-kitchen-urdf '(("handle_cab1_top_door_joint"
@@ -511,7 +526,7 @@
 
       (when cram-projection:*projection-environment*
         (spawn-objects-on-fixed-spots
-         :object-types '(:jeroen-cup :cup)
+         :object-types '(:jeroen-cup :bowl)
          :spawning-poses-relative *apartment-object-spawning-poses-pouring*))
       (park-robot ?initial-parking-pose))
 
@@ -566,9 +581,9 @@
                               (pose ?on-counter-top-target-cup-look-pose)))
         (let* ((?target-object-desig
                  (desig:an object
-                           (type jeroen-cup)
-                           (color blue)
-                           (name jeroen-cup-1)
+                           (type bowl)
+                           (color red)
+                           (name bowl-1)
                            (location ?location-on-island)))
                
                (?target-perceived-object-desig
@@ -584,8 +599,12 @@
           (exe:perform
            (desig:an action
                      (type pouring)
-                     (source-object ?source-perceived-object-desig)
-                     (target-object ?target-perceived-object-desig))))))))
+                     (object ?source-perceived-object-desig)
+                     (on-object ?target-perceived-object-desig)
+                     (arm :left)
+                     (sides (:top-front))
+                     ;; (wait-duration 5)
+                     )))))))
 
          ;;
         ;; (when (<= step 2)
