@@ -619,8 +619,8 @@ so we assume that all the source contents drops into the target right away."
             target-object-type target-object-name
             side grasp))
          (so-T-stdg
-           (get-object-type-to-gripper-transform
-            target-object-type target-object-name arm side))
+           (get-object-type-robot-frame-tilt-approach-transform
+            target-object-type arm side))
          (to-T-stdg
            (reduce #'cram-tf:apply-transform
                    `(,to-T-so ,so-T-stdg)
@@ -649,7 +649,7 @@ so we assume that all the source contents drops into the target right away."
               :tilting-down
               :tilting-up
               :retracting)
-            `((,to-T-stdg)
+            `((,so-T-stdg)
               (,to-T-stdg-tilts)
               (,to-T-stdg)
               (,to-T-stdg)))))

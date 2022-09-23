@@ -243,10 +243,10 @@
     ((object-type (eql :bowl))
      arm
      (grasp (eql :top-front)))
-  '((-0.02 0.0 0.15)(0 0 0 1)))
+  '((-0.09 0.0 0.40)(0 0 1 1)))
 
 (defmethod man-int:get-object-type-robot-frame-tilt-approach-transform 
     ((object-type (eql :bowl))
      arm
      (grasp (eql :top)))
-  '((0.02 0.0 0.26)(0 0 1 0)))
+  '((0.0 0.0 0.26)(0 0 1 0)))
