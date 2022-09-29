@@ -35,12 +35,15 @@
      ((0.20 0.05 0.08) (1 0 0 0)))
     (:cup
      "cabinet1_coloksu_level4"
-     ((0.15 -0.1 0.08) (0 0 -1 0)))))
+     ((0.15 -0.1 0.08) (0 0 -1 0)))
+    (:bowl
+     "island_countertop"
+     ((0.34 0.5 0.1) (0 0 0 -1)))))
 
 (defparameter *apartment-object-spawning-poses-pouring*
   '((:jeroen-cup
      "island_countertop"
-     ((0.34 -0.9 0.1) (0 0 0 -1)))
+     ((0.34 -0.5 0.1) (0 0 0 -1)))
     (:bowl
      "island_countertop"
      ((0.34 0.5 0.1) (0 0 0 -1)))))
@@ -491,7 +494,7 @@
            (cl-transforms-stamped:make-pose-stamped
             cram-tf:*fixed-frame*
             0.0
-            (cl-transforms:make-3d-vector 1.6 3.0 0.0)
+            (cl-transforms:make-3d-vector 1.6 3.3 0.0)
             (cl-transforms:make-quaternion 0 0 0 1)))
 
            (?second-cup-park-pose
@@ -499,6 +502,13 @@
             cram-tf:*fixed-frame*
             0.0
             (cl-transforms:make-3d-vector 1.6 2.4 0.0)
+            (cl-transforms:make-quaternion 0 0 0 1)))
+
+            (?third-cup-park-pose
+           (cl-transforms-stamped:make-pose-stamped
+            "map"
+            0.0
+            (cl-transforms:make-3d-vector 1.6867786693573 2.1811975717544556 0)
             (cl-transforms:make-quaternion 0 0 0 1)))
          
          (?on-counter-top-source-cup-look-pose
@@ -512,8 +522,10 @@
            (cl-transforms-stamped:make-pose-stamped
             "map"
             0.0
-            (cl-transforms:make-3d-vector 2.49 2.35 1.0126)
+            (cl-transforms:make-3d-vector 2.49 2.2 1.0126)
             (cl-transforms:make-quaternion 0 1 0 0)))
+          
+        
          )
     (when (<= step 0)
       (initialize-apartment)
@@ -560,51 +572,97 @@
 
         ;;TODO: Pick-up has parking in the end this need to be changed
         ;;or with constraints
-        (exe:perform (desig:an action
-                               (type picking-up)
-                               (arm :left)
-                               (grasp :front)
-                               (object ?source-perceived-object-desig)))
-        
-        ;;)
-        ;;)
-        ;;(when (<= step 2)
-        
-        (exe:perform
-         (desig:an action
-                   (type going)
-                   (target (desig:a location
-                                    (pose ?second-cup-park-pose)))))
+        (cpl:with-retry-counters ((giskardside-retries 3))
+      (cpl:with-failure-handling
+          (((or common-fail:manipulation-low-level-failure
+                common-fail:manipulation-goal-not-reached
+                common-fail:gripper-closed-completely) (e)
+             (roslisp:ros-warn (pp-plans pour-reach)
+                               "Manipulation messed up: ~a~%Failing."
+                               e)
+             
+             (cpl:do-retry giskardside-retries
+               (cpl:retry))
+             (return)))
 
+        
+           (exe:perform (desig:an action
+                               (type picking-up)
+                               (arm :right)
+                               (grasp :front)
+                               (object ?source-perceived-object-desig)
+                               (park-arms NIL)
+                               ))
+        ))))
+        
+     
+        
+        
+        ;; (exe:perform (desig:an action
+        ;;                        (type fetching)
+        ;;                        (arm :left)
+        ;;                        (grasp :front)
+        ;;                        (object ?source-perceived-object-desig)
+        ;;                        ))
+        
+        ;;)
+        ;;)
+     (when (<= step 2)
+        (exe:perform
+       (desig:an action
+                 (type positioning-arm)
+                 (left-configuration park)
+                 (right-configuration park)))
+        
+        ;; (exe:perform
+        ;;  (desig:an action
+        ;;            (type going)
+        ;;            (target (desig:a location
+        ;;                             (pose ?second-cup-park-pose)))))
+
+    
+          (exe:perform
+           (desig:an action
+                     (type going)
+                     (target (desig:a location
+                                      (pose ?third-cup-park-pose)))))
+
+            )
+     (when (<= step 3)
+       
+       (exe:perform (desig:an action
+                                                  (type moving-torso)
+                                                  (joint-angle lower-limit)))
+       
         (exe:perform (desig:a motion
                               (type looking)
                               (pose ?on-counter-top-target-cup-look-pose)))
+        
         (let* ((?target-object-desig
                  (desig:an object
                            (type bowl)
                            (color red)
                            (name bowl-1)
-                           (location ?location-on-island)))
+                           (location ?location-on-island-target)))
                
                (?target-perceived-object-desig
                  (exe:perform (desig:an action
                                         (type detecting)
                                         (object ?target-object-desig)))))
-          ;;)
-          ;;)
-
-          ;;(when (<= step 3)
-          
-
+            (exe:perform (desig:an action
+                                                  (type moving-torso)
+                                                  (joint-angle upper-limit)))
+         
           (exe:perform
            (desig:an action
                      (type pouring)
-                     (object ?source-perceived-object-desig)
+                     ;(object ?source-perceived-object-desig)
                      (on-object ?target-perceived-object-desig)
-                     (arm :left)
-                     (sides (:top-front))
-                     ;; (wait-duration 5)
-                     )))))))
+                     (arm :right)
+                     (sides (:top-right))
+                     (wait-duration 5)
+                     )))
+)))
 
          ;;
         ;; (when (<= step 2)
@@ -636,5 +694,379 @@
       ;;                                 (object ?target-object-desig)))))
       ;;   ?perceived-object-desig
   
+
+
+(defun apartment-demo-merged (&key (step 0))
+  ;;urdf-proj:with-simulated-robot
+  (setf proj-reasoning::*projection-checks-enabled* nil)
+  (setf btr:*visibility-threshold* 0.7)
+
+  (let* ((?object
+           (an object
+               (type jeroen-cup)
+               (name jeroen-cup-1)))
+         (?location-in-cupboard
+           (a location
+              (on (an object
+                      (type shelf)
+                      (urdf-name cabinet1-coloksu-level4)
+                      (part-of apartment)
+                      (location (a location
+                                   (in (an object
+                                           (type cupboard)
+                                           (urdf-name cabinet1-door-top-left)
+                                           (part-of apartment)))))))
+              (side (back left))
+              (range-invert 0.2)
+              (range 0.25)
+              (orientation upside-down)
+              (for ?object)))
+         (?location-in-cupboard-with-attachment
+           (a location
+              (on (an object
+                      (type shelf)
+                      (urdf-name cabinet1-coloksu-level4)
+                      (part-of apartment)
+                      (location (a location
+                                   (in (an object
+                                           (type cupboard)
+                                           (urdf-name cabinet1-door-top-left)
+                                           (part-of apartment)))))))
+              (side (back left))
+              (range-invert 0.2)
+              (range 0.25)
+              (orientation upside-down)
+              (for ?object)
+              (attachments (jeroen-cup-on-shelf))))
+         (?location-on-island
+           (a location
+              (on (an object
+                      (type surface)
+                      (urdf-name island-countertop)
+                      (part-of apartment)))
+              (side back)
+              (range 0.4)
+              (range-invert 0.3)
+              (for ?object)))
+         (?location-in-dishwasher
+           (a location
+              (above (an object
+                         (type drawer)
+                         (urdf-name dishwasher-drawer-middle)
+                         (part-of apartment)
+                         (location (a location
+                                      (in (an object
+                                              (type dishwasher)
+                                              (urdf-name cabinet7)
+                                              (part-of apartment)))))))
+              (for (desig:an object
+                             (type jeroen-cup)
+                             (name jeroen-cup-1)))
+              (attachments (jeroen-cup-in-dishwasher-1 jeroen-cup-in-dishwasher-2))))
+         ;; (?location-in-hand
+         ;;   (a location
+         ;;      (in (an object
+         ;;              (type robot)))))
+         ;; (?location-in-other-hand
+         ;;   (a location
+         ;;      (in (an object
+         ;;              (type robot)))))
+         (?location-on-island-upside-down
+           (a location
+              (on (an object
+                      (type surface)
+                      (urdf-name island-countertop)
+                      (part-of apartment)))
+              (side (right back))
+              (range 0.5)
+              (orientation upside-down)
+              (for (an object
+                       (type jeroen-cup)
+                       (name jeroen-cup-1)))))
+
+
+         ;; hard-coded stuff for real-world demo
+         (?initial-parking-pose
+           (cl-transforms-stamped:make-pose-stamped
+            cram-tf:*fixed-frame*
+            0.0
+            (cl-transforms:make-3d-vector 1.5 1.5 0.0)
+            (cl-transforms:make-quaternion 0 0 0.5 0.5)))
+
+         (?accessing-cupboard-door-robot-pose
+           (cl-transforms-stamped:make-pose-stamped
+            "map"
+            0.0
+            (cl-transforms:make-3d-vector 1.3861795354091224 2.0873920232286345 0.0d0)
+            (cl-transforms:make-quaternion 0.0d0 0.0d0 1 0)))
+         (?accessing-cupboard-door-another-robot-pose
+           (cl-transforms-stamped:make-pose-stamped
+            "map"
+            0.0
+            (cl-transforms:make-3d-vector 1.23 2.0 0.0d0)
+            (cl-transforms:make-quaternion 0.0d0 0.0d0 1 0)))
+         (?accessing-cupboard-door-robot-poses
+           (list ?accessing-cupboard-door-robot-pose
+                 ?accessing-cupboard-door-another-robot-pose))
+         (?detecting-cupboard-robot-pose
+           (cl-transforms-stamped:make-pose-stamped
+            "map"
+            0.0
+            (cl-transforms:make-3d-vector 1.1 2.002821242371188d0 0.0d0)
+            (cl-transforms:make-quaternion 0.0d0 0.0d0 -1 0)))
+         ;; (?fetching-cupboard-right-hand-robot-pose
+         ;;   (cl-transforms-stamped:make-pose-stamped
+         ;;    "map"
+         ;;    0.0
+         ;;    (cl-transforms:make-3d-vector 1.3668892503154677d0 1.6951934636420103d0 0.0d0)
+         ;;    (cl-transforms:make-quaternion 0.0d0 0.0d0 0.9298226390305793d0
+         ;;                                   -0.36800561314986846d0)))
+         (?sealing-cupboard-door-robot-pose
+           (cl-transforms-stamped:make-pose-stamped
+            "map"
+            0.0
+            (cl-transforms:make-3d-vector 1.6 1.0873920171726708 0.0)
+            (cl-transforms:make-quaternion 0.0d0 0.0d0 -1 0)))
+         (?sealing-cupboard-door-another-robot-pose
+           (cl-transforms-stamped:make-pose-stamped
+            "map"
+            0.0
+            (cl-transforms:make-3d-vector 1.7 1.0873920171726708 0.0)
+            (cl-transforms:make-quaternion 0.0d0 0.0d0 -1 0)))
+         (?sealing-cupboard-door-robot-poses
+           (list ?sealing-cupboard-door-robot-pose
+                 ?sealing-cupboard-door-another-robot-pose))
+
+         (?on-counter-top-cup-pose
+           (cl-transforms-stamped:make-pose-stamped
+            "map"
+            0.0
+            (cl-transforms:make-3d-vector 2.37 2.6 1.0126)
+            (cl-transforms:make-quaternion 0 0 1 0)))
+         (?delivering-counter-top-robot-pose
+           (cl-transforms-stamped:make-pose-stamped
+            "map"
+            0.0
+            (cl-transforms:make-3d-vector 1.8 2.8 0.0d0)
+            (cl-transforms:make-quaternion 0.0d0 0.0d0 -0.1 1)))
+         
+         (?on-counter-top-cup-upsidedown-pose
+           (cl-transforms-stamped:make-pose-stamped
+            "map"
+            0.0
+            (cl-transforms:make-3d-vector 2.37 2.6 1.0126)
+            (cl-transforms:make-quaternion 0 1 0 0)))
+         (?on-counter-top-cup-look-pose
+           (cl-transforms-stamped:make-pose-stamped
+            "map"
+            0.0
+            (cl-transforms:make-3d-vector 2.1 2.6 1.0126)
+            (cl-transforms:make-quaternion 0 1 0 0)))
+
+         ;;hardcoded pouring stuff
+         
+         (?source-object
+           (an object
+               (type jeroen-cup)
+               (name jeroen-cup-1)))
+         
+         (?location-on-island
+           (a location
+              (on (an object
+                      (type surface)
+                      (urdf-name island-countertop)
+                      (part-of apartment)))
+              (side back)
+              (range 0.4)
+              (range-invert 0.3)
+              (for ?source-object)))
+
+         (?target-object
+           (an object
+               (type bowl)
+               (name bowl-1)))
+         
+         (?location-on-island-target
+           (a location
+              (on (an object
+                      (type surface)
+                      (urdf-name island-countertop)
+                      (part-of apartment)))
+              (side back)
+              (range 0.4)
+              (range-invert 0.3)
+              (for ?target-object)))
+         
+         ;; hard-coded stuff for real-world demo
+         (?percieve-blue-cup-pose-pouring
+           (cl-transforms-stamped:make-pose-stamped
+            cram-tf:*fixed-frame*
+            0.0
+            (cl-transforms:make-3d-vector 1.6 2.5 0.0)
+            (cl-transforms:make-quaternion 0 0 0 1)))
+
+         (?on-counter-top-source-cup-look-pose
+           (cl-transforms-stamped:make-pose-stamped
+            "map"
+            0.0
+            (cl-transforms:make-3d-vector 2.49 2.6 1.0126)
+            (cl-transforms:make-quaternion 0 1 0 0)))
+         
+         
+         (?on-counter-top-target-cup-look-pose
+           (cl-transforms-stamped:make-pose-stamped
+            "map"
+            0.0
+            (cl-transforms:make-3d-vector 2.49 2.2 1.0126)
+            (cl-transforms:make-quaternion 0 1 0 0))))
+    
+
+    ;; park robot into the initial position
+    (when (<= step 0)
+      (initialize-apartment)
+      ;; (btr-belief:vary-kitchen-urdf '(("handle_cab1_top_door_joint"
+      ;;                                  ((-0.038d0 -0.5d0 -0.08d0)
+      ;;                                   (0.706825181105366d0 0.0d0
+      ;;                                    0.0d0 0.7073882691671998d0)))))
+      ;; (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
+      ;; (btr-belief:spawn-world)
+
+      (when cram-projection:*projection-environment*
+        (spawn-objects-on-fixed-spots
+         :object-types '(:jeroen-cup :cup :bowl)
+         :spawning-poses-relative *apartment-object-spawning-poses*))
+      (park-robot ?initial-parking-pose))
+
+    ;; bring cup from cupboard to table
+    (when (<= step 1)
+      (let ((?goal `(and (cpoe:object-at-location ,(an object
+                                                       (type jeroen-cup)
+                                                       (name jeroen-cup-1))
+                                                  ,(a location
+                                                      (pose ?on-counter-top-cup-pose)))
+                         (cpoe:location-reset ,?location-in-cupboard))))
+        (exe:perform
+         (an action
+             (type transporting)
+             (object (an object
+                         (type jeroen-cup)
+                         (color blue)
+                         (name jeroen-cup-1)
+                         (location ?location-in-cupboard)))
+             (access-search-outer-robot-location (a location
+                                                    (poses ?accessing-cupboard-door-robot-poses)))
+             (access-seal-search-outer-arms (left))
+             (access-search-outer-grasps (back))
+             (search-robot-location (a location
+                                       (pose ?detecting-cupboard-robot-pose
+                                             ;; ?fetching-cupboard-right-hand-robot-pose
+                                             )))
+             (fetch-robot-location (a location
+                                      (pose ?detecting-cupboard-robot-pose
+                                            ;; ?fetching-cupboard-right-hand-robot-pose
+                                            )))
+             (arms (left
+                    ;; right
+                    ))
+             (grasps (front))
+             (target (a location
+                        (pose ?on-counter-top-cup-pose))
+                     ;; ?location-on-island
+                     )
+             (deliver-robot-location (a location
+                                        (pose ?delivering-counter-top-robot-pose)))
+             (seal-search-outer-robot-location (a location
+                                                  (poses ?sealing-cupboard-door-robot-poses)))
+             (seal-search-outer-grasps (back))
+             (goal ?goal)))))
+
+    ;;pick-up-cup
+    (when (<= step 2)
+
+      (exe:perform
+       (desig:an action
+                 (type going)
+                 (target (desig:a location
+                                  (pose ?percieve-blue-cup-pose-pouring)))))
+
+      (exe:perform (desig:a motion
+                            (type looking)
+                            (pose ?on-counter-top-source-cup-look-pose)))
+
+      
+      (let* ((?source-object-desig
+               (desig:an object
+                         (type jeroen-cup)
+                         (color blue)
+                         (name jeroen-cup-1)
+                         (location ?location-on-island)))
+             
+             (?source-perceived-object-desig
+               (exe:perform (desig:an action
+                                      (type detecting)
+                                      (object ?source-object-desig))))
+
+             
+             (?target-object-desig
+               (desig:an object
+                         (type bowl)
+                         (color red)
+                         (name bowl-1)
+                         (location ?location-on-island-target)))
+             
+             (?target-perceived-object-desig
+               (cpl::seq
+                 (exe:perform (desig:a motion
+                                       (type looking)
+                                       (pose ?on-counter-top-target-cup-look-pose)))
+                 
+                 (exe:perform (desig:an action
+                                        (type detecting)
+                                        (object ?target-object-desig))))))
+        
+
+        ;;TODO: Pick-up has parking in the end this need to be changed
+        ;;or with constraints
+        (cpl:with-retry-counters ((giskardside-retries 3))
+          (cpl:with-failure-handling
+              (((or common-fail:manipulation-low-level-failure
+                    common-fail:manipulation-goal-not-reached
+                    common-fail:gripper-closed-completely) (e)
+                 (roslisp:ros-warn (pp-plans pour-reach)
+                                   "Manipulation messed up: ~a~%Failing."
+                                   e)
+                 
+                 (cpl:do-retry giskardside-retries
+                   (cpl:retry))
+                 (return)))
+
+            
+            (exe:perform (desig:an action
+                                   (type picking-up)
+                                   (arm :right)
+                                   (grasp :front)
+                                   (object ?source-perceived-object-desig)
+                                   (park-arms NIL)))))
+
+        (exe:perform
+         (desig:an action
+                   (type pouring)
+                   (on-object ?target-perceived-object-desig)
+                   (arm :right)
+                   (sides (:top-right))
+                   (wait-duration 5)
+                   ))))
+
+    (exe:perform
+     (desig:an action
+               (type placing)
+               (arm right)
+               (object ?source-object)
+               (target (a location
+                          (pose ?on-counter-top-cup-pose)))))
+    
+    ))
+
+
 
 

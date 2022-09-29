@@ -34,17 +34,20 @@
   (<- (desig:action-grounding ?action-designator (pour ?resolved-designator))
     (spec:property ?action-designator (:type :pouring))
     (spec:property ?action-designator (:on-object ?_))
-    (once (or (spec:property ?action-designator (:arm ?_))
-              (spec:property ?action-designator (:object ?_))))
-    (once (or (spec:property ?action-designator (:wait-duration ?_))
-              (true)))
-    (-> (spec:property ?action-designator (:sides ?sides))
-        (eqaul ?resolved-designator ?action-designator)
-        (and (desig:desig-description ?action-designator ?description)
-             (append ?description ((:sides (:top-left :top-right :top-front)))
-                     ?new-description)
-             (desig:designator :action ?new-description ?resolved-designator))))
-    
+    ;;pec:property ?action-designator (:object ?_)))
+
+  (spec:property ?action-designator (:arm ?_))
+  ;; (once (or (spec:property ?action-designator (:arm ?_))
+  ;;           (spec:property ?action-designator (:object ?_))))
+  (once (or (spec:property ?action-designator (:wait-duration ?_))
+            (true)))
+  (-> (spec:property ?action-designator (:sides ?sides))
+      (eqaul ?resolved-designator ?action-designator)
+      (and (desig:desig-description ?action-designator ?description)
+           (append ?description ((:sides (:top-left :top-right :top-front)))
+                   ?new-description)
+           (desig:designator :action ?new-description ?resolved-designator))))
+
 
 
 
@@ -55,23 +58,26 @@
     (-> (spec:property ?action-designator (:configuration ?side))
         (true)
         (format "WARNINGL: please specify a side"))
-    ;; ;; source
     (-> (spec:property ?action-designator (:arm ?arm))
-        (-> (spec:property ?action-designator (:object
-                                               ?source-designator))
-            (once (or (cpoe:object-in-hand ?source-designator ?arm ?grasp)
-                      (format "WARNING: Wanted to pour from object ~a ~
-                               with arm ~a, but it's not in the arm.~%"
-                              ?source-designator ?arm)))
-            (cpoe:object-in-hand ?source-designator ?arm ?grasp))
-        (-> (spec:property ?action-designator (:object
-                                               ?source-designator))
-            (once (or (cpoe:object-in-hand ?source-designator ?arm ?grasp)
-                      (format "WARNING: Wanted to pour from object ~a ~
-                               but it's not in any of the hands.~%"
-                              ?source-designator)))
-            (cpoe:object-in-hand ?source-designator ?arm ?grasp)))
-    (desig:current-designator ?source-designator ?current-source-designator)
+        (true)
+        (format "WARNINGL: please specify an arm"))
+    ;; ;; source
+    ;; (-> (spec:property ?action-designator (:arm ?arm))
+    ;;     (-> (spec:property ?action-designator (:object
+    ;;                                            ?source-designator))
+    ;;         (once (or (cpoe:object-in-hand ?source-designator ?arm ?grasp)
+    ;;                   (format "WARNING: Wanted to pour from object ~a ~
+    ;;                            with arm ~a, but it's not in the arm.~%"
+    ;;                           ?source-designator ?arm)))
+    ;;         (cpoe:object-in-hand ?source-designator ?arm ?grasp))
+    ;;     (-> (spec:property ?action-designator (:object
+    ;;                                            ?source-designator))
+    ;;         (once (or (cpoe:object-in-hand ?source-designator ?arm ?grasp)
+    ;;                   (format "WARNING: Wanted to pour from object ~a ~
+    ;;                            but it's not in any of the hands.~%"
+    ;;                           ?source-designator)))
+    ;;         (cpoe:object-in-hand ?source-designator ?arm ?grasp)))
+    ;; (desig:current-designator ?source-designator ?current-source-designator)
     ;;destination / target
     (spec:property ?action-designator (:on-object ?target-designator))
     (desig:current-designator ?target-designator ?current-target-designator)
@@ -81,60 +87,78 @@
         (lisp-fun man-int:get-tilt-angle-for-pouring ?source-type ?target-type
                   ?tilt-angle))
     ;; cartesian pouring trajectory
-    (equal ?objects-acted-on (?current-source-designator
+    (equal ?objects-acted-on (;; ?current-source-designator
                               ?current-target-designator))
     (-> (equal ?arm :left)
-          (and (lisp-fun man-int:get-action-trajectory :pouring
-                       ?arm ?grasp nil ?objects-acted-on
+        (and (lisp-fun man-int:get-action-trajectory :pouring
+                       ?arm ?side nil ?objects-acted-on
                        :tilt-angle ?tilt-angle :side ?side
                        ?left-trajectory)
              (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :reaching
                        ?left-reach-poses)
              (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :tilting-down
                        ?left-tilt-down-poses)
-             (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :tilting-up
+             (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :tilting
                        ?left-tilt-up-poses)
-             (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :retracting
-                       ?left-retract-poses))
+             (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :tilting-second
+                       ?left-tilt-second-poses)
+             (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :tilting-third
+                       ?left-tilt-third-poses)
+             ;; (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :retracting
+             ;;           ?left-retract-poses)
+             )
         
         (and (equal ?left-reach-poses NIL)
-             (equal ?left-tilt-down-poses NIL
+             (equal ?left-tilt-down-poses NIL)
              (equal ?left-tilt-up-poses NIL)
-             (equal ?left-retract-poses NIL))))
+             (equal ?left-tilt-second-poses NIL)
+             (equal ?left-tilt-third-poses NIL)
+             (equal ?left-retract-poses NIL)))
+    
     (-> (equal ?arm :right)
-    ;;     ;; (and (lisp-fun man-int:get-action-trajectory :pouring
-        ;;     ;;                ?arm ?grasp nil ?objects-acted-on
-        ;;     ;;                :tilt-angle ?tilt-angle :side ?side
-        ;;     ;;                ?right-trajectory)
-        ;;     ;;      (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :reaching
-        ;;     ;;                ?right-reach-poses)
-        ;;     ;;      (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :tilting-down
-        ;;     ;;                ?right-tilt-down-poses)
-        ;;     ;;      (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :tilting-up
-        ;;     ;;                ?right-tilt-up-poses)
-        ;;     ;;      (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :retracting
-        ;;     ;;                ?right-retract-poses))
-        (and (equal ?right-reach-poses t)
-             (equal ?right-tilt-down-poses t)
-             (equal ?right-tilt-up-poses t)
-             (equal ?right-retract-poses t))
+        (and (lisp-fun man-int:get-action-trajectory :pouring
+                       ?arm ?side nil ?objects-acted-on
+                       :tilt-angle ?tilt-angle :side ?side
+                       ?right-trajectory)
+             (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :reaching
+                       ?right-reach-poses)
+             (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :tilting-down
+                       ?right-tilt-down-poses)
+             (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :tilting
+                       ?right-tilt-up-poses)
+             (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :tilting-second
+                       ?right-tilt-second-poses)
+             (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :tilting-third
+                       ?right-tilt-third-poses)
+             ;; (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :retracting
+             ;;           ?right-retract-poses)
+             )
+        ;; (and (equal ?right-reach-poses t)
+        ;;      (equal ?right-tilt-down-poses t)
+        ;;      (equal ?right-tilt-up-poses t)
+        ;;      (equal ?right-tilt-second-poses t)
+        ;;      (equal ?right-tilt-third-poses t)
+        ;;      (equal ?right-retract-poses t))
+        
         (and (equal ?right-reach-poses NIL)
              (equal ?right-tilt-down-poses NIL)
              (equal ?right-tilt-up-poses NIL)
+             (equal ?right-tilt-second-poses NIL)
+             (equal ?right-tilt-third-poses NIL)
              (equal ?right-retract-poses NIL)))
-    ;; (once (or (lisp-pred identity ?left-trajectory)
-    ;;           (lisp-pred identity ?right-trajectory)))
+    
+    
     ;; wait duration
-    (-> (spec:property ?action-designator (:wait-duration ?wait-duration))
-        (true)
-        (lisp-fun man-int:get-wait-duration-for-pouring
-                  ?source-type ?taget-type ?tilt-angle
-                  ?wait-duration))
-    ;; ;; look pose
-    ;; (-> (lisp-pred identity ?left-grasp-poses)
+    ;; (-> (spec:property ?action-designator (:wait-duration ?wait-duration))
+    ;;     (true)
+    ;;     (lisp-fun man-int:get-wait-duration-for-pouring
+    ;;               ?source-type ?taget-type ?tilt-angle
+    ;;               ?wait-duration))
+    ;; look pose
+    ;; (-> (lisp-pred identity ?left-trajectory)
     ;;     (equal ?left-tilt-down-poses (?look-pose . ?_))
     ;;     (equal ?right-tilt-down-poses (?look-pose . ?_)))
-    ;; ;; should look or not?
+    ;; ;; ;; should look or not?
     ;; (rob-int:robot ?robot)
     ;; (-> (man-int:robot-arm-is-also-a-neck ?robot ?arm)
     ;;     (equal ?robot-arm-is-also-a-neck T)
@@ -143,25 +167,29 @@
     
     ;;put together resulting designator
     (desig:designator :action ((:type :pouring)
-                               (:object ?current-source-designator)
+                               ;;(:object ?current-source-designator)
                                (:arm ?arm)
                                (:configuration ?side)
-                               (:grasp ?grasp)
+                               ;;(:grasp ?grasp)
                                (:on-object ?current-target-designator)
                                ;; ;; (:other-object-is-a-robot ?other-object-is-a-robot)
                                ;;(:look-pose ?look-pose)
-                               ;;(:robot-arm-is-also-a-neck ?robot-arm-is-also-a-neck)
-                               (:wait-duration ?wait-duration)
-                               (:left-reach-poses ?left-reach-poses)
-                               (:right-reach-poses ?right-reach-poses)
-                               (:left-tilt-down-poses ?left-tilt-down-poses)
-                               (:right-tilt-down-poses ?right-tilt-down-poses)
-                               (:left-tilt-up-poses ?left-tilt-up-poses)
-                               (:right-tilt-up-poses ?right-tilt-up-poses)
-                               (:left-retract-poses ?left-retract-poses)
-                               (:right-retract-poses ?right-retract-poses)
-                               )
+                               ;(:robot-arm-is-also-a-neck ?robot-arm-is-also-a-neck)
+                               ;;(:wait-duration ?wait-duration)
                                
+                               (:left-reach-poses ?left-reach-poses)
+                               (:left-tilt-down-poses ?left-tilt-down-poses)
+                               (:left-tilt-up-poses ?left-tilt-up-poses)
+                               (:left-tilt-second-poses ?left-tilt-second-poses)
+                               (:left-tilt-third-poses ?left-tilt-third-poses)
+                               
+                               (:right-reach-poses ?right-reach-poses)
+                               (:right-tilt-down-poses ?right-tilt-down-poses)
+                               (:right-tilt-up-poses ?right-tilt-up-poses)
+                               (:right-tilt-second-poses ?right-tilt-second-poses)
+                               (:right-tilt-third-poses ?right-tilt-third-poses)
+                               )
+                      
                       ?resolved-action-designator)))
 
 

@@ -42,32 +42,25 @@
 (defun pour-without-retries (&key
                                ((:arm ?arm))
                                ((:side ?side))
-                               grasp
+                               ;;grasp
                                ((:left-reach-poses ?left-reach-poses))
-                               ((:right-reach-poses ?right-reach-poses))
                                ((:left-tilt-down-poses ?left-tilt-down-poses))
-                               ((:right-tilt-down-poses ?right-tilt-down-poses))
                                ((:left-tilt-up-poses ?left-tilt-up-poses))
+                               ((:left-tilt-second-poses ?left-tilt-second-poses))
+                               ((:left-tilt-third-poses ?left-tilt-third-poses))
+                               
+                               ((:right-reach-poses ?right-reach-poses))
+                               ((:right-tilt-down-poses ?right-tilt-down-poses))
                                ((:right-tilt-up-poses ?right-tilt-up-poses))
-                               ((:left-retract-poses ?left-retract-poses))
-                               ((:right-retract-poses ?right-retract-poses))
+                               ((:right-tilt-second-poses ?right-tilt-second-poses))
+                               ((:right-tilt-third-poses ?right-tilt-third-poses))
+                               
                                ((:on-object ?on-object))
-                               object
+                               ;;object
                                ((:wait-duration ?wait-duration))
                                ((:look-location ?look-location))
                                robot-arm-is-also-a-neck
                              &allow-other-keys)
-
-  (print "pour-without-retries executable")
-  (print ?side)
-  (print ?arm)
-  (print object)
-  (print ?on-object)
-  (print ?left-tilt-down-poses)
-  (print ?wait-duration)
-  (print grasp)
-  (sleep 5)
-  
   
   ;; (declare (type (or null list)
   ;;                ?left-reach-poses ?right-reach-poses
@@ -79,103 +72,203 @@
   ;;          ;;(type keyword ?arm side grasp)
   ;;          (type number ?wait-duration)
   ;;          (ignore side grasp object))
-  ;; (roslisp:ros-info (pick-place pour) "Reaching")
-  ;; (cpl:with-failure-handling
-  ;;     ((common-fail:manipulation-low-level-failure (e)
-  ;;        (roslisp:ros-warn (pp-plans pour)
-  ;;                          "Manipulation messed up: ~a~%Failing."
-  ;;                          e)))
-  ;;   (cpl:par
-  ;;     (unless robot-arm-is-also-a-neck
-  ;;       (let ( ;; (?goal `(cpoe:looking-at ,?look-location))
-  ;;             )
-  ;;         (exe:perform (desig:an action
-  ;;                                (type turning-towards)
-  ;;                                (target ?look-location)
-  ;;                                ;; (goal ?goal)
-  ;;                                ))))
-  ;;     (let ((?goal `(cpoe:tool-frames-at ,?left-reach-poses ,?right-reach-poses)))
-        (exe:perform
-         (desig:an action
-                   (type pancake)
-                   (object ?on-object)
-                   (left-poses ?left-reach-poses)
-                   (right-poses ?right-reach-poses)
-                   ;;(collision-mode :allow-all) 
-                   )))
-                   ;;(goal ?goal))))
+  (let* ((sleepy t)
+         (movy t)
+         (?align-planes-left nil)
+         (?align-planes-right nil))
+
+    
+    (cpl:with-retry-counters ((giskardside-retries 3))
+      (cpl:with-failure-handling
+          (((or common-fail:manipulation-low-level-failure
+                common-fail:manipulation-goal-not-reached) (e)
+             (roslisp:ros-warn (pp-plans pour-reach)
+                               "Manipulation messed up: ~a~%Failing."
+                               e)
+             
+             (cpl:do-retry giskardside-retries
+               (cpl:retry))
+             (return)))
+
+        
+        (let ((?goal `(cpoe:tool-frames-at ,?left-reach-poses ,?right-reach-poses)))
+          (exe:perform
+           (desig:an action
+                     (type reaching)
+                     (object ?on-object)
+                     (left-poses ?left-reach-poses)
+                     (right-poses ?right-reach-poses)
+                     (goal ?goal))))
+        ))
+
+    
+    ;; (when sleepy
+    ;;   (sleep 5))
+    ;; (cpl:with-retry-counters ((giskardside-retries 3))
+    ;;   (cpl:with-failure-handling
+    ;;       (((or common-fail:manipulation-low-level-failure
+    ;;             common-fail:manipulation-goal-not-reached) (e)
+    ;;          (roslisp:ros-warn (pp-plans pour-tilt-down)
+    ;;                            "Manipulation messed up: ~a~%Failing."
+    ;;                            e)
+             
+    ;;          (cpl:do-retry giskardside-retries
+    ;;            (cpl:retry))
+    ;;          (return)))
+
+        
+    ;;     (let ((?goal `(cpoe:tool-frames-at ,?left-tilt-down-poses ,?right-tilt-down-poses)))
+    ;;       (exe:perform
+    ;;        (desig:an action
+    ;;                  (type tilting)
+    ;;                  (object ?on-object)
+    ;;                  (left-poses ?left-tilt-down-poses)
+    ;;                  (right-poses ?right-tilt-down-poses)
+    ;;                  (align-planes-left ?align-planes-left)
+    ;;                  (align-planes-right ?align-planes-right)
+    ;;                  (goal ?goal))))
+    ;;     ))
+    
+    (when sleepy
+      (sleep 2))
+
+    (cpl:with-retry-counters ((giskardside-retries 3))
+      (cpl:with-failure-handling
+          (((or common-fail:manipulation-low-level-failure
+                common-fail:manipulation-goal-not-reached) (e)
+             (roslisp:ros-warn (pp-plans pour-tilt-down-more)
+                               "Manipulation messed up: ~a~%Failing."
+                               e)
+             
+             (cpl:do-retry giskardside-retries
+               (cpl:retry))
+             (return)))
+
+        
+        (let ((?goal `(cpoe:tool-frames-at ,?left-tilt-up-poses ,?right-tilt-up-poses)))
+          (exe:perform
+           (desig:an action
+                     (type reaching)
+                     (object ?on-object)
+                     (left-poses ?left-tilt-up-poses)
+                     (right-poses ?right-tilt-up-poses)
+                     (align-planes-left ?align-planes-left)
+                     (align-planes-right ?align-planes-right)
+                     (move-base movy)
+                     ;;(collision-mode :allow-attached)
+                     (goal ?goal))))
+        ))
+    ;; (when sleepy
+    ;;   (sleep 10))
+
+    ;;    (cpl:with-retry-counters ((giskardside-retries 3))
+    ;;   (cpl:with-failure-handling
+    ;;       (((or common-fail:manipulation-low-level-failure
+    ;;             common-fail:manipulation-goal-not-reached) (e)
+    ;;          (roslisp:ros-warn (pp-plans pour-tilt-second)
+    ;;                            "Manipulation messed up: ~a~%Failing."
+    ;;                            e)
+             
+    ;;          (cpl:do-retry giskardside-retries
+    ;;            (cpl:retry))
+    ;;          (return)))
+
+    
+    ;;     (let ((?goal `(cpoe:tool-frames-at ,?left-tilt-second-poses ,?right-tilt-up-poses)))
+    ;;       (exe:perform
+    ;;        (desig:an action
+    ;;                  (type tilting)
+    ;;                  (object ?on-object)
+    ;;                  (left-poses ?left-tilt-second-poses)
+    ;;                  (right-poses ?right-tilt-up-poses)
+    ;;                  (align-planes-left ?align-planes-left)
+    ;;                  (align-planes-right ?align-planes-right)
+    ;;                  (move-base movy)
+    ;;                  ;;(collision-mode :allow-attached)
+    ;;                  (goal ?goal))))
+    ;;     ))
+    ;; (when sleepy
+    ;;   (sleep 10))
 
 
-  ;; )
-  ;; (roslisp:ros-info (pick-place pour) "Tilting down")
-  ;; (cpl:with-failure-handling
-  ;;     ((common-fail:manipulation-low-level-failure (e)
-  ;;        (roslisp:ros-warn (pp-plans pour)
-  ;;                          "Manipulation messed up: ~a~%Failing."
-  ;;                          e)))
-  ;;   (let ((?goal `(cpoe:tool-frames-at ,?left-tilt-down-poses
-  ;;                                      ,?right-tilt-down-poses)))
-  ;;     (exe:perform
-  ;;      (desig:an action
-  ;;                (type tilting)
-  ;;                (left-poses ?left-tilt-down-poses)
-  ;;                (right-poses ?right-tilt-down-poses)
-  ;;                (goal ?goal)))))
-  ;; (roslisp:ros-info (pick-place pour) "Waiting")
-  ;; (exe:perform
-  ;;  (desig:an action
-  ;;            (type waiting)
-  ;;            (duration ?wait-duration)))
-  ;; (roslisp:ros-info (pick-place pour) "Tilting up")
-  ;; (cpl:with-failure-handling
-  ;;     ((common-fail:manipulation-low-level-failure (e)
-  ;;        (roslisp:ros-warn (pp-plans pour)
-  ;;                          "Manipulation messed up: ~a~%Failing."
-  ;;                          e)))
-  ;;   (let ((?goal `(cpoe:tool-frames-at ,?left-tilt-up-poses
-  ;;                                      ,?right-tilt-up-poses)))
-  ;;     (exe:perform
-  ;;      (desig:an action
-  ;;                (type tilting)
-  ;;                (left-poses ?left-tilt-up-poses)
-  ;;                (right-poses ?right-tilt-up-poses)
-  ;;                (goal ?goal)))))
-  ;; (roslisp:ros-info (pick-place pour) "Retracting")
-  ;; (cpl:with-failure-handling
-  ;;     ((common-fail:manipulation-low-level-failure (e)
-  ;;        (roslisp:ros-warn (pp-plans pour)
-  ;;                          "Manipulation messed up: ~a~%Ignoring."
-  ;;                          e)
-  ;;        (return)))
-  ;;   (let ((?goal `(cpoe:tool-frames-at ,?left-retract-poses
-  ;;                                      ,?right-retract-poses)))
-  ;;     (exe:perform
-  ;;      (desig:an action
-  ;;                (type retracting)
-  ;;                (left-poses ?left-retract-poses)
-  ;;                (right-poses ?right-retract-poses)
-  ;;                (goal ?goal)))))
-  ;; (roslisp:ros-info (pick-place pour) "Parking")
-  ;; (exe:perform
-  ;;  (desig:an action
-  ;;            (type parking-arms)
-  ;;            (arms (?arm)))))
+    ;;    (cpl:with-retry-counters ((giskardside-retries 3))
+    ;;   (cpl:with-failure-handling
+    ;;       (((or common-fail:manipulation-low-level-failure
+    ;;             common-fail:manipulation-goal-not-reached) (e)
+    ;;          (roslisp:ros-warn (pp-plans pour-tilt-third)
+    ;;                            "Manipulation messed up: ~a~%Failing."
+    ;;                            e)
+             
+    ;;          (cpl:do-retry giskardside-retries
+    ;;            (cpl:retry))
+    ;;          (return)))
+
+        
+    ;;     (let ((?goal `(cpoe:tool-frames-at ,?left-tilt-third-poses ,?right-tilt-up-poses)))
+    ;;       (exe:perform
+    ;;        (desig:an action
+    ;;                  (type tilting)
+    ;;                  (object ?on-object)
+    ;;                  (left-poses ?left-tilt-third-poses)
+    ;;                  (right-poses ?right-tilt-up-poses)
+    ;;                  (align-planes-left ?align-planes-left)
+    ;;                  (align-planes-right ?align-planes-right)
+    ;;                  (move-base movy)
+    ;;                  ;;(collision-mode :allow-attached)
+    ;;                  (goal ?goal))))
+    ;;     ))
+
+    
+    (when sleepy
+      (sleep 5))
+
+
+    
+    
+    
+    (cpl:with-retry-counters ((giskardside-retries 3))
+      (cpl:with-failure-handling
+          (((or common-fail:manipulation-low-level-failure
+                common-fail:manipulation-goal-not-reached) (e)
+             (roslisp:ros-warn (pp-plans pour-retract)
+                               "Manipulation messed up: ~a~%Failing."
+                               e)
+             
+             (cpl:do-retry giskardside-retries
+               (cpl:retry))
+             (return)))
+
+        
+        (let ((?goal `(cpoe:tool-frames-at ,?left-reach-poses ,?right-reach-poses)))
+          (exe:perform
+           (desig:an action
+                     (type retracting)
+                     (object ?on-object)
+                     (left-poses ?left-reach-poses)
+                     (right-poses ?right-reach-poses)
+                     (goal ?goal))))
+        ))
+
+    
+    ) )
+
 
 
 (defun pour (&key
                ((:arm ?arm))
                sides
-               ((:object ?object))
+               ;; ((:object ?object))
                ((:on-object ?on-object))
                ((:wait-duration ?wait-duration))
              &allow-other-keys)
-  (declare (type desig:object-designator ?object ?on-object)
+  (declare (type desig:object-designator ;; ?object
+                 ?on-object)
            (type keyword ?arm)
            ;(type (or nil number) ?wait-duration)
            (type list sides))
-  (print sides)
- 
   (let ((?side (cut:lazy-car sides)))
+
+    
     ;; if pouring fails, try to pour from another side
     ;; (cpl:with-retry-counters ((side-retries 3))
     ;;   (cpl:with-failure-handling
@@ -197,12 +290,11 @@
                    (on-object ?on-object)
                    (desig:when ?arm
                     (arm ?arm))
-                   (desig:when ?object
-                     (object ?object))
-                   ;; (desig:when ?wait-duration
-                   ;;   (wait-duration ?wait-duration))
+                   ;; (desig:when ?object
+                   ;;   (object ?object))
+                   (desig:when ?wait-duration
+                     (wait-duration ?wait-duration))
                    ))
-         (sleep 5)
         ))
 
 
@@ -231,22 +323,17 @@
     ((object-type (eql :bowl))
      arm
      (grasp (eql :top-left)))
-  '((0.0 0.2 0.24)(0 0 -0.707 0.707)))
+  '((-0.01 0.245 0.020)(0 0 0 1)))
 
 (defmethod man-int:get-object-type-robot-frame-tilt-approach-transform
     ((object-type (eql :bowl))
      arm
      (grasp (eql :top-right)))
-  '((0.0 -0.2 0.26)(0 0 0.707 0.707)))
+  '((-0.01 -0.245 0.020)(0 0 0 1)))
 
 (defmethod man-int:get-object-type-robot-frame-tilt-approach-transform
     ((object-type (eql :bowl))
      arm
      (grasp (eql :top-front)))
-  '((-0.09 0.0 0.40)(0 0 1 1)))
+  '((-0.1 0.0 0.019)(0 0 0 1)))
 
-(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform 
-    ((object-type (eql :bowl))
-     arm
-     (grasp (eql :top)))
-  '((0.0 0.0 0.26)(0 0 1 0)))

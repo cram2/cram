@@ -235,9 +235,8 @@
    (or rotation (cl-transforms-stamped:rotation transform-stamped))))
 
 (defun rotate-pose-in-own-frame (pose axis angle)
-  (print axis)
   (let* ((pose-orientation
-           (cl-transforms:rotation pose))
+           (cl-transforms:orientation pose))
          (new-orientation
            (cl-transforms:q*
             pose-orientation
@@ -253,9 +252,7 @@
        (cl-transforms-stamped:copy-pose-stamped pose :orientation new-orientation))
       (cl-transforms:pose
        (cl-transforms:copy-pose pose :orientation new-orientation))
-      (cl-transforms-stamped:transform-stamped
-       (copy-transform-stamped pose :rotation new-orientation)
-       ))))
+       )))
 
 (defun rotate-transform-in-own-frame (transform axis angle)
   (let* ((transform-rotation

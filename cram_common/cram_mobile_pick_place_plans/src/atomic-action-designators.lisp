@@ -124,6 +124,32 @@
                                (:align-planes-right ?align-planes-right))
                       ?resolved-action-designator))
 
+  
+  (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
+                                                  ?resolved-action-designator))
+    (or (spec:property ?action-designator (:type :tilting)))
+    (spec:property ?action-designator (:type ?action-type))
+    (once (or (spec:property ?action-designator (:left-poses ?left-poses))
+              (equal ?left-poses nil)))
+    (once (or (spec:property ?action-designator (:right-poses ?right-poses))
+              (equal ?right-poses nil)))
+    (once (or (spec:property ?action-designator (:collision-mode ?collision))
+              (equal ?collision :avoid-all)))
+    (infer-motion-flags ?action-designator
+                        ?_ ?move-base ?align-planes-left ?align-planes-right)
+    (-> (equal ?action-type :lifting)
+        (equal ?straight-line T)
+        (equal ?straight-line NIL))
+    (desig:designator :action ((:type ?action-type)
+                               (:left-poses ?left-poses)
+                               (:right-poses ?right-poses)
+                               (:collision-mode ?collision)
+                               (:move-base nil)
+                               (:straight-line ?straight-line)
+                               (:align-planes-left nil)
+                               (:align-planes-right nil))
+                      ?resolved-action-designator))
+
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
                                                   ?resolved-action-designator))
     (or (spec:property ?action-designator (:type :retracting)))
