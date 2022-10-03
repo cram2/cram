@@ -153,7 +153,7 @@
       (cram-occasions-events:on-event
        (make-instance 'cpoe:object-detached-robot
          :arm ?arm
-         :object-designator ?object-designator))
+         :object-name (desig:desig-prop-value ?object-designator :name)))
       (cpl:fail 'common-fail:gripper-closed-completely
                 :description "Object slipped")))
   (when park-arms
