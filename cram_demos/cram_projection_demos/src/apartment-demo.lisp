@@ -761,13 +761,6 @@
                  (location (desig:a location
                                     (pose ?percieve-blue-cup-pose-pouring)))))
 
-      (exe:perform
-       (desig:an action
-                 (type looking)
-                 (target (desig:a location
-                                  (pose ?on-counter-top-source-cup-look-pose)))))
-
-
       (let* ((?source-object-desig
                (desig:an object
                          (type jeroen-cup)
@@ -775,11 +768,37 @@
                          (name jeroen-cup-1)
                          (location ?location-on-island)))
 
+             (?perceive-source-goal
+               `(cpoe:object-in-hand ,(an object
+                                          (type jeroen-cup)
+                                          (name jeroen-cup-1))))
              (?source-perceived-object-desig
-               (exe:perform
-                (desig:an action
-                          (type detecting)
-                          (object ?source-object-desig))))
+               (cpl:seq
+                 (exe:perform
+                  (desig:an action
+                            (type looking)
+                            (target (desig:a location
+                                             (pose ?on-counter-top-source-cup-look-pose)))
+                            (goal ?perceive-source-goal)))
+                 (exe:perform
+                  (desig:an action
+                            (type detecting)
+                            (object ?source-object-desig)
+                            (goal ?perceive-source-goal)))))
+
+             (?source-grasped-object-desig
+               (let ((?goal `(cpoe:object-in-hand ,(an object
+                                                       (type jeroen-cup)
+                                                       (name jeroen-cup-1)))))
+                 (exe:perform
+                  (desig:an action
+                            (type fetching)
+                            (arms (right))
+                            (grasps (front))
+                            (object ?source-perceived-object-desig)
+                            (robot-location (desig:a location
+                                                     (pose ?percieve-blue-cup-pose-pouring)))
+                            (goal ?goal)))))
 
 
              (?target-object-desig
@@ -796,7 +815,6 @@
                             (type looking)
                             (target (desig:a location
                                              (pose ?on-counter-top-target-cup-look-pose)))))
-
                  (exe:perform
                   (desig:an action
                             (type detecting)
@@ -805,26 +823,46 @@
 
         ;;TODO: Pick-up has parking in the end this need to be changed
         ;;or with constraints
-        (cpl:with-retry-counters ((giskardside-retries 3))
-          (cpl:with-failure-handling
-              (((or common-fail:manipulation-low-level-failure
-                    common-fail:manipulation-goal-not-reached
-                    common-fail:gripper-closed-completely) (e)
-                 (roslisp:ros-warn (pp-plans pour-reach)
-                                   "Manipulation messed up: ~a~%Failing."
-                                   e)
+        ;; (cpl:with-retry-counters ((giskardside-retries 3))
+        ;;   (cpl:with-failure-handling
+        ;;       (((or common-fail:manipulation-low-level-failure
+        ;;             common-fail:manipulation-goal-not-reached
+        ;;             common-fail:gripper-closed-completely) (e)
+        ;;          (roslisp:ros-warn (pp-plans pour-reach)
+        ;;                            "Manipulation messed up: ~a~%Failing."
+        ;;                            e)
 
-                 (cpl:do-retry giskardside-retries
-                   (cpl:retry))
-                 (return)))
+        ;;          (cpl:do-retry giskardside-retries
+        ;;            (let ((?source-perceived-object-desig
+        ;;                    (cpl:seq
+        ;;                      (exe:perform
+        ;;                       (desig:an action
+        ;;                                 (type parking-arms)))
+        ;;                      (exe:perform
+        ;;                       (desig:an action
+        ;;                                 (type looking)
+        ;;                                 (target (desig:a location
+        ;;                                                  (pose ?on-counter-top-source-cup-look-pose)))))
+        ;;                      (exe:perform
+        ;;                       (desig:an action
+        ;;                                 (type detecting)
+        ;;                                 (object ?source-object-desig))))))
+        ;;              (cpl:retry)))
+        ;;          (return)))
 
 
-            (exe:perform (desig:an action
-                                   (type picking-up)
-                                   (arm :right)
-                                   (grasp :front)
-                                   (object ?source-perceived-object-desig)
-                                   (park-arms NIL)))))
+        ;;     (let ((?goal `(cpoe:object-in-hand ,(an object
+        ;;                                             (type jeroen-cup)
+        ;;                                             (name jeroen-cup-1)))))
+        ;;       (exe:perform
+        ;;        (desig:an action
+        ;;                  (type picking-up)
+        ;;                  (arm :right)
+        ;;                  (grasp :front)
+        ;;                  (object ?source-perceived-object-desig)
+        ;;                  (park-arms NIL)
+        ;;                  (goal ?goal))))))
+
 
         (exe:perform
          (desig:an action
