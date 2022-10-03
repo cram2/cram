@@ -43,6 +43,7 @@
   (<- (man-int:object-type-direct-subtype :household-item :milk))
   (<- (man-int:object-type-direct-subtype :household-item :cereal))
   (<- (man-int:object-type-direct-subtype :household-item :bowl))
+  (<- (man-int:object-type-direct-subtype :household-item :sponge))
   (<- (man-int:object-type-direct-subtype :food :weisswurst))
   (<- (man-int:object-type-direct-subtype :household-item :bread))
   
@@ -211,6 +212,28 @@
   :2nd-pregrasp-offsets `(0.0 ,(- *plate-pregrasp-y-offset*) ,*plate-2nd-pregrasp-z-offset*)
   :lift-translation *lift-offset*
   :2nd-lift-translation *lift-offset*)
+
+
+
+
+
+
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;SPONGE;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(man-int:def-object-type-to-gripper-transforms '(:household-item :sponge)
+    '(:left :right) :top
+  :grasp-translation `(0.0 0.0 ,*cutlery-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,*cutlery-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,*cutlery-pregrasp-z-offset*)
+  :lift-translation `(0.0 0.0 ,*cutlery-pregrasp-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*cutlery-pregrasp-z-offset*))
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; bottle ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -1,18 +1,30 @@
 (in-package :pr2-wipe)
 
 
-(defun get-wiping-poses (grasp initial-pose surface &optional (angle (cram-math:degrees->radians 100)))
-  (print "get-wiping-poses called")
+(defun differentiate-surface-types (grasp surface)
+  
+  (let* ((s (car surface))
+    (name (desig:desig-prop-value s :name)))
+    (if (equal grasp :scrubbing)
+      (progn
+        ;;If the z dimension of the object is larger than the x dimension return case
+        (if (> (cl-transforms:z
+              (cl-bullet::bounding-box-dimensions
+               (btr::aabb  (btr:object btr:*current-bullet-world* name)))) (cl-transforms:x (cl-bullet::bounding-box-dimensions                                        (btr::aabb (btr:object btr:*current-bullet-world* name))))) 
+            (progn :vertical)
+            (progn :horizontal)))
+      (progn grasp))))
+
+
+(defun get-wiping-poses (grasp initial-pose surface)
   (defparameter *current-pose* (first initial-pose))
-  (print surface)
-
-
+  
   (let* ((return-poses '())
          (pose (first initial-pose))
-         (pose-x (cl-transforms:x (cl-transforms:origin pose)))
-         (pose-y (cl-transforms:y (cl-transforms:origin pose)))
-         (pose-z (cl-transforms:z (cl-transforms:origin pose)))
-         (pose-orientation (cl-transforms:orientation pose))
+         ;; (pose-x (cl-transforms:x (cl-transforms:origin pose)))
+         ;; (pose-y (cl-transforms:y (cl-transforms:origin pose)))
+         ;; (pose-z (cl-transforms:z (cl-transforms:origin pose)))
+         ;; (pose-orientation (cl-transforms:orientation pose))
          (n (+ (floor
               (* (cl-transforms:y
                  (cl-bullet::bounding-box-dimensions
@@ -26,6 +38,8 @@
           (z-dimensions-object (cl-transforms:z
                                (cl-bullet::bounding-box-dimensions
                                 (btr::aabb  (btr:object btr:*current-bullet-world* (desig:desig-prop-value surface :name)))))))
+
+    
 
    
        (let* ((x-offset x-dimensions-object )
@@ -49,7 +63,7 @@
 (defun calculate-pose-down (pose offset-x offset-y offset-z grasp)
 
   (case grasp
-      (:countertop
+      ((or :horizontal :spreading)
        (cram-tf::copy-pose-stamped
         pose
         :origin
@@ -77,31 +91,14 @@
           
            :z  (- (cl-transforms:z vector) offset-z)))
         :orientation
-        (cl-transforms:orientation pose)))
-  
-  (:knife
-       (cram-tf::copy-pose-stamped
-        pose
-        :origin
-        (let ((vector (cl-transforms:origin pose)))
-          (cl-transforms:copy-3d-vector
-           vector
-           :x  (- (cl-transforms:x vector) offset-x) 
-           
-           :y  (- (cl-transforms:y vector) offset-y)
-          
-           :z (cl-transforms:z vector)))
-        :orientation
-        (cl-transforms:orientation pose))
-
-   )))
+        (cl-transforms:orientation pose)))))
 
 
 
 (defun calculate-pose-up (pose offset-x offset-y offset-z grasp)
 
   (case grasp
-    (:countertop
+    ((or :horizontal :spreading)
      (cram-tf::copy-pose-stamped
       pose
       :origin
@@ -129,54 +126,9 @@
           
          :z  (+ (cl-transforms:z vector) offset-z)))
       :orientation
-      (cl-transforms:orientation pose)))
+      (cl-transforms:orientation pose)))))
 
-   (:knife
-       (cram-tf::copy-pose-stamped
-        pose
-        :origin
-        (let ((vector (cl-transforms:origin pose)))
-          (cl-transforms:copy-3d-vector
-           vector
-           :x  (+ (cl-transforms:x vector) offset-x) 
-           
-           :y  (- (cl-transforms:y vector) offset-y)
-          
-           :z (cl-transforms:z vector)))
-        :orientation
-        (cl-transforms:orientation pose))
-
-    )))
-
-  
-
-
-  
-  ;; (list
-  ;;  (cl-tf:make-pose-stamped
-  ;;   "map" 1
-  ;;   (cl-tf:make-3d-vector
-  ;;    (cl-pose-stamped:x
-  ;;     (cl-pose-stamped:translation pose))
-  ;;    (cl-transforms-stamped:y
-  ;;     (cl-transforms-stamped:translation pose))
-  ;;    (cl-transforms-stamped:z
-  ;;     (cl-transforms-stamped:translation pose)))
-  ;;   (cl-transforms-stamped:rotation pose)
-  ;;    )))
-                  
-                  
-
-
-
-  
-
-                                
-                                
-          
-
-
-            
+             
 
 (defmethod man-int:get-action-trajectory :heuristics 20 ((action-type (eql :wiping))
                                                          arm
@@ -184,7 +136,7 @@
                                                          location
                                                          objects-acted-on
                                                          &key )
-  (print "Get action trajectory called")
+  
   (let* ((object
            (car objects-acted-on))
          (object-name

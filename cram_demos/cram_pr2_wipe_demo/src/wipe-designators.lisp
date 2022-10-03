@@ -11,46 +11,74 @@
                ((:right-wipe-poses ?right-wipe-poses))
                ((:right-approach-poses ?right-approach-poses))
              &allow-other-keys)
-  ;; (print ?arm)
-  ;; (print ?surface)
-  ;; (print ?collision-mode)
-  ;; (print ?surface-type)
-  ;; (print ?pose)
-  ;; (print ?left-wipe-poses)
-  (print ?left-wipe-poses)
-  (exe:perform
-                (desig:an action
-                          (type approaching)
-                          (left-poses ?left-approach-poses)
-                          (desig:when ?collision-mode
-                            (collision-mode ?collision-mode))))
 
-  (print `(,(last ?left-wipe-poses)))
-  (sleep 1.0)
+  
+    (loop while ?left-approach-poses
 
-  (let ((?current-left-wipe-poses `(,(pop ?left-wipe-poses))))
-   (exe:perform
-                (desig:an action
-                          (type approaching)
-                          (left-poses ?current-left-wipe-poses)
-                          (desig:when ?collision-mode
-                            (collision-mode ?collision-mode)))))
+          do
+             (let ((?current-left-approach-poses `(,(pop ?left-approach-poses))))
+             (exe:perform
+              (desig:an action
+                        (type approaching)
+                        (left-poses ?current-left-approach-poses)
+                        (desig:when ?collision-mode
+                          (collision-mode ?collision-mode))))))
+
+
+ 
+    (loop while ?right-approach-poses
+
+          do
+             (let ((?current-right-approach-poses `(,(pop ?right-approach-poses))))
+             (exe:perform
+              (desig:an action
+                        (type approaching)
+                        (right-poses ?current-right-approach-poses)
+                        (desig:when ?collision-mode
+                          (collision-mode ?collision-mode))))))
+
   (sleep 0.1)
+
+ 
 
   (loop while ?left-wipe-poses
 
   
         do
 
-           (let ((?current-left-wipe-poses `(,(pop ?left-wipe-poses))))
+           (let ((?current-left-wipe-poses `(,(pop ?left-wipe-poses)))
+                 (?arm :left))
              (exe:perform
               (desig:an action
                         (type approaching)
                         (left-poses ?current-left-wipe-poses)
                         (desig:when ?collision-mode
                           (collision-mode ?collision-mode)))))
-          (sleep 0.1)
-  ))
+           (sleep 0.1))
+
+
+   (loop while ?right-wipe-poses
+
+  
+        do
+
+           (let ((?current-right-wipe-poses `(,(pop ?right-wipe-poses))))
+             (exe:perform
+              (desig:an action
+                        (type approaching)
+                        (right-poses ?current-right-wipe-poses)
+                        (desig:when ?collision-mode
+                          (collision-mode ?collision-mode)))))
+           (sleep 0.1))
+
+
+
+
+
+
+
+
+  )
 
 
 (def-fact-group wipe-actions (desig:action-grounding)
@@ -65,23 +93,23 @@
 
   
      
-     (desig:current-designator ?surface-designator ?current-surface-designator)
-     (spec:property ?current-surface-designator (:type ?surface-type))
-
-
-
-    ;;Ausgewählter arm muss immer der arm mit dem schwamm sein/harte übergabe
+    (desig:current-designator ?surface-designator ?current-surface-designator)
+    (spec:property ?current-surface-designator (:type ?surface-type))
+    
+   
     (-> (spec:property ?action-designator (:arm ?arm))
-        (true)
+        (equal ?arm-to-use ?arm)
         (man-int:robot-free-hand ?_ ?arm))
 
 
-    (equal ?a (?current-surface-designator))
+    (equal ?surface (?current-surface-designator))
 
-    ;;hier fehlt noch dynamic grasp/ dynamische typerkennung ???
-    ;;typerkennung über object type nicht möglich da alle vom type colored-box sind
+    (-> (equal ?grasp :scrubbing)
+        (lisp-fun differentiate-surface-types ?grasp ?surface ?g)
+        (equal ?g ?grasp))
+
     (-> (equal ?arm :left)
-        (and (lisp-fun man-int:get-action-trajectory :wiping ?arm ?grasp T ?a ?pose)
+        (and (lisp-fun man-int:get-action-trajectory :wiping ?arm ?g T ?surface ?pose)
              (lisp-fun man-int:get-traj-poses-by-label ?pose :wiping
                        ?left-wipe-poses)
              (lisp-fun man-int:get-traj-poses-by-label ?pose :approach
@@ -90,7 +118,7 @@
              (equal ?left-approach-poses NIL)))
 
     (-> (equal ?arm :right)
-        (and (lisp-fun man-int:get-action-trajectory :wiping ?arm ?grasp T ?a ?pose)
+        (and (lisp-fun man-int:get-action-trajectory :wiping ?arm ?g T ?surface ?pose)
              (lisp-fun man-int:get-traj-poses-by-label ?pose :wiping
                        ?right-wipe-poses)
              (lisp-fun man-int:get-traj-poses-by-label ?pose :approach
