@@ -494,7 +494,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;; jeroen-cup ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *jeroen-cup-grasp-xy-offset* 0.04 "in meters")
-(defparameter *jeroen-cup-grasp-z-offset* 0.0 "in meters")
+(defparameter *jeroen-cup-grasp-z-offset* 0.01 "in meters")
 (defparameter *jeroen-cup-pregrasp-xy-offset* 0.20 "in meters")
 (defparameter *jeroen-cup-2nd-pregrasp-xy-offset* 0.10 "in meters")
 (defparameter *jeroen-cup-3rd-pregrasp-xy-offset* 0.05 "in meters")
