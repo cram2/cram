@@ -355,7 +355,8 @@
                         (cl-transforms:origin
                          pose-stamped-in-map-frame-original-orientation))
                        1.9)
-                    (cl-transforms:make-quaternion 1 0 0 0)
+                    ;; (cl-transforms:make-quaternion 1 0 0 0)
+                    (cl-transforms:make-quaternion 0 0 0 1)
                     (cl-transforms:make-quaternion 0 0 1 0))))
              (transform-stamped-in-map-frame
                (cram-tf:pose-stamped->transform-stamped
