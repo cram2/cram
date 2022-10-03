@@ -757,13 +757,15 @@
 
       (exe:perform
        (desig:an action
-                 (type going)
-                 (target (desig:a location
-                                  (pose ?percieve-blue-cup-pose-pouring)))))
+                 (type navigating)
+                 (location (desig:a location
+                                    (pose ?percieve-blue-cup-pose-pouring)))))
 
-      (exe:perform (desig:a motion
-                            (type looking)
-                            (pose ?on-counter-top-source-cup-look-pose)))
+      (exe:perform
+       (desig:an action
+                 (type looking)
+                 (target (desig:a location
+                                  (pose ?on-counter-top-source-cup-look-pose)))))
 
 
       (let* ((?source-object-desig
@@ -774,9 +776,10 @@
                          (location ?location-on-island)))
 
              (?source-perceived-object-desig
-               (exe:perform (desig:an action
-                                      (type detecting)
-                                      (object ?source-object-desig))))
+               (exe:perform
+                (desig:an action
+                          (type detecting)
+                          (object ?source-object-desig))))
 
 
              (?target-object-desig
@@ -787,14 +790,17 @@
                          (location ?location-on-island-target)))
 
              (?target-perceived-object-desig
-               (cpl::seq
-                 (exe:perform (desig:a motion
-                                       (type looking)
-                                       (pose ?on-counter-top-target-cup-look-pose)))
+               (cpl:seq
+                 (exe:perform
+                  (desig:an action
+                            (type looking)
+                            (target (desig:a location
+                                             (pose ?on-counter-top-target-cup-look-pose)))))
 
-                 (exe:perform (desig:an action
-                                        (type detecting)
-                                        (object ?target-object-desig))))))
+                 (exe:perform
+                  (desig:an action
+                            (type detecting)
+                            (object ?target-object-desig))))))
 
 
         ;;TODO: Pick-up has parking in the end this need to be changed
