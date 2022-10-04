@@ -615,7 +615,7 @@ so we assume that all the source contents drops into the target right away."
            (get-object-transform target-object))
 
          
-         (bTb-offset
+         (to-T-to-offset
            (get-object-type-robot-frame-tilt-approach-transform
             target-object-type arm side))
          ;; Since the grippers orientation should not depend on the
@@ -630,22 +630,36 @@ so we assume that all the source contents drops into the target right away."
            (cl-tf:copy-pose-stamped 
             (man-int:calculate-gripper-pose-in-base
               (cram-tf:apply-transform
-               (cram-tf:copy-transform-stamped 
-                bTb-offset
-                :rotation (cl-tf:make-identity-rotation))
-               b-T-to)
+               b-T-to
+               to-T-to-offset)
               arm oTg-std)
             :orientation 
-            (cl-tf:rotation bTb-offset)))
+            (cl-tf:rotation to-T-to-offset)))
          (tilt-angle (cram-math:degrees->radians 40))
          (pre-tilting-poses
            (case side
              (:top-front (rotate-pose-in-own-frame-and-change-z
-                          approach-pose :y (cram-math:degrees->radians 70) 0.6 0 0.01))
+                          approach-pose :y (cram-math:degrees->radians 60) 0.05 0 0.031))
              (:top-left (rotate-pose-in-own-frame-and-change-z
-                         approach-pose :x (cram-math:degrees->radians 70) 0.0 -0.05 0.031))
-             (:top-right (rotate-pose-in-own-frame-and-change-z
-                          approach-pose :x  (- (cram-math:degrees->radians 70)) 0.0 0.05 -0.05 ))
+                         approach-pose :x (cram-math:degrees->radians 60) 0.0 -0.05 0.031))
+             (:top-right (cram-tf:apply-transform
+                          (cram-tf:pose-stamped->transform-stamped
+                           (rotate-pose-in-own-frame-and-change-z
+                            approach-pose :x  (- (cram-math:degrees->radians 80)) 0.0 0.0 0.06)
+                           (if (eq arm :left)
+                               cram-tf:*robot-left-tool-frame*
+                               cram-tf:*robot-right-tool-frame*))
+                          (cl-transforms-stamped:make-transform-stamped
+                           (if (eq arm :left)
+                               cram-tf:*robot-left-tool-frame*
+                               cram-tf:*robot-right-tool-frame*)
+                           (if (eq arm :left)
+                               cram-tf:*robot-left-tool-frame*
+                               cram-tf:*robot-right-tool-frame*)
+                           0
+                           (cl-transforms:make-3d-vector 0 0.0 0)
+                           (cl-transforms:make-identity-rotation))
+                          :result-as-pose-or-transform :pose))
              ;;0.031 z
              (t (error "can only pour from :side or :front"))))
 

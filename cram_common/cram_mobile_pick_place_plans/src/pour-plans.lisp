@@ -72,12 +72,31 @@
   ;;          ;;(type keyword ?arm side grasp)
   ;;          (type number ?wait-duration)
   ;;          (ignore side grasp object))
-  (let* ((sleepy t)
-         (movy t)
+  (let* ((sleepy nil)
+         (?movy nil)
          (?align-planes-left nil)
-         (?align-planes-right nil))
+         (?align-planes-right nil)
+         (?move-base-when-reaching t))
 
-    
+    (cpl:with-failure-handling
+        (((or common-fail:manipulation-low-level-failure
+              common-fail:manipulation-goal-not-reached) (e)
+           (roslisp:ros-warn (pp-plans pour-reach)
+                             "Manipulation messed up: ~a~%Ignoring."
+                             e)
+           (return)))
+      (let ((?goal `(cpoe:tool-frames-at ,?left-reach-poses ,?right-reach-poses)))
+        (exe:perform
+         (desig:an action
+                   (type reaching)
+                   (object ?on-object)
+                   (left-poses ?left-reach-poses)
+                   (right-poses ?right-reach-poses)
+                   (move-base ?move-base-when-reaching)
+                   (goal ?goal)))))
+
+    (setf ?move-base-when-reaching nil)
+ 
     (cpl:with-retry-counters ((giskardside-retries 3))
       (cpl:with-failure-handling
           (((or common-fail:manipulation-low-level-failure
@@ -87,10 +106,9 @@
                                e)
              
              (cpl:do-retry giskardside-retries
+               (break)
                (cpl:retry))
              (return)))
-
-        
         (let ((?goal `(cpoe:tool-frames-at ,?left-reach-poses ,?right-reach-poses)))
           (exe:perform
            (desig:an action
@@ -98,8 +116,8 @@
                      (object ?on-object)
                      (left-poses ?left-reach-poses)
                      (right-poses ?right-reach-poses)
-                     (goal ?goal))))
-        ))
+                     (move-base ?move-base-when-reaching)
+                     (goal ?goal))))))
 
     
    
@@ -129,7 +147,7 @@
                      (right-poses ?right-tilt-up-poses)
                      (align-planes-left ?align-planes-left)
                      (align-planes-right ?align-planes-right)
-                     (move-base movy)
+                     (move-base ?movy)
                      ;;(collision-mode :allow-attached)
                      (goal ?goal))))
         ))
@@ -162,6 +180,7 @@
                      (object ?on-object)
                      (left-poses ?left-reach-poses)
                      (right-poses ?right-reach-poses)
+                     (application-context pouring)
                      (goal ?goal))))
         ))
 
@@ -245,7 +264,7 @@
     ((object-type (eql :bowl))
      arm
      (grasp (eql :top-right)))
-  '((-0.01 -0.245 0.025)(0 0 0 1)))
+  '((-0.02 0.17 0.05)(0 0 0 1)))
 
 (defmethod man-int:get-object-type-robot-frame-tilt-approach-transform
     ((object-type (eql :bowl))
