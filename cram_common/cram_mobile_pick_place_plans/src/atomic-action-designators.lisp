@@ -144,10 +144,11 @@
                                (:left-poses ?left-poses)
                                (:right-poses ?right-poses)
                                (:collision-mode ?collision)
-                               (:move-base nil)
+                               (:move-base t)
                                (:straight-line ?straight-line)
                                (:align-planes-left nil)
-                               (:align-planes-right nil))
+                               (:align-planes-right nil)
+                               (:precise-tracking T))
                       ?resolved-action-designator))
 
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence

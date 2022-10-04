@@ -637,16 +637,16 @@ so we assume that all the source contents drops into the target right away."
               arm oTg-std)
             :orientation 
             (cl-tf:rotation bTb-offset)))
-         (tilt-angle (cram-math:degrees->radians 70))
+         (tilt-angle (cram-math:degrees->radians 40))
          (pre-tilting-poses
            (case side
              (:top-front (rotate-pose-in-own-frame-and-change-z
-                          approach-pose :y (cram-math:degrees->radians 40) 0.6 0 0.01))
-             ;;1.5 was nice in projection
+                          approach-pose :y (cram-math:degrees->radians 70) 0.6 0 0.01))
              (:top-left (rotate-pose-in-own-frame-and-change-z
-                         approach-pose :x (cram-math:degrees->radians 40) 0.0 -0.05 0.031))
+                         approach-pose :x (cram-math:degrees->radians 70) 0.0 -0.05 0.031))
              (:top-right (rotate-pose-in-own-frame-and-change-z
-                          approach-pose :x  (- (cram-math:degrees->radians 40)) 0.0 0.05 0.031 ))
+                          approach-pose :x  (- (cram-math:degrees->radians 70)) 0.0 0.05 -0.05 ))
+             ;;0.031 z
              (t (error "can only pour from :side or :front"))))
 
          (tilting-poses
