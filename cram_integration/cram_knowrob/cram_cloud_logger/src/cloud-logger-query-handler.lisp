@@ -39,14 +39,19 @@
 (defparameter *agent-owl* "'package://knowrob/owl/robots/PR2.owl'")
 (defparameter *agent-owl-individual-name* "'http://knowrob.org/kb/PR2.owl#PR2_0'")
 (defparameter *agent-urdf* "'package://knowrob/urdf/pr2.urdf'")
+(defparameter *neem-interface-path* "")
 
 (defun get-parent-folder-path()
   (namestring (physics-utils:parse-uri "package://cram_cloud_logger/src")))
 
 (defun send-load-neem-generation-interface ()
-  (let ((path-to-interface-file
-          (concatenate 'string "'" (get-parent-folder-path) "/neem-interface.pl'")))
-    (ccl::send-query-1-without-result "ensure_loaded" path-to-interface-file)))
+
+  (if (string= *neem-interface-path* "")
+      (let ((path-to-interface-file
+             (concatenate 'string "'" (get-parent-folder-path) "/neem-interface.pl'")))
+        (ccl::send-query-1-without-result "ensure_loaded" path-to-interface-file))
+      (ccl::send-query-1-without-result "ensure_loaded" *neem-interface-path*)
+    ))
 
 (defun init-logging ()
   (send-load-neem-generation-interface))
