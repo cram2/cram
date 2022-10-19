@@ -156,8 +156,7 @@
     (member ?object-type (:knife :fork :spoon :cutlery :spatula :weisswurst
 			  :bread :big-knife))))
 
-(def-fact-group attachment-knowledge (man-int:unidirectional-attachment)
-
+(def-fact-group popcorn-attachment-knowledge (man-int:unidirectional-attachment)
   (<- (man-int:unidirectional-attachment ?attachment-type)
     (member ?attachment-type (:popcorn-pot-lid-attachment))))
 

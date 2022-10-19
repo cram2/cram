@@ -70,7 +70,7 @@
   (<- (man-int:object-type-direct-subtype :retail-bottle-flat ?item-type)
     (member ?item-type (:balea-bottle :denkmit-entkalker :kuehne-essig-essenz))))
 
-(def-fact-group attachment-knowledge (man-int:unidirectional-attachment)
+(def-fact-group basket-attachment-knowledge (man-int:unidirectional-attachment)
   (<- (man-int:unidirectional-attachment ?attachment-type)
     (member ?attachment-type (:in-basket-front :in-basket-back :in-basket))))
 
