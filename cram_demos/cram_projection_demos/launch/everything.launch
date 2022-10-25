@@ -4,11 +4,9 @@
   <arg name="boxy" default="false" />
   <arg name="donbot" default="false" />
   <arg name="kukabot" default="false" />
-<<<<<<< HEAD
   <arg name="tiago" default="false" />
-=======
   <arg name="hsrb" default="false" />
->>>>>>> noetic
+
 
   <!-- choose environment -->
   <arg name="household" default="false" />
