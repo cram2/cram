@@ -30,29 +30,6 @@
 
 (in-package :objects)
 
-
-(defun make-arm-transform (object-name arm x y z &optional rot-matrix)
-  (cl-transforms-stamped:make-transform-stamped
-   (roslisp-utilities:rosify-underscores-lisp-name object-name)
-   (ecase arm
-     (:left cram-tf:*robot-left-tool-frame*)
-     (:right cram-tf:*robot-right-tool-frame*))
-   0.0
-   (cl-transforms:make-3d-vector x y z)
-   (if rot-matrix
-       (cl-transforms:matrix->quaternion
-        (make-array '(3 3) :initial-contents rot-matrix))
-       (cl-transforms:make-identity-rotation))))
-
-(defun make-base-transform (x y z)
-  (cl-transforms-stamped:make-transform-stamped
-    cram-tf:*robot-base-frame*
-    cram-tf:*robot-base-frame*
-    0.0
-    (cl-transforms:make-3d-vector x y z)
-    (cl-transforms:make-identity-rotation)))
-
-
 (defparameter *default-retail-z-offset* 0.05 "in meters")
 (defparameter *default-retail-lift-offsets* `(0.0 0.0 ,*default-retail-z-offset*))
 

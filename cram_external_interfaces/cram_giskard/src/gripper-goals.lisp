@@ -31,6 +31,7 @@
 (in-package :giskard)
 
 (defparameter *gripper-convergence-delta-joint* 0.005 "In meters.")
+(defparameter *gripper-gripped-min-position* 0.007 "In meters.")
 
 (defun make-gripper-action-goal (arm joint-angle effort)
   (declare (type keyword arm)
@@ -42,12 +43,14 @@
 
 (defun ensure-gripper-goal-input (action-type-or-position arm effort)
   (declare (type (or number keyword) action-type-or-position)
-           (type keyword arm)
+           (type (or keyword list) arm)
            (type (or number null) effort))
+  (unless (listp arm)
+    (setf arm (list arm)))
   (let* ((bindings
            (car (prolog:prolog
                  `(and (rob-int:robot ?robot)
-                       (rob-int:gripper-joint ?robot ,arm ?gripper-joint)
+                       (rob-int:gripper-joint ?robot ,(first arm) ?gripper-joint)
                        (rob-int:joint-lower-limit ?robot ?gripper-joint ?lower-limit)
                        (rob-int:joint-upper-limit ?robot ?gripper-joint ?upper-limit)
                        (rob-int:gripper-meter-to-joint-multiplier ?robot ?mult)))))
@@ -93,33 +96,45 @@
                              (:grip 15.0)))))))
       (list position effort))))
 
-(defun ensure-gripper-goal-reached (arm joint-angle)
-  (when (and joint-angle arm)
-    (let ((gripper-joint
-            (cut:var-value
-             '?gripper-joint
-             (car (prolog:prolog
-                   `(and (rob-int:robot ?robot)
-                         (rob-int:gripper-joint ?robot ,arm ?gripper-joint)))))))
-      (when (cut:is-var gripper-joint)
-        (error "[giskard] Robot gripper joint was not defined."))
-      (let ((current-state (car (joints:joint-positions (list gripper-joint))))
-            (goal-state joint-angle))
-        (unless (cram-tf:values-converged current-state
-                                          goal-state
-                                          *gripper-convergence-delta-joint*)
-          (make-instance 'common-fail:manipulation-goal-not-reached
-            :description (format nil "Giskard did not converge to goal:~%~
+(defun ensure-gripper-goal-reached (arms action-type-or-position joint-angle)
+  (car
+   (mapcar (lambda (arm)
+             (when (and arm action-type-or-position joint-angle)
+               (let ((gripper-joint
+                       (cut:var-value
+                        '?gripper-joint
+                        (car (prolog:prolog
+                              `(and (rob-int:robot ?robot)
+                                    (rob-int:gripper-joint ?robot ,arm ?gripper-joint)))))))
+                 (when (cut:is-var gripper-joint)
+                   (error "[giskard] Robot gripper joint was not defined."))
+                 (let ((current-state (car (joints:joint-positions (list gripper-joint))))
+                       (goal-state joint-angle))
+                   (if (and (symbolp action-type-or-position)
+                            (eq action-type-or-position :grip))
+                       (unless (> current-state *gripper-gripped-min-position*)
+                         (make-instance 'common-fail:gripper-closed-completely
+                           :description (format nil "Giskard commanded gripper ~a to grip,~%~
+                                          but it closed completely to ~a,~%~
+                                          which is below ~a."
+                                                arm current-state
+                                                *gripper-gripped-min-position*)))
+                       (unless (cram-tf:values-converged current-state
+                                                         goal-state
+                                                         *gripper-convergence-delta-joint*)
+                         (make-instance 'common-fail:manipulation-goal-not-reached
+                           :description (format nil "Giskard did not converge to goal:~%~
                                       arm: ~a, current state: ~a, goal state: ~a, ~
                                       delta joint: ~a."
-                                 arm current-state goal-state
-                                 *gripper-convergence-delta-joint*)))))))
+                                                arm current-state goal-state
+                                                *gripper-convergence-delta-joint*))))))))
+           arms)))
 
 (defun call-gripper-action (&key
                               action-timeout
                               action-type-or-position arm effort)
   (declare (type (or number null) action-timeout effort)
-           (type keyword arm)
+           (type (or keyword list) arm)
            (type (or number keyword) action-type-or-position))
 
   (let* ((position-and-effort
@@ -129,9 +144,21 @@
          (effort
            (second position-and-effort)))
 
-    (call-action
-     :action-goal (make-gripper-action-goal arm goal-joint-angle effort)
-     :action-timeout action-timeout
-     ;; :check-goal-function (lambda ()
-     ;;                        (ensure-gripper-goal-reached arm goal-joint-angle))
-     )))
+    (unless (listp arm)
+      (setf arm (list arm)))
+
+    (mapcar (lambda (arm-element)
+              (call-action
+               :action-goal (make-gripper-action-goal arm-element goal-joint-angle effort)
+               :action-timeout action-timeout
+               :check-goal-function (lambda (result status)
+                                      ;; This check is only done after the action
+                                      ;; and never before, therefore check
+                                      ;; if result and status already exist.
+                                      (if (and result status)
+                                          (ensure-gripper-goal-reached
+                                           arm
+                                           action-type-or-position
+                                           goal-joint-angle)
+                                          :goal-not-achieved-yet))))
+            arm)))

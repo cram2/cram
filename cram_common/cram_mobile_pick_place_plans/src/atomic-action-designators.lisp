@@ -116,11 +116,15 @@
               (equal ?collision :allow-all)))
     (infer-motion-flags ?action-designator
                         ?_ ?move-base ?align-planes-left ?align-planes-right)
+    (-> (equal ?action-type :lifting)
+        (equal ?straight-line T)
+        (equal ?straight-line NIL))
     (desig:designator :action ((:type ?action-type)
                                (:left-poses ?left-poses)
                                (:right-poses ?right-poses)
                                (:collision-mode ?collision)
                                (:move-base ?move-base)
+                               (:straight-line ?straight-line)
                                (:align-planes-left ?align-planes-left)
                                (:align-planes-right ?align-planes-right))
                       ?resolved-action-designator))
@@ -137,11 +141,16 @@
               (equal ?collision :allow-hand)))
     (infer-motion-flags ?action-designator
                         ?_ ?move-base ?align-planes-left ?align-planes-right)
+    ;; (-> (or (desig:desig-prop ?action-designator (:application-context :opening))
+    ;;         (desig:desig-prop ?action-designator (:application-context :closing)))
+    ;;     (equal ?straight-line T)
+    ;;     (equal ?straight-line T))
     (desig:designator :action ((:type ?action-type)
                                (:left-poses ?left-poses)
                                (:right-poses ?right-poses)
                                (:collision-mode ?collision)
                                (:move-base ?move-base)
+                               (:straight-line T)
                                (:align-planes-left ?align-planes-left)
                                (:align-planes-right ?align-planes-right))
                       ?resolved-action-designator))
@@ -170,11 +179,14 @@
     (desig:designator :action ((:type ?action-type)
                                (:left-poses ?left-poses)
                                (:right-poses ?right-poses)
+                               ;; TODO: check if :avoid-all is possible to achieve
+                               ;; with environment manipulation as application-context
                                (:collision-mode :allow-hand)
                                (:collision-object-b ?collision-object-b)
                                (:collision-object-b-link ?object-link)
                                (:prefer-base ?prefer-base)
                                (:move-base ?move-base)
+                               (:straight-line T)
                                (:align-planes-left ?align-planes-left)
                                (:align-planes-right ?align-planes-right))
                       ?resolved-action-designator))
@@ -202,7 +214,7 @@
     (desig:designator :action ((:type :putting)
                                (:left-poses ?left-poses)
                                (:right-poses ?right-poses)
-                               (:collision-mode :allow-all;; :allow-attached
+                               (:collision-mode :allow-all ; :allow-attached
                                                 )
                                (:collision-object-b ?other-object-name)
                                (:collision-object-b-link ?object-link)
@@ -228,6 +240,8 @@
     (spec:property ?action-designator (:link ?handle-link))
     (once (or (spec:property ?action-designator (:distance ?joint-angle))
               (equal ?joint-angle NIL)))
+    (once (or (desig:desig-prop ?action-designator (:door-joint-pose ?door-joint-pose))
+              (equal ?door-joint-pose NIL)))
     ;; infer the missing parameters
     (infer-motion-flags ?action-designator
                         ?prefer-base ?move-base
@@ -241,6 +255,7 @@
                                (:collision-object-b-link ?handle-link)
                                (:prefer-base ?prefer-base)
                                (:move-base ?move-base)
+                               (:door-joint-pose ?door-joint-pose)
                                (:align-planes-left ?align-planes-left)
                                (:align-planes-right ?align-planes-right))
                       ?resolved-action-designator))

@@ -493,7 +493,8 @@
 
       (cpl:with-failure-handling
           ((cpl:simple-plan-failure (e)
-             (declare (ignore e))
+             (roslisp:ros-warn (demos retail) "Putting tabs onto Donbot failed: ~a~%~
+                                               Ignoring." e)
              (return)))
         (exe:perform
          (desig:an action
@@ -504,7 +505,8 @@
                    )))
       (cpl:with-failure-handling
           ((cpl:simple-plan-failure (e)
-             (declare (ignore e))
+             (roslisp:ros-warn (demos retail) "Transporting balea bottle failed: ~a~%~
+                                               Ignoring." e)
              (return)))
         (exe:perform
          (desig:an action
@@ -515,7 +517,8 @@
                    )))
       (cpl:with-failure-handling
           ((cpl:simple-plan-failure (e)
-             (declare (ignore e))
+             (roslisp:ros-warn (demos retail) "Putting tabs onto shelf failed: ~a~%~
+                                               Ignoring." e)
              (return)))
         (exe:perform
          (desig:an action

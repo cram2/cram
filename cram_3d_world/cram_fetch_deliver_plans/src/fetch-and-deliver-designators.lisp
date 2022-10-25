@@ -118,31 +118,57 @@ the `look-pose-stamped'."
               (and (spec:property ?location-designator (:on ?some-object-designator))
                    (equal ?object-accessible t))))
     (desig:current-designator ?some-object-designator ?object-designator)
+
     ;; location of the object that we are trying to access
     (once (or (spec:property ?object-designator (:location ?object-location-desig))
               (equal ?object-location-desig nil)))
-    ;; arms
-    (-> (spec:property ?action-designator (:arms ?arms))
+    ;; outer robot-location
+    (-> (desig:desig-prop ?action-designator (:outer-robot-location
+                                              ?some-outer-robot-location))
+        (desig:current-designator ?some-outer-robot-location ?outer-robot-location)
+        (equal ?outer-robot-location NIL))
+    ;; outer accessing / sealing arms
+    (-> (desig:desig-prop ?action-designator (:outer-arms ?outer-arms))
         (true)
-        (setof ?arm (man-int:robot-free-hand ?robot ?arm) ?arms))
-    ;; distance
-    (once (or (spec:property ?action-designator (:distance ?distance))
-              (equal ?distance NIL)))
+        (equal ?outer-arms NIL))
+    ;; outer accessing / sealing grasps
+    (-> (desig:desig-prop ?action-designator (:outer-grasps ?outer-grasps))
+        (true)
+        (equal ?outer-grasps NIL))
+
     ;; robot-location
     (once (or (and (spec:property ?action-designator (:robot-location
                                                       ?some-robot-location))
-                   (desig:current-designator ?robot-location ?robot-location))
+                   (desig:current-designator ?some-robot-location ?robot-location))
               (desig:designator :location ((:reachable-for ?robot)
                                            ;; (:arm ?arm)
                                            (:object ?object-designator))
                                 ?robot-location)))
+    ;; arms
+    (-> (spec:property ?action-designator (:arms ?arms))
+        (true)
+        (setof ?arm (man-int:robot-free-hand ?robot ?arm) ?arms))
+    ;; grasps
+    (-> (spec:property ?action-designator (:grasps ?grasps))
+        (true)
+        (equal ?grasps NIL))
+    ;; distance
+    (once (or (spec:property ?action-designator (:distance ?distance))
+              (equal ?distance NIL)))
+
     (desig:designator :action ((:type ?action-type)
                                (:object ?object-designator)
+
                                (:object-accessible ?object-accessible)
                                (:object-location ?object-location-desig)
+                               (:outer-robot-location ?outer-robot-location)
+                               (:outer-arms ?outer-arms)
+                               (:outer-grasps ?outer-grasps)
+
+                               (:robot-location ?robot-location)
                                (:arms ?arms)
-                               (:distance ?distance)
-                               (:robot-location ?robot-location))
+                               (:grasps ?grasps)
+                               (:distance ?distance))
                       ?resolved-action-designator))
 
 
@@ -342,12 +368,112 @@ the `look-pose-stamped'."
                        ?object-designator-with-location)
              (lisp-pred desig:equate
                         ?object-designator ?object-designator-with-location)))
+
+    ;; access deliver location robot base
+    (-> (desig:desig-prop ?action-designator
+                          (:access-deliver-robot-location ?some-ad-robot-loc-desig))
+        (desig:current-designator ?some-ad-robot-loc-desig
+                                  ?access-deliver-robot-location-designator)
+        (equal ?access-deliver-robot-location-designator NIL))
+    ;; seal deliver location robot base
+    (-> (desig:desig-prop ?action-designator
+                          (:seal-deliver-robot-location ?some-sd-robot-loc-desig))
+        (desig:current-designator ?some-sd-robot-loc-desig
+                                  ?seal-deliver-robot-location-designator)
+        (equal ?seal-deliver-robot-location-designator NIL))
+    ;; access / seal deliver arms
+    (-> (desig:desig-prop ?action-designator
+                          (:access-seal-deliver-arms ?access-seal-deliver-arms))
+        (true)
+        (equal ?access-seal-deliver-arms NIL))
+    ;; access / seal deliver grasps
+    (-> (desig:desig-prop ?action-designator
+                          (:access-seal-deliver-grasps ?access-seal-deliver-grasps))
+        (true)
+        (equal ?access-seal-deliver-grasps NIL))
+
+    ;; access deliver outer location robot base
+    (-> (desig:desig-prop ?action-designator
+                          (:access-deliver-outer-robot-location ?some-ado-robot-loc-desig))
+        (desig:current-designator ?some-ado-robot-loc-desig
+                                  ?access-deliver-outer-robot-location-designator)
+        (equal ?access-deliver-outer-robot-location-designator NIL))
+    ;; seal deliver outer location robot base
+    (-> (desig:desig-prop ?action-designator
+                          (:seal-deliver-outer-robot-location ?some-sdo-robot-loc-desig))
+        (desig:current-designator ?some-sdo-robot-loc-desig
+                                  ?seal-deliver-outer-robot-location-designator)
+        (equal ?seal-deliver-outer-robot-location-designator NIL))
+    ;; access / seal deliver outer arms
+    (-> (desig:desig-prop ?action-designator
+                          (:access-seal-deliver-outer-arms ?access-seal-deliver-outer-arms))
+        (true)
+        (equal ?access-seal-deliver-outer-arms NIL))
+    ;; access / seal deliver outer grasps
+    (-> (desig:desig-prop ?action-designator
+                          (:access-seal-deliver-outer-grasps ?access-seal-deliver-outer-grasps))
+        (true)
+        (equal ?access-seal-deliver-outer-grasps NIL))
+
+    ;; access search location robot base
+    (-> (desig:desig-prop ?action-designator
+                          (:access-search-robot-location ?some-as-robot-loc-desig))
+        (desig:current-designator ?some-as-robot-loc-desig
+                                  ?access-search-robot-location-designator)
+        (equal ?access-search-robot-location-designator NIL))
+    ;; seal search location robot base
+    (-> (desig:desig-prop ?action-designator
+                          (:seal-search-robot-location ?some-ss-robot-loc-desig))
+        (desig:current-designator ?some-ss-robot-loc-desig
+                                  ?seal-search-robot-location-designator)
+        (equal ?seal-search-robot-location-designator NIL))
+    ;; access / seal search arms
+    (-> (desig:desig-prop ?action-designator
+                          (:access-seal-search-arms ?access-seal-search-arms))
+        (true)
+        (equal ?access-seal-search-arms NIL))
+    ;; access / seal search grasps
+    (-> (desig:desig-prop ?action-designator
+                          (:access-seal-search-grasps ?access-seal-search-grasps))
+        (true)
+        (equal ?access-seal-search-grasps NIL))
+
+    ;; access search outer location robot base
+    (-> (desig:desig-prop ?action-designator
+                          (:access-search-outer-robot-location ?some-aso-robot-loc-desig))
+        (desig:current-designator ?some-aso-robot-loc-desig
+                                  ?access-search-outer-robot-location-designator)
+        (equal ?access-search-outer-robot-location-designator NIL))
+    ;; seal search outer location robot base
+    (-> (desig:desig-prop ?action-designator
+                          (:seal-search-outer-robot-location ?some-sso-robot-loc-desig))
+        (desig:current-designator ?some-sso-robot-loc-desig
+                                  ?seal-search-outer-robot-location-designator)
+        (equal ?seal-search-outer-robot-location-designator NIL))
+    ;; access / seal search outer arms
+    (-> (desig:desig-prop ?action-designator
+                          (:access-seal-search-outer-arms ?access-seal-search-outer-arms))
+        (true)
+        (equal ?access-seal-search-outer-arms NIL))
+    ;; access search outer grasps
+    (-> (desig:desig-prop ?action-designator
+                          (:access-search-outer-grasps ?access-search-outer-grasps))
+        (true)
+        (equal ?access-search-outer-grasps NIL))
+    ;; seal search outer grasps
+    (-> (desig:desig-prop ?action-designator
+                          (:seal-search-outer-grasps ?seal-search-outer-grasps))
+        (true)
+        (equal ?seal-search-outer-grasps NIL))
+
+
     ;; search location robot base
     (-> (desig:desig-prop ?action-designator
                           (:search-robot-location ?some-s-robot-loc-desig))
         (desig:current-designator ?some-s-robot-loc-desig
                                   ?search-robot-location-designator)
         (equal ?search-robot-location-designator NIL))
+
     ;; fetch location robot base
     (-> (desig:desig-prop ?action-designator
                           (:fetch-robot-location ?some-f-robot-loc-desig))
@@ -362,6 +488,7 @@ the `look-pose-stamped'."
     (-> (spec:property ?action-designator (:grasps ?grasps))
         (true)
         (equal ?grasps NIL))
+
     ;; deliver location
     (-> (and (spec:property ?action-designator
                             (:target ?some-delivering-location-designator))
@@ -379,17 +506,40 @@ the `look-pose-stamped'."
         (desig:current-designator ?some-d-robot-loc-desig
                                   ?deliver-robot-location-designator)
         (equal ?deliver-robot-location-designator NIL))
+
     ;; resulting action desig
     (desig:designator
      :action
      ((:type :transporting)
       (:object ?object-designator-with-location)
       (:context ?context)
+
+      (:access-search-robot-location ?access-search-robot-location-designator)
+      (:seal-search-robot-location ?seal-search-robot-location-designator)
+      (:access-seal-search-arms ?access-seal-search-arms)
+      (:access-seal-search-grasps ?access-seal-search-grasps)
+      (:access-search-outer-robot-location ?access-search-outer-robot-location-designator)
+      (:seal-search-outer-robot-location ?seal-search-outer-robot-location-designator)
+      (:access-seal-search-outer-arms ?access-seal-search-outer-arms)
+      (:access-search-outer-grasps ?access-search-outer-grasps)
+      (:seal-search-outer-grasps ?seal-search-outer-grasps)
+
+      (:access-deliver-robot-location ?access-deliver-robot-location-designator)
+      (:seal-deliver-robot-location ?seal-deliver-robot-location-designator)
+      (:access-seal-deliver-arms ?access-seal-deliver-arms)
+      (:access-seal-deliver-grasps ?access-seal-deliver-grasps)
+      (:access-deliver-outer-robot-location ?access-deliver-outer-robot-location-designator)
+      (:seal-deliver-outer-robot-location ?seal-deliver-outer-robot-location-designator)
+      (:access-seal-deliver-outer-arms ?access-seal-deliver-outer-arms)
+      (:access-seal-deliver-outer-grasps ?access-seal-deliver-outer-grasps)
+
       (:search-location ?search-location-designator)
       (:search-robot-location ?search-robot-location-designator)
+
       (:fetch-robot-location ?fetch-robot-location-designator)
       (:arms ?arms)
       (:grasps ?grasps)
+
       (:deliver-location ?delivering-location-designator)
       (:deliver-robot-location ?deliver-robot-location-designator))
      ?resolved-action-designator)))

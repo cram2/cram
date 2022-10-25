@@ -132,13 +132,16 @@
 (defun parse-result (message)
   (declare (type robokudo_msgs-msg:objectdesignator message))
   "Returns a keyword key-value pairs list"
-  (flet ((to-keyword (string)
+  (flet ((to-keyword (string &key (underscores-or-camelcase :underscores))
            (if (string-equal string "")
                nil
-               (roslisp-utilities:lispify-ros-underscore-name string :keyword))))
+               (if (eq underscores-or-camelcase :underscores)
+                   (roslisp-utilities:lispify-ros-underscore-name string :keyword)
+                   (roslisp-utilities:lispify-ros-name string :keyword)))))
     `((:name ,(to-keyword
                ;; (roslisp:msg-slot-value message :uid)
-               (format nil "~a-1" (roslisp:msg-slot-value message :type))))
+               (format nil "~a-1" (roslisp:msg-slot-value message :type))
+               :underscores-or-camelcase :camelcase))
       (:type ,(to-keyword (roslisp:msg-slot-value message :type)))
       (:shape ,(map 'list #'to-keyword (roslisp:msg-slot-value message :shape)))
       (:color ,(map 'list #'to-keyword (roslisp:msg-slot-value message :color)))
@@ -274,6 +277,8 @@
               (:DMRoteBeteSaftBio
                :juice-box)
               (:JeroenCup
+               :jeroen-cup)
+              (:jeroen-cup
                :jeroen-cup))))
       (setf rs-answer
             (subst-if `(:type ,cram-type)
@@ -324,30 +329,41 @@
 
       (let* ((pose-stamped-in-whatever
                (find-pose-in-object-designator combined-properties))
-             (pose-stamped-in-base-frame
-               (if cram-tf:*robot-base-frame*
-                   (cram-tf:ensure-pose-in-frame
-                    pose-stamped-in-whatever
-                    cram-tf:*robot-base-frame*
-                    :use-zero-time t)
-                   pose-stamped-in-whatever))
-             (transform-stamped-in-base-frame
-               (cram-tf:pose-stamped->transform-stamped
-                pose-stamped-in-base-frame
-                (roslisp-utilities:rosify-underscores-lisp-name name)))
-             (pose-stamped-in-map-frame
+             (pose-stamped-in-map-frame-original-orientation
                (if cram-tf:*fixed-frame*
                    (cram-tf:ensure-pose-in-frame
                     pose-stamped-in-whatever
                     cram-tf:*fixed-frame*
                     :use-zero-time t)
                    pose-stamped-in-whatever))
+             (pose-stamped-in-map-frame
+               (cl-transforms-stamped:copy-pose-stamped
+                pose-stamped-in-map-frame-original-orientation
+                :orientation
+                (if (< (cl-transforms:y
+                        (cl-transforms:origin
+                         pose-stamped-in-map-frame-original-orientation))
+                       1.9)
+                    (cl-transforms:make-quaternion 1 0 0 0)
+                    (cl-transforms:make-quaternion 0 0 0 1))))
              (transform-stamped-in-map-frame
                (cram-tf:pose-stamped->transform-stamped
                 pose-stamped-in-map-frame
+                (roslisp-utilities:rosify-underscores-lisp-name name)))
+             (pose-stamped-in-base-frame
+               (if cram-tf:*robot-base-frame*
+                   (cram-tf:ensure-pose-in-frame
+                    pose-stamped-in-map-frame
+                    cram-tf:*robot-base-frame*
+                    :use-zero-time t)
+                   pose-stamped-in-whatever))
+             (transform-stamped-in-base-frame
+               (cram-tf:pose-stamped->transform-stamped
+                pose-stamped-in-base-frame
                 (roslisp-utilities:rosify-underscores-lisp-name name))))
 
-        (cram-tf:visualize-marker pose-stamped-in-whatever :r-g-b-list '(0 0 1) :id 1234)
+        ;; (cram-tf:visualize-marker pose-stamped-in-whatever :r-g-b-list '(0 0 1) :id 1234)
+        ;; (cram-tf:visualize-marker pose-stamped-in-map-frame :r-g-b-list '(1 0 0) :id 1235)
 
         (let* ((properties-without-pose
                  (remove :pose combined-properties :key #'car))

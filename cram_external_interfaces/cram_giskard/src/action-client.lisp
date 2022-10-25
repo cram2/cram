@@ -65,8 +65,9 @@
        (roslisp:ros-warn (giskard action-client)
                          "Giskard action timed out."))
       (:aborted
-       (roslisp:ros-warn (giskard cartesian)
-                         "Giskard action aborted.~%Result: ~a" result)))
+       (roslisp:ros-warn (giskard action-client)
+                         ;; "Giskard action aborted.~%Result: ~a" result
+                         "Giskard action aborted.")))
 
     (when (and result
                (member (roslisp:symbol-code

@@ -31,7 +31,7 @@
 
 (defparameter *tcp-in-ee-pose*
   (cl-transforms:make-pose
-   (cl-transforms:make-3d-vector 0 0 0.3191d0)
+   (cl-transforms:make-3d-vector 0 0 0.3091d0)
    (cl-transforms:make-identity-rotation)))
 
 (defparameter *standard-to-boxy-gripper-transform*

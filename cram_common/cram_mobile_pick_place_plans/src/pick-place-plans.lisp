@@ -67,8 +67,8 @@
            (ignore location-type))
   "Open gripper, reach traj, grasp traj, close gripper, issue grasping event, lift."
 
-  (cram-tf:visualize-marker (man-int:get-object-pose ?object-designator)
-                            :r-g-b-list '(1 1 0) :id 300)
+  ;; (cram-tf:visualize-marker (man-int:get-object-pose ?object-designator)
+  ;;                           :r-g-b-list '(1 1 0) :id 300)
 
   (unless robot-arm-is-also-a-neck
     (roslisp:ros-info (pick-place pick-up) "Looking")
@@ -264,7 +264,8 @@
                   (desig:desig-prop-value ?other-object-designator :urdf-name))
            :not-loose t
            :object-name (desig:desig-prop-value ?object-designator :name)
-           :other-object-name (desig:desig-prop-value ?other-object-designator :name)
+           :other-object-name (or (desig:desig-prop-value ?other-object-designator :name)
+                                  (desig:desig-prop-value ?other-object-designator :part-of))
            :grasp ?placing-location-name))
         (cram-occasions-events:on-event
          (make-instance 'cpoe:object-attached-object
