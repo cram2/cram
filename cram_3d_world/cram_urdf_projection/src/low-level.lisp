@@ -52,6 +52,11 @@
 (defparameter *base-resampling-y-limit* 0.2d0
   "In meters.")
 
+(defparameter *gripper-gripped-offset* 0.005d0
+  "In meters, the minimal distance at which gripper grasps objects. Such that
+the GRIPPING action closes the gripper not to complete minimal joint limit,
+but to some small value.")
+
 (defparameter *giskard-mode* nil
   "Use giskard or teleporting/IK solver for joint and cartesian motions.")
 
@@ -567,7 +572,11 @@ with the object, calculates similar angle around Y axis and applies the rotation
                 (btr:joint-state ?robot
                                  ((?joint ,(case action-type
                                              (:open '?max-limit)
-                                             ((:close :grip) '?min-limit)
+                                             (:close '?min-limit)
+                                             (:grip (+ *gripper-gripped-offset*
+                                                       (cut:var-value
+                                                        '?min-limit
+                                                        solution-bindings)))
                                              (T (if (numberp action-type)
                                                     (* action-type
                                                        (cut:var-value

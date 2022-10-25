@@ -54,15 +54,22 @@
            (type (or keyword number null) base-velocity))
   (make-giskard-goal
    :constraints (list
-                 (make-cartesian-constraint
-                  cram-tf:*odom-frame* cram-tf:*robot-base-frame* pose
-                  :avoid-collisions-much t
-                  :max-velocity *base-max-velocity-fast-xy*)
-                 (make-base-collision-avoidance-hint-constraint
-                  *base-collision-avoidance-hint-link*
-                  (cl-transforms-stamped:make-vector-stamped
-                   cram-tf:*fixed-frame* 0.0
-                   *base-collision-avoidance-hint-vector*))
+                 (if (eq (rob-int:get-robot-name) :tiago-dual)
+                     (make-diffdrive-base-goal
+                      cram-tf:*odom-frame* cram-tf:*robot-base-frame* pose
+                      :avoid-collisions-much t
+                      :max-velocity *base-max-velocity-fast-xy*
+                      :always-forward nil)
+                     (make-cartesian-constraint
+                      cram-tf:*odom-frame* cram-tf:*robot-base-frame* pose
+                      :avoid-collisions-much t
+                      :max-velocity *base-max-velocity-fast-xy*))
+                 (when (eq (rob-int:get-environment-name) :iai-kitchen)
+                   (make-base-collision-avoidance-hint-constraint
+                    *base-collision-avoidance-hint-link*
+                    (cl-transforms-stamped:make-vector-stamped
+                     cram-tf:*fixed-frame* 0.0
+                     *base-collision-avoidance-hint-vector*)))
                  (if (eq base-velocity :slow)
                      (make-base-velocity-constraint
                       *base-max-velocity-slow-xy* *base-max-velocity-slow-theta*)
@@ -100,6 +107,7 @@
 
   (cram-tf:visualize-marker goal-pose :r-g-b-list '(0 1 0))
 
+  ;; Trying with slow velocity should happen on the motion level, not action level.
   (call-action
    :action-goal (make-giskard-base-action-goal goal-pose base-velocity)
    :action-timeout action-timeout

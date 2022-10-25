@@ -51,6 +51,7 @@ a threshold (if T) to signal a failure.")
                                ((:right-retract-poses ?right-retract-poses))
                                joint-name
                                ((:link-name ?link-name))
+                               ((:door-joint-pose ?door-joint-pose))
                                ((:environment-name ?environment-name))
                                ((:environment-object ?environment-object))
                                ((:container-object ?container-designator))
@@ -103,6 +104,7 @@ a threshold (if T) to signal a failure.")
                      (type reaching)
                      (left-poses ?left-reach-poses)
                      (right-poses ?right-reach-poses)
+                     (application-context ?type)
                      (goal ?goal)))))))
   (cpl:with-retry-counters ((grasp-retries 2))
     (cpl:with-failure-handling
@@ -126,62 +128,65 @@ a threshold (if T) to signal a failure.")
   ;;;;;;;;;;;;;;;;;;;; GRIPPING ;;;;;;;;;;;;;;;;;;;;;;;;
   (roslisp:ros-info (environment-manipulation manipulate-container)
                     "Gripping")
-  ;; Gripping now both for closing and opening, as grasp pose can be funny.
-  ;; when (eq ?type :opening)
-  (exe:perform
-   (desig:an action
-             (type gripping)
-             (gripper ?arm)))
+  ;; Gripping both for closing and opening, as grasp pose can be funny.
+  ;; But for now, when gripping fails during closing, ignore the failure.
+  (if (eq ?type :opening)
+      (exe:perform
+       (desig:an action
+                 (type gripping)
+                 (gripper ?arm)))
+      (cpl:with-failure-handling
+          ((common-fail:gripper-low-level-failure (e)
+             (roslisp:ros-warn (env-plans manipulate)
+                               "Gripping didn't work: ~a.~%Ignoring..." e)
+             (return)))
+        (exe:perform
+         (desig:an action
+                   (type gripping)
+                   (gripper ?arm)))))
 
   ;;;;;;;;;;;;;;;;;;;;;; MANIPULATING ;;;;;;;;;;;;;;;;;;;;;;;
   (roslisp:ros-info (environment-manipulation manipulate-container)
                     "Manipulating")
-  (let* ((?push-or-pull
-           (if (eq ?type :opening)
-               :pulling
-               :pushing))
-         (?goal
-           `(cpoe:tool-frames-at ,?left-manipulate-poses ,?right-manipulate-poses))
-         (manipulation-action
-           (desig:an action
-                     (type ?push-or-pull)
-                     (object (desig:an object (name ?environment-name)))
-                     (container-object ?container-designator)
-                     (link ?link-name)
-                     (desig:when ?absolute-distance
-                       (distance ?absolute-distance))
-                     (desig:when (eq ?arm :left)
-                       (left-poses ?left-manipulate-poses))
-                     (desig:when (eq ?arm :right)
-                       (right-poses ?right-manipulate-poses))
-                     (goal ?goal))))
-    (if *detect-gripper-slip*
-        ;; monitor gripper joint to detect if the handle slipped out of the gripper
-        (cpl:pursue
-         (cpl:with-failure-handling
-             ((common-fail:manipulation-low-level-failure
-               (e)
-               (roslisp:ros-warn (env-plans manipulate)
-                                 "Manipulation messed up: ~a~%Failing." e)))
-           (exe:perform manipulation-action))
-         (cpl:seq
-          (exe:perform
-           (desig:an action
-                     (type monitoring-joint-state)
-                     (gripper ?arm)))
-          ;; sleep for two seconds,
-          ;; maybe the action is nearly finished, so there is no need to fail
-          (cpl:sleep 2)
-          (cpl:fail 'common-fail:gripper-closed-completely
-                    :description "Handle slipped")))
-        ;; in unreal the gripper wiggles so much it falsely detects slipping
-        (cpl:with-failure-handling
-            ((common-fail:manipulation-low-level-failure
-              (e)
-              (roslisp:ros-warn (env-plans manipulate)
-                                "Manipulation messed up: ~a~%Failing." e)))
-          (exe:perform manipulation-action))))
-
+  (cpl:pursue
+    (cpl:with-failure-handling
+        ((common-fail:manipulation-low-level-failure (e)
+           (roslisp:ros-warn (env-plans manipulate)
+                             "Manipulation messed up: ~a~%Failing."
+                             e)
+           ;; (return)
+           ))
+      (let ((?push-or-pull
+              (if (eq ?type :opening)
+                  :pulling
+                  :pushing))
+            (?goal
+              `(cpoe:tool-frames-at ,?left-manipulate-poses ,?right-manipulate-poses)))
+        (exe:perform
+         (desig:an action
+                   (type ?push-or-pull)
+                   (object (desig:an object (name ?environment-name)))
+                   (container-object ?container-designator)
+                   (link ?link-name)
+                   (desig:when ?door-joint-pose)
+                     (door-joint-pose ?door-joint-pose)
+                   (desig:when ?absolute-distance
+                     (distance ?absolute-distance))
+                   (desig:when (eq ?arm :left)
+                     (left-poses ?left-manipulate-poses))
+                   (desig:when (eq ?arm :right)
+                     (right-poses ?right-manipulate-poses))
+                   (goal ?goal)))))
+    (cpl:seq
+      (exe:perform
+       (desig:an action
+                 (type monitoring-joint-state)
+                 (gripper ?arm)))
+      ;; sleep for half a second,
+      ;; maybe the action is nearly finished, so there is no need to fail
+      (cpl:sleep 1)
+      (cpl:fail 'common-fail:gripper-closed-completely
+                :description "Handle slipped")))
   (when (and joint-name)
     (cram-occasions-events:on-event
      (make-instance (if (eq ?type :opening)
@@ -213,6 +218,7 @@ a threshold (if T) to signal a failure.")
                  (type retracting)
                  (left-poses ?left-retract-poses)
                  (right-poses ?right-retract-poses)
+                 (application-context ?type)
                  (goal ?goal)))))
   (exe:perform
    (desig:an action

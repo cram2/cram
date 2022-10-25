@@ -695,7 +695,7 @@ sampling is used the number of samples can be modified through the optional `sam
                              angle)))
            (if (eq tag :upside-down)
                (cl-transforms:q* orientation upside-down-orientation)
-               (print orientation))))
+               orientation)))
        (ecase tag
          (:random (loop for i from 1 to samples
                                           collect (random (* 2 pi))))
