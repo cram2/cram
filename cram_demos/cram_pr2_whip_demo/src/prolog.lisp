@@ -19,6 +19,7 @@
 	       ((:arms ?arms))
 	       ((:grasp ?grasp))
 	       ((:context ?context))
+	       ((:reso ?reso))
 	       ;;((:effort ?effort))
 	       ;;((:gripper-opening ?gripper-opening))
 	      ; ((:left-grip-container-poses ?left-grip-container-poses))
@@ -94,68 +95,6 @@
                ;;(desig:when ?collision-mode
     	       (collision-mode :allow-all))))
     (cpl:sleep 2)
-    
-
-  ;;  (cpl:with-failure-handling
-  ;;     ((common-fail:manipulation-low-level-failure (e)
-  ;;        (roslisp:ros-warn (cut-and-pour-plans pour)
-  ;;                          "Manipulation messed up: ~a~%Ignoring."
-  ;;                          e)
-  ;;        ;; (return)
-  ;;        ))
-    
-  ;;   (exe:perform
-  ;;    (desig:an action
-  ;;              (type approaching)
-  ;;              (left-poses ?left-push-foward-poses)
-  ;;              (right-poses ?right-push-foward-poses)
-  ;;              ;;(desig:when ?collision-mode
-  ;; 	       ;;(collision-mode ?collision-mode))))
-  ;; 	       ))
-  ;;   (cpl:sleep 2)
-    
-  ;;    )
-  ;;   (cpl:with-failure-handling
-  ;;     ((common-fail:manipulation-low-level-failure (e)
-  ;;        (roslisp:ros-warn (cut-and-pour-plans pour)
-  ;;                          "Manipulation messed up: ~a~%Ignoring."
-  ;;                          e)
-  ;;        ;; (return)
-  ;;        ))
-    
-  ;;   (exe:perform
-  ;;    (desig:an action
-  ;;              (type approaching)
-  ;;              (left-poses ?left-lift-pancake-poses)
-  ;;              (right-poses ?right-lift-pancake-poses)
-  ;;              ;;(desig:when ?collision-mode
-  ;; 	       ;;(collision-mode ?collision-mode))))
-  ;; 	       ))
-  ;;   (cpl:sleep 2)
-    
-  ;;     )
-
-  ;;     (cpl:with-failure-handling
-  ;;     ((common-fail:manipulation-low-level-failure (e)
-  ;;        (roslisp:ros-warn (cut-and-pour-plans pour)
-  ;;                          "Manipulation messed up: ~a~%Ignoring."
-  ;;                          e)
-  ;;        ;; (return)
-  ;;        ))
-  ;;this one is the first one that needs a different collision mode
-  ;;bc of my laziness i did approaching X times till here :))
-  ;;u should name them differently and place them in atomic action 
-  ;;   (exe:perform
-  ;;    (desig:an action
-  ;;              (type pancake)
-  ;;              (left-poses ?left-flip-pancake-poses)
-  ;;              (right-poses ?right-flip-pancake-poses)
-  ;;              ;;(desig:when ?collision-mode
-  ;; 	       ;;(collision-mode ?collision-mode))))
-  ;; 	       ))
-  ;;   (cpl:sleep 2)
-    
-  ;;   )
 
   )
 
@@ -170,7 +109,8 @@
     (spec:property ?current-object-desig (:type ?object-type))
     (spec:property ?current-object-desig (:name ?object-name))
     (spec:property ?action-designator (:context ?context))
-
+       
+    
     ;; ==============   extract arms or set arms               ==============
     (man-int:arms-for-object-type ?object-type ?arms-for-object)
     (-> (equal ?arms-for-object nil)
@@ -193,6 +133,13 @@
     ;;(lisp-fun man-int:get-action-gripping-effort ?object-type ?effort)
     ;;(lisp-fun man-int:get-action-gripper-opening ?object-type ?gripper-opening)
 
+	(-> (equal ?reso nil)
+	     ;TODO reso changes (and (lisp-fun get-default-reso ?reso)
+	     	 (format "reso is:  ~a" ?reso);)
+         (-> (spec:property ?action-designator (:reso ?reso))
+         	(true)
+	    ))
+    
     ;;TODO: THIS STAYS THE SAME DONT CHANGE TILL HERE !!!! ++++++++++++
 
     
@@ -268,6 +215,7 @@
 			       (:arms ?arm)
 		               (:grasp ?grasp)
 			       (:context ?context)
+			       (:reso ?reso)
 			       ;;(:effort ?effort)
 			       ;;(:gripper-opening ?gripper-opening)
 			      ; (:left-grip-container-poses ?left-grip-container-poses)
@@ -288,10 +236,6 @@
 ;;thats just for fun
 (defun get-arm-return (?arm)
   ?arm)
-
-
-
-  
 
 ;;get pouring trajectory workes like picking-up it will get the 
 ;;object-type-to-gripper-tilt-approch-transform und makes a traj-segment out of it
@@ -356,9 +300,10 @@
               arm oTg-std)
             :orientation 
             (cl-tf:rotation bTb-offset)))
-(mix-poses (rec-circle-poses approach-pose 12))
+         (mix-poses (adjust-circle-poses approach-pose :reso))
 					;(mix-poses  (circle-poses approach-pose))
-	 (start-mix-poses (spiral-poses approach-pose))
+	(start-mix-poses (rec-spiral-poses object-type approach-pose :reso))
+	                               ; (spiral-poses approach-pose))
 	 ;;TODO: here come all your new poses calculated from the approach pose
 	 ;;wrote new functions that changes height and stuff but as metioned in the
 	 ;;comments below its hardcoded should be aabb box stuff calculating
@@ -411,15 +356,11 @@
 	      :approach
 	      :start-mix
 	      :mid-mix
-	      ;; :lift-pancake
-	      ;; :flip-pancake
 	      )
 	    `(;(,grip-container-pose)
 	      (,approach-pose)
 	      ,start-mix-poses
 	      ,mix-poses
-	      ;; ,lift-pancake-poses
-	      ;; ,flip-pancake-poses
 	      ))))	     
 
 
@@ -446,11 +387,13 @@
 ;;if its really in the hand who cares
 
 ;should be defined in household later--cos 12 is too close to rim
-(defmethod get-object-type-robot-frame-mix-rim-transform
-    ((object-type (eql :big-bowl))
-     (arm (eql :right))
-     (grasp (eql :top)))
-  '((0.0 -0.9 0.15)(1 0 0 0)))
+(defmethod get-object-type-robot-frame-mix-rim-bottom-transform
+   ((object-type (eql :big-bowl)))
+  '((0.0 -0.12 0.06)(1 0 0 0)))
+
+(defmethod get-object-type-robot-frame-mix-rim-top-transform
+   ((object-type (eql :big-bowl)))
+  '((0.0 -0.9 0.11)(1 0 0 0)))
 
 ;; =========  is in trajectory defined normaly ==========
 
@@ -492,124 +435,99 @@
        (cl-transforms:make-3d-vector x y z)
        (cl-transforms:make-quaternion ax ay az aw))))))
 
-(defun rec-circle-poses(pose reso)
-  (let ((arim 0.06)
-	(erate 1);stirring == (erate 0.03)
+(defun adjust-circle-poses(pose reso)
+  (let ((containerrim 0.06); <- currently - big-bowl hard gecoded, gotta adjust top and bottom rim
+	(erate 1);<- circle;  stirring == (erate 0.03)
 	(angle 0)
-	(x 1))
-
-    (setf angle (/(* 2  pi) reso))
-(loop while (<= x reso)
-  do (setf x   (+ x  1))           ; or better: do (decf row)
-    collect  (change-v pose :x-offset (* erate (* arim (cos (* x angle))))
-				  :y-offset (* arim (sin (* x angle))))
-		  
-		   ))
-    
-    ) 
-
-(defun circle-poses(pose)
-  (print "12 pos calc circle")
-  (let ((arim 0.06)
-	(erate 0.3)
+	(x 1)
+        (defaultreso 12)
 	)
-  ;; (cram-tf::copy-pose-stamped
-  ;;  pose 
-  ;;  :origin
-  ;;  (let ((transform-translation (cl-transforms:origin pose)))
-  ;;    (cl-transforms:copy-3d-vector
-  ;;     transform-translation
-  ;;     :z (let ((z-transform-translation (cl-transforms:z transform-translation)))
-  ;;          (+ z-transform-translation z-offset))))
-  ;;  :orientation
-  ;;  (cl-transforms:orientation pose))
-;WHAT EULER IS NO PREDEFINED NUMBER IN LISP 2.7182187
-  ;circle 12 parts split
-  (list
-   		    (change-v pose :x-offset (* erate (* arim (cos 0)))
-       		                   :y-offset (* arim (sin 0)))
-		    
-   		    (change-v pose :x-offset (* erate(* arim (cos (/ pi 6))))
-				    :y-offset (* arim (sin (/ pi 6))))
-   		    (change-v pose :x-offset (* erate(* arim (cos (/ pi 3))))
-				    :y-offset (* arim (sin (/ pi 3))))
-                    (change-v pose :x-offset (* erate(* arim (cos (/ pi 2))))
-       		                   :y-offset (* arim (sin (/ pi 2))))
-		    (change-v pose :x-offset (* erate(* arim (cos (* 2(/ pi 3)))))
-       		                   :y-offset (* arim (sin (* 2(/ pi 3)))))
-		    (change-v pose :x-offset (* erate(* arim (cos (* 5(/ pi 6)))))
-       		                   :y-offset (* arim (sin (* 5(/ pi 6)))))
-		    
-		    (change-v pose :x-offset (* erate(* arim (cos pi)))
-       		                   :y-offset (* arim (sin pi)))
-		    
-		    (change-v pose :x-offset (* erate(* arim (cos (*(/ 7 6) pi))))
-       		                   :y-offset (* arim (sin (*(/ 7 6) pi))))
-		    (change-v pose :x-offset (* erate(* arim (cos (*(/ 4 3) pi))))
-				   :y-offset (* arim (sin (*(/ 4 3) pi))))
-		    (change-v pose :x-offset (* erate(* arim (cos (* 3(/ pi 2)))))
-       		                   :y-offset (* arim (sin (* 3(/ pi 2)))))
-		    (change-v pose :x-offset (* erate(* arim (cos (* 5(/ pi 3)))))
-       		                   :y-offset (* arim (sin (* 5(/ pi 3)))))
-		    (change-v pose :x-offset (* erate(* arim (cos (* 11(/ pi 6)))))
-       		                   :y-offset (* arim (sin (* 11(/ pi 6)))))
-		    
-   		    (change-v pose :x-offset (* erate (* arim (cos (* 2 pi))))
-       		                   :y-offset (* arim (sin (* 2 pi))))
-		    )))
+;(if (eql reso nil)
+    (setf angle (/(* 2  pi) defaultreso))
+    ;(and (setf angle (/(* 2 pi) ?reso)) (setf defaultreso ?reso))
+ ;   )
+    
+    
+ ;defaultreso is this case is jsut the holder for whatever ?reso was decided on or real default reso- look above
+(loop while (<= x defaultreso)
+  do (setf x   (+ x  1))           ; or better: do (decf row)
+    collect  (change-v pose :x-offset (* erate (* containerrim (cos (* x angle))))
+			    :y-offset (* containerrim (sin (* x angle))))
+		  
+		   ))) 
 
-(defun spiral-poses(pose)
-  (print "spiral")
+(defun rec-spiral-poses(object-type pose reso)
   (let
-   ( (k 0.4) ;0.3
-     (a 12)
-     (rim 0.06)
-    )  
-  (list
-   ;spiral made iwth r = 0.06; phi = angle ,  r= a*e^(k* phi); a = amount of segments
-   ;k = gradient of one segment to the other
-   		 ;; (change-v pose :x-offset (*(* 0.06 (exp 0))(cos 0))
-                 ;;                :y-offset (*(* 0.06 (exp 0)) (sin 0)))
-   		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (/ pi 6)))) (cos (/ pi 6)))
-				    :y-offset (*(* (/ rim a) (exp (* k(/ pi 6)))) (sin (/ pi 6))))
-   		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (/ pi 3)))) (cos (/ pi 3)))
-				    :y-offset (*(* (/ rim a) (exp (* k(/ pi 3)))) (sin (/ pi 3))))
-   		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (/ pi 2)))) (cos (/ pi 2)))
-				    :y-offset (*(* (/ rim a) (exp (* k(/ pi 2)))) (sin (/ pi 2))))
-   		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k(* 2(/ pi 3))))) (cos (* 2(/ pi 3))))
-				    :y-offset (*(* (/ rim a) (exp (* k(* 2(/ pi 3))))) (sin (* 2(/ pi 3)))))
-   		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (* 5(/ pi 6))))) (cos  (* 5(/ pi 6))))
-				    :y-offset (*(* (/ rim a) (exp (* k (* 5(/ pi 6))))) (sin  (* 5(/ pi 6)))))
+   ( (k 0.4) ;0.3 <-'spiralness'
+     (defaultreso 12)
+     (rim 0.06); needs to be pulled out from household - same goes for top and bottom diffrence.
+     ;for spiral only top rim needed.
+     (angle 0)  
+     (x 1)
+     )
 
-  		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k pi))) (cos pi))
-				    :y-offset (*(* (/ rim a) (exp (* k pi))) (sin pi)))
+    (setf rim (nth 2 (car (get-object-type-robot-frame-mix-rim-bottom-transform object-type))))
+   
+    
+ (setf angle (/(* 2  pi) defaultreso))
+    (loop while (<= x defaultreso)
+	  do (setf x   (+ x  1))
+	     collect(change-v pose :x-offset (*(* (/ rim defaultreso) (exp (* k (* x angle))) (cos (* x angle))))
+				   :y-offset (*(* (/ rim defaultreso) (exp (* k(* x  angle))) (sin (* x  angle)))))
+	  )))
 
-   		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (* 7(/ pi 6))))) (cos  (* 7(/ pi 6))))
-				    :y-offset (*(* (/ rim a) (exp (* k (* 7(/ pi 6))))) (sin  (* 7(/ pi 6)))))		    
-   		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (* 4(/ pi 3))))) (cos  (* 4(/ pi 3))))
-				    :y-offset (*(* (/ rim a) (exp (* k (* 4(/ pi 3))))) (sin  (* 4(/ pi 3)))))
-   		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (* 3(/ pi 2))))) (cos  (* 3(/ pi 2))))
-				    :y-offset (*(* (/ rim a) (exp (* k (* 3(/ pi 2))))) (sin  (* 3(/ pi 2)))))
-   		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (* 5(/ pi 3))))) (cos  (* 5(/ pi 3))))
-				    :y-offset (*(* (/ rim a) (exp (* k (* 5(/ pi 3))))) (sin  (* 5(/ pi 3)))))
-   		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (* 11(/ pi 6))))) (cos  (* 11(/ pi 6))))
-				    :y-offset (*(* (/ rim a) (exp (* k (* 11(/ pi 6))))) (sin  (* 11(/ pi 6)))))
+;; (defun spiral-poses(pose)
+;;   (print "spiral")
+;;   (let
+;;    ( (k 0.4) ;0.3
+;;      (a 12)
+;;      (rim 0.06)
+;;     )  
+;;   (list
+;;    ;spiral made iwth r = 0.06; phi = angle ,  r= a*e^(k* phi); a = amount of segments
+;;    ;k = gradient of one segment to the other
+;;    		 ;; (change-v pose :x-offset (*(* 0.06 (exp 0))(cos 0))
+;;                  ;;                :y-offset (*(* 0.06 (exp 0)) (sin 0)))
+;;    		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (/ pi 6)))) (cos (/ pi 6)))
+;; 				    :y-offset (*(* (/ rim a) (exp (* k(/ pi 6)))) (sin (/ pi 6))))
+;;    		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (/ pi 3)))) (cos (/ pi 3)))
+;; 				    :y-offset (*(* (/ rim a) (exp (* k(/ pi 3)))) (sin (/ pi 3))))
+;;    		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (/ pi 2)))) (cos (/ pi 2)))
+;; 				    :y-offset (*(* (/ rim a) (exp (* k(/ pi 2)))) (sin (/ pi 2))))
+;;    		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k(* 2(/ pi 3))))) (cos (* 2(/ pi 3))))
+;; 				    :y-offset (*(* (/ rim a) (exp (* k(* 2(/ pi 3))))) (sin (* 2(/ pi 3)))))
+;;    		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (* 5(/ pi 6))))) (cos  (* 5(/ pi 6))))
+;; 				    :y-offset (*(* (/ rim a) (exp (* k (* 5(/ pi 6))))) (sin  (* 5(/ pi 6)))))
 
-   		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (* 2 pi)))) (cos  (* 2 pi)))
-				    :y-offset (*(* (/ rim a) (exp (* k (* 2 pi)))) (sin  (* 2 pi))))
+;;   		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k pi))) (cos pi))
+;; 				    :y-offset (*(* (/ rim a) (exp (* k pi))) (sin pi)))
 
-	     ;ausgangs posi -> should be in mid-mix
-		    ;; (change-v pose :x-offset (* 0.06 (cos 0))
-       		    ;;                :y-offset (* 0.06 (sin 0)))
- )))
+;;    		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (* 7(/ pi 6))))) (cos  (* 7(/ pi 6))))
+;; 				    :y-offset (*(* (/ rim a) (exp (* k (* 7(/ pi 6))))) (sin  (* 7(/ pi 6)))))		    
+;;    		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (* 4(/ pi 3))))) (cos  (* 4(/ pi 3))))
+;; 				    :y-offset (*(* (/ rim a) (exp (* k (* 4(/ pi 3))))) (sin  (* 4(/ pi 3)))))
+;;    		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (* 3(/ pi 2))))) (cos  (* 3(/ pi 2))))
+;; 				    :y-offset (*(* (/ rim a) (exp (* k (* 3(/ pi 2))))) (sin  (* 3(/ pi 2)))))
+;;    		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (* 5(/ pi 3))))) (cos  (* 5(/ pi 3))))
+;; 				    :y-offset (*(* (/ rim a) (exp (* k (* 5(/ pi 3))))) (sin  (* 5(/ pi 3)))))
+;;    		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (* 11(/ pi 6))))) (cos  (* 11(/ pi 6))))
+;; 				    :y-offset (*(* (/ rim a) (exp (* k (* 11(/ pi 6))))) (sin  (* 11(/ pi 6)))))
+
+;;    		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (* 2 pi)))) (cos  (* 2 pi)))
+;; 				    :y-offset (*(* (/ rim a) (exp (* k (* 2 pi)))) (sin  (* 2 pi))))
+
+;; 	     ;ausgangs posi -> should be in mid-mix
+;; 		    ;; (change-v pose :x-offset (* 0.06 (cos 0))
+;;        		    ;;                :y-offset (* 0.06 (sin 0)))
+;;  )))
 
 (defun get-start-mix-poses(reso pose);grasp start-mix-poses &optional) - for pose z axis is needed to be in object coordinationsys
 (print "spiral calculation")  
   ;; iteration through psi
   (let
     ((positions (list pose))
-    (part (/ 360 reso)) ;make sure it's int
-     (angle (/(* 2 pi)(/ 360 reso)))
+    (part (/ 360 12)) ;make sure it's int
+     (angle (/(* 2 pi)(/ 360 12))) ; 12 is replacment for reso for now
      (currentpose pose)
 	      )
 
