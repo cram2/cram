@@ -5,8 +5,6 @@
   <arg name="donbot" default="false" />
   <arg name="kukabot" default="false" />
   <arg name="tiago" default="false" />
-  <arg name="hsrb" default="false" />
-
 
   <!-- choose environment -->
   <arg name="household" default="false" />
@@ -53,12 +51,7 @@
         <arg name="end_effector_left" value="pal-gripper" />
         <arg name="end_effector_right" value="pal-gripper" />
       </include>
-
-    <group if="$(arg hsrb)">
-    <param name="robot_description"
-           command="$(find xacro)/xacro
-                    '$(find hsr_description)/robots/hsrb4s.urdf.xacro'"/>
-     </group>
+    </group>
   </group>
 
   <!-- robot state publisher -->
@@ -155,5 +148,5 @@
   </group>
   <group unless="$(arg pr2)">
     <include file="$(find kdl_ik_service)/launch/kdl_ik.launch" />
-  </group>    
+  </group>
 </launch>
