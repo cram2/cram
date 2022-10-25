@@ -29,6 +29,10 @@
 
 (in-package :env-man)
 
+(defparameter *detect-gripper-slip* T
+  "When opening/closing a container, detect if gripper joint falls below
+a threshold (if T) to signal a failure.")
+
 (defun manipulate-container (&key
                                ((:type ?type))
                                ((:arm ?arm))
@@ -183,7 +187,6 @@
       (cpl:sleep 1)
       (cpl:fail 'common-fail:gripper-closed-completely
                 :description "Handle slipped")))
-
   (when (and joint-name)
     (cram-occasions-events:on-event
      (make-instance (if (eq ?type :opening)
