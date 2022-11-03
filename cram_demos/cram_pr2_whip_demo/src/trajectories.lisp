@@ -32,110 +32,19 @@
 
 (in-package :cram-manipulation-interfaces)
 
-(defstruct traj-segment
-  (label nil :type keyword)
-  ;; (collision-mode :allow-all :type keyword)
-  (poses nil :type list))
-
-(defun make-empty-trajectory (labels)
-  (mapcar (lambda (x)
-            (make-traj-segment :label x :poses nil))
-          labels))
-
-(defun get-traj-poses-by-label (trajectory label)
-  (traj-segment-poses
-   (find label
-         trajectory
-         :key #'traj-segment-label)))
-
-
-(defun calculate-gripper-pose-in-base (base-to-object-transform arm
-                                       object-to-standard-gripper-transform)
-  "Returns bPg, given bTo, the arm and oTg': bPg = bTo * oTg' * g'Tg.
-`arm' is :left or :right."
-  (let* ((gripper-tool-frame
-           (ecase arm
-             (:left cram-tf:*robot-left-tool-frame*)
-             (:right cram-tf:*robot-right-tool-frame*)))
-         (standard<-particular-gripper-transform ; g'Tg
-           (cl-transforms-stamped:transform->transform-stamped
-            gripper-tool-frame
-            gripper-tool-frame
-            0.0
-            (cut:var-value
-             '?transform
-             (car (prolog:prolog
-                   `(and (cram-robot-interfaces:robot ?robot)
-                         (cram-robot-interfaces:standard<-particular-gripper-transform
-                          ?robot ?transform)))))))
-         (base-to-standard-gripper-transform      ; bTg'
-           (cram-tf:multiply-transform-stampeds
-            cram-tf:*robot-base-frame* gripper-tool-frame
-            base-to-object-transform              ; bTo
-            object-to-standard-gripper-transform  ; oTg'
-            :result-as-pose-or-transform :transform)))
-    (cram-tf:multiply-transform-stampeds ; bTg' * g'Tg = bTg
-     cram-tf:*robot-base-frame* gripper-tool-frame
-     base-to-standard-gripper-transform      ; bTg'
-     standard<-particular-gripper-transform ; g'Tg
-     :result-as-pose-or-transform :pose)))
-
-(defun calculate-gripper-pose-in-map (base-to-object-transform arm
-                                      object-to-standard-gripper-transform)
-  (let ((gripper-tool-frame
-          (ecase arm
-            (:left cram-tf:*robot-left-tool-frame*)
-            (:right cram-tf:*robot-right-tool-frame*))))
-    (cram-tf:multiply-transform-stampeds
-     cram-tf:*fixed-frame* gripper-tool-frame
-     (cram-tf:pose-stamped->transform-stamped
-      (cram-tf:robot-current-pose) cram-tf:*robot-base-frame*)
-     (cram-tf:pose-stamped->transform-stamped
-      (calculate-gripper-pose-in-base base-to-object-transform arm
-                                      object-to-standard-gripper-transform)
-      gripper-tool-frame)
-     :result-as-pose-or-transform :pose)))
-
-(defmethod get-object-type-robot-frame-whisk-pre-approach-transform
-    ((object-type (eql :big-bowl))
-     arm)
-  '((0.0 0.0 0.6)(0 0.707 0 0.707)))
-  
-(defmethod get-object-type-robot-frame-whisk-approach-transform
-    ((object-type (eql :big-bowl))
-     arm)
-  '((0.0 0.0 0.3)(0 0.707 0 0.707)))  
-
-(defmethod get-object-type-robot-frame-bowl-rim-transform
-    ((object-type (eql :big-bowl))
-     arm)
-  '((0.0 0.12 0.3)(0 0.707 0 0.707))) 
-
-(defun calculate-whipping-trajectory-in-map (object arm bTg)
-  (let* ((mTb
-           (cram-tf:pose->transform-stamped
-            cram-tf:*fixed-frame*
-            cram-tf:*robot-base-frame*
-            0.0
-            (btr:pose (btr:get-robot-object)))))
-    (mapcar (lambda (bTg-pose)
-               (cl-tf:ensure-pose-stamped
-                (cram-tf:apply-transform 
-                 mTb
-                 bTg-pose)))
-             (calculate-whipping-trajectory object arm bTg))))
-
-;; (defun calculate-whipping-trajectory (object arn bTg)
-;; ;WIP
-;; )
-     
+;get pouring trajectory workes like picking-up it will get the 
+;;object-type-to-gripper-tilt-approch-transform und makes a traj-segment out of it
+;;here we have only the approach pose, followed by that is the titing pose (above)
+;;TODO: change name and put into designator the correct key
 (defmethod man-int:get-action-trajectory :heuristics 20 ((action-type (eql :mixing))
-							 arm
-							 grasp
-							 location
-							 objects-acted-on
-							 &key )
-
+                                                         arm
+                                                         grasp
+                                                         location
+                                                         objects-acted-on
+                                                         &key )
+                                                         
+  (print "entered mixing")
+  ;;TODO DONT CHANGE THIS SAME +++++++++++
   (let* ((object
            (car objects-acted-on))
          (object-name
@@ -144,46 +53,83 @@
            (desig:desig-prop-value object :type))
          (bTo
            (man-int:get-object-transform object))
-	 
-					;bTb hard gecoded for now -bigbowl
+         ;; The first part of the btb-offset transform encodes the
+         ;; translation difference between the gripper and the
+         ;; object. The static defined orientation of bTb-offset
+         ;; describes how the gripper should be orientated to approach
+         ;; the object in which something should be poured into. This
+         ;; depends mostly on the defined coordinate frame of the
+         ;; object and how objects should be rotated to pour something
+         ;; out of them.
          (bTb-offset
-	   (get-object-type-robot-frame-whisk-pre-approach-transform
-	    :big-bowl arm))  
-	 ;; btb offset is currently this:
-	 ;; '((0.0 0.0 0.6)(0 0.707 0 0.707))
-	 
-	 (oTg-std
+	   ;;TODO: call correct function
+           (get-object-type-robot-frame-mix-approach-transform
+            object-type arm grasp))
+         ;; Since the grippers orientation should not depend on the
+         ;; orientation of the object it is omitted here.
+         (oTg-std
            (cram-tf:copy-transform-stamped
             (man-int:get-object-type-to-gripper-transform
              object-type object-name arm grasp)
             :rotation (cl-tf:make-identity-rotation)))
-	 ;; identity-rotation = 0 0 0 1
+	 ;; (other-arm (cond ((equal arm :left) :right)(t :left)))
+	 ;; (grip-container-pose
+	 ;;   (cl-tf:copy-pose-stamped 
+         ;;    (man-int:calculate-gripper-pose-in-base
+         ;;      (cram-tf:apply-transform
+         ;;       (cram-tf:copy-transform-stamped 
+         ;;        bTb-offset
+         ;;        :rotation (cl-tf:make-identity-rotation))
+         ;;       bTo)
+         ;;      other-arm oTg-std)
+         ;;    :orientation 
+         ;;    (cl-tf:rotation bTb-offset)))
          (approach-pose
-	   (cl-tf:copy-pose-stamped
-
-	    ;;'((0.4 0.7 0.95)(XX XX XX XX)) -> pose from object from gripper
+           (cl-tf:copy-pose-stamped 
             (man-int:calculate-gripper-pose-in-base
-
-	     ;;'((0.5 0.9 0.95)(0 1 2 1))
-	     (cram-tf:apply-transform
-	      ;;'((0.0 0.0 0.6)(0 0 0 1))
-	      (cram-tf:copy-transform-stamped 
-	       bTb-offset
-	       :rotation (cl-tf:make-identity-rotation))
-	      bTo)
-	     
-	     arm oTg-std)
-	    
+              (cram-tf:apply-transform
+               (cram-tf:copy-transform-stamped 
+                bTb-offset
+                :rotation (cl-tf:make-identity-rotation))
+               bTo)
+              arm oTg-std)
             :orientation 
             (cl-tf:rotation bTb-offset)))
-					;	(pre-mix-poses
-					;	(get-object-type-robot-frame-whisk-approach-transform :big-bowl)
-					;	add tool width offset get-object-type-robot-frame-bowl-rim-transform
-					;       flet/defun calculate-pre-mix-poses
-					;	)
+         (mix-poses (adjust-circle-poses approach-pose :reso))
+					;(mix-poses  (circle-poses approach-pose))
+	(start-mix-poses (rec-spiral-poses object-type approach-pose :reso))
+	                               ; (spiral-poses approach-pose))
+	 ;;TODO: here come all your new poses calculated from the approach pose
+	 ;;wrote new functions that changes height and stuff but as metioned in the
+	 ;;comments below its hardcoded should be aabb box stuff calculating
+	 
+         ;; ;;approach-pose was not a list yet
+         ;; (flip-tilt-poses
+         ;;   (get-flip-tilt-poses grasp (list approach-pose)
+	 ;; 			(cram-math:degrees->radians 15)
+	 ;; 			-0.085))
+	 
+         ;; ;;flip-tilt-poses is a list already
+	 ;; ;;the 0.15 value should depent on the object acted on.. but for now its k
+	 ;; (push-foward-poses
+	 ;;   (get-flip-tilt-poses grasp
+	 ;; 			(get-push-foward-poses grasp flip-tilt-poses 0.12)
+	 ;; 			(cram-math:degrees->radians 6.5) -0.03))
 
-					;      (whisking-pose traj segment -> +adapt turn knob-WIP)
+	 ;; (lift-pancake-poses
+	 ;;   (get-flip-tilt-poses grasp push-foward-poses
+	 ;; 			(cram-math:degrees->radians 0) 0.1))
+
+	 ;; (flip-pancake-poses
+	 ;;   (get-flip-tilt-poses :left
+         ;;                        (get-push-foward-poses :left 
+	 ;; 			lift-pancake-poses 0.05)
+	 ;; 			(cram-math:degrees->radians -90) 0.2))
+
+	   
 	 )
+    
+    (print "pose is generated now the traj-segments are calculated")
     (mapcar (lambda (label poses-in-base)
               (man-int:make-traj-segment
                :label label
@@ -201,15 +147,286 @@
                            (cl-tf:ensure-pose-stamped
                             (cram-tf:apply-transform mTb bTg-std))))
                        poses-in-base)))
-	    
-            '(:whip-approach
-					;             :pre-mix
-					;             :mix
-              )
-            `((,approach-pose)
-					;             (,pre-mix-poses)
-					;             (,whisking-pose)
-              ))))
+            '(;:grip-container
+	      :approach
+	      :start-mix
+	      :mid-mix
+	      )
+	    `(;(,grip-container-pose)
+	      (,approach-pose)
+	      ,start-mix-poses
+	      ,mix-poses
+	      ))))	     
 
 
 
+;; =========  is in household defined normaly ==========
+(defmethod get-object-type-robot-frame-mix-grip-approach-transform
+    ((object-type (eql :big-bowl))
+     (arm (eql :left))
+     (grasp (eql :top)))
+   '((0 -0.12  0.161)(1 0 0 0))) ;x -0.12
+
+;;TODO: change name and numbers this name should be the same as the function belows
+(defmethod get-object-type-robot-frame-mix-approach-transform
+    ((object-type (eql :big-bowl))
+      (arm (eql :right))
+     (grasp (eql :top)))
+  '((0.02 -0.12 0.161)(1 0 0 0)))
+  
+;;the z should be defined by:
+;;object in hand where?
+;;how long is object from where gripper is
+;;yeh
+;;TODO: at least write it like it would make sense like that
+;;if its really in the hand who cares
+
+;should be defined in household later--cos 12 is too close to rim
+(defmethod get-object-type-robot-frame-mix-rim-bottom-transform
+   ((object-type (eql :big-bowl)))
+  '((0.0 -0.12 0.06)(1 0 0 0)))
+
+(defmethod get-object-type-robot-frame-mix-rim-top-transform
+   ((object-type (eql :big-bowl)))
+  '((0.0 -0.9 0.11)(1 0 0 0)))
+
+;; =========  is in trajectory defined normaly ==========
+
+(defgeneric get-object-type-robot-frame-mix-grip-approach-transform (object-type arm grasp)
+  (:documentation "Returns a transform stamped")
+  (:method (object-type arm grasp)
+    (man-int::call-with-specific-type #'get-object-type-robot-frame-mix-grip-approach-transform
+                             object-type arm grasp)))
+
+(defmethod get-object-type-robot-frame-mix-grip-approach-transform :around (object-type arm grasp)
+  (destructuring-bind
+      ((x y z) (ax ay az aw))
+      (call-next-method)
+    (cl-tf:transform->transform-stamped
+     cram-tf:*robot-base-frame*
+     cram-tf:*robot-base-frame*
+     0.0
+     (cl-tf:pose->transform
+      (cl-transforms:make-pose
+       (cl-transforms:make-3d-vector x y z)
+       (cl-transforms:make-quaternion ax ay az aw))))))
+
+(defgeneric get-object-type-robot-frame-mix-approach-transform (object-type arm grasp)
+  (:documentation "Returns a transform stamped")
+  (:method (object-type arm grasp)
+    (man-int::call-with-specific-type #'get-object-type-robot-frame-mix-approach-transform
+                             object-type arm grasp)))
+
+(defmethod get-object-type-robot-frame-mix-approach-transform :around (object-type arm grasp)
+  (destructuring-bind
+      ((x y z) (ax ay az aw))
+      (call-next-method)
+    (cl-tf:transform->transform-stamped
+     cram-tf:*robot-base-frame*
+     cram-tf:*robot-base-frame*
+     0.0
+     (cl-tf:pose->transform
+      (cl-transforms:make-pose
+       (cl-transforms:make-3d-vector x y z)
+       (cl-transforms:make-quaternion ax ay az aw))))))
+
+(defun adjust-circle-poses(pose reso)
+  (let ((containerrim 0.06); <- currently - big-bowl hard gecoded, gotta adjust top and bottom rim
+	(erate 1);<- circle;  stirring == (erate 0.03)
+	(angle 0)
+	(x 1)
+        (defaultreso 12)
+	)
+;(if (eql reso nil)
+    (setf angle (/(* 2  pi) defaultreso))
+    ;(and (setf angle (/(* 2 pi) ?reso)) (setf defaultreso ?reso))
+ ;   )
+    
+    
+ ;defaultreso is this case is jsut the holder for whatever ?reso was decided on or real default reso- look above
+(loop while (<= x defaultreso)
+  do (setf x   (+ x  1))           ; or better: do (decf row)
+    collect  (change-v pose :x-offset (* erate (* containerrim (cos (* x angle))))
+			    :y-offset (* containerrim (sin (* x angle))))
+		  
+		   ))) 
+
+(defun rec-spiral-poses(object-type pose reso)
+  (let
+   ( (k 0.4) ;0.3 <-'spiralness'
+     (defaultreso 12)
+     (rim 0.06); needs to be pulled out from household - same goes for top and bottom diffrence.
+     ;for spiral only top rim needed.
+     (angle 0)  
+     (x 1)
+     )
+
+    (setf rim (nth 2 (car (get-object-type-robot-frame-mix-rim-bottom-transform object-type))))
+   
+    
+ (setf angle (/(* 2  pi) defaultreso))
+    (loop while (<= x defaultreso)
+	  do (setf x   (+ x  1))
+	     collect(change-v pose :x-offset (*(* (/ rim defaultreso) (exp (* k (* x angle))) (cos (* x angle))))
+				   :y-offset (*(* (/ rim defaultreso) (exp (* k(* x  angle))) (sin (* x  angle)))))
+	  )))
+
+;; (defun spiral-poses(pose)
+;;   (print "spiral")
+;;   (let
+;;    ( (k 0.4) ;0.3
+;;      (a 12)
+;;      (rim 0.06)
+;;     )  
+;;   (list
+;;    ;spiral made iwth r = 0.06; phi = angle ,  r= a*e^(k* phi); a = amount of segments
+;;    ;k = gradient of one segment to the other
+;;    		 ;; (change-v pose :x-offset (*(* 0.06 (exp 0))(cos 0))
+;;                  ;;                :y-offset (*(* 0.06 (exp 0)) (sin 0)))
+;;    		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (/ pi 6)))) (cos (/ pi 6)))
+;; 				    :y-offset (*(* (/ rim a) (exp (* k(/ pi 6)))) (sin (/ pi 6))))
+;;    		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (/ pi 3)))) (cos (/ pi 3)))
+;; 				    :y-offset (*(* (/ rim a) (exp (* k(/ pi 3)))) (sin (/ pi 3))))
+;;    		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (/ pi 2)))) (cos (/ pi 2)))
+;; 				    :y-offset (*(* (/ rim a) (exp (* k(/ pi 2)))) (sin (/ pi 2))))
+;;    		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k(* 2(/ pi 3))))) (cos (* 2(/ pi 3))))
+;; 				    :y-offset (*(* (/ rim a) (exp (* k(* 2(/ pi 3))))) (sin (* 2(/ pi 3)))))
+;;    		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (* 5(/ pi 6))))) (cos  (* 5(/ pi 6))))
+;; 				    :y-offset (*(* (/ rim a) (exp (* k (* 5(/ pi 6))))) (sin  (* 5(/ pi 6)))))
+
+;;   		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k pi))) (cos pi))
+;; 				    :y-offset (*(* (/ rim a) (exp (* k pi))) (sin pi)))
+
+;;    		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (* 7(/ pi 6))))) (cos  (* 7(/ pi 6))))
+;; 				    :y-offset (*(* (/ rim a) (exp (* k (* 7(/ pi 6))))) (sin  (* 7(/ pi 6)))))		    
+;;    		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (* 4(/ pi 3))))) (cos  (* 4(/ pi 3))))
+;; 				    :y-offset (*(* (/ rim a) (exp (* k (* 4(/ pi 3))))) (sin  (* 4(/ pi 3)))))
+;;    		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (* 3(/ pi 2))))) (cos  (* 3(/ pi 2))))
+;; 				    :y-offset (*(* (/ rim a) (exp (* k (* 3(/ pi 2))))) (sin  (* 3(/ pi 2)))))
+;;    		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (* 5(/ pi 3))))) (cos  (* 5(/ pi 3))))
+;; 				    :y-offset (*(* (/ rim a) (exp (* k (* 5(/ pi 3))))) (sin  (* 5(/ pi 3)))))
+;;    		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (* 11(/ pi 6))))) (cos  (* 11(/ pi 6))))
+;; 				    :y-offset (*(* (/ rim a) (exp (* k (* 11(/ pi 6))))) (sin  (* 11(/ pi 6)))))
+
+;;    		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (* 2 pi)))) (cos  (* 2 pi)))
+;; 				    :y-offset (*(* (/ rim a) (exp (* k (* 2 pi)))) (sin  (* 2 pi))))
+
+;; 	     ;ausgangs posi -> should be in mid-mix
+;; 		    ;; (change-v pose :x-offset (* 0.06 (cos 0))
+;;        		    ;;                :y-offset (* 0.06 (sin 0)))
+;;  )))
+
+(defun get-start-mix-poses(reso pose);grasp start-mix-poses &optional) - for pose z axis is needed to be in object coordinationsys
+(print "spiral calculation")  
+  ;; iteration through psi
+  (let
+    ((positions (list pose))
+    (part (/ 360 12)) ;make sure it's int
+     (angle (/(* 2 pi)(/ 360 12))) ; 12 is replacment for reso for now
+     (currentpose pose)
+	      )
+
+
+  (loop for x from 1 to part
+	; resolution of circle; angle from 0 to (*2 pi) ;phi in radians
+	do
+	   (cons positions
+
+		 (change-v currentpose :x-offset (* (exp (* part angle))(cos (* part angle)))
+                                       :y-offset (* (exp (* part angle)) (sin (* part angle)))
+		 ) 
+	;	'((* (exp (* part angle))(cos (* part angle)))    ;x = r(angle) cos angle -> r(angle)= euler^angle
+	;	(* (exp (* part angle) (sin (* part angle))))	 ;y= r(angle) sin angle
+	;	0)
+    
+;(print "translating spiral poses to otb")
+
+    ))))
+
+;; (defun get-circle-poses(reso)
+;;   (print "whisking circle calculated")
+;;     (let
+;;     ((positions get-object-type-robot-frame-mix-approach-transform)
+;;     (part (/ 360 reso)) ;make sure it's int
+;;      (angle (/(* 2 pi)(/ 360 reso)))
+;;      (currentpose get-object-type-robot-frame-mix-approach-transform)
+;;      )
+      
+;;   (loop for x from 1 to part
+;; 	; resolution of circle; angle from 0 to (*2 pi) ;phi in radians
+;; 	do
+;; 	   (* (cos (* angle part)) (currentpose )); = x
+;; 	   (* (sin (* angle part)) r) ; =y
+;; 	   (cons positions
+		 
+;; 	;	(change-v (currentpose :x-offset () :y-offset ())) ;<- ==r
+;; ;r = get 
+;; 					;pi 2*r ; (x-h)² +(y-v)² = r² while h,v center(h = horizontal, v = vertical) of circle and r radius
+;;   ;x= r * cos +x; y= r*sin +y 
+;;   ))))
+
+;; =========  is in trajectory defined normly ==========
+(defun get-flip-tilt-poses (grasp approach-poses &optional (angle (cram-math:degrees->radians 15))
+						   (height 0))
+  (print "flip-tilt-poses-calculated")
+
+  (mapcar (lambda (?approach-pose)
+	    (let ((?pose (change-v ?approach-pose :z-offset height)))
+	      ;;depending on the grasp the angle to tilt is different
+	      (case grasp
+		(:front (rotate-once-pose-flip ?pose (- angle) :y))
+		(:left (rotate-once-pose-flip ?pose (- angle) :x))
+		(:right (rotate-once-pose-flip ?pose (+ angle) :x))
+		(:top (rotate-once-pose-flip ?pose (+ angle) :y))
+		(t (error "front, left, right, top")))))
+          approach-poses))
+
+;;helper function for tilting
+;;rotate the pose around the axis in an angle
+(defun rotate-once-pose-flip (pose angle axis)
+  (print "rotate once")
+  (cl-transforms-stamped:copy-pose-stamped
+   pose
+   :orientation (let ((pose-orientation (cl-transforms:orientation pose)))
+                  (cl-tf:normalize
+                   (cl-transforms:q*
+                    (cl-transforms:axis-angle->quaternion
+                     (case axis
+                       (:x (cl-transforms:make-3d-vector 1 0 0))
+                       (:y (cl-transforms:make-3d-vector 0 1 0))
+                       (:z (cl-transforms:make-3d-vector 0 0 1))
+                       (t (error "in ROTATE-ONCE-POSE forgot to specify axis properly: ~a" axis)))
+                     angle)
+                    pose-orientation)))))
+(defvar test)
+
+(defun change-v (pose &key (x-offset 0.0) (y-offset 0.0) (z-offset 0.0))
+  (print "change-v")
+  (setf test pose)
+  (cram-tf::copy-pose-stamped
+   pose 
+   :origin
+   (let ((transform-translation (cl-transforms:origin pose)))
+     (cl-transforms:copy-3d-vector
+      transform-translation
+      :x (let ((x-transform-translation (cl-transforms:x transform-translation)))
+           (+ x-transform-translation x-offset))
+      :y (let ((y-transform-translation (cl-transforms:y transform-translation)))
+           (+ y-transform-translation y-offset))
+      :z (let ((z-transform-translation (cl-transforms:z transform-translation)))
+           (+ z-transform-translation z-offset))))
+   :orientation
+   (cl-transforms:orientation pose)))
+
+
+(defun get-push-foward-poses (grasp poses &optional (push 0))
+  (print "push-calculated")
+
+  (mapcar (lambda (?pose)
+	    (case grasp
+		(:front (change-v ?pose :x-offset (+ push)))
+		(:left (change-v ?pose :y-offset (+ push)))
+		(:right (change-v ?pose :y-offset (- push)))
+		(:top (change-v ?pose :x-offset (- push)))
+		(t (error "front, left, right, top"))))
+          poses))

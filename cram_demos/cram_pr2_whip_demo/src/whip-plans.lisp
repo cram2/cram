@@ -28,34 +28,100 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
 (in-package :demo)
+(defun my-plan-function (&key
+             &allow-other-keys)
+  (print "My action designator is executable"))
 
-;:WIP
-(defun whip (&key
-	       ((:object ?current-object-desig))
+
+(def-fact-group my-actions (desig:action-grounding)
+  (<- (desig:action-grounding ?action-designator (my-plan-function ?resolved-action-designator))
+    (spec:property ?action-designator (:type :my-action-designator))
+
+    (desig:designator :action ((:type :my-action-designator))
+                      ?resolved-action-designator)))
+
+(defun whisk (&key
+	       ((:object ?object-designator))
 	       ((:object-type ?object-type))
-	       ((:object-name  ?object-name))
+	       ((:object-name ?object-name))
 	       ((:arms ?arms))
-	       ((:effort ?effort))
 	       ((:grasp ?grasp))
-	       ((:left-whip-approach-poses ?left-whip-approach-poses))
-	       ((:right-whip-approach-poses ?right-whip-approach-poses))
-	       ((:collision-mode ?collision-mode))
-	     &allow-other-keys)
-        
-  (roslisp:ros-info (cut-pour pour) "Approaching")
-  (cpl:with-failure-handling
-      ((common-fail:manipulation-low-level-failure (e)
-         (roslisp:ros-warn (cut-and-pour-plans pour)
-                           "Manipulation messed up: ~a~%Ignoring."
-                           e)
-         ;; (return)
-         ))
+	       ((:context ?context))
+	       ((:reso ?reso))
+	       ;;((:effort ?effort))
+	       ;;((:gripper-opening ?gripper-opening))
+	      ; ((:left-grip-container-poses ?left-grip-container-poses))
+	      ; ((:right-grip-container-poses ?right-grip-container-poses))
+	       ((:left-approach-poses ?left-approach-poses))
+	       ((:right-approach-poses ?right-approach-poses))
+	       ((:left-start-mix-poses ?left-start-mix-poses))
+	       ((:right-start-mix-poses ?right-start-mix-poses))
+	       ((:left-mid-mix-poses ?left-mid-mix-poses))
+	       ((:right-mid-mix-poses ?right-mid-mix-poses))
+	       ;; ((:left-lift-pancake-poses ?left-lift-pancake-poses))
+	       ;; ((:right-lift-pancake-poses ?right-lift-pancake-poses))
+	       ;; ((:left-flip-pancake-poses ?left-flip-pancake-poses))
+	       ;; ((:right-flip-pancake-poses ?right-flip-pancake-poses))
+             &allow-other-keys)
+
+  ;;just some prints cause who does not like them
+  (format t "My action designator is executable; ~%
+             flipping: object-type ~a object-name ~a arm: ~a grasp: ~a ~%"
+	  ?object-type ?object-name ?arms ?grasp)
+  (format t "my poses left: ~a ~%
+             my poses right: ~a ~%" ?left-approach-poses
+	     ?right-approach-poses)
+
+;  (roslisp:ros-info (cut-pour pour) "Approaching")
+
+  ;grip bowl
+    ;; (exe:perform
+    ;;  (desig:an action
+    ;;            (type approaching)
+    ;;            (left-poses ?left-grip-container-poses)
+    ;;            (right-poses ?right-grip-container-poses)
+    ;;            ;;(desig:when ?collision-mode
+    ;; 	       ;;(collision-mode ?collision-mode))))
+    ;; 	       ))
+    ;; (cpl:sleep 2)
+  
+  ;tool to center of container
     (exe:perform
      (desig:an action
                (type approaching)
-               (left-poses ?left-whip-approach-poses)
-               (right-poses ?right-whip-approach-poses)
-               (desig:when ?collision-mode
-                 (collision-mode ?collision-mode)))))
-  )
+               (left-poses ?left-approach-poses)
+               (right-poses ?right-approach-poses)
+               ;;(desig:when ?collision-mode
+	       ;;(collision-mode ?collision-mode))))
+	       ))
+    (cpl:sleep 2)
+  
+  ;; (cpl:with-failure-handling
+  ;;     ((common-fail:manipulation-low-level-failure (e)
+  ;;        (roslisp:ros-warn (cut-and-pour-plans pour)
+  ;;                          "Manipulation messed up: ~a~%Ignoring."
+  ;;                          e)
+  ;;        ;; (return)
+  ;;        ))
 
+  ;mix
+    (exe:perform
+     (desig:an action
+               (type blending)
+               (left-poses ?left-start-mix-poses)
+               (right-poses ?right-start-mix-poses)
+               ;;(desig:when ?collision-mode
+  	       (collision-mode :allow-all)))
+    (cpl:sleep 2)
+
+  (if  (eq ?context :mix)
+    (exe:perform
+     (desig:an action
+               (type blending)
+               (left-poses ?left-mid-mix-poses)
+               (right-poses ?right-mid-mix-poses)
+               ;;(desig:when ?collision-mode
+    	       (collision-mode :allow-all))))
+    (cpl:sleep 2)
+
+  )
