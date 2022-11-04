@@ -1,6 +1,7 @@
 ;;;
 ;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;;                     Christopher Pollok <cpollok@cs.uni-bremen.de>
+;;;                     Vanessa Hassouna <hassouna@uni-bremen.de>
 ;;;                     Thomas Lipps <tlipps@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
@@ -97,7 +98,7 @@
 
 
 
-;;;;;;;;;;;;;;;; Everything below is for pick and place only ;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;; Everything below is for pick/place & cut/pour only ;;;;;;;;;;;;;;;;;;
 
 (defvar *known-grasp-types* nil
   "A list of symbols representing all known grasp types")
@@ -118,6 +119,64 @@ Gripper is defined by a convention where Z is pointing towards the object.")
                              object-type object-name arm grasp location
                              grasp-transform)))
 
+(defgeneric get-object-type-robot-frame-slice-up-transform (object-type arm grasp)
+  (:documentation "Returns a transform stamped")
+  (:method (object-type arm grasp)
+    (call-with-specific-type #'man-int:get-object-type-robot-frame-slice-up-transform
+                             object-type arm grasp)))
+
+(defmethod get-object-type-robot-frame-slice-up-transform :around (object-type arm grasp)
+  (destructuring-bind
+      ((x y z) (ax ay az aw))
+      (call-next-method)
+    (cl-tf:transform->transform-stamped
+     cram-tf:*robot-base-frame*
+     cram-tf:*robot-base-frame*
+     0.0
+     (cl-tf:pose->transform
+      (cl-transforms:make-pose
+       (cl-transforms:make-3d-vector x y z)
+       (cl-transforms:make-quaternion ax ay az aw))))))
+
+
+(defgeneric get-object-type-robot-frame-slice-down-transform (object-type arm grasp)
+  (:documentation "Returns a transform stamped")
+  (:method (object-type arm grasp)
+    (call-with-specific-type #'man-int:get-object-type-robot-frame-slice-down-transform
+                             object-type arm grasp)))
+
+(defmethod get-object-type-robot-frame-slice-down-transform :around (object-type arm grasp)
+  (destructuring-bind
+      ((x y z) (ax ay az aw))
+      (call-next-method)
+    (cl-tf:transform->transform-stamped
+     cram-tf:*robot-base-frame*
+     cram-tf:*robot-base-frame*
+     0.0
+     (cl-tf:pose->transform
+      (cl-transforms:make-pose
+       (cl-transforms:make-3d-vector x y z)
+       (cl-transforms:make-quaternion ax ay az aw))))))
+
+(defgeneric get-object-type-robot-frame-tilt-approach-transform (object-type arm grasp)
+  (:documentation "Returns a transform stamped")
+  (:method (object-type arm grasp)
+    (call-with-specific-type #'man-int:get-object-type-robot-frame-tilt-approach-transform
+                             object-type arm grasp)))
+
+(defmethod get-object-type-robot-frame-tilt-approach-transform :around (object-type arm grasp)
+  (destructuring-bind
+      ((x y z) (ax ay az aw))
+      (call-next-method)
+    (cl-tf:transform->transform-stamped
+     cram-tf:*robot-base-frame*
+     cram-tf:*robot-base-frame*
+     0.0
+     (cl-tf:pose->transform
+      (cl-transforms:make-pose
+       (cl-transforms:make-3d-vector x y z)
+       (cl-transforms:make-quaternion ax ay az aw))))))
+
 (defgeneric get-object-type-wrt-base-frame-lift-transforms (object-type
                                                             arm grasp location)
   (:documentation "Returns a list of transform stampeds bTb representing the
@@ -129,7 +188,6 @@ Depending on the `location', different lifting trajectories can be defined.")
   (:method (object-type arm grasp location)
     (call-with-specific-type #'get-object-type-wrt-base-frame-lift-transforms
                              object-type arm grasp location)))
-
 
 
 (defmacro def-object-type-to-gripper-transforms (object-type arm grasp-type
@@ -399,7 +457,6 @@ Depending on the `location', different lifting trajectories can be defined.")
             `(,oTg-lifts
               (,oTg-std)
               ,oTg-pregrasps))))
-
 
 
 ;;;;;;;;;;;;;;;;;;; OBJECT TO OTHER OBJECT TRANSFORMS ;;;;;;;;;;;;;;;;;;;;;;;;;;

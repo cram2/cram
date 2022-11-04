@@ -49,8 +49,10 @@
   (<- (man-int:object-type-direct-subtype :assembly-item :nut)))
 
 (def-fact-group attachmend-knowledge (man-int:unidirectional-attachment)
+
   (<- (man-int:unidirectional-attachment ?attachment-type)
-    (member ?attachment-type (:horizontal-attachment :vertical-attachment))))
+    (member ?attachment-type (:horizontal-attachment
+                              :vertical-attachment))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -269,7 +271,6 @@
   :2nd-lift-translation `(0.0 0.0 ,*bolt-lift-z-offset*))
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (man-int:def-object-type-in-other-object-transform :chassis :holder-plane-horizontal :horizontal-attachment

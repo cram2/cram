@@ -132,6 +132,7 @@
 
   (<- (%property ?designator (?keyword-or-list-key ?value))
     (lisp-pred typep ?designator desig:action-designator)
+
     (member ?keyword-or-list-key (:gripper
                                   :arm :direction :grasp :camera :type
                                   :context :link :configuration

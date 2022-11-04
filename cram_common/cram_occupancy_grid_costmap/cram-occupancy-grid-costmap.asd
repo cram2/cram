@@ -35,7 +35,8 @@
                cram-robot-interfaces
                roslisp-utilities
                roslisp
-               nav_msgs-msg)
+               nav_msgs-msg
+               cram-manipulation-interfaces)
   :components
   ((:module "src"
     :components

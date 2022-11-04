@@ -71,10 +71,6 @@
     ,@program-body)))
 
 
-(defun list-defined-grasps (object-type)
-  (cut:force-ll (cram-object-interfaces::get-object-type-grasps object-type nil nil nil nil)))
-
-
 (defun visualize-coordinates (object-or-pose &optional (size 0.3))
   (flet ((find-object-of-type (type)
            (find type

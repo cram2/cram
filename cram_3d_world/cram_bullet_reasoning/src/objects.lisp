@@ -225,8 +225,7 @@
                                        :color color))))))
 
 (defmethod add-object ((world bt-world) (type (eql :static-plane)) name pose
-                       &key normal constant (collision-mask '(:default-filter))
-                         texture-str texture-size)
+                       &key normal constant (collision-mask '(:default-filter)))
   (destructuring-bind (normal-x normal-y normal-z) normal
     (make-object world name
                  (list
@@ -243,12 +242,12 @@
                                        ;; :width 16 :height 16
                                        ;; :texture (texture-str->bitmap
                                        ;;           *static-plane-texture* #\Space)
-                                       :width (or texture-size 32)
-                                       :height (or texture-size 32)
+                                       :width 32 :height 32
                                        :texture (texture-str->bitmap
-                                                 (or texture-str
-                                                     *static-plane-gray-texture*)
-                                                 #\Space nil #\x
+                                                 *static-plane-gray-texture*
+                                                 #\Space
+                                                 nil
+                                                 #\g
                                                  '(0.6 0.6 0.6 1.0))))))))
 
 (defmethod add-object ((world bt-world) (type (eql :sphere)) name pose
@@ -460,10 +459,6 @@ of the object should _not_ be updated. `grasp' is the type of grasp orientation.
 
 (defgeneric detach-all-objects (object)
   (:documentation "Removes all attachments form the list of attached objects of `object'."))
-
-(defgeneric object-attached (object other-object &key &allow-other-keys)
-  (:documentation "Returns something if `other-object' is attached to
-  `object', otherwise NIL."))
 
 (defmethod attach-object ((object-to-attach-to-name symbol) (object-name symbol)
                           &key attachment-type loose link grasp)

@@ -1,0 +1,31 @@
+# This rosinstall file is used to build docker images w/o an ssh-key setup
+- git:
+    local-name: cram
+    uri: http://github.com/cram2/cram.git
+    version: devel
+- git:
+    local-name: roslisp_common
+    uri: http://github.com/ros/roslisp_common.git
+    version: master  
+- git:
+    local-name: giskard_msgs
+    uri: http://github.com/SemRoCo/giskard_msgs.git
+    version: v0.5.0
+- git:
+    local-name: iai_common_msgs
+    uri: http://github.com/code-iai/iai_common_msgs.git
+    version: 46d6e9b9be386de9cf5e153f489c382e0c66f74c
+- git:
+    local-name: iai_maps
+    uri: http://github.com/code-iai/iai_maps.git
+    version: master
+- git:
+    local-name: iai_robots
+    uri: http://github.com/code-iai/iai_robots.git
+    version: master    
+- git:
+    local-name: kdl_ik_services
+    uri: http://github.com/cram2/kdl_ik_service.git      
+
+    
+

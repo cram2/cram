@@ -122,4 +122,7 @@
            #:*static-plane-gray-texture*
            #:*static-plane-gray-thin-texture*
            #:*static-plane-black-inverted-texture*
-           #:*static-plane-texture-64x64))
+           #:*static-plane-texture-64x64
+	   ;; Query the bullet world
+           get-objects-for-type
+           ))
