@@ -653,59 +653,234 @@ so we assume that all the source contents drops into the target right away."
                                                  location
                                                  objects-acted-on
                                                  &key tilt-angle side)
-  (let* ((source-object
-           (first objects-acted-on))
-         (source-object-name
-           (desig:desig-prop-value source-object :name))
-         (source-object-type
-           (desig:desig-prop-value source-object :type))
+  (print side)
+  (print arm)
+  (print "this is in pouring trajectories")
+  (let* (;; (source-object
+         ;;   (first objects-acted-on))
+         ;; (source-object-name
+         ;;   (desig:desig-prop-value source-object :name))
+         ;; (source-object-type
+         ;;   (desig:desig-prop-value source-object :type))
          (target-object
-           (second objects-acted-on))
+           (first objects-acted-on))
          (target-object-name
            (desig:desig-prop-value target-object :name))
          (target-object-type
            (desig:desig-prop-value target-object :type))
          (b-T-to
            (get-object-transform target-object))
-         (to-T-so
-           (get-source-object-in-target-object-transform
-            source-object-type source-object-name
-            target-object-type target-object-name
-            side grasp))
-         (so-T-stdg
-           (get-object-type-to-gripper-transform
-            source-object-type source-object-name arm grasp))
-         (to-T-stdg
-           (reduce #'cram-tf:apply-transform
-                   `(,to-T-so ,so-T-stdg)
-                   :from-end T))
-         (to-T-so-tilts
-           (case grasp
-             (:front (cram-tf:rotate-pose-in-own-frame
-                      to-T-so :y tilt-angle))
-             (:side (case arm
-                      (:left (cram-tf:rotate-pose-in-own-frame
-                              to-T-so :x tilt-angle))
-                      (:right (cram-tf:rotate-pose-in-own-frame
-                               to-T-so :x (- tilt-angle)))
-                      (t (error "arm can only be :left or :right"))))
-             (t (error "can only pour from :side or :front"))))
-         (to-T-stdg-tilts
-           (reduce #'cram-tf:apply-transform
-                   `(,to-T-so-tilts ,so-T-stdg)
-                   :from-end T)))
 
-    (mapcar (lambda (label transforms)
-              (make-traj-segment
+         
+         (to-T-to-offset
+           (get-object-type-robot-frame-tilt-approach-transform
+            target-object-type arm side))
+         ;; Since the grippers orientation should not depend on the
+         ;; orientation of the object it is omitted here.
+         (oTg-std
+           (cram-tf:copy-transform-stamped
+            (get-object-type-to-gripper-transform
+             target-object-type target-object-name arm side)
+            :rotation (cl-tf:make-identity-rotation)))
+         
+         (approach-pose
+           (cl-tf:copy-pose-stamped 
+            (man-int:calculate-gripper-pose-in-base
+              (cram-tf:apply-transform
+               b-T-to
+               to-T-to-offset)
+              arm oTg-std)
+            :orientation 
+            (cl-tf:rotation to-T-to-offset)))
+         (tilt-angle (cram-math:degrees->radians 40))
+         (pre-tilting-poses
+           (case side
+             (:top-front (rotate-pose-in-own-frame-and-change-z
+                          approach-pose :y (cram-math:degrees->radians 60) 0.05 0 0.031))
+             (:top-left (rotate-pose-in-own-frame-and-change-z
+                         approach-pose :x (cram-math:degrees->radians 60) 0.0 -0.05 0.031))
+             (:top-right (cram-tf:apply-transform
+                          (cram-tf:pose-stamped->transform-stamped
+                           (rotate-pose-in-own-frame-and-change-z
+                            approach-pose :x  (- (cram-math:degrees->radians 80)) 0.0 0.0 0.06)
+                           (if (eq arm :left)
+                               cram-tf:*robot-left-tool-frame*
+                               cram-tf:*robot-right-tool-frame*))
+                          (cl-transforms-stamped:make-transform-stamped
+                           (if (eq arm :left)
+                               cram-tf:*robot-left-tool-frame*
+                               cram-tf:*robot-right-tool-frame*)
+                           (if (eq arm :left)
+                               cram-tf:*robot-left-tool-frame*
+                               cram-tf:*robot-right-tool-frame*)
+                           0
+                           (cl-transforms:make-3d-vector 0 0.0 0)
+                           (cl-transforms:make-identity-rotation))
+                          :result-as-pose-or-transform :pose))
+             ;;0.031 z
+             (t (error "can only pour from :side or :front"))))
+
+         (tilting-poses
+           (case side
+             (:top-front (rotate-pose-in-own-frame-and-change-z
+                          pre-tilting-poses :y tilt-angle -0.02 0 0.06))
+             (:top-left (rotate-pose-in-own-frame-and-change-z 
+                         pre-tilting-poses :x tilt-angle 0 0 -0.05))
+             (:top-right (cram-tf:rotate-pose-in-own-frame
+                          pre-tilting-poses :x (- tilt-angle)))
+             (t (error "can only pour from :side or :front"))))
+         
+         (tilting-poses-second
+           (case side
+             (:top-front (cram-tf:rotate-pose-in-own-frame
+                              tilting-poses :y tilt-angle))
+             (:top-left (cram-tf:rotate-pose-in-own-frame
+                         tilting-poses :x tilt-angle))
+             (:top-right (cram-tf:rotate-pose-in-own-frame
+                          tilting-poses :x (- tilt-angle)))
+             (t (error "can only pour from :side or :front"))) )
+
+         (tilting-poses-third
+           (case side
+             (:top-front (cram-tf:rotate-pose-in-own-frame
+                          tilting-poses-second :y tilt-angle))
+             (:top-left (cram-tf:rotate-pose-in-own-frame
+                         tilting-poses-second :x tilt-angle))
+             (:top-right (cram-tf:rotate-pose-in-own-frame
+                          tilting-poses-second :x (- tilt-angle)))
+             (t (error "can only pour from :side or :front")))))
+
+           ;;(tilting-poses
+           ;; rotate-pose-in-own-frame 
+        ;; (get-tilting-poses side (list approach-pose))))
+         ;; (print "tilting-poses:")
+         ;; (print tilting-poses)
+    ;; (sleep 5)
+
+       
+    ;; (print "poses")
+    ;; (print approach-pose)
+    ;; (print pre-tilting-poses)
+    ;; (sleep 10)
+         
+        (mapcar (lambda (label poses-in-base)
+              (man-int:make-traj-segment
                :label label
-               :poses (mapcar (alexandria:curry #'calculate-gripper-pose-in-map
-                                                b-T-to arm)
-                              transforms)))
+               :poses (mapcar 
+                       (lambda (pose-in-base)
+                         (let ((mTb (cram-tf:pose->transform-stamped
+                                     cram-tf:*fixed-frame*
+                                     cram-tf:*robot-base-frame*
+                                     0.0
+                                     (cram-tf:robot-current-pose)))
+                               (bTg-std
+                                 (cram-tf:pose-stamped->transform-stamped
+                                  pose-in-base
+                                  (cl-tf:child-frame-id b-T-to))))
+                           (cl-tf:ensure-pose-stamped
+                            (cram-tf:apply-transform mTb bTg-std))))
+                       poses-in-base)))
+         
             '(:reaching
               :tilting-down
-              :tilting-up
-              :retracting)
-            `(,to-T-stdg
-              ,to-T-stdg-tilts
-              ,to-T-stdg
-              ,to-T-stdg))))
+              :tilting
+              :tilting-second
+              :tilting-third
+              ;; :retracting
+              )
+            `((,approach-pose)
+              (,pre-tilting-poses)
+              (,tilting-poses)
+              (,tilting-poses-second)
+              (,tilting-poses-third)
+              ;; (,to-T-stdg
+              )))
+ 
+)
+
+(defun get-tilting-poses (grasp approach-poses &optional (angle (cram-math:degrees->radians 100)))
+  (mapcar (lambda (?approach-pose)
+            ;;depending on the grasp the angle to tilt is different
+            (case grasp
+              (:top-front (rotate-once-pose ?approach-pose (+ angle) :y))
+              (:top-left (rotate-once-pose ?approach-pose (+ angle) :x))
+              (:top-right (rotate-once-pose ?approach-pose (- angle) :x))
+              (:top (rotate-once-pose ?approach-pose (- angle) :y))
+              (t (error "can only pour from :top-side, :top  or :top-front"))))
+          approach-poses))
+
+;;helper function for tilting
+;;rotate the pose around the axis in an angle
+(defun rotate-once-pose (pose angle axis)
+  (cl-transforms-stamped:copy-pose-stamped
+   pose
+   :orientation (let ((pose-orientation (cl-transforms:orientation pose)))
+                  (cl-tf:normalize
+                   (cl-transforms:q*
+                    (cl-transforms:axis-angle->quaternion
+                     (case axis
+                       (:x (cl-transforms:make-3d-vector 1 0 0))
+                       (:y (cl-transforms:make-3d-vector 0 1 0))
+                       (:z (cl-transforms:make-3d-vector 0 0 1))
+                       (t (error "in ROTATE-ONCE-POSE forgot to specify axis properly: ~a" axis)))
+                     angle)
+                    pose-orientation)))))
+
+
+
+
+
+(defgeneric get-object-type-robot-frame-tilt-approach-transform (object-type arm grasp)
+  (:documentation "Returns a transform stamped")
+  (:method (object-type arm grasp)
+    (call-with-specific-type #'man-int:get-object-type-robot-frame-tilt-approach-transform
+                             object-type arm grasp)))
+
+(defmethod get-object-type-robot-frame-tilt-approach-transform :around (object-type arm grasp)
+  (destructuring-bind
+      ((x y z) (ax ay az aw))
+      (call-next-method)
+    (cl-tf:transform->transform-stamped
+     cram-tf:*robot-base-frame*
+     cram-tf:*robot-base-frame*
+     0.0
+     (cl-tf:pose->transform
+      (cl-transforms:make-pose
+       (cl-transforms:make-3d-vector x y z)
+       (cl-transforms:make-quaternion ax ay az aw))))))
+
+
+  (defun rotate-pose-in-own-frame-and-change-z (pose axis angle x y z)
+    (let* ((pose-origin
+             (cl-transforms:origin pose))
+           (new-origin
+             (cpl:par (when (not (eq z 0))
+                        (cl-transforms:copy-3d-vector pose-origin
+                                                      :x
+                                                      (+ (cl-transforms:x pose-origin) x)
+                                                      :y
+                                                      (+ (cl-transforms:y pose-origin) y)
+                                                      :z
+                                                      (- (cl-transforms:z pose-origin) z)))
+             (cl-transforms:copy-3d-vector pose-origin)))
+                                           
+                                           
+           (pose-orientation
+             (cl-transforms:orientation pose))
+           (new-orientation
+             (cl-transforms:q*
+              pose-orientation
+              (cl-transforms:axis-angle->quaternion
+               (case axis
+                 (:x (cl-transforms:make-3d-vector 1 0 0))
+                 (:y (cl-transforms:make-3d-vector 0 1 0))
+                 (:z (cl-transforms:make-3d-vector 0 0 1))
+                 (t (error "[CRAM-TF:ROTATE-POSE] axis ~a not specified properly" axis)))
+               angle))))
+      
+      (etypecase pose
+        (cl-transforms-stamped:pose-stamped
+         (cl-transforms-stamped:copy-pose-stamped pose :origin new-origin :orientation new-orientation))
+        (cl-transforms:pose
+         (cl-transforms:copy-pose pose :orientation new-orientation))
+        )))

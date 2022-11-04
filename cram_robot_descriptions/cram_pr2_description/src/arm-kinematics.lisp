@@ -202,7 +202,7 @@
 
   (<- (gripper-meter-to-joint-multiplier :pr2 5.0))
   (<- (gripper-minimal-position :pr2 ?_ 0.013))
-  (<- (gripper-convergence-delta :pr2 ?_ 0.005))
+  (<- (gripper-convergence-delta :pr2 ?_ 0.02))
 
   (<- (standard<-particular-gripper-transform :pr2 ?transform)
     (symbol-value *standard-to-pr2-gripper-transform* ?transform))

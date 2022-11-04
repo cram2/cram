@@ -102,7 +102,8 @@
                                               ?move-base ?prefer-base
                                               ?align-planes-left
                                               ?align-planes-right
-                                              ?straight-line))
+                                              ?straight-line
+                                              ?precise-tracking))
     (property ?designator (:type :moving-tcp))
     (once (or (property ?designator (:left-pose ?left-pose))
               (equal ?left-pose nil)))
@@ -126,7 +127,9 @@
     (once (or (desig:desig-prop ?designator (:align-planes-left ?align-planes-left))
               (equal ?align-planes-left nil)))
     (once (or (desig:desig-prop ?designator (:align-planes-right ?align-planes-right))
-              (equal ?align-planes-right nil))))
+              (equal ?align-planes-right nil)))
+    (once (or (desig:desig-prop ?designator (:precise-tracking ?precise-tracking))
+              (equal ?precise-tracking nil))))
 
   (<- (motion-grounding ?designator (?push-or-pull ?arm ?poses
                                                    ?joint-angle

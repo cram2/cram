@@ -143,4 +143,5 @@
    #:*rotation-around-y-90-list*
    #:*rotation-around-z+90-list*
    #:*rotation-around-z-90-list*
-   #:*rotation-around-z+180-list*))
+   #:*rotation-around-z+180-list*
+   #:GET-OBJECT-TYPE-ROBOT-FRAME-TILT-APPROACH-TRANSFORM))

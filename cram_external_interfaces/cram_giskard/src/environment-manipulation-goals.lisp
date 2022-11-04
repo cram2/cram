@@ -42,8 +42,8 @@
    :constraints (list
                  (when prefer-base
                    (make-prefer-base-constraint :do-not-rotate T))
-                 (make-base-velocity-constraint
-                  *base-max-velocity-slow-xy* *base-max-velocity-slow-theta*)
+                 ;; (make-base-velocity-constraint
+                 ;;  *base-max-velocity-slow-xy* *base-max-velocity-slow-theta*)
                  (make-open-or-close-constraint
                   open-or-close arm handle-link joint-state)
                  (when (eq (rob-int:get-robot-name) :tiago-dual)
@@ -104,10 +104,12 @@
            (type boolean prefer-base)
            (type (or cl-transforms:pose null) joint-pose))
 
-  (let ((joint-point-stamped (cl-transforms-stamped:make-point-stamped
-                              cram-tf:*fixed-frame*
-                              0.0
-                              (cl-transforms:origin joint-pose))))
+  (let ((joint-point-stamped
+          (when joint-pose
+            (cl-transforms-stamped:make-point-stamped
+             cram-tf:*fixed-frame*
+             0.0
+             (cl-transforms:origin joint-pose)))))
 
     (when (eq (rob-int:get-robot-name) :tiago-dual)
       (call-action

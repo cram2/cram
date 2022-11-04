@@ -70,11 +70,12 @@
                     (cl-transforms-stamped:make-vector-stamped
                      cram-tf:*fixed-frame* 0.0
                      *base-collision-avoidance-hint-vector*)))
-                 (if (eq base-velocity :slow)
-                     (make-base-velocity-constraint
-                      *base-max-velocity-slow-xy* *base-max-velocity-slow-theta*)
-                     (make-base-velocity-constraint
-                      *base-max-velocity-fast-xy* *base-max-velocity-fast-theta*))
+                 (when (eq base-velocity :slow)
+                   (make-base-velocity-constraint
+                    *base-max-velocity-slow-xy* *base-max-velocity-slow-theta*)
+                   ;; (make-base-velocity-constraint
+                   ;;  *base-max-velocity-fast-xy* *base-max-velocity-fast-theta*)
+                   )
                  (make-head-pointing-constraint
                   (cl-transforms-stamped:make-pose-stamped
                    cram-tf:*robot-base-frame* 0.0

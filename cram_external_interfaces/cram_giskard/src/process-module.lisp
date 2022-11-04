@@ -45,7 +45,8 @@
         :prefer-base (seventh rest-args)
         :straight-line (tenth rest-args)
         :align-planes-left (eighth rest-args)
-        :align-planes-right (ninth rest-args)))
+        :align-planes-right (ninth rest-args)
+        :precise-tracking (nth 10 rest-args))) ; that's eleventh element
       (cram-common-designators:move-joints
        (giskard:call-arm-joint-action
         :goal-configuration-left argument-1

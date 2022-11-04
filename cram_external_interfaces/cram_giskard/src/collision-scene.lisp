@@ -171,7 +171,7 @@
   (unless dimensions
     (setf dimensions '(1.0 1.0 1.0)))
   (unless scale
-    (setf scale (cl-transforms:make-identity-vector)))
+    (setf scale (cl-transforms:make-3d-vector 1.0 1.0 1.0)))
   (let ((body (if mesh-path
                   (roslisp:make-msg
                    'giskard_msgs-msg:worldbody
@@ -527,10 +527,13 @@ The `parent-group-name' is usually the robot or environment."
 
 (defmethod coe:on-event giskard-attach-object ((event cpoe:object-attached-robot))
   (unless cram-projection:*projection-environment*
-    (attach-object-to-arm-in-collision-scene
-     (cpoe:event-object-name event)
-     (cpoe:event-arm event)
-     (cpoe:event-link event))))
+    (if (eq (cpoe:event-other-object-name event) (rob-int:get-environment-name))
+        (roslisp:ros-warn (giskard coll-scene)
+                          "Attaching objects to environment is not supported yet.")
+        (attach-object-to-arm-in-collision-scene
+         (cpoe:event-object-name event)
+         (cpoe:event-arm event)
+         (cpoe:event-link event)))))
 
 (defmethod coe:on-event giskard-detach-object 1 ((event cpoe:object-detached-robot))
   (unless cram-projection:*projection-environment*
