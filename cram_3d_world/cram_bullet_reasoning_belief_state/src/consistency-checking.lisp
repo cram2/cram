@@ -51,7 +51,7 @@ If the threshold is 0, correct along all axes.")
   "First distance in meters, with which the unstable perceived object will be
 counter-moved when it falls down upon simulation.")
 
-(defparameter *perception-noise-correction-iterations* 10
+(defparameter *perception-noise-correction-iterations* 30
   "Number of distances to try the correction approach with. In times.")
 
 (defparameter *perception-noise-correction-step* 0.01

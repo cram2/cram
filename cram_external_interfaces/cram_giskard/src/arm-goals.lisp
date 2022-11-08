@@ -48,10 +48,12 @@
                                          collision-object-a
                                          prefer-base allow-base straight-line
                                          align-planes-left align-planes-right
-                                         unmovable-joints)
+                                         unmovable-joints
+                                         precise-tracking)
   (declare (type (or null cl-transforms-stamped:pose-stamped) left-pose right-pose)
            (type (or null string) pose-base-frame)
-           (type boolean prefer-base straight-line align-planes-left align-planes-right)
+           (type boolean prefer-base straight-line
+                 align-planes-left align-planes-right precise-tracking)
            (type (or null list) unmovable-joints))
   (let ((arms (append (when left-pose '(:left))
                       (when right-pose '(:right)))))
@@ -79,31 +81,30 @@
                       :base-weight (if prefer-base
                                        *prefer-base-low-cost*
                                        *allow-base-high-cost*)))
-                   ;; ;; align planes is WIP in giskard
-                   ;; (when align-planes-left
-                   ;;   (make-align-planes-constraint
-                   ;;    pose-base-frame
-                   ;;    "refills_finger"
-                   ;;    (cl-transforms-stamped:make-vector-stamped
-                   ;;     cram-tf:*robot-base-frame* 0.0
-                   ;;     (cl-transforms:make-3d-vector 0 0 1))
-                   ;;    (cl-transforms-stamped:make-vector-stamped
-                   ;;     cram-tf:*robot-base-frame* 0.0
-                   ;;     (cl-transforms:make-3d-vector 0 0 1))))
-                   ;; (when align-planes-right
-                   ;;   (make-align-planes-constraint
-                   ;;    pose-base-frame
-                   ;;    "refills_finger"
-                   ;;    (cl-transforms-stamped:make-vector-stamped
-                   ;;     cram-tf:*robot-base-frame* 0.0
-                   ;;     (cl-transforms:make-3d-vector 0 0 1))
-                   ;;    (cl-transforms-stamped:make-vector-stamped
-                   ;;     cram-tf:*robot-base-frame* 0.0
-                   ;;     (cl-transforms:make-3d-vector 0 0 1))))
+                   (when align-planes-left
+                     (make-align-planes-constraint
+                      pose-base-frame
+                      cram-tf:*robot-left-tool-frame*
+                      (cl-transforms-stamped:make-vector-stamped
+                       cram-tf:*robot-base-frame* 0.0
+                       (cl-transforms:make-3d-vector 0 0 1))
+                      (cl-transforms-stamped:make-vector-stamped
+                       cram-tf:*robot-base-frame* 0.0
+                       (cl-transforms:make-3d-vector 0 0 1))))
+                   (when align-planes-right
+                     (make-align-planes-constraint
+                      pose-base-frame
+                      cram-tf:*robot-right-tool-frame*
+                      (cl-transforms-stamped:make-vector-stamped
+                       cram-tf:*robot-base-frame* 0.0
+                       (cl-transforms:make-3d-vector 0 0 1))
+                      (cl-transforms-stamped:make-vector-stamped
+                       cram-tf:*robot-base-frame* 0.0
+                       (cl-transforms:make-3d-vector 0 0 1))))
                    (when unmovable-joints
                      (make-unmovable-joints-constraint unmovable-joints))
-                   (make-base-velocity-constraint
-                    *base-max-velocity-slow-xy* *base-max-velocity-slow-theta*)
+                   ;; (make-base-velocity-constraint
+                   ;;  *base-max-velocity-slow-xy* *base-max-velocity-slow-theta*)
                    (make-head-pointing-at-hand-constraint
                     (if left-pose
                         :left
@@ -113,14 +114,22 @@
                       (if left-pose
                           cram-tf:*robot-left-tool-frame*
                           cram-tf:*robot-right-tool-frame*)))
+                   (when precise-tracking
+                     (make-enable-velocity-trajectory-tracking-constraint))
                    (when left-pose
                      (make-cartesian-constraint
-                      pose-base-frame cram-tf:*robot-left-wrist-frame* left-pose
+                      pose-base-frame
+                      ;; cram-tf:*robot-left-wrist-frame*
+                      cram-tf:*robot-left-tool-frame*
+                      left-pose
                       :straight-line straight-line
                       :avoid-collisions-much nil))
                    (when right-pose
                      (make-cartesian-constraint
-                      pose-base-frame cram-tf:*robot-right-wrist-frame* right-pose
+                      pose-base-frame
+                      ;; cram-tf:*robot-right-wrist-frame*
+                      cram-tf:*robot-right-tool-frame*
+                      right-pose
                       :straight-line straight-line
                       :avoid-collisions-much nil)))
      :collisions (ecase collision-mode
@@ -157,22 +166,22 @@
            (type boolean align-planes-left align-planes-right))
   (make-giskard-goal
    :constraints (list
-                 (make-ee-velocity-constraint
-                  :left
-                  (if try-harder
-                      (/ *arm-max-velocity-slow-xy* 3.0)
-                      *arm-max-velocity-slow-xy*)
-                  (if try-harder
-                      (/ *arm-max-velocity-slow-theta* 3.0)
-                      *arm-max-velocity-slow-theta*))
-                 (make-ee-velocity-constraint
-                  :right
-                  (if try-harder
-                      (/ *arm-max-velocity-slow-xy* 3.0)
-                      *arm-max-velocity-slow-xy*)
-                  (if try-harder
-                      (/ *arm-max-velocity-slow-theta* 3.0)
-                      *arm-max-velocity-slow-theta*))
+                 ;; (make-ee-velocity-constraint
+                 ;;  :left
+                 ;;  (if try-harder
+                 ;;      (/ *arm-max-velocity-slow-xy* 3.0)
+                 ;;      *arm-max-velocity-slow-xy*)
+                 ;;  (if try-harder
+                 ;;      (/ *arm-max-velocity-slow-theta* 3.0)
+                 ;;      *arm-max-velocity-slow-theta*))
+                 ;; (make-ee-velocity-constraint
+                 ;;  :right
+                 ;;  (if try-harder
+                 ;;      (/ *arm-max-velocity-slow-xy* 3.0)
+                 ;;      *arm-max-velocity-slow-xy*)
+                 ;;  (if try-harder
+                 ;;      (/ *arm-max-velocity-slow-theta* 3.0)
+                 ;;      *arm-max-velocity-slow-theta*))
                  (make-cartesian-constraint
                   cram-tf:*odom-frame* cram-tf:*robot-base-frame*
                   (cl-transforms-stamped:pose->pose-stamped
@@ -180,25 +189,24 @@
                    (cl-transforms:make-identity-pose))
                   :max-velocity *base-max-velocity-slow-xy*
                   :avoid-collisions-much nil)
-                 ;; (when align-planes-left
-                 ;;   (make-align-planes-tool-frame-constraint
-                 ;;    :left
-                 ;;    (cl-transforms-stamped:make-vector-stamped
-                 ;;     cram-tf:*robot-base-frame* 0.0
-                 ;;     (cl-transforms:make-3d-vector 0 0 1))
-                 ;;    (cl-transforms-stamped:make-vector-stamped
-                 ;;     cram-tf:*robot-base-frame* 0.0
-                 ;;     (cl-transforms:make-3d-vector 0 0 1))))
-                 ;; (when align-planes-right
-                 ;;   (make-align-planes-tool-frame-constraint
-                 ;;    :right
-                 ;;    (cl-transforms-stamped:make-vector-stamped
-                 ;;     cram-tf:*robot-base-frame* 0.0
-                 ;;     (cl-transforms:make-3d-vector 0 0 1))
-                 ;;    (cl-transforms-stamped:make-vector-stamped
-                 ;;     cram-tf:*robot-base-frame* 0.0
-                 ;;     (cl-transforms:make-3d-vector 0 0 1))))
-                 )
+                 (when align-planes-left
+                   (make-align-planes-tool-frame-constraint
+                    :left
+                    (cl-transforms-stamped:make-vector-stamped
+                     cram-tf:*robot-base-frame* 0.0
+                     (cl-transforms:make-3d-vector 0 0 1))
+                    (cl-transforms-stamped:make-vector-stamped
+                     cram-tf:*robot-base-frame* 0.0
+                     (cl-transforms:make-3d-vector 0 0 1))))
+                 (when align-planes-right
+                   (make-align-planes-tool-frame-constraint
+                    :right
+                    (cl-transforms-stamped:make-vector-stamped
+                     cram-tf:*robot-base-frame* 0.0
+                     (cl-transforms:make-3d-vector 0 0 1))
+                    (cl-transforms-stamped:make-vector-stamped
+                     cram-tf:*robot-base-frame* 0.0
+                     (cl-transforms:make-3d-vector 0 0 1)))))
    :joint-constraints (list (make-joint-constraint joint-state-left)
                             (make-joint-constraint joint-state-right))
    :collisions (list (make-avoid-all-collision))))
@@ -241,7 +249,8 @@
               tool-transform-in-correct-base-frame
               tool-T-wrist
               :result-as-pose-or-transform :pose)))
-      wrist-pose-in-correct-base-frame)))
+      ;; wrist-pose-in-correct-base-frame
+      tool-pose-in-correct-base-frame)))
 
 (defun ensure-arm-joint-goal-input (goal-configuration arm)
   (if (and (listp goal-configuration)
@@ -292,12 +301,13 @@
                                     collision-object-a
                                     move-base prefer-base straight-line
                                     align-planes-left align-planes-right
-                                    unmovable-joints)
+                                    unmovable-joints
+                                    precise-tracking)
   (declare (type (or number null) action-timeout)
            (type (or cl-transforms-stamped:pose-stamped null)
                  goal-pose-left goal-pose-right)
            (type (or string null) pose-base-frame)
-           (type boolean move-base prefer-base straight-line
+           (type boolean move-base prefer-base straight-line precise-tracking
                  align-planes-left align-planes-right)
            (type (or list null) unmovable-joints))
 
@@ -333,7 +343,8 @@
                  :straight-line straight-line
                  :align-planes-left align-planes-left
                  :align-planes-right align-planes-right
-                 :unmovable-joints unmovable-joints)
+                 :unmovable-joints unmovable-joints
+                 :precise-tracking precise-tracking)
    :action-timeout action-timeout
    :check-goal-function (lambda (result status)
                           (declare (ignore result status))

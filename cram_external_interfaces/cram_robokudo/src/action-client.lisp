@@ -29,6 +29,13 @@
 
 (in-package :rk)
 
+(defvar *robokudo-tf-buffer-client* nil)
+
+(defun init-tf-buffer-client ()
+  (setf *robokudo-tf-buffer-client* (make-instance 'cl-tf2:buffer-client)))
+
+(roslisp-utilities:register-ros-init-function init-tf-buffer-client)
+
 (defparameter *ros-action* "robokudo/query")
 
 (defun make-robokudo-action-client ()
@@ -38,6 +45,7 @@
    120))
 
 (roslisp-utilities:register-ros-init-function make-robokudo-action-client)
+
 
 ;;;;;;;;;;;;;;;;;;; INPUT ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -199,6 +207,7 @@
 
 (defun which-estimator-for-object (object-description)
   :ClusterPosePCAAnnotator
+  :ICPPOSEREFINEMENTANNOTATOR
   ;; (let ((type (second (find :type object-description :key #'car)))
   ;;       (cad-model (find :cad-model object-description :key #'car))
   ;;       (obj-part (find :obj-part object-description :key #'car)))
@@ -334,18 +343,21 @@
                    (cram-tf:ensure-pose-in-frame
                     pose-stamped-in-whatever
                     cram-tf:*fixed-frame*
-                    :use-zero-time t)
+                    ;; :use-current-ros-time t
+                    :transformer *robokudo-tf-buffer-client*)
                    pose-stamped-in-whatever))
              (pose-stamped-in-map-frame
                (cl-transforms-stamped:copy-pose-stamped
                 pose-stamped-in-map-frame-original-orientation
                 :orientation
+                ;; HACK
                 (if (< (cl-transforms:y
                         (cl-transforms:origin
                          pose-stamped-in-map-frame-original-orientation))
                        1.9)
-                    (cl-transforms:make-quaternion 1 0 0 0)
-                    (cl-transforms:make-quaternion 0 0 0 1))))
+                    ;; (cl-transforms:make-quaternion 1 0 0 0)
+                    (cl-transforms:make-quaternion 0 0 0 1)
+                    (cl-transforms:make-quaternion 0 0 1 0))))
              (transform-stamped-in-map-frame
                (cram-tf:pose-stamped->transform-stamped
                 pose-stamped-in-map-frame
@@ -355,7 +367,8 @@
                    (cram-tf:ensure-pose-in-frame
                     pose-stamped-in-map-frame
                     cram-tf:*robot-base-frame*
-                    :use-zero-time t)
+                    ;; :use-current-ros-time t
+                    :transformer *robokudo-tf-buffer-client*)
                    pose-stamped-in-whatever))
              (transform-stamped-in-base-frame
                (cram-tf:pose-stamped->transform-stamped
@@ -388,6 +401,7 @@
 
 ;;;;;;;;;;;;;;;;; ACTION ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defvar *rs-result* nil)
 (defun call-robokudo-action (keyword-key-value-pairs-list &key (quantifier :all))
   (declare (type (or keyword number) quantifier))
   (multiple-value-bind (key-value-pairs-list quantifier)
@@ -397,6 +411,7 @@
         (actionlib-client:call-simple-action-client
          'robokudo-action
          :action-goal (make-robokudo-query key-value-pairs-list))
+      (setf *rs-result* result)
       (let* ((rs-parsed-result (ensure-robokudo-result result quantifier status))
              (rs-result (ecase quantifier
                           ((:a :an :the) (make-robokudo-designator
