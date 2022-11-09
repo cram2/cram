@@ -54,6 +54,7 @@
                   ((:right-grasp-poses ?right-grasp-poses))
                   ((:left-lift-poses ?left-lift-poses))
                   ((:right-lift-poses ?right-lift-poses))
+		  ((:holding ?holding))
                   park-arms
                 &allow-other-keys)
   (declare (type desig:object-designator ?object-designator)
@@ -316,7 +317,7 @@
   (exe:perform
    (desig:an action
              (type parking-arms)
-             (arms (?arm)))))
+             (arms (?arm))))))
 
 
 (defun park-arms (&key

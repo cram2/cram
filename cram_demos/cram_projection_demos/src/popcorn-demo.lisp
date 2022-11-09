@@ -151,5 +151,5 @@
              (seal-search-outer-robot-location (a location
                                                   (pose ?sealing-cupboard-door-robot-pose)))
              (seal-search-outer-grasps (back))
-             (goal ?goal)))))
+             (goal ?goal))))))
 
