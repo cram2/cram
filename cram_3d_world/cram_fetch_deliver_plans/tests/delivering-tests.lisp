@@ -11,8 +11,8 @@
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
 ;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors 
-;;;       may be used to endorse or promote products derived from this software 
+;;;       Technische Universitaet Muenchen nor the names of its contributors
+;;;       may be used to endorse or promote products derived from this software
 ;;;       without specific prior written permission.
 ;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -37,7 +37,6 @@
                                    object-reachable-on-2nd-target-location-deliver-test
                                    first-deliver-location-designator-error-deliver-test))
 
-  
 (define-test object-can-be-delivered-no-errors-deliver-test
   (init-projection)
   (spawn-object *valid-location-on-island* :bowl)
@@ -47,11 +46,11 @@
       (setf ?fetched-object
             (perform (an action
                               (type fetching)
-                              (location (a location 
+                              (location (a location
                                            (poses (*valid-location-on-island*))))
                               (object (an object
                                           (type bowl)
-                                          (location (a location 
+                                          (location (a location
                                                        (poses
                                                         (*valid-location-on-island*))))))
                               (robot-location (a location
@@ -68,7 +67,6 @@
                                       (poses
                                        (*valid-robot-pose-towards-sink-area-surface*))))))))
   (assert-nil (get-total-error-count)))
-    
 
 (define-test object-delivery-location-unreachable-deliver-test
   (init-projection)
@@ -79,11 +77,11 @@
       (setf ?fetched-object
             (perform (an action
                               (type fetching)
-                              (location (a location 
+                              (location (a location
                                            (poses (*valid-location-on-island*))))
                               (object (an object
                                           (type bowl)
-                                          (location (a location 
+                                          (location (a location
                                                        (poses
                                                         (*valid-location-on-island*))))))
                               (robot-location (a location
@@ -117,12 +115,12 @@
       (setf ?fetched-object
             (perform (an action
                               (type fetching)
-                              (location (a location 
+                              (location (a location
                                            (poses (*valid-location-on-island*))))
                               (arm (right))
                               (object (an object
                                           (type bowl)
-                                          (location (a location 
+                                          (location (a location
                                                        (poses
                                                         (*valid-location-on-island*))))))
                               (robot-location (a location
@@ -155,11 +153,11 @@
       (setf ?fetched-object
             (perform (an action
                               (type fetching)
-                              (location (a location 
+                              (location (a location
                                            (poses (*valid-location-on-island*))))
                               (object (an object
                                           (type bowl)
-                                          (location (a location 
+                                          (location (a location
                                                        (poses
                                                         (*valid-location-on-island*))))))
                               (robot-location (a location
@@ -193,11 +191,11 @@
       (setf ?fetched-object
             (perform (an action
                               (type fetching)
-                              (location (a location 
+                              (location (a location
                                            (poses (*valid-location-on-island*))))
                               (object (an object
                                           (type bowl)
-                                          (location (a location 
+                                          (location (a location
                                                        (poses
                                                         (*valid-location-on-island*))))))
                               (robot-location (a location
@@ -229,11 +227,11 @@
       (setf ?fetched-object
             (perform (an action
                               (type fetching)
-                              (location (a location 
+                              (location (a location
                                            (poses (*valid-location-on-island*))))
                               (object (an object
                                           (type bowl)
-                                          (location (a location 
+                                          (location (a location
                                                        (poses
                                                         (*valid-location-on-island*))))))
                               (robot-location (a location
@@ -262,28 +260,28 @@
   ;; Deterministic Fetch
   (let ((?fetched-object))
     (urdf-proj:with-simulated-robot
-      (setf ?fetched-object
-            (perform (an action
-                              (type fetching)
-                              (location (a location 
-                                           (poses (*valid-location-on-island*))))
-                              (object (an object
-                                          (type bowl)
-                                          (location (a location 
-                                                       (poses
-                                                        (*valid-location-on-island*))))))
-                              (robot-location (a location
-                                                 (poses
-                                                  (*valid-robot-pose-towards-island*))))))))
+        (setf ?fetched-object
+              (perform (an action
+                           (type fetching)
+                           (location (a location
+                                        (poses (*valid-location-on-island*))))
+                           (object (an object
+                                       (type bowl)
+                                       (location (a location
+                                                    (poses
+                                                     (*valid-location-on-island*))))))
+                           (robot-location (a location
+                                              (poses
+                                               (*valid-robot-pose-towards-island*))))))))
     (sleep 0.5)
     (assert-nil (get-total-error-count))
     (urdf-proj:with-simulated-robot
-      (perform (an action
-                   (type delivering)
-                   (target (a location
-                              (poses (*invalid-location-outside-map*
-                                      *valid-location-on-island*))))
-                   (object ?fetched-object)))))
+        (perform (an action
+                     (type delivering)
+                     (target (a location
+                                (poses (*invalid-location-outside-map*
+                                        *valid-location-on-island*))))
+                     (object ?fetched-object)))))
   (assert-equal 0 (get-error-count-for-error 'common-fail:delivering-failed))
   (assert-equal 0 (get-error-count-for-error 'common-fail:object-undeliverable))
   (assert-equal 0 (get-error-count-for-error 'common-fail:manipulation-low-level-failure))
