@@ -1,58 +1,81 @@
-name: ROS CI 20.04 | Build CRAM 
+name: CRAM Noetic Build & Test
 
 on:
+   workflow_dispatch:
    pull_request:
     branches:
-      - noetic
-      - popcorn-noetic
+      - devel
   
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-20.04
     env:
       ROS_CI_DESKTOP: "`lsb_release -cs`"  # e.g. [trusty|xenial|...]
-      CI_SOURCE_PATH: $(pwd)
-      ROSINSTALL_FILE: $CI_SOURCE_PATH/dependencies.rosinstall
-      CATKIN_OPTIONS: $CI_SOURCE_PATH/catkin.options
       ROS_PARALLEL_JOBS: '-j8 -l6'
-      # Set the python path manually to include /usr/-/python3/dist-packages
-      # as this is where apt-get installs python packages.
       PYTHONPATH: $PYTHONPATH:/usr/lib/python3/dist-packages:/usr/local/lib/python3/dist-packages
       ROS_DISTRO: noetic
     steps:
-      - uses: actions/checkout@v1
-      - name: Install ROS
+      - name: Install xvfb and freeglut for bullet
         run: |
-            sudo sh -c "echo \"deb http://packages.ros.org/ros/ubuntu $ROS_CI_DESKTOP main\" > /etc/apt/sources.list.d/ros-latest.list"
-            sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
-            sudo apt-get update -qq
-            sudo apt-get install dpkg
-            sudo apt-get install -y python3-catkin-tools python3-catkin-pkg
-            sudo apt-get install -y python3-rosdep python3-wstool
-            sudo apt-get install -y libboost-dev
-            sudo apt-get install -y libyaml-cpp-dev
-            sudo apt-get install -y ros-cmake-modules
-            sudo apt-get install -y ros-$ROS_DISTRO-nodelet-core
-            sudo apt-get install -y ros-$ROS_DISTRO-roscpp
-            sudo apt-get install -y ros-$ROS_DISTRO-roslint
-            sudo apt-get install -y ros-$ROS_DISTRO-std-msgs
-            sudo apt-get install -y ros-$ROS_DISTRO-roslisp-repl
-            sudo apt-get install -y libassimp-dev
-            sudo apt-get install -y libbullet-dev 
-            source /opt/ros/$ROS_DISTRO/setup.bash
-            # Prepare rosdep to install dependencies.
-            sudo rosdep init
-            rosdep update --include-eol-distros  # Support EOL distros.
-      - name: building CRAM
+          sudo apt-get update -qq
+          sudo apt-get install -y xvfb mesa-utils freeglut3
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          path: ./ros_ws/src/cram
+      - name: Install ROS, roslisp and tools
+        run: |
+          sudo sh -c "echo \"deb http://packages.ros.org/ros/ubuntu $ROS_CI_DESKTOP main\" > /etc/apt/sources.list.d/ros-latest.list"
+          sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+          sudo apt-get update -qq
+          sudo apt-get install dpkg
+          sudo apt-get install -y python3-catkin-tools python3-catkin-pkg
+          sudo apt-get install -y python3-rosdep python3-wstool
+          sudo apt-get install -y libboost-dev
+          sudo apt-get install -y libyaml-cpp-dev
+          sudo apt-get install -y ros-cmake-modules
+          sudo apt-get install -y ros-$ROS_DISTRO-nodelet-core
+          sudo apt-get install -y ros-$ROS_DISTRO-roscpp
+          sudo apt-get install -y ros-$ROS_DISTRO-roslint
+          sudo apt-get install -y ros-$ROS_DISTRO-std-msgs
+          sudo apt-get install -y ros-$ROS_DISTRO-roslisp-repl
+          sudo apt-get install -y ros-$ROS_DISTRO-rosbash
+          sudo apt-get install -y ros-$ROS_DISTRO-roslaunch
+          sudo apt-get install -y libassimp-dev
+          sudo apt-get install -y libbullet-dev 
+          sudo apt-get install -y tree
+          source /opt/ros/$ROS_DISTRO/setup.bash
+          # Prepare rosdep to install dependencies.
+          sudo rosdep init
+          rosdep update --include-eol-distros  # Support EOL distros.
+      - name: Collect resources into workspace with wstool
         run: |
           source /opt/ros/$ROS_DISTRO/setup.bash
-          mkdir -p ~/catkin_ws/src
-          cd ~/catkin_ws
-          catkin build
+          mkdir -p $GITHUB_WORKSPACE/ros_ws/src/cram
+          cd $GITHUB_WORKSPACE
+          cd $GITHUB_WORKSPACE/ros_ws/src
+          wstool init
+          wstool merge $GITHUB_WORKSPACE/ros_ws/src/cram/cram-20.04-http.rosinstall
+          wstool remove cram  # because it's this repo instead
+          wstool up
+      - name: Rosdep install dependencies
+        run: |
+          cd $GITHUB_WORKSPACE/ros_ws/
+          source /opt/ros/$ROS_DISTRO/setup.bash
+          rosdep install -y --ignore-src --from-paths src/ -r
+      - name: Build Workspace
+        run: |
+          cd $GITHUB_WORKSPACE/ros_ws/
+          source /opt/ros/$ROS_DISTRO/setup.bash
+          catkin build $ROS_PARALLEL_JOBS
+      - name: Run Tests
+        run: |
+          cd $GITHUB_WORKSPACE/ros_ws/
           source devel/setup.bash
-          # echo "::warning $CI_SOURCE_PATH"
-          # echo "::warning `ls -l`"
-          cd src
-          ln -s ~/work  # $CI_SOURCE_PATH
-          cd ..
-          catkin build
+          xvfb-run rosrun cram_tests test.sh  # xvfb for virtual display
+      - name: Show test results
+        run: |
+          cd $GITHUB_WORKSPACE/ros_ws/
+          source devel/setup.bash
+          roscd cram_tests
+          cat reports/*
