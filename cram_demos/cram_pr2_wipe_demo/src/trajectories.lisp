@@ -20,11 +20,6 @@
   (defparameter *current-pose* (first initial-pose))
   
   (let* ((return-poses '())
-         (pose (first initial-pose))
-         ;; (pose-x (cl-transforms:x (cl-transforms:origin pose)))
-         ;; (pose-y (cl-transforms:y (cl-transforms:origin pose)))
-         ;; (pose-z (cl-transforms:z (cl-transforms:origin pose)))
-         ;; (pose-orientation (cl-transforms:orientation pose))
          (n (+ (floor
               (* (cl-transforms:y
                  (cl-bullet::bounding-box-dimensions
@@ -49,15 +44,15 @@
           (dotimes (x n)
             (if (equalp (mod x 2) 0)
                 (progn
-                  (setf *current-pose* (calculate-pose-down *current-pose* x-offset y-offset z-offset grasp))
+                  (setf *current-pose*
+                        (calculate-pose-down *current-pose* x-offset y-offset z-offset grasp))
                   (push *current-pose* return-poses)
                   )
                 (progn
-                  (setf *current-pose* (calculate-pose-up *current-pose* x-offset y-offset z-offset grasp))
-                  (push *current-pose* return-poses)
-                  ))))
-        (reverse return-poses)
-     ))
+                  (setf *current-pose*
+                        (calculate-pose-up *current-pose* x-offset y-offset z-offset grasp))
+                  (push *current-pose* return-poses)))))
+        (reverse return-poses)))
 
 
 (defun calculate-pose-down (pose offset-x offset-y offset-z grasp)
@@ -130,15 +125,15 @@
 
              
 
-(defmethod man-int:get-action-trajectory :heuristics 20 ((action-type (eql :wiping))
+(defmethod man-int:get-action-trajectory :heuristics 100 ((action-type (eql :wiping))
                                                          arm
                                                          grasp
                                                          location
-                                                         objects-acted-on
-                                                         &key )
+                                                         surface
+                                                         &key)
   
   (let* ((object
-           (car objects-acted-on))
+           (car surface))
          (object-name
            (desig:desig-prop-value object :name))
          (object-type
@@ -146,13 +141,9 @@
          (bTo
            (man-int:get-object-transform object))  
          (bTb-offset
-           (get-object-type-robot-frame-wipe-approach-transform-generic
-             object object-type arm grasp))
+           (get-object-type-robot-frame-wipe-approach-transform-generic object object-type arm grasp))
          (oTg-std
-           (cram-tf:copy-transform-stamped
-            (man-int:get-object-type-to-gripper-transform
-             object-type object-name arm grasp)
-            :rotation (cl-tf:make-identity-rotation)))
+            (man-int:get-object-type-to-gripper-transform object-type object-name arm grasp))
          
          (approach-pose
            (cl-tf:copy-pose-stamped 
@@ -165,10 +156,10 @@
               arm oTg-std)
             :orientation 
             (cl-tf:rotation bTb-offset)))
-         
+     
          (wiping-poses
            (get-wiping-poses grasp (list approach-pose) object)))
-    (print "in wiping poses")
+    
     (mapcar (lambda (label poses-in-base)
               (man-int:make-traj-segment
                :label label

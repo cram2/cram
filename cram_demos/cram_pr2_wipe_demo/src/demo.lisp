@@ -172,7 +172,7 @@
                                             (cl-transforms:make-3d-vector 1.2 0.2 0.76)
                                             (cl-transforms:axis-angle->quaternion
                                              (cl-transforms:make-3d-vector 0.5 0.5 1)
-                                             0.0)) :mass 0.0001 :size '(0.01 0.2 0.01)  :color '(0 10 0 0.5)))
+                                             0.0)) :mass 0.0001 :size '(0.01 0.2 0.0101)  :color '(0 10 0 0.5)))
   
    
 
@@ -519,3 +519,95 @@
  
 
  ))
+
+
+
+;;Initiates the envoirenment, spawns all objects and starts the demo.
+(defun execute-demo-spread (arm-to-use)
+  (roslisp-utilities:startup-ros)
+  (spawn-objects)
+  (spread-bread arm-to-use)
+  )
+
+(defun spread-bread (arm-to-use)
+
+
+ (urdf-proj:with-simulated-robot
+      (pp-plans::park-arms :left-arm T)
+
+      (let ((?navigation-goal *base-pose*
+                              ))
+          (exe:perform (desig:an action
+                                 (type going)
+                                 (target (desig:a location 
+                                                  (pose ?navigation-goal))))))
+
+        (let* ((?looking-direction *downward-look-coordinate*))
+            (exe:perform (desig:an action 
+                                   (type looking)
+                                   (target (desig:a location 
+                                                    (pose ?looking-direction))))))
+
+ 
+      (cpl:with-retry-counters ((looking-retry 3))
+          (cpl:with-failure-handling
+              ((common-fail:low-level-failure
+                   (e)
+                 (declare (ignore e))
+                 (cpl:do-retry looking-retry
+                   (cpl:retry))
+                 (roslisp:ros-warn (wipe-demo looking-fail)
+                                 "~%No more retries~%")))
+        (let ((?grasping-arm (list arm-to-use))
+              (?perceived-object (urdf-proj::detect (desig:an object (type :knife)))))
+          
+
+          (exe:perform (desig:an action
+                                 (type picking-up)
+                                 (arm ?grasping-arm)
+                                   (grasp :top)
+                                   (object ?perceived-object))))))
+
+
+   (pp-plans::park-arms :left-arm T)
+   (pp-plans::park-arms :right-arm T)
+
+      (let ((?navigation-goal *base-pose-plate*
+                              ))
+          (exe:perform (desig:an action
+                                 (type going)
+                                 (target (desig:a location 
+                                                  (pose ?navigation-goal))))))
+
+
+         (cpl:with-retry-counters ((looking-retry 3))
+          (cpl:with-failure-handling
+              ((common-fail:low-level-failure
+                   (e)
+                 (declare (ignore e))
+                 (cpl:do-retry looking-retry
+                   (cpl:retry))
+                 (roslisp:ros-warn (wipe-demo looking-fail)
+                                   "~%No more retries~%")))
+
+            (let* ((?surface-to-wipe (urdf-proj::detect (desig:an object (type :colored-box))))
+                   (?arm-for-wiping arm-to-use)
+                   (?collision-mode nil))
+      
+      (exe:perform
+       (desig:an action 
+                 (type wiping)
+                 (grasp :spreading)
+                 (arm ?arm-for-wiping)
+                 (surface ?surface-to-wipe)
+                 (collision-mode ?collision-mode)
+                 )))))
+
+     ;;(pp-plans::park-arms :right-arm T))
+
+
+
+  )
+
+  )
+
