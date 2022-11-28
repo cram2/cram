@@ -157,8 +157,7 @@
             :orientation 
             (cl-tf:rotation bTb-offset)))
      
-         (wiping-poses
-           (get-wiping-poses grasp (list approach-pose) object)))
+         (wiping-poses (get-wiping-poses grasp (list approach-pose) object)))
     
     (mapcar (lambda (label poses-in-base)
               (man-int:make-traj-segment

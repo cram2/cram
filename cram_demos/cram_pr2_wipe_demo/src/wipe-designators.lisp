@@ -83,10 +83,10 @@
         (lisp-fun differentiate-surface-types ?grasp ?surface ?current-grasp)
         (equal ?grasp ?current-grasp))
     
-    ;;Set the collision-mode
+    ;;Extract the collision-mode.
     (desig:desig-prop ?action-designator (:collision-mode ?collision-mode))
  
-    ;;Calls the trajectory-calculation depending on what arm the Designator is being called with. Saves the resulting poses in ?left-wipe/approach-poses or ?right-wipe/approach-poses
+    ;;Calls the trajectory-calculation depending on what arm the Designator is being called with. Saves the resulting poses in ?left-wipe/approach-poses or ?right-wipe/approach-poses.
     (-> (equal ?arm :left)
         (and (lisp-fun man-int:get-action-trajectory :wiping ?arm ?current-grasp T ?surface ?pose)
              (lisp-fun man-int:get-traj-poses-by-label ?pose :wiping
