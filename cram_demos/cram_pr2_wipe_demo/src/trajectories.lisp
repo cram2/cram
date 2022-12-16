@@ -10,49 +10,69 @@
         ;;If the z dimension of the object is larger than the x dimension return case
         (if (> (cl-transforms:z
               (cl-bullet::bounding-box-dimensions
-               (btr::aabb  (btr:object btr:*current-bullet-world* name)))) (cl-transforms:x (cl-bullet::bounding-box-dimensions                                        (btr::aabb (btr:object btr:*current-bullet-world* name))))) 
+               (btr::aabb
+                (btr:object
+                 btr:*current-bullet-world* name))))
+               (cl-transforms:x
+                (cl-bullet::bounding-box-dimensions
+                 (btr::aabb
+                  (btr:object
+                   btr:*current-bullet-world* name))))) 
             (progn :vertical)
             (progn :horizontal)))
       (progn grasp))))
 
 
 (defun get-wiping-poses (grasp initial-pose surface)
-  (defparameter *current-pose* (first initial-pose))
-  
-  (let* ((return-poses '())
-         (n (+ (floor
+  (let* ((current-pose (first initial-pose)))
+    (let* ((return-poses '())
+          (n (+ (floor
               (* (cl-transforms:y
                  (cl-bullet::bounding-box-dimensions
-                  (btr::aabb  (btr:object btr:*current-bullet-world* (desig:desig-prop-value surface :name))))) 20)) 1))
-         (x-dimensions-object (cl-transforms:x
-                               (cl-bullet::bounding-box-dimensions
-                                (btr::aabb  (btr:object btr:*current-bullet-world*  (desig:desig-prop-value surface :name))))))
-         (y-dimensions-object (cl-transforms:y
-                               (cl-bullet::bounding-box-dimensions
-                                (btr::aabb  (btr:object btr:*current-bullet-world* (desig:desig-prop-value surface :name))))))
-          (z-dimensions-object (cl-transforms:z
-                               (cl-bullet::bounding-box-dimensions
-                                (btr::aabb  (btr:object btr:*current-bullet-world* (desig:desig-prop-value surface :name)))))))
+                  (btr::aabb
+                   (btr:object btr:*current-bullet-world*
+                               (desig:desig-prop-value
+                                surface :name)))))
+                 20))
+                1))
+           (x-dimensions-object (cl-transforms:x
+                                 (cl-bullet::bounding-box-dimensions
+                                  (btr::aabb
+                                   (btr:object
+                                    btr:*current-bullet-world*
+                                               (desig:desig-prop-value surface :name))))))
+           (y-dimensions-object (cl-transforms:y
+                                 (cl-bullet::bounding-box-dimensions
+                                  (btr::aabb
+                                   (btr:object
+                                    btr:*current-bullet-world*
+                                               (desig:desig-prop-value surface :name))))))
+           (z-dimensions-object (cl-transforms:z
+                                 (cl-bullet::bounding-box-dimensions
+                                  (btr::aabb
+                                   (btr:object
+                                    btr:*current-bullet-world*
+                                               (desig:desig-prop-value surface :name)))))))
 
     
 
    
-       (let* ((x-offset x-dimensions-object )
-              (y-offset (/ y-dimensions-object n))
-              (z-offset z-dimensions-object))
+      (let* ((x-offset x-dimensions-object )
+             (y-offset (/ y-dimensions-object n))
+             (z-offset z-dimensions-object))
 
-          (dotimes (x n)
-            (if (equalp (mod x 2) 0)
-                (progn
-                  (setf *current-pose*
-                        (calculate-pose-down *current-pose* x-offset y-offset z-offset grasp))
-                  (push *current-pose* return-poses)
-                  )
-                (progn
-                  (setf *current-pose*
-                        (calculate-pose-up *current-pose* x-offset y-offset z-offset grasp))
-                  (push *current-pose* return-poses)))))
-        (reverse return-poses)))
+        (dotimes (x n)
+          (if (equalp (mod x 2) 0)
+              (progn
+                (setf current-pose
+                      (calculate-pose-down current-pose x-offset y-offset z-offset grasp))
+                (push current-pose return-poses)
+                )
+              (progn
+                (setf current-pose
+                      (calculate-pose-up current-pose x-offset y-offset z-offset grasp))
+                (push current-pose return-poses)))))
+      (reverse return-poses))))
 
 
 (defun calculate-pose-down (pose offset-x offset-y offset-z grasp)
@@ -69,7 +89,7 @@
            
            :y  (- (cl-transforms:y vector) offset-y)
           
-           :z (cl-transforms:z vector)))
+           :z  (cl-transforms:z vector)))
         :orientation
         (cl-transforms:orientation pose)))
 
@@ -123,7 +143,7 @@
       :orientation
       (cl-transforms:orientation pose)))))
 
-             
+
 
 (defmethod man-int:get-action-trajectory :heuristics 100 ((action-type (eql :wiping))
                                                          arm
@@ -143,7 +163,8 @@
          (bTb-offset
            (get-object-type-robot-frame-wipe-approach-transform-generic object object-type arm grasp))
          (oTg-std
-            (man-int:get-object-type-to-gripper-transform object-type object-name arm grasp))
+            (man-int:get-object-type-to-gripper-transform
+             object-type object-name arm grasp))
          
          (approach-pose
            (cl-tf:copy-pose-stamped 
@@ -154,8 +175,7 @@
                 :rotation (cl-tf:make-identity-rotation))
                bTo)
               arm oTg-std)
-            :orientation 
-            (cl-tf:rotation bTb-offset)))
+            :orientation (cl-tf:rotation bTb-offset)))
      
          (wiping-poses (get-wiping-poses grasp (list approach-pose) object)))
     

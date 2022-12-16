@@ -8,59 +8,66 @@
                ((:right-approach-pose ?right-approach-pose))
              &allow-other-keys)
 
+
+
+  ;;===========================================Approach-pose========================================
+
   
-    (loop while ?left-approach-pose
+  (mapc
+   (lambda (?current-left-approach-pose)
+     (let ((?pose `(,?current-left-approach-pose)))
+       (exe:perform
+        (desig:an action
+                  (type wipe-increment)
+                  (left-poses ?pose)
+                  (desig:when ?collision-mode
+                    (collision-mode ?collision-mode))))))
+   ?left-approach-pose)
 
-          do
-             (let ((?current-left-approach-pose `(,(pop ?left-approach-pose))))
-             (exe:perform
-              (desig:an action
-                        (type approaching)
-                        (left-poses ?current-left-approach-pose)
-                        (desig:when ?collision-mode
-                          (collision-mode ?collision-mode))))))
+
+  (mapc
+   (lambda (?current-right-approach-pose)
+     (let ((?pose `(,?current-right-approach-pose)))
+       (exe:perform
+        (desig:an action
+                  (type wipe-increment)
+                  (right-poses ?pose)
+                  (desig:when ?collision-mode
+                    (collision-mode ?collision-mode))))))
+   ?right-approach-pose)
 
 
- 
-    (loop while ?right-approach-pose
-
-          do
-             (let ((?current-right-approach-pose `(,(pop ?right-approach-pose))))
-             (exe:perform
-              (desig:an action
-                        (type approaching)
-                        (right-poses ?current-right-approach-pose)
-                        (desig:when ?collision-mode
-                          (collision-mode ?collision-mode))))))
 
   (sleep 0.1)
 
+
+;;=======================================Wipe-poses===============================================
+
+
+  (mapc
+   (lambda (?current-left-wipe-poses)
+     (let ((?poses `(,?current-left-wipe-poses)))
+       (exe:perform
+        (desig:an action
+                  (type wipe-increment)
+                  (left-poses ?poses)
+                  (desig:when ?collision-mode
+                    (collision-mode ?collision-mode))))))
+   ?left-wipe-poses)
+
+
+  (mapc
+   (lambda (?current-right-wipe-poses)
+     (let ((?poses `(,?current-right-wipe-poses)))
+       (exe:perform
+        (desig:an action
+                  (type wipe-increment)
+                  (right-poses ?poses)
+                  (desig:when ?collision-mode
+                    (collision-mode ?collision-mode))))))
+   ?right-wipe-poses))
+
  
-
-  (loop while ?left-wipe-poses
-
-        do
-           (let ((?current-left-wipe-poses `(,(pop ?left-wipe-poses))))
-             (exe:perform
-              (desig:an action
-                        (type approaching)
-                        (left-poses ?current-left-wipe-poses)
-                        (desig:when ?collision-mode
-                          (collision-mode ?collision-mode)))))
-           (sleep 0.1))
-
-
-   (loop while ?right-wipe-poses
-
-        do
-           (let ((?current-right-wipe-poses `(,(pop ?right-wipe-poses))))
-             (exe:perform
-              (desig:an action
-                        (type approaching)
-                        (right-poses ?current-right-wipe-poses)
-                        (desig:when ?collision-mode
-                          (collision-mode ?collision-mode)))))
-           (sleep 0.1)))
 
 
 (def-fact-group wipe-actions (desig:action-grounding)
@@ -114,7 +121,5 @@
                                (:right-approach-pose ?right-approach-pose)
                                )
                       ?resolved-action-designator)))
-
-
 
 

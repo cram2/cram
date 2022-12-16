@@ -1,7 +1,7 @@
 (defsystem cram-pr2-wipe-demo
   :author "Felix Krause"
 
-  :depends-on (roslisp-utilities ; for ros-init-function
+  :depends-on (roslisp-utilities 
 
                cl-transforms
                cl-transforms-stamped
@@ -15,7 +15,7 @@
                cram-prolog
                cram-projection
                cram-occasions-events
-               cram-utilities ; for EQUALIZE-LISTS-OF-LISTS-LENGTHS
+               cram-utilities 
 
                cram-common-failures
                cram-mobile-pick-place-plans
@@ -23,21 +23,21 @@
 
                cram-cloud-logger
 
-               cram-physics-utils     ; for reading "package://" paths
-               cl-bullet ; for handling BOUNDING-BOX datastructures
+               cram-physics-utils     
+               cl-bullet 
                cram-bullet-reasoning
                cram-bullet-reasoning-belief-state
                cram-bullet-reasoning-utilities
                cram-btr-visibility-costmap
                cram-btr-spatial-relations-costmap
 
-               ;; cram-semantic-map-costmap
+        
                cram-robot-pose-gaussian-costmap
                cram-occupancy-grid-costmap
                cram-location-costmap
 
-               cram-urdf-projection      ; for with-simulated-robot
-               cram-urdf-projection-reasoning ; to set projection reasoning to T
+               cram-urdf-projection     
+               cram-urdf-projection-reasoning 
                cram-pr2-description
                cram-fetch-deliver-plans
                cram-urdf-environment-manipulation
@@ -56,6 +56,5 @@
      (:file "setup" :depends-on ("package"))
      (:file "trajectories" :depends-on ("package"))
      (:file "wipe-designators" :depends-on ("package"))
-     (:file "wipe-plans" :depends-on ("package"))
      (:file "wiping" :depends-on ("package"))
      ))))
