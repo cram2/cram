@@ -1,7 +1,7 @@
 (in-package :pr2-wipe)
 
 
-;;Defines the intial-poses for the surface.
+;;Function that creates a transform by extracting the x,y and z values of a given surface. Differentiates by grasp type :spreading, :vertical and :horizontal.
 (defmethod get-object-type-robot-frame-wipe-approach-transform-generic (surface (object-type (eql :colored-box)) arm grasp)
 
   (case grasp
@@ -15,7 +15,7 @@
                                (btr:object btr:*current-bullet-world*
                                            (desig:desig-prop-value surface :name)))))))
   
-         (cl-transforms-stamped:make-transform-stamped "map" "base_footprint" 0.0
+         (cl-transforms-stamped:make-transform-stamped "base_footprint" "base_footprint" 0.0
                                                        (cl-tf:make-3d-vector (/ x 2) (/ y 2) 0.01) (cl-transforms:axis-angle->quaternion
     (cl-tf:make-3d-vector 0 1 0)
     2.1))))
@@ -31,7 +31,7 @@
                                 (btr:object btr:*current-bullet-world*
                                             (desig:desig-prop-value surface :name)))))))
   
-        (cl-transforms-stamped:make-transform-stamped "map" "base_footprint" 0.0
+        (cl-transforms-stamped:make-transform-stamped "base_footprint" "base_footprint" 0.0
                                                       (cl-tf:make-3d-vector -0.01 (/ y 2) (/ z 2)) (cl-tf:make-identity-rotation))))
 
 
@@ -46,10 +46,9 @@
                                (btr:object btr:*current-bullet-world*
                                            (desig:desig-prop-value surface :name)))))))
   
-         (cl-transforms-stamped:make-transform-stamped "map" "base_footprint" 0.0
+         (cl-transforms-stamped:make-transform-stamped "base_footprint" "base_footprint" 0.0
                                                        (cl-tf:make-3d-vector (/ x 2) (/ y 2) 0.01) (cl-tf:make-quaternion 1 0 -1 0))))))
 
-  
 
 
 ;; horizontal
@@ -59,7 +58,7 @@
   :grasp-rot-matrix '((0  0  0)
                       (0 0  0)
                       (0  0 0))
-  :pregrasp-offsets `(0.0 0.0 ,0.0)
+  :pregrasp-offsets `(0.01 0.01 ,0.01)
   :2nd-pregrasp-offsets `(0.0 0.0 ,0.0)
   :lift-translation `(0.0 0.0 ,0.0)
   :2nd-lift-translation `(0.0 0.0 ,0.0))
@@ -71,7 +70,7 @@
   :grasp-rot-matrix '((0  0  0)
                       (0 0  0)
                       (0  0 0))
-  :pregrasp-offsets `(0.0 0.0 ,0.0)
+  :pregrasp-offsets `(0.0 1 0.01 ,0.01)
   :2nd-pregrasp-offsets `(0.0 0.0 ,0.0)
   :lift-translation `(0.0 0.0 ,0.0)
   :2nd-lift-translation `(0.0 0.0 ,0.0))
@@ -83,7 +82,7 @@
   :grasp-rot-matrix '((0 0 0)
                       (0 0 0)
                       (0  0 0))
-  :pregrasp-offsets `(0.0 0.00 ,0.0)
+  :pregrasp-offsets `(0.1 0.001 ,0.01)
   :2nd-pregrasp-offsets `(0.0 0.0 ,0.0)
   :lift-translation `(0.0 0.0 ,0.0)
   :2nd-lift-translation `(0.0 0.0 ,0.0))

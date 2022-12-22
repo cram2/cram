@@ -102,7 +102,7 @@
   (wipe-demo)
   )
 
-
+;;Function that spawns in all surfaces and objects like the sponge and the knife.
 (defun spawn-objects ()
 
   (btr-utils:spawn-object 'sponge-1 :sponge
@@ -175,7 +175,7 @@
                                              0.0)) :mass 0.0001 :size '(0.01 0.2 0.0101)  :color '(0 10 0 0.5)))
   
    
-
+;;Function that plays the entire demo including horizontal, vertical and spreading scenarios.
 (defun wipe-demo()
     (urdf-proj:with-simulated-robot
       (cpl:par
@@ -411,9 +411,6 @@
                  (surface ?surface-to-wipe)
                  (collision-mode ?collision-mode)
                  )))))
-
-
-;;This is the new surface ==================================================================
       
 
     (pp-plans::park-arms :left-arm T)
@@ -522,13 +519,14 @@
 
 
 
-;;Initiates the envoirenment, spawns all objects and starts the demo.
+;;Initiates the envoirenment, spawns all objects and starts the spreading demo. The arm to be used can be set.
 (defun execute-demo-spread (arm-to-use)
   (roslisp-utilities:startup-ros)
   (spawn-objects)
   (spread-bread arm-to-use)
   )
 
+;;Function that executes the demo for spreading. The arm to be used can be set.
 (defun spread-bread (arm-to-use)
 
 
@@ -604,10 +602,5 @@
                  )))))
 
      ;;(pp-plans::park-arms :right-arm T))
-
-
-
-  )
-
-  )
+))
 
