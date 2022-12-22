@@ -168,15 +168,15 @@
              object-type object-name arm grasp))
          
          (initial-pose
-           (print (cl-tf:copy-pose-stamped 
-            (print (man-int:calculate-gripper-pose-in-base
-              (print (cram-tf:apply-transform
-               (print (cram-tf:copy-transform-stamped 
+           (cl-tf:copy-pose-stamped 
+            (man-int:calculate-gripper-pose-in-base
+              (cram-tf:apply-transform
+               (cram-tf:copy-transform-stamped 
                 bTb-offset
-                :rotation (cl-tf:make-identity-rotation)))
-               bTo))
-              arm offset))
-            )))
+                :rotation (cl-tf:make-identity-rotation))
+               bTo)
+              arm offset)
+            :orientation (cl-tf:rotation bTb-offset)))
          
          (wiping-poses (get-wiping-poses grasp (list initial-pose) surface)))
 
@@ -191,11 +191,9 @@
                                      "base_footprint"
                                      0.0
                                      (btr:pose (btr:get-robot-object))))
-                               (bTg
-                                 (cram-tf:pose-stamped->transform-stamped
-                                  pose-in-base
-                                  (cl-tf:child-frame-id bTo))))
-                           
+                               (bTg (cram-tf:pose-stamped->transform-stamped
+                                     pose-in-base
+                                     (cl-tf:child-frame-id bTo))))
                            (cl-tf:ensure-pose-stamped
                             (cram-tf:apply-transform mTb bTg))))
                        poses-in-base)))
