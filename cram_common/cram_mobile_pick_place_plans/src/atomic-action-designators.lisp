@@ -102,7 +102,6 @@
         (spec:property ?action-designator (:type :retracting))
         (spec:property ?action-designator (:type :lifting))
         (spec:property ?action-designator (:type :approaching))
-        (spec:property ?action-designator (:type :wipe-increment))
         (spec:property ?action-designator (:type :tilting))
         (spec:property ?action-designator (:type :retracting))
         (spec:property ?action-designator (:type :cutting)))
