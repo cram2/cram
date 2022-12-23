@@ -22,6 +22,7 @@
                   (left-poses ?pose)
                   (desig:when ?collision-mode
                     (collision-mode ?collision-mode))))))
+  
    ?left-initial-pose)
 
 
@@ -118,32 +119,28 @@
                                (:left-wipe-poses ?left-wipe-poses)
                                (:right-wipe-poses ?right-wipe-poses)
                                (:left-initial-pose ?left-initial-pose)
-                               (:right-initial-pose ?right-initial-pose)
-                               )
+                               (:right-initial-pose ?right-initial-pose))
                       ?resolved-action-designator))
 
 
-
-
-
-
-
-
-
-
+;;Atomic Wipe-Increment Designator that is based on the atomic Approach Designator.
 (<- (desig:action-grounding ?action-designator (pp-plans::move-arms-in-sequence
                                                   ?resolved-action-designator))
     
     (spec:property ?action-designator (:type :wipe-increment))
-    (spec:property ?action-designator (:type ?action-type))
-    (once (or (spec:property ?action-designator (:left-poses ?left-poses))
-              (equal ?left-poses nil)))
-    (once (or (spec:property ?action-designator (:right-poses ?right-poses))
-              (equal ?right-poses nil)))
-    (once (or (spec:property ?action-designator (:collision-mode ?collision))
-              (equal ?collision :allow-all)))
-    (desig:designator :action ((:type ?action-type)
-                               (:left-poses ?left-poses)
-                               (:right-poses ?right-poses)
-                               (:collision-mode ?collision))
-                      ?resolved-action-designator)))
+    (or (spec:property ?action-designator (:left-poses ?left-poses))
+              (equal ?left-poses nil))
+    (or (spec:property ?action-designator (:right-poses ?right-poses))
+              (equal ?right-poses nil))
+    (or (spec:property ?action-designator (:collision-mode ?collision))
+              (equal ?collision :allow-all))
+  (pp-plans::infer-motion-flags ?action-designator
+                      ?_ ?move-base ?align-planes-left ?align-planes-right)
+  (desig:designator :action ((:type :wipe-increment)
+                             (:left-poses ?left-poses)
+                             (:right-poses ?right-poses)
+                             (:collision-mode ?collision)
+                             (:move-base ?move-base)
+                             (:align-planes-left ?align-planes-left)
+                             (:align-planes-right ?align-planes-right))
+                    ?resolved-action-designator)))

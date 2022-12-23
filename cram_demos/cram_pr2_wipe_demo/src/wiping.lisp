@@ -59,9 +59,9 @@
                       (0 0  0)
                       (0  0 0))
   :pregrasp-offsets `(0.01 0.01 ,0.01)
-  :2nd-pregrasp-offsets `(0.0 0.0 ,0.0)
-  :lift-translation `(0.0 0.0 ,0.0)
-  :2nd-lift-translation `(0.0 0.0 ,0.0))
+  :2nd-pregrasp-offsets `(0.01 0.01 ,0.01)
+  :lift-translation `(0.01 0.01 ,0.01)
+  :2nd-lift-translation `(0.01 0.01 ,0.01))
 
 ;;vertical
 (man-int:def-object-type-to-gripper-transforms '(:colored-box)
@@ -71,9 +71,9 @@
                       (0 0  0)
                       (0  0 0))
   :pregrasp-offsets `(0.0 1 0.01 ,0.01)
-  :2nd-pregrasp-offsets `(0.0 0.0 ,0.0)
-  :lift-translation `(0.0 0.0 ,0.0)
-  :2nd-lift-translation `(0.0 0.0 ,0.0))
+  :2nd-pregrasp-offsets `(0.01 0.01 ,0.01)
+  :lift-translation `(0.01 0.01 ,0.01)
+  :2nd-lift-translation `(0.01 0.01 ,0.01))
 
 ;;knife
 (man-int:def-object-type-to-gripper-transforms '(:colored-box)
@@ -83,9 +83,9 @@
                       (0 0 0)
                       (0  0 0))
   :pregrasp-offsets `(0.1 0.001 ,0.01)
-  :2nd-pregrasp-offsets `(0.0 0.0 ,0.0)
-  :lift-translation `(0.0 0.0 ,0.0)
-  :2nd-lift-translation `(0.0 0.0 ,0.0))
+  :2nd-pregrasp-offsets `(0.01 0.01 ,0.01)
+  :lift-translation `(0.01 0.01 ,0.01)
+  :2nd-lift-translation `(0.01 0.01 ,0.01))
 
 (man-int:def-object-type-to-gripper-transforms '(:colored-box)
     '(:right) :spreading
@@ -93,10 +93,10 @@
   :grasp-rot-matrix '((0 0 0)
                       (0 0 0)
                       (0  0 0))
-  :pregrasp-offsets `(0.0 0.00 ,0.0)
-  :2nd-pregrasp-offsets `(0.0 0.0 ,0.0)
-  :lift-translation `(0.0 0.0 ,0.0)
-  :2nd-lift-translation `(0.0 0.0 ,0.0))
+  :pregrasp-offsets `(0.01 0.001 ,0.01)
+  :2nd-pregrasp-offsets `(0.01 0.01 ,0.01)
+  :lift-translation `(0.01 0.01 ,0.01)
+  :2nd-lift-translation `(0.01 0.01 ,0.01))
 
 
 
