@@ -88,13 +88,14 @@
     (cl-tf:make-3d-vector 0 0 1)
     0.0)))
 
-
+;;@author Felix Krause
 ;;Initiates the envoirenment, spawns all objects without starting the demo.
 (defun start-environment ()
   (roslisp-utilities:startup-ros)
   (spawn-objects)
   )
 
+;;@author Felix Krause
 ;;Initiates the envoirenment, spawns all objects and starts the demo.
 (defun execute-demo ()
   (roslisp-utilities:startup-ros)
@@ -102,6 +103,7 @@
   (wipe-demo)
   )
 
+;;@author Felix Krause
 ;;Function that spawns in all surfaces and objects like the sponge and the knife.
 (defun spawn-objects ()
 
@@ -174,7 +176,8 @@
                                              (cl-transforms:make-3d-vector 0.5 0.5 1)
                                              0.0)) :mass 0.0001 :size '(0.01 0.2 0.0101)  :color '(0 10 0 0.5)))
   
-   
+
+;;@author Felix Krause
 ;;Function that plays the entire demo including horizontal, vertical and spreading scenarios.
 (defun wipe-demo()
     (urdf-proj:with-simulated-robot
@@ -518,7 +521,7 @@
  ))
 
 
-
+;;@author Felix Krause
 ;;Initiates the envoirenment, spawns all objects and starts the spreading demo. The arm to be used can be set.
 (defun execute-demo-spread (arm-to-use)
   (roslisp-utilities:startup-ros)
@@ -526,6 +529,7 @@
   (spread-bread arm-to-use)
   )
 
+;;@author Felix Krause
 ;;Function that executes the demo for spreading. The arm to be used can be set.
 (defun spread-bread (arm-to-use)
 

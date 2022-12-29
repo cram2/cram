@@ -1,6 +1,6 @@
 (in-package :pr2-wipe)
 
-
+;;@author Felix Krause
 ;;Function that creates a transform by extracting the x,y and z values of a given surface. Differentiates by grasp type :spreading, :vertical and :horizontal.
 (defmethod get-object-type-robot-frame-wipe-approach-transform-generic (surface (object-type (eql :colored-box)) arm grasp)
 
@@ -50,7 +50,7 @@
                                                        (cl-tf:make-3d-vector (/ x 2) (/ y 2) 0.01) (cl-tf:make-quaternion 1 0 -1 0))))))
 
 
-
+;;@author Felix Krause
 ;; horizontal
 (man-int:def-object-type-to-gripper-transforms '(:colored-box)
     '(:left :right) :horizontal
@@ -58,10 +58,10 @@
   :grasp-rot-matrix '((0  0  0)
                       (0 0  0)
                       (0  0 0))
-  :pregrasp-offsets `(0.01 0.01 ,0.01)
-  :2nd-pregrasp-offsets `(0.01 0.01 ,0.01)
-  :lift-translation `(0.01 0.01 ,0.01)
-  :2nd-lift-translation `(0.01 0.01 ,0.01))
+  :pregrasp-offsets `(0.0 0.0 ,0.0)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,0.0)
+  :lift-translation `(0.0 0.0 ,0.0)
+  :2nd-lift-translation `(0.0 0.0 ,0.0))
 
 ;;vertical
 (man-int:def-object-type-to-gripper-transforms '(:colored-box)
@@ -70,10 +70,10 @@
   :grasp-rot-matrix '((0  0  0)
                       (0 0  0)
                       (0  0 0))
-  :pregrasp-offsets `(0.0 1 0.01 ,0.01)
-  :2nd-pregrasp-offsets `(0.01 0.01 ,0.01)
-  :lift-translation `(0.01 0.01 ,0.01)
-  :2nd-lift-translation `(0.01 0.01 ,0.01))
+  :pregrasp-offsets `(0.0  0.0 ,0.0)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,0.0)
+  :lift-translation `(0.0 0.0 ,0.0)
+  :2nd-lift-translation `(0.0 0.0 ,0.0))
 
 ;;knife
 (man-int:def-object-type-to-gripper-transforms '(:colored-box)
@@ -82,10 +82,10 @@
   :grasp-rot-matrix '((0 0 0)
                       (0 0 0)
                       (0  0 0))
-  :pregrasp-offsets `(0.1 0.001 ,0.01)
-  :2nd-pregrasp-offsets `(0.01 0.01 ,0.01)
-  :lift-translation `(0.01 0.01 ,0.01)
-  :2nd-lift-translation `(0.01 0.01 ,0.01))
+  :pregrasp-offsets `(0.0 0.00 ,0.0)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,0.0)
+  :lift-translation `(0.0 0.0 ,0.0)
+  :2nd-lift-translation `(0.0 0.0 ,0.0))
 
 (man-int:def-object-type-to-gripper-transforms '(:colored-box)
     '(:right) :spreading
@@ -93,10 +93,10 @@
   :grasp-rot-matrix '((0 0 0)
                       (0 0 0)
                       (0  0 0))
-  :pregrasp-offsets `(0.01 0.001 ,0.01)
-  :2nd-pregrasp-offsets `(0.01 0.01 ,0.01)
-  :lift-translation `(0.01 0.01 ,0.01)
-  :2nd-lift-translation `(0.01 0.01 ,0.01))
+  :pregrasp-offsets `(0.0 0.00 ,0.0)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,0.0)
+  :lift-translation `(0.0 0.0 ,0.0)
+  :2nd-lift-translation `(0.0 0.0 ,0.0))
 
 
 

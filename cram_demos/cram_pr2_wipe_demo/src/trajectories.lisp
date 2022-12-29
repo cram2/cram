@@ -1,5 +1,6 @@
 (in-package :pr2-wipe)
 
+;;@author Felix Krause
 ;;Function that differentiates if a surface is vertical or horizontal if called with the grasp type :scrubbing. If called with any other keyword the function just returns the keyword.
 (defun differentiate-surface-types (grasp surface) 
   (let* ((s (car surface))
@@ -21,6 +22,7 @@
             (progn :horizontal)))
       (progn grasp))))
 
+;;@author Felix Krause
 ;;Calculates the wiping poses for the given surface.
 (defun get-wiping-poses (grasp initial-pose surface)
   ;;Sets all parameters that are necessary for the surface especially N and the dimesnions of the surface.
@@ -74,7 +76,7 @@
                 (push current-pose return-poses)))))
       (reverse return-poses))))
 
-
+;;@author Felix Krause
 ;;Helper function that copies a pose and modifies it to return a pose that is below the copied one. Takes into account if a surface is horizontal or vertical.
 (defun calculate-pose-down (pose x-distance y-distance z-distance grasp)
   (case grasp
@@ -108,7 +110,7 @@
         :orientation
         (cl-transforms:orientation pose)))))
 
-
+;;@author Felix Krause
 ;;Helper function that copies a pose and modifies it to return a pose that is above the copied one. Takes into account if a surface is horizontal or vertical.
 (defun calculate-pose-up (pose x-distance y-distance z-distance grasp)
   (case grasp
@@ -142,7 +144,7 @@
       :orientation
       (cl-transforms:orientation pose)))))
 
-
+;;@author Felix Krause
 ;;Main function of trajectories.lisp that gets the initial pose and calls get-wiping-poses to get a list of wiping poses. The lists of poses are made into traj-segments.
 (defmethod get-trajectory  ((action-type (eql :wiping))
                                                          arm
@@ -163,9 +165,7 @@
          (bTb-offset
            (get-object-type-robot-frame-wipe-approach-transform-generic surface object-type arm grasp))
          
-         (offset
-            (man-int:get-object-type-to-gripper-transform
-             object-type object-name arm grasp))
+         (offset (man-int:get-object-type-to-gripper-transform object-type object-name arm grasp))
          
          (initial-pose
            (cl-tf:copy-pose-stamped 

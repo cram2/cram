@@ -1,5 +1,6 @@
 (in-package :pr2-wipe)
 
+;;@author Felix Krause
 (defun wipe (&key
                ((:collision-mode ?collision-mode))
                ((:left-wipe-poses ?left-wipe-poses))
@@ -70,7 +71,7 @@
 
  
 
-
+;;@author Felix Krause
 (def-fact-group wipe-actions (desig:action-grounding)
   
   (<- (desig:action-grounding ?action-designator (wipe ?resolved-action-designator))
@@ -96,19 +97,19 @@
  
     ;;Calls the trajectory-calculation depending on what arm the Designator is being called with. Saves the resulting poses in ?left-wipe/approach-poses or ?right-wipe/approach-poses.
     (-> (equal ?arm :left)
-        (and (lisp-fun get-trajectory :wiping ?arm ?current-grasp T ?surface ?pose)
-             (lisp-fun man-int:get-traj-poses-by-label ?pose :wiping
+        (and (lisp-fun get-trajectory :wiping ?arm ?current-grasp T ?surface ?lists)
+             (lisp-fun man-int:get-traj-poses-by-label ?lists :wiping
                        ?left-wipe-poses)
-             (lisp-fun man-int:get-traj-poses-by-label ?pose :initial
+             (lisp-fun man-int:get-traj-poses-by-label ?lists :initial
                        ?left-initial-pose))
         (and (equal ?left-wipe-poses NIL)
              (equal ?left-initial-pose NIL)))
 
     (-> (equal ?arm :right)
-        (and (lisp-fun get-trajectory :wiping ?arm ?current-grasp T ?surface ?pose)
-             (lisp-fun man-int:get-traj-poses-by-label ?pose :wiping
+        (and (lisp-fun get-trajectory :wiping ?arm ?current-grasp T ?surface ?lists)
+             (lisp-fun man-int:get-traj-poses-by-label ?lists :wiping
                        ?right-wipe-poses)
-             (lisp-fun man-int:get-traj-poses-by-label ?pose :initial
+             (lisp-fun man-int:get-traj-poses-by-label ?lists :initial
                        ?right-initial-pose))
         (and (equal ?right-wipe-poses NIL)
              (equal ?right-initial-pose NIL)))
@@ -134,8 +135,7 @@
               (equal ?right-poses nil))
     (or (spec:property ?action-designator (:collision-mode ?collision))
               (equal ?collision :allow-all))
-  (pp-plans::infer-motion-flags ?action-designator
-                      ?_ ?move-base ?align-planes-left ?align-planes-right)
+  (pp-plans::infer-motion-flags ?action-designator ?_ ?move-base ?align-planes-left ?align-planes-right)
   (desig:designator :action ((:type :wipe-increment)
                              (:left-poses ?left-poses)
                              (:right-poses ?right-poses)
