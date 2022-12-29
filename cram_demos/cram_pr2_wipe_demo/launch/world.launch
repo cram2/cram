@@ -1,4 +1,5 @@
 <launch>
+  <!-- Author: Vanessa Hassouna -->
   <!-- upload or not upload the pr2 description, in case one is already uploaded -->
   <arg name="upload" default="true" />
 
