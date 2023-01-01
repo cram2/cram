@@ -2,7 +2,7 @@
 
 
 
-
+;;@author Vanessa Hassouna
 (defun init-projection ()
   (def-fact-group costmap-metadata (costmap:costmap-size
                                     costmap:costmap-origin
@@ -23,6 +23,7 @@
 
 (roslisp-utilities:register-ros-init-function init-projection)
 
+;;@author Vanessa Hassouna
 (defun add-objects-to-mesh-list (&optional (ros-package "cram_bullet_world_tutorial"))
   (mapcar (lambda (object-filename-and-object-extension)
             (declare (type list object-filename-and-object-extension))
