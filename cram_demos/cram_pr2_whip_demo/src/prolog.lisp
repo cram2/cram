@@ -29,20 +29,18 @@
 	       ((:left-start-mix-poses ?left-start-mix-poses))
 	       ((:right-start-mix-poses ?right-start-mix-poses))
 	       ((:left-mid-mix-poses ?left-mid-mix-poses))
-	       ((:right-mid-mix-poses ?right-mid-mix-poses))
-	       ;; ((:left-lift-pancake-poses ?left-lift-pancake-poses))
-	       ;; ((:right-lift-pancake-poses ?right-lift-pancake-poses))
-	       ;; ((:left-flip-pancake-poses ?left-flip-pancake-poses))
-	       ;; ((:right-flip-pancake-poses ?right-flip-pancake-poses))
+               ((:right-mid-mix-poses ?right-mid-mix-poses))
+               ((:left-end-mix-poses ?left-end-mix-poses))
+               ((:right-end-mix-poses ?right-end-mix-poses))
+               ((:left-retract-poses ?left-retract-poses))
+	       ((:right-retract-poses ?right-retract-poses))
              &allow-other-keys)
 
   ;;just some prints cause who does not like them
   (format t "My action designator is executable; ~%
              flipping: object-type ~a object-name ~a arm: ~a grasp: ~a ~%"
 	  ?object-type ?object-name ?arms ?grasp)
-  (format t "my poses left: ~a ~%
-             my poses right: ~a ~%" ?left-approach-poses
-	     ?right-approach-poses)
+
 
 ;  (roslisp:ros-info (cut-pour pour) "Approaching")
 
@@ -67,16 +65,9 @@
 	       ;;(collision-mode ?collision-mode))))
 	       ))
     (cpl:sleep 2)
-  
-  ;; (cpl:with-failure-handling
-  ;;     ((common-fail:manipulation-low-level-failure (e)
-  ;;        (roslisp:ros-warn (cut-and-pour-plans pour)
-  ;;                          "Manipulation messed up: ~a~%Ignoring."
-  ;;                          e)
-  ;;        ;; (return)
-  ;;        ))
 
-  ;mix
+   ;mix
+ 
     (exe:perform
      (desig:an action
                (type blending)
@@ -94,12 +85,33 @@
                (right-poses ?right-mid-mix-poses)
                ;;(desig:when ?collision-mode
     	       (collision-mode :allow-all))))
-    (cpl:sleep 2)
+  (cpl:sleep 2)
+
+   (if  (eq ?context :mix)
+    (exe:perform
+     (desig:an action
+               (type blending)
+               (left-poses ?left-end-mix-poses)
+               (right-poses ?right-end-mix-poses)
+               ;;(desig:when ?collision-mode
+    	       (collision-mode :allow-all))))
+  (cpl:sleep 2)
+
+    (format t "my poses left: ~a ~%
+             my poses right: ~a ~%" ?left-retract-poses
+	     ?right-retract-poses)
+    (exe:perform
+     (desig:an action
+               (type approaching)
+               (left-poses ?left-retract-poses)
+               (right-poses ?right-retract-poses)
+               ;;(desig:when ?collision-mode
+    	       (collision-mode :allow-all)))
+  (cpl:sleep 2)
 
   )
 
- 
-(def-fact-group pancake-actions (desig:action-grounding)
+ (def-fact-group pancake-actions (desig:action-grounding)
   (<- (desig:action-grounding ?action-designator (whisk ?resolved-action-designator))
     (spec:property ?action-designator (:type :whisking))
 ;;TODO: THIS STAYS THE SAME DONT CHANGE !!!! ++++++++++++++++++++++++++++++++
@@ -133,12 +145,37 @@
     ;;(lisp-fun man-int:get-action-gripping-effort ?object-type ?effort)
     ;;(lisp-fun man-int:get-action-gripper-opening ?object-type ?gripper-opening)
 
-	(-> (equal ?reso nil)
+;temporary ..stay 
+    (->( equal ?reso nil)
+    (true))
+    ;;======infer reso AHHHHHHH?! =====
+  ;  (format "printout: ~a" (type-of ?action-designator))
+  ;         (get-reso-from-list ?action-designator) ; (cdr (assoc ,:reso ,?action-designator :reso #'equal)))
+  ;  (-> (spec:property ?action-designator (:reso ?reso))
+   ;     (true)
+    ;    (?reso is (get-action-reso ?reso))
+     ;   )
+;   (defmacro getassoc (key alist)
+;  `(cdr (assoc ,key ,alist :test #'equal)))
+
+;(defun get-object-transform (object-designator)
+ ; (car (getassoc :transform (desig:desig-prop-value object-designator :pose))))
+
+       ;(and  (format "reso was nil and set to: ~a" ?reso)
+        ;    (get-action-reso :reso)
+         ;   ))
+          ;  (format "reso is prolly not nil ~a" ?reso)
+       ; )
+      ;  (lisp-fun get-action-reso ?reso))
+         ;   (format "reso is:  ~a" ?reso))
+      ;  (true))
+      ; (equal ?reso 12)) ;default reso
+    
 	     ;TODO reso changes (and (lisp-fun get-default-reso ?reso)
-	     	 (format "reso is:  ~a" ?reso);)
-         (-> (spec:property ?action-designator (:reso ?reso))
-         	(true)
-	    ))
+	    
+ 
+  ;      (true)
+       ;)   
     
     ;;TODO: THIS STAYS THE SAME DONT CHANGE TILL HERE !!!! ++++++++++++
 
@@ -149,7 +186,7 @@
 	;;TODO change name here nad start with one pose only
 	(and (lisp-fun man-int:get-action-trajectory :mixing
 		       :left ?grasp T ?objects
-		       ?left-trajectory)
+		       ?left-trajectory) ;?reso)
 	    ; (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :grip-container
 		;       ?right-grip-container-poses)
 	     (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :approach
@@ -158,10 +195,11 @@
 	      	       ?left-start-mix-poses)
 	     (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :mid-mix
 	      	       ?left-mid-mix-poses)
-	     ;; (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :lift-pancake
-	     ;; 	       ?left-lift-pancake-poses)
-	     ;; (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :flip-pancake
-	     ;; 	       ?left-flip-pancake-poses)
+             (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :end-mix
+                       ?left-end-mix-poses)
+             (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :retract
+                       ?left-retract-poses)
+
 	     (lisp-fun get-arm-return :left ?left)
 	     (format "arm: ~a ~% ?left-trajectory: ~a" ?left ?left-trajectory))
         ;;care u have to define the else here otherwise it cannot be resolved
@@ -170,9 +208,8 @@
 	     (equal ?left-approach-poses NIL)
 	     (equal ?left-start-mix-poses NIL)
 	     (equal ?left-mid-mix-poses NIL)
-	    ; (equal ?right-grip-container-poses NIL)
-	     ;; (equal ?left-lift-pancake-poses NIL)
-	     ;; (equal ?left-flip-pancake-poses NIL)
+             (equal ?left-end-mix-poses NIL)
+	     (equal ?left-retract-poses NIL)
 	     ))
     
 
@@ -180,7 +217,7 @@
 	;;TODO change name here nad start with one pose only
 	 (and (lisp-fun man-int:get-action-trajectory :mixing
 			:right ?grasp T ?objects
-			?right-trajectory)
+			?right-trajectory) ;?reso)
 	    ;  (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :grip-container
 		;	?left-grip-container-poses)
 	      (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :approach
@@ -189,10 +226,12 @@
 	       		?right-start-mix-poses)
 	      (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :mid-mix
 	      		?right-mid-mix-poses)
-	      ;; (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :lift-pancake
-	      ;; 		?right-lift-pancake-poses)
-	      ;; (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :flip-pancake
-	      ;; 		?right-flip-pancake-poses)
+               (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :end-mix
+                         ?right-end-mix-poses)
+                (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :retract
+                         ?right-retract-poses)
+
+  
 	      (lisp-fun get-arm-return :right ?right)
      	     (format "arm: ~a ~% ?right-trajectory: ~a" ?right ?right-trajectory))
 	;;care u have to define the else here otherwise it cannot be resolved
@@ -201,9 +240,8 @@
 	      (equal ?right-approach-poses NIL)
 	      (equal ?right-start-mix-poses NIL)
 	      (equal ?right-mid-mix-poses NIL)
-	     ; (equal ?left-grip-container-poses NIL)
-	      ;; (equal ?right-lif-pancake-poses NIL)
-	      ;; (equal ?right-flip-pancake-poses NIL)
+              (equal ?right-end-mix-poses NIL)
+	      (equal ?right-retract-poses NIL)
 	      ))
 
     ;; ==============   put together resolving designator      ==============
@@ -226,16 +264,22 @@
 			       (:right-start-mix-poses ?right-start-mix-poses)
                                (:left-mid-mix-poses ?left-mid-mix-poses)
                                (:right-mid-mix-poses ?right-mid-mix-poses)
-			       ;; (:left-lift-pancake-poses ?left-lift-pancake-poses)
-			       ;; (:right-lift-pancake-poses ?right-lift-pancake-poses)
-			       ;; (:left-flip-pancake-poses ?left-flip-pancake-poses)
-			       ;; (:right-flip-pancake-poses ?right-flip-pancake-poses)
+                               (:left-end-mix-poses ?left-end-mix-poses)
+                               (:right-end-mix-poses ?right-end-mix-poses)
+                               (:left-retract-poses ?left-retract-poses)
+	                       (:right-retract-poses ?right-retract-poses)
 			       )
                       ?resolved-action-designator)))
 
 ;;thats just for fun
 (defun get-arm-return (?arm)
   ?arm)
+
+ (defun get-action-reso (?reso)
+(if (eq ?reso nil) 12 ?reso))
+
+(defun get-reso-from-list (alist)
+ (cdr (assoc :reso alist)))
 
 ;;get pouring trajectory workes like picking-up it will get the 
 ;;object-type-to-gripper-tilt-approch-transform und makes a traj-segment out of it
@@ -246,9 +290,12 @@
                                                          grasp
                                                          location
                                                          objects-acted-on
-                                                         &key )
+                                                         &key
+                                                        ; reso  
+                                                           )
                                                          
   (print "entered mixing")
+  
   ;;TODO DONT CHANGE THIS SAME +++++++++++
   (let* ((object
            (car objects-acted-on))
@@ -257,7 +304,10 @@
          (object-type
            (desig:desig-prop-value object :type))
          (bTo
-           (man-int:get-object-transform object))
+           (man-int:get-object-transform object)
+         
+           )
+
          ;; The first part of the btb-offset transform encodes the
          ;; translation difference between the gripper and the
          ;; object. The static defined orientation of bTb-offset
@@ -269,6 +319,10 @@
          (bTb-offset
 	   ;;TODO: call correct function
            (get-object-type-robot-frame-mix-approach-transform
+            object-type arm grasp))
+           ;depending on object usually set on 12 o clock of the container opening
+         (bTb-liftoffset
+           (get-object-type-robot-frame-mix-retract-transform
             object-type arm grasp))
          ;; Since the grippers orientation should not depend on the
          ;; orientation of the object it is omitted here.
@@ -303,7 +357,21 @@
          (mix-poses (adjust-circle-poses approach-pose :reso))
 					;(mix-poses  (circle-poses approach-pose))
 	(start-mix-poses (rec-spiral-poses object-type approach-pose :reso))
-	                               ; (spiral-poses approach-pose))
+                                        ; (spiral-poses approach-pose))
+         ;spiral inwards
+         (end-mix-poses (reverse-spiral-poses object-type approach-pose :reso))
+         ;retract
+         (retract-pose
+           (cl-tf:copy-pose-stamped 
+            (man-int:calculate-gripper-pose-in-base
+              (cram-tf:apply-transform
+               (cram-tf:copy-transform-stamped 
+                bTb-liftoffset
+                :rotation (cl-tf:make-identity-rotation))
+               bTo)
+              arm oTg-std)
+            :orientation 
+            (cl-tf:rotation bTb-liftoffset)))
 	 ;;TODO: here come all your new poses calculated from the approach pose
 	 ;;wrote new functions that changes height and stuff but as metioned in the
 	 ;;comments below its hardcoded should be aabb box stuff calculating
@@ -333,7 +401,6 @@
 
 	   
 	 )
-    
     (print "pose is generated now the traj-segments are calculated")
     (mapcar (lambda (label poses-in-base)
               (man-int:make-traj-segment
@@ -356,11 +423,15 @@
 	      :approach
 	      :start-mix
 	      :mid-mix
+              :end-mix
+              :retract
 	      )
 	    `(;(,grip-container-pose)
 	      (,approach-pose)
 	      ,start-mix-poses
 	      ,mix-poses
+              ,end-mix-poses
+              (,retract-pose)
 	      ))))	     
 
 
@@ -378,7 +449,19 @@
       (arm (eql :right))
      (grasp (eql :top)))
   '((0.02 -0.12 0.161)(1 0 0 0)))
-  
+
+(defmethod get-object-type-robot-frame-mix-grip-retract-transform
+    ((object-type (eql :big-bowl))
+     (arm (eql :left))
+     (grasp (eql :top)))
+   '((0.02 -0.12  0.2)(1 0 0 0)))
+
+(defmethod get-object-type-robot-frame-mix-retract-transform
+     ((object-type (eql :big-bowl))
+      (arm (eql :right))
+     (grasp (eql :top)))
+  '((0.02 -0.12 0.28)(1 0 0 0)))   
+
 ;;the z should be defined by:
 ;;object in hand where?
 ;;how long is object from where gripper is
@@ -396,6 +479,45 @@
   '((0.0 -0.9 0.11)(1 0 0 0)))
 
 ;; =========  is in trajectory defined normaly ==========
+
+(defgeneric get-object-type-robot-frame-mix-grip-retract-transform (object-type arm grasp)
+  (:documentation "Returns a transform stamped")
+  (:method (object-type arm grasp)
+    (man-int::call-with-specific-type #'get-object-type-robot-frame-mix-grip-retract-transform
+                             object-type arm grasp)))
+
+(defmethod get-object-type-robot-frame-mix-grip-retract-transform :around (object-type arm grasp)
+  (destructuring-bind
+      ((x y z) (ax ay az aw))
+      (call-next-method)
+    (cl-tf:transform->transform-stamped
+     cram-tf:*robot-base-frame*
+     cram-tf:*robot-base-frame*
+     0.0
+     (cl-tf:pose->transform
+      (cl-transforms:make-pose
+       (cl-transforms:make-3d-vector x y z)
+       (cl-transforms:make-quaternion ax ay az aw))))))
+
+(defgeneric get-object-type-robot-frame-mix-retract-transform (object-type arm grasp)
+  (:documentation "Returns a transform stamped")
+  (:method (object-type arm grasp)
+    (man-int::call-with-specific-type #'get-object-type-robot-frame-mix-retract-transform
+                             object-type arm grasp)))
+
+(defmethod get-object-type-robot-frame-mix-retract-transform :around (object-type arm grasp)
+  (destructuring-bind
+      ((x y z) (ax ay az aw))
+      (call-next-method)
+    (cl-tf:transform->transform-stamped
+     cram-tf:*robot-base-frame*
+     cram-tf:*robot-base-frame*
+     0.0
+     (cl-tf:pose->transform
+      (cl-transforms:make-pose
+       (cl-transforms:make-3d-vector x y z)
+       (cl-transforms:make-quaternion ax ay az aw))))))
+;;---retract^
 
 (defgeneric get-object-type-robot-frame-mix-grip-approach-transform (object-type arm grasp)
   (:documentation "Returns a transform stamped")
@@ -443,7 +565,7 @@
         (defaultreso 12)
 	)
 ;(if (eql reso nil)
-    (setf angle (/(* 2  pi) defaultreso))
+    (setf angle (/(* 2  pi) defaultreso));reso))
     ;(and (setf angle (/(* 2 pi) ?reso)) (setf defaultreso ?reso))
  ;   )
     
@@ -466,6 +588,7 @@
      (x 1)
      )
 
+   ; (print "~a" reso)
     (setf rim (nth 2 (car (get-object-type-robot-frame-mix-rim-bottom-transform object-type))))
    
     
@@ -475,6 +598,33 @@
 	     collect(change-v pose :x-offset (*(* (/ rim defaultreso) (exp (* k (* x angle))) (cos (* x angle))))
 				   :y-offset (*(* (/ rim defaultreso) (exp (* k(* x  angle))) (sin (* x  angle)))))
 	  )))
+
+(defun reverse-spiral-poses(object-type pose reso)
+  (let
+   ( (k 0.4) ;0.3 <-'spiralness'
+     (defaultreso 12)
+     (rim 0.06); needs to be pulled out from household - same goes for top and bottom diffrence.
+     ;for spiral only top rim needed.
+     (angle 0)  
+     (x 0)
+     (start-pose nil)
+     )
+    
+   ; (print "~a" reso)
+    (setf rim (nth 2 (car (get-object-type-robot-frame-mix-rim-bottom-transform object-type))))
+   
+    (setf angle (/(* 2  pi) defaultreso))
+    (setf x defaultreso)
+    (loop while (>= x 0)
+	  do (setf x (- x 1))
+	     collect(change-v pose :x-offset (*(* (/ rim defaultreso) (exp (* k (* x  angle))) (cos (* x  angle))))
+				   :y-offset (*(* (/ rim defaultreso) (exp (* k(* x   angle))) (sin (* x   angle)))))
+	  ))
+  )
+
+(defun get-start-rim-pose
+(cram-tf::copy-pose-stamped)
+  )
 
 ;; (defun spiral-poses(pose)
 ;;   (print "spiral")

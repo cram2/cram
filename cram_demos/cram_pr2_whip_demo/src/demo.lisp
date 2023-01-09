@@ -205,7 +205,9 @@
 			     (context :mix)
                              (arm (:right))
                              (object ?object-container)
-                             (grasp :top)))))))
+                             (grasp :top)
+                             (reso 4)
+                             ))))))
 
 (defun testdesig()
 (urdf-proj::with-simulated-robot 
