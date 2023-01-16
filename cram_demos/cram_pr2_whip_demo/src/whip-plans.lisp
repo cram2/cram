@@ -28,6 +28,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
 (in-package :demo)
+
 (defun my-plan-function (&key
              &allow-other-keys)
   (print "My action designator is executable"))
@@ -57,20 +58,18 @@
 	       ((:left-start-mix-poses ?left-start-mix-poses))
 	       ((:right-start-mix-poses ?right-start-mix-poses))
 	       ((:left-mid-mix-poses ?left-mid-mix-poses))
-	       ((:right-mid-mix-poses ?right-mid-mix-poses))
-	       ;; ((:left-lift-pancake-poses ?left-lift-pancake-poses))
-	       ;; ((:right-lift-pancake-poses ?right-lift-pancake-poses))
-	       ;; ((:left-flip-pancake-poses ?left-flip-pancake-poses))
-	       ;; ((:right-flip-pancake-poses ?right-flip-pancake-poses))
+               ((:right-mid-mix-poses ?right-mid-mix-poses))
+               ((:left-end-mix-poses ?left-end-mix-poses))
+               ((:right-end-mix-poses ?right-end-mix-poses))
+               ((:left-retract-poses ?left-retract-poses))
+	       ((:right-retract-poses ?right-retract-poses))
              &allow-other-keys)
 
   ;;just some prints cause who does not like them
   (format t "My action designator is executable; ~%
              flipping: object-type ~a object-name ~a arm: ~a grasp: ~a ~%"
 	  ?object-type ?object-name ?arms ?grasp)
-  (format t "my poses left: ~a ~%
-             my poses right: ~a ~%" ?left-approach-poses
-	     ?right-approach-poses)
+
 
 ;  (roslisp:ros-info (cut-pour pour) "Approaching")
 
@@ -95,16 +94,9 @@
 	       ;;(collision-mode ?collision-mode))))
 	       ))
     (cpl:sleep 2)
-  
-  ;; (cpl:with-failure-handling
-  ;;     ((common-fail:manipulation-low-level-failure (e)
-  ;;        (roslisp:ros-warn (cut-and-pour-plans pour)
-  ;;                          "Manipulation messed up: ~a~%Ignoring."
-  ;;                          e)
-  ;;        ;; (return)
-  ;;        ))
 
-  ;mix
+   ;mix
+ 
     (exe:perform
      (desig:an action
                (type blending)
@@ -122,6 +114,37 @@
                (right-poses ?right-mid-mix-poses)
                ;;(desig:when ?collision-mode
     	       (collision-mode :allow-all))))
-    (cpl:sleep 2)
+  (cpl:sleep 2)
+
+    (if  (eq ?context :mix-eclipse)
+    (exe:perform
+     (desig:an action
+               (type blending)
+               (left-poses ?left-mid-mix-poses)
+               (right-poses ?right-mid-mix-poses)
+               ;;(desig:when ?collision-mode
+    	       (collision-mode :allow-all))))
+  (cpl:sleep 2)
+
+    (exe:perform
+     (desig:an action
+               (type blending)
+               (left-poses ?left-end-mix-poses)
+               (right-poses ?right-end-mix-poses)
+               ;;(desig:when ?collision-mode
+    	       (collision-mode :allow-all)))
+  (cpl:sleep 2)
+
+    (format t "my poses left: ~a ~%
+             my poses right: ~a ~%" ?left-retract-poses
+	     ?right-retract-poses)
+    (exe:perform
+     (desig:an action
+               (type approaching)
+               (left-poses ?left-retract-poses)
+               (right-poses ?right-retract-poses)
+               ;;(desig:when ?collision-mode
+    	       (collision-mode :allow-all)))
+  (cpl:sleep 2)
 
   )

@@ -87,14 +87,13 @@
     	       (collision-mode :allow-all))))
   (cpl:sleep 2)
 
-   (if  (eq ?context :mix)
     (exe:perform
      (desig:an action
                (type blending)
                (left-poses ?left-end-mix-poses)
                (right-poses ?right-end-mix-poses)
                ;;(desig:when ?collision-mode
-    	       (collision-mode :allow-all))))
+    	       (collision-mode :allow-all)))
   (cpl:sleep 2)
 
     (format t "my poses left: ~a ~%

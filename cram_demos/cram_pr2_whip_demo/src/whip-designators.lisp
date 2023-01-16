@@ -1,7 +1,7 @@
 (in-package :demo)
 
  
-(def-fact-group pancake-actions (desig:action-grounding)
+ (def-fact-group pancake-actions (desig:action-grounding)
   (<- (desig:action-grounding ?action-designator (whisk ?resolved-action-designator))
     (spec:property ?action-designator (:type :whisking))
 ;;TODO: THIS STAYS THE SAME DONT CHANGE !!!! ++++++++++++++++++++++++++++++++
@@ -35,12 +35,37 @@
     ;;(lisp-fun man-int:get-action-gripping-effort ?object-type ?effort)
     ;;(lisp-fun man-int:get-action-gripper-opening ?object-type ?gripper-opening)
 
-	(-> (equal ?reso nil)
+;temporary ..stay 
+    (->( equal ?reso nil)
+    (true))
+    ;;======infer reso AHHHHHHH?! =====
+  ;  (format "printout: ~a" (type-of ?action-designator))
+  ;         (get-reso-from-list ?action-designator) ; (cdr (assoc ,:reso ,?action-designator :reso #'equal)))
+  ;  (-> (spec:property ?action-designator (:reso ?reso))
+   ;     (true)
+    ;    (?reso is (get-action-reso ?reso))
+     ;   )
+;   (defmacro getassoc (key alist)
+;  `(cdr (assoc ,key ,alist :test #'equal)))
+
+;(defun get-object-transform (object-designator)
+ ; (car (getassoc :transform (desig:desig-prop-value object-designator :pose))))
+
+       ;(and  (format "reso was nil and set to: ~a" ?reso)
+        ;    (get-action-reso :reso)
+         ;   ))
+          ;  (format "reso is prolly not nil ~a" ?reso)
+       ; )
+      ;  (lisp-fun get-action-reso ?reso))
+         ;   (format "reso is:  ~a" ?reso))
+      ;  (true))
+      ; (equal ?reso 12)) ;default reso
+    
 	     ;TODO reso changes (and (lisp-fun get-default-reso ?reso)
-	     	 (format "reso is:  ~a" ?reso);)
-         (-> (spec:property ?action-designator (:reso ?reso))
-         	(true)
-	    ))
+	    
+ 
+  ;      (true)
+       ;)   
     
     ;;TODO: THIS STAYS THE SAME DONT CHANGE TILL HERE !!!! ++++++++++++
 
@@ -51,7 +76,7 @@
 	;;TODO change name here nad start with one pose only
 	(and (lisp-fun man-int:get-action-trajectory :mixing
 		       :left ?grasp T ?objects
-		       ?left-trajectory)
+		       ?left-trajectory) ;?reso)
 	    ; (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :grip-container
 		;       ?right-grip-container-poses)
 	     (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :approach
@@ -60,10 +85,11 @@
 	      	       ?left-start-mix-poses)
 	     (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :mid-mix
 	      	       ?left-mid-mix-poses)
-	     ;; (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :lift-pancake
-	     ;; 	       ?left-lift-pancake-poses)
-	     ;; (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :flip-pancake
-	     ;; 	       ?left-flip-pancake-poses)
+             (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :end-mix
+                       ?left-end-mix-poses)
+             (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :retract
+                       ?left-retract-poses)
+
 	     (lisp-fun get-arm-return :left ?left)
 	     (format "arm: ~a ~% ?left-trajectory: ~a" ?left ?left-trajectory))
         ;;care u have to define the else here otherwise it cannot be resolved
@@ -72,9 +98,8 @@
 	     (equal ?left-approach-poses NIL)
 	     (equal ?left-start-mix-poses NIL)
 	     (equal ?left-mid-mix-poses NIL)
-	    ; (equal ?right-grip-container-poses NIL)
-	     ;; (equal ?left-lift-pancake-poses NIL)
-	     ;; (equal ?left-flip-pancake-poses NIL)
+             (equal ?left-end-mix-poses NIL)
+	     (equal ?left-retract-poses NIL)
 	     ))
     
 
@@ -82,7 +107,7 @@
 	;;TODO change name here nad start with one pose only
 	 (and (lisp-fun man-int:get-action-trajectory :mixing
 			:right ?grasp T ?objects
-			?right-trajectory)
+			?right-trajectory) ;?reso)
 	    ;  (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :grip-container
 		;	?left-grip-container-poses)
 	      (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :approach
@@ -91,10 +116,12 @@
 	       		?right-start-mix-poses)
 	      (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :mid-mix
 	      		?right-mid-mix-poses)
-	      ;; (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :lift-pancake
-	      ;; 		?right-lift-pancake-poses)
-	      ;; (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :flip-pancake
-	      ;; 		?right-flip-pancake-poses)
+               (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :end-mix
+                         ?right-end-mix-poses)
+                (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :retract
+                         ?right-retract-poses)
+
+  
 	      (lisp-fun get-arm-return :right ?right)
      	     (format "arm: ~a ~% ?right-trajectory: ~a" ?right ?right-trajectory))
 	;;care u have to define the else here otherwise it cannot be resolved
@@ -103,9 +130,8 @@
 	      (equal ?right-approach-poses NIL)
 	      (equal ?right-start-mix-poses NIL)
 	      (equal ?right-mid-mix-poses NIL)
-	     ; (equal ?left-grip-container-poses NIL)
-	      ;; (equal ?right-lif-pancake-poses NIL)
-	      ;; (equal ?right-flip-pancake-poses NIL)
+              (equal ?right-end-mix-poses NIL)
+	      (equal ?right-retract-poses NIL)
 	      ))
 
     ;; ==============   put together resolving designator      ==============
@@ -128,12 +154,19 @@
 			       (:right-start-mix-poses ?right-start-mix-poses)
                                (:left-mid-mix-poses ?left-mid-mix-poses)
                                (:right-mid-mix-poses ?right-mid-mix-poses)
-			       ;; (:left-lift-pancake-poses ?left-lift-pancake-poses)
-			       ;; (:right-lift-pancake-poses ?right-lift-pancake-poses)
-			       ;; (:left-flip-pancake-poses ?left-flip-pancake-poses)
-			       ;; (:right-flip-pancake-poses ?right-flip-pancake-poses)
+                               (:left-end-mix-poses ?left-end-mix-poses)
+                               (:right-end-mix-poses ?right-end-mix-poses)
+                               (:left-retract-poses ?left-retract-poses)
+	                       (:right-retract-poses ?right-retract-poses)
 			       )
                       ?resolved-action-designator)))
-                      
+
+;;thats just for fun
 (defun get-arm-return (?arm)
   ?arm)
+
+ (defun get-action-reso (?reso)
+(if (eq ?reso nil) 12 ?reso))
+
+(defun get-reso-from-list (alist)
+ (cdr (assoc :reso alist)))

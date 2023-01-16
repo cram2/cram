@@ -1144,3 +1144,45 @@
   :2nd-pregrasp-offsets `(0.0, *big-bowl-grasp-xy-offset* ,*big-bowl-pregrasp-z-offset*)
   :lift-translation `(0.0 0.0 ,*big-bowl-pregrasp-z-offset*)
   :2nd-lift-translation `(0.0 0.0 ,*big-bowl-pregrasp-z-offset*))
+  
+  ;; =========  temp in trajectories - this is still not pathed right ==========
+(defmethod get-object-type-robot-frame-mix-grip-approach-transform
+    ((object-type (eql :big-bowl))
+     (arm (eql :left))
+     (grasp (eql :top)))
+   '((0 -0.12  0.161)(1 0 0 0))) ;x -0.12
+
+;;TODO: change name and numbers this name should be the same as the function belows
+(defmethod get-object-type-robot-frame-mix-approach-transform
+    ((object-type (eql :big-bowl))
+      (arm (eql :right))
+     (grasp (eql :top)))
+  '((0.02 -0.12 0.161)(1 0 0 0)))
+
+(defmethod get-object-type-robot-frame-mix-grip-retract-transform
+    ((object-type (eql :big-bowl))
+     (arm (eql :left))
+     (grasp (eql :top)))
+   '((0.02 -0.12  0.2)(1 0 0 0)))
+
+(defmethod get-object-type-robot-frame-mix-retract-transform
+     ((object-type (eql :big-bowl))
+      (arm (eql :right))
+     (grasp (eql :top)))
+  '((0.02 -0.12 0.28)(1 0 0 0)))   
+
+;;the z should be defined by:
+;;object in hand where?
+;;how long is object from where gripper is
+;;yeh
+;;TODO: at least write it like it would make sense like that
+;;if its really in the hand who cares
+
+;should be defined in household later--cos 12 is too close to rim
+(defmethod get-object-type-robot-frame-mix-rim-bottom-transform
+   ((object-type (eql :big-bowl)))
+  '((0.0 -0.12 0.06)(1 0 0 0)))
+
+(defmethod get-object-type-robot-frame-mix-rim-top-transform
+   ((object-type (eql :big-bowl)))
+  '((0.0 -0.9 0.11)(1 0 0 0)))
