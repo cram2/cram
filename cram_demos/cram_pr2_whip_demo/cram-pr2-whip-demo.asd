@@ -76,15 +76,12 @@
     :components
     ((:file "package")
      (:file "setup" :depends-on ("package"))
-     ;; (:file "costmaps" :depends-on ("package"))
-     ;; (:file "projection-demo" :depends-on ("package" "costmaps"))
      (:file "demo" :depends-on ("package"))
-     ;; (:file "data-generation-script" :depends-on ("package" "projection-demo" "costmaps"))
-     ;; (:file "data-generation-plan" :depends-on ("package" "demo"))
-     ;; (:file "evaluation-plan" :depends-on ("package" "demo"))
-     ;; (:file "whip-designators" :depends-on ("package" "whip-plans"))
-     ;; (:file "whip-plans" :depends-on ("package"))
-     ;; (:file "trajectories" :depends-on ("package" "demo")) 
-     ;; (:file "mixing" :depends-on ("package"))
-     (:file "prolog" :depends-on ("package"))
+      (:file "whip-designators" :depends-on ("package" "whip-plans"))
+      (:file "whip-plans" :depends-on ("package"))
+      (:file "trajectories" :depends-on ("package")) ;"demo")) 
+      ;mixing split of trajectory for readability 
+      (:file "mixing" :depends-on ("package"))
+      ;household file dependencies
+      ;(:file "prolog" :depends-on ("package"))
      ))))
