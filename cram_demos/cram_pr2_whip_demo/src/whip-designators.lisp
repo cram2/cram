@@ -36,13 +36,17 @@
     ;;(lisp-fun man-int:get-action-gripper-opening ?object-type ?gripper-opening)
 
 ;temporary ..stay 
-    (->( equal ?reso nil)
-    (true))
+   ; (->( equal ?reso nil)
+    ;(true))
     ;;======infer reso AHHHHHHH?! =====
   ;  (format "printout: ~a" (type-of ?action-designator))
-  ;         (get-reso-from-list ?action-designator) ; (cdr (assoc ,:reso ,?action-designator :reso #'equal)))
-  ;  (-> (spec:property ?action-designator (:reso ?reso))
-   ;     (true)
+                                        ;         (get-reso-from-list ?action-designator) ; (cdr (assoc ,:reso ,?action-designator :reso #'equal)))
+    (->(spec:property ?action-designator (:reso ?reso))
+       (true)
+       (format "no reso. Reso is :~a" ?reso); (lisp-fun get-action-reso ?reso)
+       )
+       (->(equal 12 ?reso); true ..cos reso is nil laughs in sadness where is my 4
+    (true))
     ;    (?reso is (get-action-reso ?reso))
      ;   )
 ;   (defmacro getassoc (key alist)
@@ -75,8 +79,8 @@
     (-> (member :left ?arm)
 	;;TODO change name here nad start with one pose only
 	(and (lisp-fun man-int:get-action-trajectory :mixing
-		       :left ?grasp T ?objects
-		       ?left-trajectory) ;?reso)
+		       :left ?grasp T ?objects ?context ?reso
+		       ?left-trajectory)
 	    ; (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :grip-container
 		;       ?right-grip-container-poses)
 	     (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :approach
@@ -106,8 +110,8 @@
     (-> (member :right ?arm)
 	;;TODO change name here nad start with one pose only
 	 (and (lisp-fun man-int:get-action-trajectory :mixing
-			:right ?grasp T ?objects
-			?right-trajectory) ;?reso)
+			:right ?grasp T ?objects ?context ?reso
+			?right-trajectory)
 	    ;  (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :grip-container
 		;	?left-grip-container-poses)
 	      (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :approach

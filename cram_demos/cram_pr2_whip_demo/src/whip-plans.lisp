@@ -69,7 +69,7 @@
   (format t "My action designator is executable; ~%
              flipping: object-type ~a object-name ~a arm: ~a grasp: ~a ~%"
 	  ?object-type ?object-name ?arms ?grasp)
-
+(format t "my reso is: ~a" ?reso)
 
 ;  (roslisp:ros-info (cut-pour pour) "Approaching")
 

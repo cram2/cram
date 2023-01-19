@@ -43,7 +43,8 @@
                                                          location
                                                          objects-acted-on
                                                          &key
-                                                        ; reso  
+                                                         context
+                                                         reso  
                                                            )
                                                          
   (print "entered mixing")
@@ -106,12 +107,12 @@
               arm oTg-std)
             :orientation 
             (cl-tf:rotation bTb-offset)))
-         (mix-poses (adjust-circle-poses approach-pose :reso))
+         (mix-poses (adjust-circle-poses approach-pose reso context))
 					;(mix-poses  (circle-poses approach-pose))
-	(start-mix-poses (rec-spiral-poses object-type approach-pose :reso))
+	(start-mix-poses (rec-spiral-poses object-type approach-pose reso))
                                         ; (spiral-poses approach-pose))
          ;spiral inwards
-         (end-mix-poses (reverse-spiral-poses object-type approach-pose :reso))
+         (end-mix-poses (reverse-spiral-poses object-type approach-pose reso))
          ;retract
          (retract-pose
            (cl-tf:copy-pose-stamped 
@@ -222,6 +223,7 @@
 ;;if its really in the hand who cares
 
 ;should be defined in household later--cos 12 is too close to rim
+;decided to use the z axis as radius measure (important for mix center point calculation)
 (defmethod get-object-type-robot-frame-mix-rim-bottom-transform
    ((object-type (eql :big-bowl)))
   '((0.0 -0.12 0.06)(1 0 0 0)))
@@ -309,26 +311,36 @@
        (cl-transforms:make-3d-vector x y z)
        (cl-transforms:make-quaternion ax ay az aw))))))
 
-(defun adjust-circle-poses(pose reso)
+(defun adjust-circle-poses(pose reso context)
   (let ((containerrim 0.06); <- currently - big-bowl hard gecoded, gotta adjust top and bottom rim
 	(erate 1);<- circle;  stirring == (erate 0.03)
 	(angle 0)
 	(x 1)
         (defaultreso 12)
 	)
-;(if (eql reso nil)
+
+    (if (eq context :mix-eclipse) (setf erate 0.03))
+    (print reso)
+   ; (if (> reso 2) (setf defaultreso reso))
+
     (setf angle (/(* 2  pi) defaultreso));reso))
     ;(and (setf angle (/(* 2 pi) ?reso)) (setf defaultreso ?reso))
  ;   )
     
     
  ;defaultreso is this case is jsut the holder for whatever ?reso was decided on or real default reso- look above
-(loop while (<= x defaultreso)
+    (if (eq context :mix)
+        (loop while (<= x defaultreso)
   do (setf x   (+ x  1))           ; or better: do (decf row)
     collect  (change-v pose :x-offset (* erate (* containerrim (cos (* x angle))))
 			    :y-offset (* containerrim (sin (* x angle))))
 		  
-		   ))) 
+              ))
+    (if (eq context :mix-orbit)
+       (orbital-poses pose reso)
+        )
+
+    )) 
 
 (defun rec-spiral-poses(object-type pose reso)
   (let
@@ -339,7 +351,7 @@
      (angle 0)  
      (x 1)
      )
-
+    
    ; (print "~a" reso)
     (setf rim (nth 2 (car (get-object-type-robot-frame-mix-rim-bottom-transform object-type))))
    
@@ -354,7 +366,7 @@
 (defun reverse-spiral-poses(object-type pose reso)
   (let
    ( (k 0.4) ;0.3 <-'spiralness'
-     (defaultreso 12)
+     (defaultreso 11)
      (rim 0.06); needs to be pulled out from household - same goes for top and bottom diffrence.
      ;for spiral only top rim needed.
      (angle 0)  
@@ -374,8 +386,40 @@
 	  ))
   )
 
+;unused func for now
 (defun get-start-rim-pose
 (cram-tf::copy-pose-stamped)
+  )
+
+ ;orbital cos my dream gave me inspiration..
+(defun orbital-poses(pose reso)
+   (let ((containerrim 0.06); <- currently - big-bowl hard gecoded, gotta adjust top and bottom rim
+	(erate 1);<- circle;  stirring == (erate 0.03)
+	(angle 0)
+	(x 1)
+        (defaultreso 12)
+        (smallercircle 0.04) ;radius 3 cm circle for now
+        (currentpose-smaller-radius) ;ever changing small circle center 
+	)
+
+    (setf angle (/(* 2  pi) defaultreso));reso))
+    ;(and (setf angle (/(* 2 pi) ?reso)) (setf defaultreso ?reso))
+ ;   )
+      
+ ;defaultreso is this case is jsut the holder for whatever ?reso was decided on or real default reso- look above
+(loop while (<= x defaultreso)
+      do (setf x   (+ x  1))
+             ; or better: do (decf row)
+    collect  (and (change-v pose :x-offset (* erate (* containerrim (cos (* x angle))))
+                                 :y-offset (* containerrim (sin (* x angle))))
+       ;going for fixed reso 9 cos small circle doesn't need to be super clean(?) 
+                  (adjust-circle-poses (setf currentpose-smaller-radius (change-v pose :x-offset (* erate (* smallercircle (cos (* x angle))))
+                                                                                       :y-offset (* smallercircle  (sin (* x angle)))))
+                                       9 :mix))
+		  
+      ))
+  
+; for small circle: (adjust-circle-poses pose reso :mix-circle/:mix)
   )
 
 ;; (defun spiral-poses(pose)
