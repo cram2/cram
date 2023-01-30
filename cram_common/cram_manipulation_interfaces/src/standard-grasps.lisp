@@ -30,7 +30,11 @@
 (in-package :cram-manipulation-interfaces)
 
 (defparameter *sin-pi/4* (sin (/ pi 4)))
-(defparameter *-sin-pi/4* (- (sin (/ pi 4))))
+(defparameter *-sin-pi/4* (- *sin-pi/4*))
+(defparameter *sin-pi/6* 0.5)
+(defparameter *-sin-pi/6* -0.5)
+(defparameter *sin-pi/3* (sin (/ pi 3)))
+(defparameter *-sin-pi/3* (- *sin-pi/3*))
 
 ;; back / front
 (defparameter *x-across-z-grasp-rotation*
@@ -53,14 +57,22 @@
   '(( 0  0 -1)
     ( 0 -1  0)
     (-1  0  0)))
+(defparameter *x-across-y-30-deg-grasp-rotation*
+  `((,*sin-pi/6*   0  ,*-sin-pi/3*)
+    (0            -1  0)
+    (,*-sin-pi/3*  0  ,*-sin-pi/6*)))
+(defparameter *x-across-y-24-deg-grasp-rotation*
+  `((,(sin (/ pi 7.5))   0  ,(- (sin (/ pi 2.73))))
+    (0            -1  0)
+    (,(- (sin (/ pi 2.73)))  0  ,(- (sin (/ pi 7.5))))))
 (defparameter *-x-across-y-grasp-rotation*
   '(( 0  0  1)
     ( 0  1  0)
     (-1  0  0)))
-(defparameter *-x-across-y-grasp-rotation*
-  '(( 0  0  1)
-    ( 0  1  0)
-    (-1  0  0)))
+(defparameter *-x-across-y-flipped-grasp-rotation*
+  '((0  0  1)
+    (0 -1  0)
+    (1  0  0)))
 
 ;; side
 (defparameter *y-across-z-grasp-rotation*

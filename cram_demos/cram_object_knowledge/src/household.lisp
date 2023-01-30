@@ -1,3 +1,4 @@
+
 ;;;
 ;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
@@ -35,24 +36,44 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def-fact-group household-object-type-hierarchy (man-int:object-type-direct-subtype)
-  (<- (man-int:object-type-direct-subtype :household-item :cutlery))
-  (<- (man-int:object-type-direct-subtype :household-item :plate))
-  (<- (man-int:object-type-direct-subtype :household-item :tray))
-  (<- (man-int:object-type-direct-subtype :household-item :bottle))
-  (<- (man-int:object-type-direct-subtype :household-item :cup))
-  (<- (man-int:object-type-direct-subtype :household-item :milk))
-  (<- (man-int:object-type-direct-subtype :household-item :cereal))
-  (<- (man-int:object-type-direct-subtype :household-item :bowl))
+
+  (<- (man-int:object-type-direct-subtype :household-item :kitchen-item))
+  (<- (man-int:object-type-direct-subtype :household-item :clothing-item))
+
+  (<- (man-int:object-type-direct-subtype :kitchen-item :cutlery))
+  (<- (man-int:object-type-direct-subtype :kitchen-item :plate))
+  (<- (man-int:object-type-direct-subtype :kitchen-item :tray))
+  (<- (man-int:object-type-direct-subtype :kitchen-item :bottle))
+  (<- (man-int:object-type-direct-subtype :kitchen-item :cup))
+  (<- (man-int:object-type-direct-subtype :kitchen-item :milk))
+  (<- (man-int:object-type-direct-subtype :kitchen-item :cereal))
+  (<- (man-int:object-type-direct-subtype :kitchen-item :bowl))
+  (<- (man-int:object-type-direct-subtype :kitchen-item :pot))
+  (<- (man-int:object-type-direct-subtype :kitchen-item :spatula))
   (<- (man-int:object-type-direct-subtype :household-item :sponge))
+
+
+  (<- (man-int:object-type-direct-subtype :food :bread))
+
   (<- (man-int:object-type-direct-subtype :food :weisswurst))
-  (<- (man-int:object-type-direct-subtype :household-item :bread))
   
+
   (<- (man-int:object-type-direct-subtype :cutlery :knife))
   (<- (man-int:object-type-direct-subtype :cutlery :big-knife))
   (<- (man-int:object-type-direct-subtype :cutlery :fork))
   (<- (man-int:object-type-direct-subtype :cutlery :spoon))
 
-  (<- (man-int:object-type-direct-subtype :cereal :breakfast-cereal)))
+  (<- (man-int:object-type-direct-subtype :plate :ikea-small-plate))
+  (<- (man-int:object-type-direct-subtype :plate :ikea-big-plate))
+
+  (<- (man-int:object-type-direct-subtype :bowl :bowl-round))
+
+  (<- (man-int:object-type-direct-subtype :cereal :breakfast-cereal))
+
+  (<- (man-int:object-type-direct-subtype :cup :mug))
+  (<- (man-int:object-type-direct-subtype :cup :jeroen-cup))
+
+  (<- (man-int:object-type-direct-subtype :clothing-item :shoe)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -67,7 +88,7 @@
   20)
 (defmethod man-int:get-action-gripping-effort :heuristics 20
     ((object-type (eql :cereal)))
-  30)
+  45)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -83,6 +104,12 @@
 (defmethod man-int:get-action-gripper-opening :heuristics 20
     ((object-type (eql :plate)))
   0.02)
+(defmethod man-int:get-action-gripper-opening :heuristics 20
+    ((object-type (eql :ikea-small-plate)))
+  0.03)
+(defmethod man-int:get-action-gripper-opening :heuristics 20
+    ((object-type (eql :ikea-big-plate)))
+  0.03)
 (defmethod man-int:get-action-gripper-opening :heuristics 20
     ((object-type (eql :tray)))
   0.02)
@@ -116,6 +143,10 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defmethod man-int:get-arms-for-object-type :heuristics 20 ((object-type (eql :tray)))
+  '(:left :right))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (def-fact-group pnp-object-knowledge (man-int:object-rotationally-symmetric
                                       man-int:orientation-matters)
 
@@ -124,29 +155,41 @@
                                  )))
 
   (<- (orientation-matters ?object-type)
-    (member ?object-type (:knife :fork :spoon :cutlery :spatula :weisswurst :bread :big-knife))))
+    (member ?object-type (:knife :fork :spoon :cutlery :spatula :weisswurst
+			  :bread :big-knife))))
 
-(def-fact-group attachment-knowledge (man-int:unidirectional-attachment)
-
+(def-fact-group popcorn-attachment-knowledge (man-int:unidirectional-attachment)
   (<- (man-int:unidirectional-attachment ?attachment-type)
     (member ?attachment-type (:popcorn-pot-lid-attachment))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; CUTLERY ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *cutlery-grasp-z-offset* -0.015 ;; 0.015
               "in meters") ; because TCP is not at the edge
 (defparameter *cutlery-pregrasp-z-offset* 0.20 "in meters")
+(defparameter *cutlery-shelf-pregrasp-z-offset* 0.07 "in meters")
 (defparameter *cutlery-pregrasp-xy-offset* 0.10 "in meters")
 
 ;; TOP grasp
-(man-int:def-object-type-to-gripper-transforms '(:cutlery :fork :knife :spoon)
-    '(:left :right) :top
+(man-int:def-object-type-to-gripper-transforms
+    '(:cutlery :fork :knife :spoon) '(:left :right) :top
   :grasp-translation `(0.0 0.0 ,*cutlery-grasp-z-offset*)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets `(0.0 0.0 ,*cutlery-pregrasp-z-offset*)
   :2nd-pregrasp-offsets `(0.0 0.0 ,*cutlery-pregrasp-z-offset*)
   :lift-translation `(0.0 0.0 ,*cutlery-pregrasp-z-offset*)
   :2nd-lift-translation `(0.0 0.0 ,*cutlery-pregrasp-z-offset*))
+;; TOP grasp shelf
+(man-int:def-object-type-to-gripper-transforms
+    '(:cutlery :fork :knife :spoon) '(:left :right) :top
+  :location-type :shelf
+  :grasp-translation `(0.0 0.0 ,*cutlery-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,*cutlery-shelf-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,*cutlery-shelf-pregrasp-z-offset*)
+  :lift-translation `(0.0 0.0 ,*cutlery-shelf-pregrasp-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*cutlery-shelf-pregrasp-z-offset*))
 
 ;; front grasp
 (man-int:def-object-type-to-gripper-transforms '(:cutlery :fork :knife :spoon)
@@ -170,6 +213,28 @@
 ;;   :lift-translation `(0.0 0.0 ,*cutlery-pregrasp-z-offset*)
 ;;   :2nd-lift-translation `(0.0 0.0 ,*cutlery-pregrasp-z-offset*))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;; SPATULA ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *spatula-grasp-z-offset* 0.0 "in meters") ; because TCP is not at the edge
+
+;; TOP grasp
+(man-int:def-object-type-to-gripper-transforms :spatula '(:left :right) :top
+  :grasp-translation `(0.0 0.0 ,*spatula-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,*cutlery-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,*cutlery-pregrasp-z-offset*)
+  :lift-translation `(0.0 0.0 ,*cutlery-pregrasp-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*cutlery-pregrasp-z-offset*))
+;; TOP grasp shelf
+(man-int:def-object-type-to-gripper-transforms :spatula '(:left :right) :top
+  :location-type :shelf
+  :grasp-translation `(0.0 0.0 ,*spatula-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,*cutlery-shelf-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,*cutlery-shelf-pregrasp-z-offset*)
+  :lift-translation `(0.0 0.0 ,*cutlery-shelf-pregrasp-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*cutlery-shelf-pregrasp-z-offset*))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; PLATE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *plate-diameter* 0.26 "in meters")
@@ -191,7 +256,7 @@
   :lift-translation *lift-offset*
   :2nd-lift-translation *lift-offset*)
 
-(man-int:def-object-type-to-gripper-transforms '(:tray) :right :right-side
+(man-int:def-object-type-to-gripper-transforms '(:plate :tray) :right :right-side
   :grasp-translation `(0.0 ,(- *plate-grasp-y-offset*) ,*plate-grasp-z-offset*)
   :grasp-rot-matrix
   `((0 -1 0)
@@ -202,27 +267,152 @@
   :lift-translation *lift-offset*
   :2nd-lift-translation *lift-offset*)
 
-(man-int:def-object-type-to-gripper-transforms :plate :right :right-side
-  :grasp-translation `(0.0 ,(- *plate-grasp-y-offset*) ,*plate-grasp-z-offset*)
-  :grasp-rot-matrix
-  `((0             -1 0)
-    (,(- (sin *plate-grasp-roll-offset*)) 0  ,(cos *plate-grasp-roll-offset*))
-    (,(- (cos *plate-grasp-roll-offset*)) 0  ,(- (sin *plate-grasp-roll-offset*))))
-  :pregrasp-offsets `(0.0 ,(- *plate-pregrasp-y-offset*) ,*lift-z-offset*)
-  :2nd-pregrasp-offsets `(0.0 ,(- *plate-pregrasp-y-offset*) ,*plate-2nd-pregrasp-z-offset*)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; IKEA-SMALL-PLATE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *ikea-small-plate-diameter* 0.2 "in meters")
+(defparameter *ikea-small-plate-edge* 0.04 "in meters")
+(defparameter *ikea-small-plate-grasp-xy-offset*
+  (- (/ *ikea-small-plate-diameter* 2) 0.02) "in meters")
+(defparameter *ikea-small-plate-grasp-z-offset* 0.0 "in meters")
+(defparameter *ikea-small-plate-pregrasp-xy-offset* 0.15 "in meters")
+(defparameter *ikea-small-plate-pregrasp-z-offset*
+  (* (tan (/ pi 6))
+     (+ *ikea-small-plate-pregrasp-xy-offset* *ikea-small-plate-edge*))
+  "in meters")
+(defparameter *ikea-small-plate-2nd-pregrasp-xy-offset* 0.05 "in meters")
+(defparameter *ikea-small-plate-2nd-pregrasp-z-offset*
+  (* (tan (/ pi 6))
+     (+ *ikea-small-plate-2nd-pregrasp-xy-offset* *ikea-small-plate-edge*))
+  "in meters")
+(defparameter *ikea-small-plate-z-offsets* '(0 0 0.10) "in meters")
+(defparameter *ikea-small-plate-2nd-z-offsets* '(0 0 0.20) "in meters")
+
+(man-int:def-object-type-to-gripper-transforms :ikea-small-plate '(:left :right) :left-side
+  :grasp-translation `(0.0 ,*ikea-small-plate-grasp-xy-offset* ,*ikea-small-plate-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*y-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 ,*ikea-small-plate-pregrasp-xy-offset* 0.0)
+  :2nd-pregrasp-offsets `(0.0 ,*ikea-small-plate-2nd-pregrasp-xy-offset* 0.0)
+  :lift-translation *ikea-small-plate-z-offsets*
+  :2nd-lift-translation *ikea-small-plate-2nd-z-offsets*)
+
+(man-int:def-object-type-to-gripper-transforms :ikea-small-plate '(:left :right) :right-side
+  :grasp-translation `(0.0 ,(- *ikea-small-plate-grasp-xy-offset*) ,*ikea-small-plate-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-y-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 ,(- *ikea-small-plate-pregrasp-xy-offset*) 0.0)
+  :2nd-pregrasp-offsets `(0.0 ,(- *ikea-small-plate-2nd-pregrasp-xy-offset*) 0.0)
+  :lift-translation *ikea-small-plate-z-offsets*
+  :2nd-lift-translation *ikea-small-plate-2nd-z-offsets*)
+
+(man-int:def-object-type-to-gripper-transforms :ikea-small-plate '(:left :right) :front
+  :grasp-translation `(,*ikea-small-plate-grasp-xy-offset* 0.0 ,*ikea-small-plate-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-y-30-deg-grasp-rotation*
+  :pregrasp-offsets `(,*ikea-small-plate-pregrasp-xy-offset*
+                      0.0
+                      ,*ikea-small-plate-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(,*ikea-small-plate-2nd-pregrasp-xy-offset*
+                          0.0
+                          ,*ikea-small-plate-2nd-pregrasp-z-offset*)
+  :lift-translation *ikea-small-plate-z-offsets*
+  :2nd-lift-translation *ikea-small-plate-2nd-z-offsets*)
+
+(man-int:def-object-type-to-gripper-transforms :ikea-small-plate '(:left :right) :back
+  :grasp-translation `(,(- *ikea-small-plate-grasp-xy-offset*) 0.0 ,*ikea-small-plate-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-x-across-y-grasp-rotation*
+  :pregrasp-offsets `(,(- *ikea-small-plate-pregrasp-xy-offset*) 0.0 0.0)
+  :2nd-pregrasp-offsets `(,(- *ikea-small-plate-2nd-pregrasp-xy-offset*) 0.0 0.0)
+  :lift-translation *ikea-small-plate-z-offsets*
+  :2nd-lift-translation *ikea-small-plate-2nd-z-offsets*)
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; IKEA-BIG-PLATE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *ikea-big-plate-diameter* 0.263 "in meters")
+(defparameter *ikea-big-plate-edge* 0.05 "in meters")
+(defparameter *ikea-big-plate-grasp-xy-offset*
+  (- (/ *ikea-big-plate-diameter* 2) 0.02) "in meters")
+(defparameter *ikea-big-plate-grasp-z-offset* 0.0 "in meters")
+(defparameter *ikea-big-plate-pregrasp-xy-offset* 0.15 "in meters")
+(defparameter *ikea-big-plate-pregrasp-z-offset*
+  (* (tan (/ pi 7.5))
+     (+ *ikea-big-plate-pregrasp-xy-offset* *ikea-big-plate-edge*))
+  "in meters")
+(defparameter *ikea-big-plate-2nd-pregrasp-xy-offset* 0.05 "in meters")
+(defparameter *ikea-big-plate-2nd-pregrasp-z-offset*
+  (* (/ 2 5)
+     (+ *ikea-big-plate-2nd-pregrasp-xy-offset* *ikea-big-plate-edge*))
+  "in meters")
+(defparameter *ikea-big-plate-z-offsets* '(0 0 0.10) "in meters")
+(defparameter *ikea-big-plate-2nd-z-offsets* '(0 0 0.20) "in meters")
+
+(man-int:def-object-type-to-gripper-transforms :ikea-big-plate '(:left :right) :front
+  :grasp-translation `(,*ikea-big-plate-grasp-xy-offset*
+                       0.0
+                       ,*ikea-big-plate-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-y-24-deg-grasp-rotation*
+  :pregrasp-offsets `(,*ikea-big-plate-pregrasp-xy-offset*
+                      0.0
+                      ,*ikea-big-plate-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(,*ikea-big-plate-2nd-pregrasp-xy-offset*
+                          0.0
+                          ,*ikea-big-plate-2nd-pregrasp-z-offset*)
+  :lift-translation *ikea-big-plate-z-offsets*
+  :2nd-lift-translation *ikea-big-plate-2nd-z-offsets*)
+
+(man-int:def-object-type-to-gripper-transforms :ikea-big-plate '(:left :right) :left-side
+  :grasp-translation `(0.0
+                       ,*ikea-big-plate-grasp-xy-offset*
+                       ,*ikea-big-plate-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-y-24-deg-grasp-rotation*
+  :pregrasp-offsets `(0.0
+                      ,*ikea-big-plate-pregrasp-xy-offset*
+                      ,*ikea-big-plate-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0
+                          ,*ikea-big-plate-2nd-pregrasp-xy-offset*
+                          ,*ikea-big-plate-pregrasp-z-offset*)
+  :lift-translation *ikea-big-plate-z-offsets*
+  :2nd-lift-translation *ikea-big-plate-2nd-z-offsets*)
+
+(man-int:def-object-type-to-gripper-transforms :ikea-big-plate '(:left :right) :right-side
+  :grasp-translation `(0.0
+                       ,(- *ikea-big-plate-grasp-xy-offset*)
+                       ,*ikea-big-plate-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-y-24-deg-grasp-rotation*
+  :pregrasp-offsets `(0.0
+                      ,(- *ikea-big-plate-pregrasp-xy-offset*)
+                      ,*ikea-big-plate-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0
+                          ,(- *ikea-big-plate-2nd-pregrasp-xy-offset*)
+                          ,*ikea-big-plate-2nd-pregrasp-z-offset*)
+  :lift-translation *ikea-big-plate-z-offsets*
+  :2nd-lift-translation *ikea-big-plate-2nd-z-offsets*)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; POT ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *pot-grasp-x-offset* 0.14 "in meters")
+(defparameter *pot-grasp-z-offset* 0.05 "in meters")
+
+;; SIDE grasp
+(man-int:def-object-type-to-gripper-transforms :pot '(:left :right) :left-side
+  :grasp-translation `(,*pot-grasp-x-offset* 0.0 ,*pot-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-y-grasp-rotation*
+  :pregrasp-offsets `(,*plate-pregrasp-y-offset* 0.0 ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 ,*plate-pregrasp-y-offset* 0.0)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+(man-int:def-object-type-to-gripper-transforms :pot '(:left :right) :right-side
+  :grasp-translation `(,(- *pot-grasp-x-offset*) 0.0 ,*pot-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-x-across-y-flipped-grasp-rotation*
+  :pregrasp-offsets `(,(- *plate-pregrasp-y-offset*) 0.0 ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 ,(- *plate-pregrasp-y-offset*) 0.0)
   :lift-translation *lift-offset*
   :2nd-lift-translation *lift-offset*)
 
 
-
-
-
-
-
-
-
-
-;;;;;;;;;;;;;;;;;;;;SPONGE;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; SPONGE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 (man-int:def-object-type-to-gripper-transforms '(:household-item :sponge)
@@ -298,6 +488,23 @@
   :lift-translation *lift-offset*
   :2nd-lift-translation *lift-offset*)
 
+(man-int:def-object-type-to-gripper-transforms :cup '(:left :right) :top2
+  :grasp-translation `(0.0d0 ,(- *cup-top-grasp-x-offset*) ,*cup-top-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+;; BOTTOM grasp
+(man-int:def-object-type-to-gripper-transforms :cup '(:left :right) :bottom
+  :grasp-translation `(0.0d0 0.0d0 ,(- *cup-grasp-z-offset*))
+  :grasp-rot-matrix man-int:*-z-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,(- *lift-z-offset*))
+  :2nd-pregrasp-offsets `(0.0 0 ,(- *lift-z-offset*))
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
 ;; SIDE grasp
 (man-int:def-object-type-to-gripper-transforms :cup '(:left :right) :left-side
   :grasp-translation `(0.0d0 ,(- *cup-grasp-xy-offset*) ,*cup-grasp-z-offset*)
@@ -319,7 +526,7 @@
 ;; BACK grasp
 (man-int:def-object-type-to-gripper-transforms :cup '(:left :right) :back
   :grasp-translation `(,*cup-grasp-xy-offset* 0.0d0 ,*cup-grasp-z-offset*)
-  :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation*
+  :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation-2*
   :pregrasp-offsets `(,(- *cup-pregrasp-xy-offset*) 0.0 ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(,(- *cup-pregrasp-xy-offset*) 0.0 0.0)
   :lift-translation *lift-offset*
@@ -333,6 +540,222 @@
   :2nd-pregrasp-offsets `(,*cup-pregrasp-xy-offset* 0.0 0.0)
   :lift-translation *lift-offset*
   :2nd-lift-translation *lift-offset*)
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;; jeroen-cup ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *jeroen-cup-grasp-xy-offset* 0.02 "in meters")
+(defparameter *jeroen-cup-grasp-z-offset* 0.0 "in meters")
+(defparameter *jeroen-cup-pregrasp-xy-offset* 0.15 "in meters")
+(defparameter *jeroen-cup-pregrasp-z-offset* 0.0 "in meters")
+(defparameter *jeroen-cup-top-grasp-x-offset* 0.0"in meters")
+(defparameter *jeroen-cup-top-grasp-z-offset* 0.03 "in meters")
+(defparameter *jeroen-cup-bottom-pregrasp-z-offset* 0.01 "in meters")
+(defparameter *jeroen-cup-bottom-lift-z-offset* 0.01 "in meters")
+
+;; TOP grasp
+(man-int:def-object-type-to-gripper-transforms :jeroen-cup '(:left :right) :top
+  :grasp-translation `(,(- *jeroen-cup-top-grasp-x-offset*) 0.0d0 ,*jeroen-cup-top-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+(man-int:def-object-type-to-gripper-transforms :jeroen-cup '(:left :right) :top2
+  :grasp-translation `(0.0d0 ,(- *jeroen-cup-top-grasp-x-offset*) ,*jeroen-cup-top-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+;; BOTTOM grasp
+(man-int:def-object-type-to-gripper-transforms :jeroen-cup '(:left :right) :bottom
+  :grasp-translation `(0.0d0 0.0d0 ,(- *jeroen-cup-grasp-z-offset*))
+  :grasp-rot-matrix man-int:*-z-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,(- *jeroen-cup-bottom-pregrasp-z-offset*))
+  :2nd-pregrasp-offsets `(0.0 0 ,(- *jeroen-cup-bottom-pregrasp-z-offset*))
+  :lift-translation `(0 0 ,*jeroen-cup-bottom-lift-z-offset*)
+  :2nd-lift-translation `(0 0 ,*jeroen-cup-bottom-lift-z-offset*))
+
+;; SIDE grasp
+(man-int:def-object-type-to-gripper-transforms :jeroen-cup '(:left :right) :left-side
+  :grasp-translation `(0.0d0 ,(- *jeroen-cup-grasp-xy-offset*) ,*jeroen-cup-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*y-across-z-flipped-grasp-rotation*
+  :pregrasp-offsets `(0.0 ,*jeroen-cup-pregrasp-xy-offset* ,*jeroen-cup-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 ,*jeroen-cup-pregrasp-xy-offset* 0.0)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+(man-int:def-object-type-to-gripper-transforms :jeroen-cup '(:left :right) :right-side
+  :grasp-translation `(0.0d0 ,*jeroen-cup-grasp-xy-offset* ,*jeroen-cup-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-y-across-z-flipped-grasp-rotation*
+  :pregrasp-offsets `(0.0 ,(- *jeroen-cup-pregrasp-xy-offset*) ,*jeroen-cup-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 ,(- *jeroen-cup-pregrasp-xy-offset*) 0.0)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+;; BACK grasp
+(man-int:def-object-type-to-gripper-transforms :jeroen-cup '(:left :right) :back
+  :grasp-translation `(,*jeroen-cup-grasp-xy-offset* 0.0d0 ,*jeroen-cup-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation-2*
+  :pregrasp-offsets `(,(- *jeroen-cup-pregrasp-xy-offset*) 0.0 ,*jeroen-cup-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(,(- *jeroen-cup-pregrasp-xy-offset*) 0.0 0.0)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+;; FRONT grasp
+(man-int:def-object-type-to-gripper-transforms :jeroen-cup '(:left :right) :front
+  :grasp-translation `(,(- *jeroen-cup-grasp-xy-offset*) 0.0d0 ,*jeroen-cup-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
+  :pregrasp-offsets `(,*jeroen-cup-pregrasp-xy-offset* 0.0 ,*jeroen-cup-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(,*jeroen-cup-pregrasp-xy-offset* 0.0 0.0)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;; mug ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *mug-back-grasp-x-offset* 0.04 "in meters")
+(defparameter *mug-side-grasp-x-offset* 0.02 "in meters")
+(defparameter *mug-top-grasp-y-offset* 0.045 "in meters")
+
+;; FRONT grasp
+(man-int:def-object-type-to-gripper-transforms :mug '(:left :right) :front
+  :grasp-translation `(,(- *cup-grasp-xy-offset*) 0.0d0 ,*cup-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-z-grasp-rotation-2*
+  :pregrasp-offsets `(,*cup-pregrasp-xy-offset* 0.0 ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(,*cup-pregrasp-xy-offset* 0.0 0.0)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+;; BACK grasp -- handle
+(man-int:def-object-type-to-gripper-transforms :mug '(:left :right) :back
+  :grasp-translation `(,(- *mug-back-grasp-x-offset*) 0.0d0 ,*cup-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation-2*
+  :pregrasp-offsets `(,(- *cup-pregrasp-xy-offset*) 0.0 ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(,(- *cup-pregrasp-xy-offset*) 0.0 0.0)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+;; SIDE grasp
+(man-int:def-object-type-to-gripper-transforms :mug '(:left :right) :left-side
+  :grasp-translation `(,*mug-side-grasp-x-offset* ,(- *cup-grasp-xy-offset*) 0.0)
+  :grasp-rot-matrix man-int:*y-across-z-flipped-grasp-rotation*
+  :pregrasp-offsets `(0.0 ,*cup-pregrasp-xy-offset* ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 ,*cup-pregrasp-xy-offset* 0.0)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+(man-int:def-object-type-to-gripper-transforms :mug '(:left :right) :right-side
+  :grasp-translation `(,*mug-side-grasp-x-offset* ,*cup-grasp-xy-offset* 0.0)
+  :grasp-rot-matrix man-int:*-y-across-z-flipped-grasp-rotation*
+  :pregrasp-offsets `(0.0 ,(- *cup-pregrasp-xy-offset*) ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 ,(- *cup-pregrasp-xy-offset*) 0.0)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+;; TOP grasp
+(man-int:def-object-type-to-gripper-transforms :mug '(:left :right) :top
+  :grasp-translation `(,*mug-side-grasp-x-offset* ,(- *mug-top-grasp-y-offset*) 0.0)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+(man-int:def-object-type-to-gripper-transforms :mug '(:left :right) :top2
+  :grasp-translation `(,*mug-side-grasp-x-offset* ,*mug-top-grasp-y-offset* 0.0)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+;; BOTTOM grasp
+(man-int:def-object-type-to-gripper-transforms :mug '(:left :right) :bottom
+  :grasp-translation `(,*mug-side-grasp-x-offset* 0.0d0 0.0)
+  :grasp-rot-matrix man-int:*-z-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,(- *lift-z-offset*))
+  :2nd-pregrasp-offsets `(0.0 0 ,(- *lift-z-offset*))
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;; shoe ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *shoe-top-grasp-x-offset* 0.1 "in meters")
+(defparameter *shoe-top2-grasp-x-offset* 0.05 "in meters")
+(defparameter *shoe-front-grasp-x-offset* 0.07 "in meters")
+(defparameter *shoe-back-grasp-x-offset* 0.03 "in meters")
+(defparameter *shoe-side-grasp-z-offset* 0.03 "in meters")
+
+;; TOP grasp
+(man-int:def-object-type-to-gripper-transforms :shoe '(:left :right) :top
+  :grasp-translation `(,(- *shoe-top-grasp-x-offset*) 0.0d0 ,*cup-top-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+(man-int:def-object-type-to-gripper-transforms :shoe '(:left :right) :top2
+  :grasp-translation `(,(- *shoe-top2-grasp-x-offset*)
+                        ,(- *cup-top-grasp-x-offset*)
+                        ,*cup-top-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+;; SIDE grasp
+(man-int:def-object-type-to-gripper-transforms :shoe '(:left :right) :left-side
+  :grasp-translation `(,(- *shoe-top2-grasp-x-offset*)
+                        ,(- *cup-grasp-xy-offset*)
+                        ,*shoe-side-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*y-across-z-grasp-rotation*
+  :pregrasp-offsets `(0.0 ,*cup-pregrasp-xy-offset* ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 ,*cup-pregrasp-xy-offset* 0.0)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+(man-int:def-object-type-to-gripper-transforms :shoe '(:left :right) :right-side
+  :grasp-translation `(,(- *shoe-top2-grasp-x-offset*)
+                        ,*cup-grasp-xy-offset*
+                        ,*shoe-side-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-y-across-z-grasp-rotation*
+  :pregrasp-offsets `(0.0 ,(- *cup-pregrasp-xy-offset*) ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 ,(- *cup-pregrasp-xy-offset*) 0.0)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+;; BACK grasp
+(man-int:def-object-type-to-gripper-transforms :shoe '(:left :right) :back
+  :grasp-translation `(,(- *shoe-back-grasp-x-offset*) 0.0d0 ,*shoe-side-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation*
+  :pregrasp-offsets `(,(- *cup-pregrasp-xy-offset*) 0.0 ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(,(- *cup-pregrasp-xy-offset*) 0.0 0.0)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+;; FRONT grasp
+(man-int:def-object-type-to-gripper-transforms :shoe '(:left :right) :front
+  :grasp-translation `(,(- *shoe-front-grasp-x-offset*) 0.0d0 ,*shoe-side-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
+  :pregrasp-offsets `(,*cup-pregrasp-xy-offset* 0.0 ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(,*cup-pregrasp-xy-offset* 0.0 0.0)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; milk ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -380,7 +803,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; cereal ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *cereal-grasp-z-offset* 0.04 "in meters")
-(defparameter *cereal-grasp-xy-offset* 0.03 "in meters")
+(defparameter *cereal-grasp-side-z-offset* 0.0 "in meters")
+(defparameter *cereal-grasp-xy-offset* 0.015 "in meters")
 (defparameter *cereal-pregrasp-z-offset* 0.05 "in meters")
 (defparameter *cereal-pregrasp-xy-offset* 0.15 "in meters")
 (defparameter *cereal-postgrasp-xy-offset* 0.40 "in meters")
@@ -400,8 +824,18 @@
 ;; FRONT grasp table
 (man-int:def-object-type-to-gripper-transforms
     '(:cereal :breakfast-cereal) '(:left :right) :front
-  :grasp-translation `(,*cereal-grasp-xy-offset* 0.0d0 ,*cereal-grasp-z-offset*)
+  :grasp-translation `(,*cereal-grasp-xy-offset* 0.0d0 ,*cereal-grasp-side-z-offset*)
   :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
+  :pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 ,*cereal-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 0.0)
+  :lift-translation `(0.0 0.0 ,*cereal-lift-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*cereal-lift-z-offset*))
+
+;; FRONT grasp table flipped because Donbot has an eye on his hand
+(man-int:def-object-type-to-gripper-transforms
+    '(:cereal :breakfast-cereal) '(:left :right) :front-flipped
+  :grasp-translation `(,*cereal-grasp-xy-offset* 0.0d0 ,*cereal-grasp-side-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-z-grasp-rotation-2*
   :pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 ,*cereal-pregrasp-z-offset*)
   :2nd-pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 0.0)
   :lift-translation `(0.0 0.0 ,*cereal-lift-z-offset*)
@@ -411,7 +845,7 @@
 (man-int:def-object-type-to-gripper-transforms
     '(:cereal :breakfast-cereal) '(:left :right) :front
   :location-type :shelf
-  :grasp-translation `(,*cereal-grasp-xy-offset* 0.0d0 ,*cereal-grasp-z-offset*)
+  :grasp-translation `(,*cereal-grasp-xy-offset* 0.0d0 ,*cereal-grasp-side-z-offset*)
   :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
   :pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 ,*cereal-pregrasp-z-offset*)
   :2nd-pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 0.0)
@@ -421,8 +855,18 @@
 ;; BACK grasp table
 (man-int:def-object-type-to-gripper-transforms
     '(:cereal :breakfast-cereal) '(:left :right) :back
-  :grasp-translation `(,(- *cereal-grasp-xy-offset*) 0.0d0 ,*cereal-grasp-z-offset*)
+  :grasp-translation `(,(- *cereal-grasp-xy-offset*) 0.0d0 ,*cereal-grasp-side-z-offset*)
   :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation*
+  :pregrasp-offsets `(,(- *cereal-pregrasp-xy-offset*) 0.0 ,*cereal-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(,(- *cereal-pregrasp-xy-offset*) 0.0 0.0)
+  :lift-translation `(0.0 0.0 ,*cereal-lift-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*cereal-lift-z-offset*))
+
+;; BACK grasp table flipped because Donbot has an eye on his hand
+(man-int:def-object-type-to-gripper-transforms
+    '(:cereal :breakfast-cereal) '(:left :right) :back-flipped
+  :grasp-translation `(,(- *cereal-grasp-xy-offset*) 0.0d0 ,*cereal-grasp-side-z-offset*)
+  :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation-2*
   :pregrasp-offsets `(,(- *cereal-pregrasp-xy-offset*) 0.0 ,*cereal-pregrasp-z-offset*)
   :2nd-pregrasp-offsets `(,(- *cereal-pregrasp-xy-offset*) 0.0 0.0)
   :lift-translation `(0.0 0.0 ,*cereal-lift-z-offset*)
@@ -432,7 +876,7 @@
 (man-int:def-object-type-to-gripper-transforms
     '(:cereal :breakfast-cereal) '(:left :right) :back
   :location-type :shelf
-  :grasp-translation `(,(- *cereal-grasp-xy-offset*) 0.0d0 ,*cereal-grasp-z-offset*)
+  :grasp-translation `(,(- *cereal-grasp-xy-offset*) 0.0d0 ,*cereal-grasp-side-z-offset*)
   :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation*
   :pregrasp-offsets `(,(- *cereal-pregrasp-xy-offset*) 0.0 ,*cereal-pregrasp-z-offset*)
   :2nd-pregrasp-offsets `(,(- *cereal-pregrasp-xy-offset*) 0.0 0.0)
@@ -444,12 +888,68 @@
 
 ;; (defparameter *edeka-red-bowl-grasp-x-offset* 0.07 "in meters")
 (defparameter *bowl-grasp-x-offset* 0.08 "in meters")
+(defparameter *bowl-tilted-pregrasp-x-offset* 0.08 "in meters")
 ;; (defparameter *edeka-red-bowl-grasp-z-offset* 0.0 "in meters")
 (defparameter *bowl-grasp-z-offset* 0.02 "in meters")
+(defparameter *bowl-tilted-grasp-z-offset* 0.04 "in meters")
 (defparameter *bowl-pregrasp-z-offset* 0.20 "in meters")
 
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms :bowl '(:left :right) :top
+  :grasp-translation `(,(- *bowl-grasp-x-offset*) 0.0d0 ,*bowl-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+(man-int:def-object-type-to-gripper-transforms :bowl '(:left :right) :top-front
+  :grasp-translation `(,*bowl-grasp-x-offset* 0.0d0 ,*bowl-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+(man-int:def-object-type-to-gripper-transforms :bowl '(:left :right) :top-left
+  :grasp-translation `(0.0d0 ,*bowl-grasp-x-offset* ,*bowl-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+(man-int:def-object-type-to-gripper-transforms :bowl '(:left :right) :top-left-tilted
+  :grasp-translation `(0.0d0 ,*bowl-grasp-x-offset* ,*bowl-tilted-grasp-z-offset*)
+  :grasp-rot-matrix
+  `((0                                    1 0)
+    (,(sin *plate-grasp-roll-offset*)     0 ,(- (cos *plate-grasp-roll-offset*)))
+    (,(- (cos *plate-grasp-roll-offset*)) 0 ,(- (sin *plate-grasp-roll-offset*))))
+  :pregrasp-offsets `(0.0d0 ,*bowl-tilted-pregrasp-x-offset* ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0d0 ,*bowl-tilted-pregrasp-x-offset* ,*lift-z-offset*)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+(man-int:def-object-type-to-gripper-transforms :bowl '(:left :right) :top-right
+  :grasp-translation `(0.0d0 ,(- *bowl-grasp-x-offset*) ,*bowl-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+(man-int:def-object-type-to-gripper-transforms :bowl '(:left :right) :top-right-tilted
+  :grasp-translation `(0.0d0 ,(- *bowl-grasp-x-offset*) ,*bowl-tilted-grasp-z-offset*)
+  :grasp-rot-matrix
+  `((0 -1 0)
+    (,(- (sin *plate-grasp-roll-offset*)) 0 ,(cos *plate-grasp-roll-offset*))
+    (,(- (cos *plate-grasp-roll-offset*)) 0 ,(- (sin *plate-grasp-roll-offset*))))
+  :pregrasp-offsets `(0.0d0 ,(- *bowl-tilted-pregrasp-x-offset*) ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0d0 ,(- *bowl-tilted-pregrasp-x-offset*) ,*lift-z-offset*)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+;; TOP grasp drawer
+(man-int:def-object-type-to-gripper-transforms :bowl '(:left :right) :top
+  :location-type :drawer
   :grasp-translation `(,(- *bowl-grasp-x-offset*) 0.0d0 ,*bowl-grasp-z-offset*)
   :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
   :pregrasp-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
@@ -457,6 +957,7 @@
   :lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
   :2nd-lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*))
 (man-int:def-object-type-to-gripper-transforms :bowl '(:left :right) :top-front
+  :location-type :drawer
   :grasp-translation `(,*bowl-grasp-x-offset* 0.0d0 ,*bowl-grasp-z-offset*)
   :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
   :pregrasp-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
@@ -464,6 +965,7 @@
   :lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
   :2nd-lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*))
 (man-int:def-object-type-to-gripper-transforms :bowl '(:left :right) :top-left
+  :location-type :drawer
   :grasp-translation `(0.0d0 ,*bowl-grasp-x-offset* ,*bowl-grasp-z-offset*)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
@@ -471,6 +973,7 @@
   :lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
   :2nd-lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*))
 (man-int:def-object-type-to-gripper-transforms :bowl '(:left :right) :top-right
+  :location-type :drawer
   :grasp-translation `(0.0d0 ,(- *bowl-grasp-x-offset*) ,*bowl-grasp-z-offset*)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
@@ -657,6 +1160,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;; IKEA-PLATE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+
 ;; TOP GRASP
 (man-int:def-object-type-to-gripper-transforms :ikea-plate '(:left :right) :top
   :grasp-translation `(-0.14 0.0 0.025)
@@ -723,7 +1227,48 @@
   (<- (man-int:object-type-direct-subtype :popcorn-item :ikea-plate))
   (<- (man-int:object-type-direct-subtype :popcorn-item :salt)))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;; bowl-round ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *bowl-round-grasp-x-offset* 0.065 "in meters")
+(defparameter *bowl-round-grasp-z-offset* 0.02 "in meters")
+(defparameter *bowl-round-lift-z-offset* 0.04 "in meters")
+
+;; TOP grasp
+(man-int:def-object-type-to-gripper-transforms :bowl-round '(:left :right) :top
+  :grasp-translation `(,(- *bowl-round-grasp-x-offset*) 0.0d0 ,*bowl-round-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,*bowl-round-lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,*bowl-round-lift-z-offset*)
+  :lift-translation `(0.0 0.0 ,*bowl-round-lift-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*bowl-round-lift-z-offset*))
+
+(man-int:def-object-type-to-gripper-transforms :bowl-round '(:left :right) :top-front
+  :grasp-translation `(,*bowl-round-grasp-x-offset* 0.0d0 ,*bowl-round-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,*bowl-round-lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,*bowl-round-lift-z-offset*)
+  :lift-translation `(0.0 0.0 ,*bowl-round-lift-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*bowl-round-lift-z-offset*))
+
+(man-int:def-object-type-to-gripper-transforms :bowl-round '(:left :right) :top-left
+  :grasp-translation `(0.0d0 ,*bowl-round-grasp-x-offset* ,*bowl-round-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,*bowl-round-lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,*bowl-round-lift-z-offset*)
+  :lift-translation `(0.0 0.0 ,*bowl-round-lift-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*bowl-round-lift-z-offset*))
+
+(man-int:def-object-type-to-gripper-transforms :bowl-round '(:left :right) :top-right
+  :grasp-translation `(0.0d0 ,(- *bowl-round-grasp-x-offset*) ,*bowl-round-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,*bowl-round-lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,*bowl-round-lift-z-offset*)
+  :lift-translation `(0.0 0.0 ,*bowl-round-lift-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*bowl-round-lift-z-offset*))
+
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;; table setting locations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -739,7 +1284,8 @@
                          (urdf-name sink-area-surface)
                          (owl-name "kitchen_sink_block_counter_top")
                          (part-of ?environment-name)))
-           (side left)))
+           ;; left in the room is right in the sink-area-surface frame
+           (side right)))
 
 (defun make-location-on-sink-left-front (?environment-name)
   (desig:a location
@@ -748,8 +1294,8 @@
                          (urdf-name sink-area-surface)
                          (owl-name "kitchen_sink_block_counter_top")
                          (part-of ?environment-name)))
-           (side left)
-           (side front)
+           ;; left-front in map frame is right back in sink-area-surface frame
+           (side (right back))
            (range-invert 0.5)))
 
 (defun make-location-on-sink-middle-front (?environment-name)
@@ -759,8 +1305,7 @@
                          (urdf-name sink-area-surface)
                          (owl-name "kitchen_sink_block_counter_top")
                          (part-of ?environment-name)))
-           (side left)
-           (side front)
+           (side (right back))
            (range 0.5)))
 
 (defun make-location-in-sink (?object-type ?environment-name)
@@ -769,7 +1314,7 @@
                             (type sink)
                             (urdf-name sink-area-sink)
                             (part-of ?environment-name)))
-           (side right)
+           (side left)
            (for (desig:an object (type ?object-type)))
            ;; the "for" condition for spoon adds a height that is too high to reach
            ;; so adding a little negative z-offset
@@ -784,7 +1329,7 @@
                          (urdf-name sink-area-left-upper-drawer-main)
                          (owl-name "drawer_sinkblock_upper_open")
                          (part-of ?environment-name)))
-           (side front)))
+           (side back)))
 
 (defun make-location-in-sink-left-bottom-drawer (?environment-name)
   (desig:a location
@@ -792,7 +1337,7 @@
                          (type drawer)
                          (urdf-name sink-area-left-bottom-drawer-main)
                          (part-of ?environment-name)))
-           (side front)))
+           (side back)))
 
 (defun make-location-in-sink-left-middle-drawer (?environment-name)
   (desig:a location
@@ -801,7 +1346,7 @@
                          (urdf-name sink-area-left-middle-drawer-main)
                          (owl-name "drawer_sinkblock_middle_open")
                          (part-of ?environment-name)))
-           (side front)))
+           (side back)))
 
 (defun make-location-in-sink-trash-drawer (?object-type ?environment-name)
   (desig:a location
@@ -810,8 +1355,7 @@
                             (urdf-name sink-area-trash-drawer-main)
                             (part-of ?environment-name)))
            (z-offset -0.05)
-           (side front)
-           (side right)
+           (side (back left))
            (range 0.2)
            (for (desig:an object (type ?object-type)))))
 
@@ -842,6 +1386,7 @@
                               (location ?location-in-dishwasher)))
              (for (desig:an object
                             (type ?object-type)
+                            ;; need a name because of the attachment
                             (name some-name)))
              (attachments ?attachments))))
 
@@ -849,14 +1394,14 @@
 
 (defun make-location-in-oven-right-drawer (?object-type ?environment-name)
   (desig:a location
-           ;; (side front)
            (in (desig:an object
                          (type drawer)
                          (urdf-name oven-area-area-right-drawer-main)
                          (owl-name "drawer_oven_right_open")
                          (part-of ?environment-name)
                          (level topmost)))
-           (side front)
+           (side back)
+           (range 0.1)
            (orientation support-aligned)
            (for (desig:an object (type ?object-type)))))
 
@@ -890,8 +1435,7 @@
                          (owl-name "kitchen_island_counter_top")
                          (part-of ?environment-name)))
            (for (desig:an object (type ?object-type)))
-           (side back)
-           (side right)
+           (side (back right))
            (range-invert 0.5)
            (context table-setting)
            (object-count 3)))
@@ -904,8 +1448,7 @@
                          (owl-name "kitchen_island_counter_top")
                          (part-of ?environment-name)))
            (for (desig:an object (type ?object-type)))
-           (side back)
-           (side right)))
+           (side (back right))))
 
 (defun make-cereal-location (?object-type ?environment-name)
   (desig:a location
@@ -918,8 +1461,7 @@
                          (owl-name "kitchen_island_counter_top")
                          (part-of ?environment-name)))
            (for (desig:an object (type ?object-type)))
-           (side back)
-           (side right)))
+           (side (back right))))
 
 (defun make-location-in-kitchen-island-left-upper-drawer (?environment-name)
   (desig:a location
@@ -927,7 +1469,7 @@
                          (type drawer)
                          (urdf-name kitchen-island-left-upper-drawer-main)
                          (part-of ?environment-name)))
-           (side front)))
+           (side back)))
 
 ;;;;;;;; dining table
 
@@ -938,7 +1480,7 @@
                          (urdf-name dining-area-jokkmokk-table-main)
                          (part-of ?environment-name)))
            (for (desig:an object (type ?object-type)))
-           (side right)
+           (side front)
            (context table-setting)
            (object-count 2)))
 
@@ -948,8 +1490,7 @@
                          (type counter-top)
                          (urdf-name dining-area-jokkmokk-table-main)
                          (part-of ?environment-name)))
-           (side back)
-           (side right)))
+           (side (front right))))
 
 (defun make-location-in-center-of-dining-table (?object-type ?environment-name)
   (desig:a location
@@ -959,20 +1500,28 @@
                          (part-of ?environment-name)))
            (for (desig:an object (type ?object-type)))
            (range 0.2)
-           (side right)))
+           (side front)))
 
 ;;;;;;;;;; w.r.t. other object
 
 (defun make-location-right-of-other-object (?object-type ?other-object-type
-                                            ?other-object-location)
+                                            ?other-object-location
+                                            ;; ?environment-name
+                                            )
   (let ((?other-object-designator
           (desig:an object
                     (type ?other-object-type)
                     (location ?other-object-location))))
     (desig:a location
              (right-of ?other-object-designator)
+             (threshold 0.9)
              (near ?other-object-designator)
              (for (desig:an object (type ?object-type)))
+             ;; Don't add the ON property, otherwise the ORIENTATION will mess up
+             ;; (on (desig:an object
+             ;;               (type counter-top)
+             ;;               (urdf-name dining-area-jokkmokk-table-main)
+             ;;               (part-of ?environment-name)))
              (orientation support-aligned))))
 
 (defun make-location-right-of-behind-other-object (?object-type ?other-object-type
@@ -983,7 +1532,7 @@
                     (location ?other-object-location))))
     (desig:a location
              (right-of ?other-object-designator)
-             ;; (behind ?other-object-designator)
+             (behind ?other-object-designator)
              (near ?other-object-designator)
              (for (desig:an object (type ?object-type))))))
 
@@ -1258,19 +1807,27 @@
 
 (man-int:def-object-type-in-other-object-transform :cup :drawer
   :dish-washer-drawer-left-flipped-around-x
-  :attachment-translation `(0.03 -0.19 0.22)
+  :attachment-translation `(0.06 -0.19 0.22)
   :attachment-rot-matrix man-int:*rotation-around-x-180-matrix*)
 
 (man-int:def-object-type-in-other-object-transform :cup :drawer
   :dish-washer-drawer-left-flipped-around-y
-  :attachment-translation `(0.05 -0.19 0.22)
+  :attachment-translation `(0.06 -0.19 0.22)
   :attachment-rot-matrix man-int:*rotation-around-y-180-matrix*)
 
 (man-int:def-object-type-in-other-object-transform :spoon :drawer
   :dish-washer-drawer-center
-  :attachment-translation `(0.03 0.0 0.03)
+  :attachment-translation `(0.04 0.0 0.03)
   :attachment-rot-matrix man-int:*identity-matrix*)
 
+;;;;;;;;;;;;;;;;;; Predefined poses for apartment kitchen ;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod man-int:get-arms-for-object-type :heuristics 20 ((object-type (eql :tray)))
-  '(:left :right))
+(man-int:def-object-type-in-other-object-transform :jeroen-cup :drawer
+  :jeroen-cup-in-dishwasher-1
+  :attachment-translation `(-0.2 0.15 0.13)
+  :attachment-rot-matrix man-int:*rotation-around-x-180-matrix*)
+
+(man-int:def-object-type-in-other-object-transform :jeroen-cup :drawer
+  :jeroen-cup-in-dishwasher-2
+  :attachment-translation `(-0.2 0.15 0.13)
+  :attachment-rot-matrix man-int:*rotation-around-y-180-matrix*)

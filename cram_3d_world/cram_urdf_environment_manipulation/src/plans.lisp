@@ -40,6 +40,7 @@ a threshold (if T) to signal a failure.")
                                ((:distance ?distance))
                                ((:absolute-distance ?absolute-distance))
                                ((:look-pose ?look-pose))
+                               robot-arm-is-also-a-neck
                                ((:left-reach-poses ?left-reach-poses))
                                ((:right-reach-poses ?right-reach-poses))
                                ((:left-grasp-poses ?left-grasp-poses))
@@ -66,18 +67,19 @@ a threshold (if T) to signal a failure.")
            (type desig:object-designator ?container-designator))
 
   ;;;;;;;;;;;;;;; OPEN GRIPPER AND REACH ;;;;;;;;;;;;;;;;
-  (roslisp:ros-info (env-manip plan) "Looking")
-  (cpl:with-failure-handling
-      ((common-fail:ptu-low-level-failure (e)
-         (roslisp:ros-warn (env-manip plan)
-                           "Looking-at had a problem: ~a~%Ignoring."
-                           e)
-         (return)))
-    (exe:perform
-     (desig:an action
-               (type looking)
-               (target (desig:a location
-                                (pose ?look-pose))))))
+  (unless robot-arm-is-also-a-neck
+    (roslisp:ros-info (env-manip plan) "Looking")
+    (cpl:with-failure-handling
+        ((common-fail:ptu-low-level-failure (e)
+           (roslisp:ros-warn (env-manip plan)
+                             "Looking-at had a problem: ~a~%Ignoring."
+                             e)
+           (return)))
+      (exe:perform
+       (desig:an action
+                 (type looking)
+                 (target (desig:a location
+                                  (pose ?look-pose)))))))
   (cpl:par
     (roslisp:ros-info (env-manip plan) "Opening gripper and reaching")
     (let ((?goal `(cpoe:gripper-joint-at ,?arm ,?gripper-opening)))
@@ -124,14 +126,12 @@ a threshold (if T) to signal a failure.")
   ;;;;;;;;;;;;;;;;;;;; GRIPPING ;;;;;;;;;;;;;;;;;;;;;;;;
   (roslisp:ros-info (environment-manipulation manipulate-container)
                     "Gripping")
-  (when (eq ?type :opening)
-    (exe:perform
-     (desig:an action
-               (type gripping)
-               (gripper ?arm)
-               ;;(object (desig:an object
-                                 ;;(name ?environment-name)))
-                                 )))
+  ;; Gripping now both for closing and opening, as grasp pose can be funny.
+  ;; when (eq ?type :opening)
+  (exe:perform
+   (desig:an action
+             (type gripping)
+             (gripper ?arm)))
 
   ;;;;;;;;;;;;;;;;;;;;;; MANIPULATING ;;;;;;;;;;;;;;;;;;;;;;;
   (roslisp:ros-info (environment-manipulation manipulate-container)
@@ -195,17 +195,12 @@ a threshold (if T) to signal a failure.")
   ;;;;;;;;;;;;;;;;;;;; RETRACTING ;;;;;;;;;;;;;;;;;;;;;;;;;;;
   (roslisp:ros-info (environment-manipulation manipulate-container)
                     "Retracting")
-  
-  (when (eq ?type :opening)
-    (let ((?goal `(cpoe:gripper-opened ,?arm)))
-      (exe:perform
-       (desig:an action
-                 (type releasing)
-                 (gripper ?arm)
-                 (object (desig:an object
-                                   (name ?environment-name)))
-                 (goal ?goal)))))
-
+  (let ((?goal `(cpoe:gripper-opened ,?arm)))
+    (exe:perform
+     (desig:an action
+               (type releasing)
+               (gripper ?arm)
+               (goal ?goal))))
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
          (roslisp:ros-warn (env-plans manipulate)

@@ -31,7 +31,7 @@ path, or search of likely installation locations."
 
 (defun check-in-path (name)
   (multiple-value-bind (outstring errstring exit-code)
-      (uiop/run-program:run-program (list  #+(or win32 mswindows)"where"
+      (uiop:run-program (list  #+(or win32 mswindows)"where"
                                #-(or win32 mswindows)"which"
                                name) :force-shell t :output '(:string :stripped t) :ignore-error-status t)
     (declare (ignore errstring))

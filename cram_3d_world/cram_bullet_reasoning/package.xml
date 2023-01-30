@@ -15,6 +15,7 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>alexandria</depend>
+  <depend>cl_png</depend> <!-- cl_png depends on libpng, make sure it's installed -->
   <depend>cram_prolog</depend>
   <depend>cl_bullet</depend>
   <depend>cl_bullet_vis</depend>
@@ -34,5 +35,4 @@
   <!-- <depend>cram_occasions_events</depend> -->
   <depend>cram_tf</depend>
   <depend>cram_physics_utils</depend>
-  <!-- <depend>household_objects_database_msgs</depend> -->
 </package>

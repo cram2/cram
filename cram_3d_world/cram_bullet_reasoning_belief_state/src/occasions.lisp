@@ -40,6 +40,7 @@
 
 (def-fact-group occasions (cpoe:object-in-hand
                            cpoe:object-at-location
+                           cpoe:object-placed
                            cpoe:robot-at-location
                            cpoe:torso-at
                            cpoe:gripper-joint-at
@@ -68,12 +69,16 @@
   ;; if we only want to know the link and don't care about the arm
   ;; it can be that the arm is not even given in the attachments
   ;; so we need a bit of copy paste here...
-  (<- (cpoe:object-in-hand ?object ?_ ?grasp ?link)
+  (<- (cpoe:object-in-hand ?object ?arm ?grasp ?link)
     (btr:bullet-world ?world)
     (rob-int:robot ?robot)
     (btr:attached ?world ?robot ?link ?object-name ?grasp)
     (once (and (object-designator-name ?object ?object-name)
-               (desig:obj-desig? ?object))))
+               (desig:obj-desig? ?object)))
+    (-> (bound ?arm)
+        (rob-int:end-effector-link ?robot ?arm ?link)
+        (once (or (rob-int:end-effector-link ?robot ?arm ?link)
+                  (true)))))
   ;;
   (<- (cpoe:object-in-hand ?object ?arm)
     (cpoe:object-in-hand ?object ?arm ?_))
@@ -94,8 +99,11 @@
 
   (<- (cpoe:object-at-location ?object ?location)
     (desig:obj-desig? ?object)
-    (object-designator-name ?object ?object-name)
-    (%object-at-location ?_ ?object-name ?location))
+    (%object-at-location ?_ ?object ?location))
+
+  (<- (cpoe:object-placed ?object ?location)
+    (cpoe:object-at-location ?object ?location)
+    (not (cpoe:object-in-hand ?object)))
 
 
   (<- (cpoe:torso-at ?joint-state)
@@ -380,21 +388,27 @@
     (desig:loc-desig? ?some-location-designator)
     (desig:current-designator ?some-location-designator ?location-designator)
     (-> (or (spec:property ?location-designator (:in ?some-object-designator))
-            (spec:property ?location-designator (:above ?some-object-designator)))
+            (spec:property ?location-designator (:above ?some-object-designator))
+            (spec:property ?location-designator (:on ?some-object-designator)))
         (and (desig:desig-prop ?location-designator (?tag ?some-object-designator))
              (desig:current-designator ?some-object-designator ?object-designator)
              (-> (or (and (equal :in ?tag)
                           (man-int:object-is-a-container ?object-designator))
                      (and (equal :above ?tag)
                           (man-int:object-is-a-prismatic-container ?object-designator)))
-                 (cpoe:container-state ?object-designator :close)
-                 (true)))
+                 (cpoe:container-state ?object-designator :closed)
+                 (-> (and (equal :on ?tag)
+                          (spec:property ?object-designator (:location ?object-location)))
+                     (cpoe:location-reset ?object-location)
+                     (true))))
         (true)))
 
   (<- (cpoe:location-accessible ?some-location-designator)
     (desig:loc-desig? ?some-location-designator)
     (desig:current-designator ?some-location-designator ?location-designator)
     (-> (spec:property ?location-designator (:in ?container-object))
+        ;; If the location is inside a container, the container should be open
+        ;; or the container should be the robot's hand
         (and (desig:current-designator ?container-object ?object-designator)
              (or (desig:desig-prop ?object-designator (:type :robot))
                  (and (rob-int:robot ?robot)
@@ -405,7 +419,13 @@
         (-> (spec:property ?location-designator (:above ?location-object))
             (or (not (man-int:object-is-a-prismatic-container ?location-object))
                 (cpoe:container-state ?location-object :open))
-            (true)))))
+            ;; If the location is w.r.t. some object that is inside another object
+            ;; the outer object should be accessible
+            (-> (and (man-int:location-reference-object ?location-designator ?reference-object)
+                     (desig:current-designator ?reference-object ?object-designator)
+                     (spec:property ?object-designator (:location ?reference-object-location)))
+                (cpoe:location-accessible ?reference-object-location)
+                (true))))))
 
 
 
@@ -449,12 +469,13 @@
     (btr:object ?_ ?o)
     (btr:pose ?_ ?o ?loc))
 
-  (<- (%object-at-location ?world ?object-name ?location-designator)
+  (<- (%object-at-location ?world ?object ?location-designator)
     (lisp-type ?location-designator desig:location-designator)
     (btr:bullet-world ?world)
     (lisp-fun desig:current-desig ?location-designator ?current-location)
     (lisp-pred identity ?current-location)
     (desig:designator-groundings ?current-location ?_)
+    (object-designator-name ?object ?object-name)
     (or (btr:object-pose ?world ?object-name ?object-pose)
         (btr:object-bottom-pose ?world ?object-name ?object-pose))
     ;; this only works for location designators that are resolved through costmaps
@@ -462,15 +483,27 @@
     ;; this does not work...
     (lisp-pred desig:validate-location-designator-solution ?current-location ?object-pose))
 
-  (<- (%object-at-location ?world ?object-name ?location-designator)
+  (<- (%object-at-location ?world ?object ?location-designator)
     (not (bound ?location-designator))
     (btr:bullet-world ?world)
+    (object-designator-name ?object ?object-name)
     (btr:object-pose ?world ?object-name ?object-pose)
     (symbol-value cram-tf:*fixed-frame* ?fixed-frame)
     (lisp-fun cl-transforms-stamped:pose->pose-stamped ?fixed-frame 0.0 ?object-pose
               ?object-pose-stamped)
     (desig:designator :location ((:pose ?object-pose-stamped))
                       ?location-designator))
+
+  ;; if ?location-designator is in the robot hand, check if object-in-hand
+  (<- (%object-at-location ?world ?object ?location-designator)
+    (cpoe:object-in-hand ?object)
+    (desig:loc-desig? ?location-designator)
+    (desig:current-designator ?location-designator ?current-location-designator)
+    (or (desig:desig-prop ?current-location-designator (:on ?robot-designator))
+        (desig:desig-prop ?current-location-designator (:in ?robot-designator)))
+    (desig:current-designator ?robot-designator ?current-robot-designator)
+    (spec:property ?current-robot-designator (:part-of ?robot-name))
+    (rob-int:robot ?robot-name))
 
   (<- (%joint-at ?joint ?goal-state ?delta)
     (rob-int:robot ?robot)

@@ -34,6 +34,7 @@
 
                cl-transforms
                cl-transforms-stamped
+               cl-urdf ; for crawling through urdf for joint and link data
                cram-tf
 
                cram-language

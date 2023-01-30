@@ -320,14 +320,11 @@ environment, in which it can be found, respectively."
   "Takes an X and Y coordinate, but ignores them, and returns a quaternion
 to face from `pos1' towards `pos2'."
   (declare (ignore x y))
-  (let* ((point1 (etypecase pos1
+  (let ((point1 (etypecase pos1
                    (cl-transforms:pose (cl-transforms:origin pos1))
-                   (cl-transforms:3d-vector pos1)))
-         (point2 (etypecase pos2
-                   (cl-transforms:pose (cl-transforms:origin pos2))
-                   (cl-transforms:3d-vector pos2)))
-         (p-rel (cl-transforms:v- point2 point1)))
-    (atan (cl-transforms:y p-rel) (cl-transforms:x p-rel))))
+                   (cl-transforms:3d-vector pos1))))
+    (costmap:angle-to-point-direction
+     (cl-transforms:x point1) (cl-transforms:y point1) pos2)))
 
 (defun make-point-to-point-generator (pos1 pos2 &key (samples 1) sample-step sample-offset)
   "Returns a function that takes an X and Y coordinate and returns a lazy-list of
@@ -345,8 +342,9 @@ quaternions to face from `pos1' to `pos2'."
   "Takes an X and Y coordinate and returns a quaternion between the one facing
 from pos1 to pos2 and the one facing from (X,Y) to target-pos."
   (let ((pos-direction (point-to-point-direction 0 0 pos1 pos2))
-        (target-direction (costmap::angle-to-point-direction x y target-pos)))
-    (/ (+ pos-direction target-direction) 2)))
+        (target-direction (costmap:angle-to-point-direction x y target-pos)))
+    (+ pos-direction
+       (/ (cl-transforms:normalize-angle (- target-direction pos-direction)) 2))))
 
 (defun make-angle-halfway-to-point-generator (pos1 pos2 target-pos &key (samples 1) sample-step sample-offset)
   "Returns a function that takes an X and Y coordinate and returns a lazy-list of
@@ -428,10 +426,10 @@ Disregarding the orientation (using the pose2's)."
 
     ;; cutting out drawer costmap
     (costmap:costmap-manipulation-padding ?robot-name ?padding)
-    (costmap:costmap-add-function
-     opened-drawer-cost-function
-     (make-opened-drawer-cost-function ?container-name ?btr-environment ?padding)
-     ?costmap)
+    ;; (costmap:costmap-add-function
+    ;;  opened-drawer-cost-function
+    ;;  (make-opened-drawer-cost-function ?container-name ?btr-environment ?padding)
+    ;;  ?costmap)
 
     ;; cutting out for specific arm costmap
     (costmap:costmap-add-function
@@ -469,16 +467,28 @@ Disregarding the orientation (using the pose2's)."
     (costmap:costmap-in-reach-distance ?robot-name ?distance)
     (costmap:costmap-reach-minimal-distance ?robot-name ?minimal-distance)
 
+    ;; get the handle pose
+    (lisp-fun get-handle-link ?container-name ?btr-environment ?handle-link-object)
+    (lisp-fun cl-urdf:name ?handle-link-object ?handle-link-string)
+    (lisp-fun get-urdf-link-pose ?handle-link-string ?btr-environment ?handle-pose)
+
     ;; reachability range costmap
+    (instance-of
+     gaussian-costmap::pose-distribution-range-include-generator
+     ?include-generator-id)
+    (costmap:costmap-add-function
+     ?include-generator-id
+     (costmap:make-range-cost-function ?handle-pose ?distance)
+     ?costmap)
     (lisp-fun get-handle-min-max-pose ?container-name ?btr-environment ?poses)
     (forall (member ?pose ?poses)
-            (and (instance-of
-                  gaussian-costmap::pose-distribution-range-include-generator
-                  ?include-generator-id)
-                 (costmap:costmap-add-function
-                  ?include-generator-id
-                  (costmap:make-range-cost-function ?pose ?distance)
-                  ?costmap)
+            (and ;; (instance-of
+                 ;;  gaussian-costmap::pose-distribution-range-include-generator
+                 ;;  ?include-generator-id)
+                 ;; (costmap:costmap-add-function
+                 ;;  ?include-generator-id
+                 ;;  (costmap:make-range-cost-function ?pose ?distance)
+                 ;;  ?costmap)
                  (instance-of
                   gaussian-costmap::pose-distribution-range-exclude-generator
                   ?exclude-generator-id)
@@ -486,16 +496,15 @@ Disregarding the orientation (using the pose2's)."
                   ?exclude-generator-id
                   (costmap:make-range-cost-function
                    ?pose ?minimal-distance :invert t)
-                  ?costmap)
-                 ))
+                  ?costmap)))
 
     (costmap:costmap-manipulation-padding ?robot-name ?padding)
 
     ;; cutting out door costmap
-    (costmap:costmap-add-function
-     opened-door-cost-function
-     (make-opened-door-cost-function ?container-name ?btr-environment ?padding)
-     ?costmap)
+    ;; (costmap:costmap-add-function
+    ;;  opened-door-cost-function
+    ;;  (make-opened-door-cost-function ?container-name ?btr-environment ?padding)
+    ;;  ?costmap)
 
     ;; Commented out for now, since this doesn't work with non-vertical doors
     ;; cutting out for specific arm
@@ -504,17 +513,17 @@ Disregarding the orientation (using the pose2's)."
     ;;  (make-opened-door-for-opposite-arm-cost-function ?container-name ?btr-environment ?arm)
     ;;  ?costmap)
 
-    ;; orientate towards the door
-    (lisp-fun get-container-link ?container-name ?btr-environment ?link)
-    (lisp-fun get-connecting-joint ?link ?joint)
-    (lisp-fun cl-urdf:child ?joint ?joint-link)
-    (lisp-fun cl-urdf:name ?joint-link ?joint-name)
-    (lisp-fun get-urdf-link-pose ?joint-name ?btr-environment ?joint-pose)
+    ;; orientate towards the door handle
+    ;; (lisp-fun get-environment-link ?container-name ?btr-environment ?link)
+    ;; (lisp-fun get-connecting-joint ?link ?joint)
+    ;; (lisp-fun cl-urdf:child ?joint ?joint-link)
+    ;; (lisp-fun cl-urdf:name ?joint-link ?joint-name)
+    ;; (lisp-fun get-urdf-link-pose ?joint-name ?btr-environment ?joint-pose)
     (costmap:orientation-samples ?robot-name ?samples)
     (costmap:orientation-sample-step ?robot-name ?sample-step)
     (once (or (costmap:reachability-orientation-offset ?robot-name ?sample-offset)
               (equal ?sample-offset 0.0)))
     (costmap:costmap-add-orientation-generator
      (costmap:make-angle-to-point-generator
-      ?joint-pose :samples ?samples :sample-step ?sample-step :sample-offset ?sample-offset)
+      ?handle-pose :samples ?samples :sample-step ?sample-step :sample-offset ?sample-offset)
      ?costmap)))

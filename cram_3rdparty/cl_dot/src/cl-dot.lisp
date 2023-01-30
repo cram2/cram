@@ -184,7 +184,7 @@ FORMAT is Postscript."
     (unless dot-path
       (error "neither 'dot' or 'neato' binary are found.
 Consider something like sudo apt install graphviz!"))
-    (uiop/run-program:run-program (list dot-path format "-o" (namestring outfile))
+    (uiop:run-program (list dot-path format "-o" (namestring outfile))
                       :input (make-string-input-stream dot-string)
                       :output *standard-output*)))
 

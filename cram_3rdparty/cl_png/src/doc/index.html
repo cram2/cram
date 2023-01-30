@@ -1,0 +1,597 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<HTML>
+<HEAD>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <TITLE>CL-PNG</TITLE>
+  <style type="text/css">
+
+body { }
+hr { 
+  color: #000;
+  background-color: #000;
+  height: 1px;
+}
+div.narrow { max-width: 80ex; }
+table.paste-area tr td { min-width: 80ex; }
+
+body { background: white; color: black; }
+.paste { background-color: #F4F4F4; color: black; }
+.paste:hover { background-color: #F4F4F4; color: black; }
+.symbol { color : #770055; background-color : transparent; border: 0px; margin: 0px;}
+a.symbol:link { color : #229955; background-color : transparent; text-decoration: none; border: 0px; margin: 0px; }
+a.symbol:active { color : #229955; background-color : transparent; text-decoration: none; border: 0px; margin: 0px; }
+a.symbol:visited { color : #229955; background-color : transparent; text-decoration: none; border: 0px; margin: 0px; }
+a.symbol:hover { color : #229955; background-color : transparent; text-decoration: none; border: 0px; margin: 0px; }
+.special { color : #FF5000; background-color : inherit; }
+.keyword { color : #770000; background-color : inherit; }
+.comment { color : #007777; background-color : inherit; }
+.string { color : #777777; background-color : inherit; }
+.atom { color : #314F4F; background-color : inherit; }
+.macro { color : #FF5000; background-color : inherit; }
+.variable { color : #36648B; background-color : inherit; }
+.function { color : #8B4789; background-color : inherit; }
+.attribute { color : #FF5000; background-color : inherit; }
+.character { color : #0055AA; background-color : inherit; }
+.syntaxerror { color : #FF0000; background-color : inherit; }
+span.paren1 { background-color : inherit; -webkit-transition: background-color 0.2s linear; }
+span.paren1:hover { color : inherit; background-color : #BAFFFF; }
+span.paren2 { background-color : inherit; -webkit-transition: background-color 0.2s linear; }
+span.paren2:hover { color : inherit; background-color : #FFCACA; }
+span.paren3 { background-color : inherit; -webkit-transition: background-color 0.2s linear; }
+span.paren3:hover { color : inherit; background-color : #FFFFBA; }
+span.paren4 { background-color : inherit; -webkit-transition: background-color 0.2s linear; }
+span.paren4:hover { color : inherit; background-color : #CACAFF; }
+span.paren5 { background-color : inherit; -webkit-transition: background-color 0.2s linear; }
+span.paren5:hover { color : inherit; background-color : #CAFFCA; }
+span.paren6 { background-color : inherit; -webkit-transition: background-color 0.2s linear; }
+span.paren6:hover { color : inherit; background-color : #FFBAFF; }
+td.example { 
+  background-color: #F4F4F4; 
+  width: 100%;
+}
+  </style>
+</HEAD>
+<BODY>
+
+<div class="narrow">
+
+<a href="https://github.com/ljosa/cl-png/"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub"></a>
+
+<P><a href="http://www.ljosa.com/~ljosa/">Vebjorn Ljosa</a> »
+<a href="http://www.ljosa.com/~ljosa/software/">Software</a> » CL-PNG
+
+<h1>CL-PNG</h1>
+
+<p>CL-PNG is a Common Lisp library for reading and writing PNG
+(Portable Network Graphics) files.  It is currently maintained
+by <a href="http://www.ljosa.com/~ljosa/contact">Vebjorn Ljosa</a>,
+and new versions can be found at the CL-PNG
+homepage, <A href="http://www.ljosa.com/~ljosa/software/cl-png/">http://www.ljosa.com/~ljosa/software/cl-png/</a>.
+
+<p>Copyright © 2001–2010 by the authors (see the file <A
+href="https://raw.github.com/ljosa/cl-png/master/AUTHORS">AUTHORS</A>).  Licensed under the GNU
+Lesser General Public License; see the file <A
+href="https://raw.github.com/ljosa/cl-png/master/COPYING">COPYING</A> for
+details.  This manual is in the public domain.
+
+<p>Table of contents:
+<ol>
+  <li><a href="#Status">Status</a>
+  <li><a href="#Download">Download</a>
+  <li><a href="#Installation">Installation</a>
+  <li><a href="#Example">Example</a>
+  <li><a href="#API">API reference</a>
+  <li><a href="#Index">Symbol index</a>
+</ol>
+
+<h2><a name="Status">Status</a></h2>
+
+<p>CL-PNG 0.6 has been verified to work on the following platforms.
+<ul>
+  <li>SBCL on Linux (x86_64), Mac OS X (i386 and x86_64), and Windows (i386)
+  <li>Clozure CL on Mac OS X (ppc and x86_64)
+  <li>CLISP on Linux (x86_64)
+  <li>Allegro CL on Mac OS X (i386 and ppc)
+  <li>LispWorks on Mac OS X (i386)
+</ul>
+<p>Please <a href="http://www.ljosa.com/~ljosa/contact">report</a> success/failure on other platforms.
+
+<p>Since version 0.5, CL-PNG uses a foreign function interface to call
+<a href="http://www.libpng.org/pub/png/libpng.html">libpng</a>, the
+official PNG reference library.  As a result, it benefits from all the
+effort that has been put into that library: CL-PNG is much faster than
+before, and better able to handle corner cases.
+
+<p>The interface is likely to change in future versions.  Please <a
+  href="http://www.ljosa.com/~ljosa/contact">report</a> on your
+  experience with the current interface.
+
+<p>The current version has the following limitation:
+<ul>
+  <li>Alpha channels and metadata (such as timestamps and comments)
+  cannot be included when writing an image.  They are silently
+  ignored when reading an image.
+</ul>
+
+<p>News in version 0.6:</p>
+<ul>
+  <li>Can now read from and write to Lisp streams, even those without
+  file descriptors
+  <li>Fixed bug causing crash on 64-bit platforms
+  <li>Can now read, write, and represent 16-bit images.  (Previously
+  downscaled to 8 bits on read.)
+  <li>Fixed bug in reading of 1, 2, and 4-bit images on CCL DarwinPPC.
+</ul>
+
+<h2><a name="Download">Download</a></h2>
+
+<ul>
+  <li>The easiest way to download and install CL-PNG is using QuickLisp: <tt>(ql:quickload "png")</tt>
+  <li>Version 0.6: <A
+href="http://www.ljosa.com/~ljosa/software/cl-png/download/cl-png-0.6.tar.gz">cl-png-0.6.tar.gz</A>
+  <li><A href="http://www.ljosa.com/~ljosa/software/cl-png/download/">Tarballs
+      of older versions</A>
+  <li><a href="https://github.com/ljosa/cl-png/tree/REL_0_6">Browse source code for version 0.6</a> on GitHub
+  <li><a href="https://github.com/ljosa/cl-png">GitHub repository</a>
+</ul>
+
+
+<h2><a name="Installation">Installation</a></h2>
+
+<p>CL-PNG depends on <a
+href="http://www.libpng.org/pub/png/libpng.html">libpng</a> (your
+operating system distribution may have a separate package, called
+<tt>libpng-dev</tt> or something similar, that contains the required
+<tt>png.h</tt> header file) and <a
+href="http://common-lisp.net/project/cffi/">CFFI</a>.  CFFI in turn
+depends on <a
+href="http://common-lisp.net/project/alexandria/">Alexandria</a>, <a
+href="http://common-lisp.net/project/babel/">Babel</a>, and <a
+href="http://www.cliki.net/trivial-features">trivial-features</a>.
+
+<p>The easiest way to download and install CL-PNG and the Lisp
+libraries that it depends on is
+using <a href="http://www.quicklisp.org/">QuickLisp</a>:
+<pre>
+    (ql:quickload "png")
+</pre>
+
+<p>If you do not want to use QuickLisp, install the dependencies, then
+symlink <tt>png.asd</tt> (and, if you'd like to run the unit
+tests, <tt>png-test.asd</tt>) to one of the directories
+in <a href="http://constantly.at/lisp/asdf/Using-asdf-to-load-systems.html#Using%20asdf%20to%20load%20systems"><b>asdf:*central-registry*</b></a>.
+Then, evaluate <code>(asdf:oos 'asdf:load-op '#:png)</code> in order
+to compile and load CL-PNG.</p>
+
+<p>On Mac OS X 10.4, you may discover that the C compiler does not
+accept the <code>-m32</code> option that <a
+href="http://common-lisp.net/project/cffi/manual/html_node/The-Groveller.html">CFFI-Grovel</a>
+attempts to pass to it.  You will need to work around this, for instance
+by setting <b>cffi-grovel::*cpu-word-size-flags*</b> to the empty
+string.
+
+<p>If you would like to run the unit tests, evaluate <code>(asdf:oos
+'asdf:load-op '#:png-test)</code> followed by
+<code>(lisp-unit:run-all-tests #:png-test)</code>.
+
+<h2><a name="Example">Example</a></h2>
+</div>
+
+<table class="paste-area"><tr><td class="example"><tt><span class="paste"><span class="paren1">(<span class="paste"><a href="http://www.lispworks.com/reference/HyperSpec/Body/m_defun.htm" class="symbol"><i><span class="symbol">defun</span></i></a> rotate <span class="paren2">(<span class="paste">input-pathname output-pathname</span>)</span><br>&nbsp;&nbsp;<span class="string">"Read a PNG image, rotate it 90 degrees, and write it to a new file."</span><br>&nbsp;&nbsp;<span class="paren2">(<span class="paste"><a href="http://www.lispworks.com/reference/HyperSpec/Body/s_let_l.htm" class="symbol"><i><span class="symbol">let*</span></i></a> <span class="paren3">(<span class="paste"><span class="paren4">(<span class="paste">old <span class="paren5">(<span class="paste"><a href="http://www.lispworks.com/reference/HyperSpec/Body/m_w_open.htm" class="symbol"><i><span class="symbol">with-open-file</span></i></a> <span class="paren6">(<span class="paste">input input-pathname <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">:element-type</span> '<span class="paren1">(<span class="paste"><a href="http://www.lispworks.com/reference/HyperSpec/Body/t_unsgn_.htm" class="symbol">unsigned-byte</a> 8</span>)</span></span>)</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="paren6">(<span class="paste"><a href="#decode" class="symbol">png:decode</a> input</span>)</span></span>)</span></span>)</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span class="paren4">(<span class="paste">new <span class="paren5">(<span class="paste"><a href="#make-image" class="symbol">png:make-image</a> <span class="paren6">(<span class="paste"><a href="#image-width" class="symbol">png:image-width</a> old</span>)</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="paren6">(<span class="paste"><a href="#image-height" class="symbol">png:image-height</a> old</span>)</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="paren6">(<span class="paste"><a href="#image-channels" class="symbol">png:image-channels</a> old</span>)</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="paren6">(<span class="paste"><a href="#image-bit-depth" class="symbol">png:image-bit-depth</a> old</span>)</span></span>)</span></span>)</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span class="paren4">(<span class="paste">m <span class="paren5">(<span class="paste"><a href="#image-width" class="symbol">png:image-width</a> old</span>)</span></span>)</span></span>)</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="paren3">(<span class="paste"><a href="http://www.lispworks.com/reference/HyperSpec/Body/m_dotime.htm" class="symbol">dotimes</a> <span class="paren4">(<span class="paste">i <span class="paren5">(<span class="paste"><a href="#image-height" class="symbol">png:image-height</a> new</span>)</span></span>)</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="paren4">(<span class="paste"><a href="http://www.lispworks.com/reference/HyperSpec/Body/m_dotime.htm" class="symbol">dotimes</a> <span class="paren5">(<span class="paste">j <span class="paren6">(<span class="paste"><a href="#image-width" class="symbol">png:image-width</a> new</span>)</span></span>)</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;<span class="paren5">(<span class="paste"><a href="http://www.lispworks.com/reference/HyperSpec/Body/m_dotime.htm" class="symbol">dotimes</a> <span class="paren6">(<span class="paste">k <span class="paren1">(<span class="paste"><a href="#image-channels" class="symbol">png:image-channels</a> new</span>)</span></span>)</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;<span class="paren6">(<span class="paste"><a href="http://www.lispworks.com/reference/HyperSpec/Body/a_setf.htm" class="symbol">setf</a> <span class="paren1">(<span class="paste"><a href="http://www.lispworks.com/reference/HyperSpec/Body/f_aref.htm" class="symbol">aref</a> new i j k</span>)</span> <span class="paren1">(<span class="paste"><a href="http://www.lispworks.com/reference/HyperSpec/Body/f_aref.htm" class="symbol">aref</a> old j <span class="paren2">(<span class="paste"><a href="http://www.lispworks.com/reference/HyperSpec/Body/a__.htm" class="symbol">-</a> m i 1</span>)</span> k</span>)</span></span>)</span></span>)</span></span>)</span></span>)</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="paren3">(<span class="paste"><a href="http://www.lispworks.com/reference/HyperSpec/Body/m_w_open.htm" class="symbol"><i><span class="symbol">with-open-file</span></i></a> <span class="paren4">(<span class="paste">output output-pathname <span class="keyword">:element-type</span> '<span class="paren5">(<span class="paste"><a href="http://www.lispworks.com/reference/HyperSpec/Body/t_unsgn_.htm" class="symbol">unsigned-byte</a> 8</span>)</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">:direction</span> <span class="keyword">:output</span> <span class="keyword">:if-exists</span> <span class="keyword">:supersede</span></span>)</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="paren4">(<span class="paste"><a href="#encode" class="symbol">png:encode</a> new output</span>)</span></span>)</span></span>)</span></span>)</span></span></tt></td></tr></table>
+
+<div class="narrow">
+<h2><a name="API">API reference</a></h2>
+
+<p><a name="image"><i>Type</i> <b>IMAGE</b></a>
+
+<p><b>Supertypes:</b><p><a
+href="http://www.lispworks.com/documentation/HyperSpec/Body/t_array.htm"><b>array</b></a>,
+<a href="http://www.lispworks.com/documentation/HyperSpec/Body/t_t.htm"><b>t</b></a>
+
+<p><b>Description:</b> <p>An image is a three-dimensional array of
+<tt>(unsigned-byte 8)</tt> or <tt>(unsigned-byte 16)</tt>.  The three
+dimensions represent row, column, and <a
+href="http://en.wikipedia.org/wiki/Channel_(digital_image)">channel</a>.
+In other words, <tt>(aref image i j k)</tt> is the intensity in the
+<tt>k</tt>-th channel of the pixel in the <tt>i</tt>-th row and
+<tt>j</tt>-th column of <tt>image</tt>.</p>
+
+
+<p>In the current version, an image is displaced to a one-dimensional
+<a
+href="http://www.lispworks.com/documentation/HyperSpec/Body/t_smp_ar.htm"><b>simple-array</b></a>
+with the same total number of elements, but applications should not
+rely on this implementation detail, as it is likely to change in
+future versions.  Also, the <a
+href="http://www.lispworks.com/documentation/HyperSpec/Body/t_smp_ar.htm"><b>simple-array</b></a>
+must be allocated in the a static area on some Lisp implementations.
+For these reasons, you should use <a
+href="#make-image"><b>make-image</b></a> to make your images rather
+than call <a
+href="http://www.lispworks.com/documentation/HyperSpec/Body/f_mk_ar.htm"><b>make-array</b></a>
+directly.
+
+
+<p><b>Compound Type Specifier Kind:</b>
+<p>Specializing.
+
+<p><b>Compound Type Specifier Syntax:</b>
+<p><b>image</b> <i>[{ height
+    | <a href="http://www.lispworks.com/documentation/HyperSpec/Body/a_st.htm#ST">*</a>
+    } { width
+    | <a href="http://www.lispworks.com/documentation/HyperSpec/Body/a_st.htm#ST">*</a>
+    } { channels
+    | <a href="http://www.lispworks.com/documentation/HyperSpec/Body/a_st.htm#ST">*</a>
+    }]</i>
+
+<p><b>Compound Type Specifier Arguments:</b>
+<p><i>height, width, channels</i>---<a
+href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_v.htm#valid_array_dimension">valid
+array dimensions</a>
+
+<hr>
+
+<p><a name="8-bit-image"><i>Type</i> <b>8-BIT-IMAGE</b></a>
+
+<p><b>Supertypes:</b><p><a href="#image"><b>image</b></a>, <a href="http://www.lispworks.com/documentation/HyperSpec/Body/t_array.htm"><b>array</b></a>,
+<a href="http://www.lispworks.com/documentation/HyperSpec/Body/t_t.htm"><b>t</b></a>
+
+<p><b>Description:</b>
+<p>An <a href="#image"><b>image</b></a> with <a
+href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_a.htm#array_element_type">element type</a>
+<code>(unsigned-byte 8)</code>.</p>
+
+<p><b>Compound Type Specifier Kind:</b>
+<p>Specializing.
+
+<p><b>Compound Type Specifier Syntax:</b>
+<p><b>8-bit-image</b>  <i>[{ height
+    | <a href="http://www.lispworks.com/documentation/HyperSpec/Body/a_st.htm#ST">*</a>
+    } { width
+    | <a href="http://www.lispworks.com/documentation/HyperSpec/Body/a_st.htm#ST">*</a>
+    } { channels
+    | <a href="http://www.lispworks.com/documentation/HyperSpec/Body/a_st.htm#ST">*</a>
+    }]</i>
+
+<p><b>Compound Type Specifier Arguments:</b>
+<p><i>height, width, channels</i>---<a
+href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_v.htm#valid_array_dimension">valid
+array dimensions</a>
+
+<hr>
+
+<p><a name="16-bit-image"><i>Type</i> <b>16-BIT-IMAGE</b></a>
+
+<p><b>Supertypes:</b><p><a href="#image"><b>image</b></a>, <a href="http://www.lispworks.com/documentation/HyperSpec/Body/t_array.htm"><b>array</b></a>,
+<a href="http://www.lispworks.com/documentation/HyperSpec/Body/t_t.htm"><b>t</b></a>
+
+<p><b>Description:</b>
+<p>An <a href="#image"><b>image</b></a> with <a
+href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_a.htm#array_element_type">element type</a>
+<code>(unsigned-byte 16)</code>.</p>
+
+<p><b>Compound Type Specifier Kind:</b>
+<p>Specializing.
+
+<p><b>Compound Type Specifier Syntax:</b>
+<p><b>8-bit-image</b>  <i>[{ height
+    | <a href="http://www.lispworks.com/documentation/HyperSpec/Body/a_st.htm#ST">*</a>
+    } { width
+    | <a href="http://www.lispworks.com/documentation/HyperSpec/Body/a_st.htm#ST">*</a>
+    } { channels
+    | <a href="http://www.lispworks.com/documentation/HyperSpec/Body/a_st.htm#ST">*</a>
+    }]</i>
+
+<p><b>Compound Type Specifier Arguments:</b>
+<p><i>height, width, channels</i>---<a
+href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_v.htm#valid_array_dimension">valid
+array dimensions</a>
+
+<hr>
+
+<p><a name="grayscale-image"><i>Type</i> <b>GRAYSCALE-IMAGE</b></a>
+
+<p><b>Supertypes:</b><p><a href="#image"><b>image</b></a>, <a href="http://www.lispworks.com/documentation/HyperSpec/Body/t_array.htm"><b>array</b></a>,
+<a href="http://www.lispworks.com/documentation/HyperSpec/Body/t_t.htm"><b>t</b></a>
+
+<p><b>Description:</b>
+<p>An <a href="#image"><b>image</b></a> with one <a href="http://en.wikipedia.org/wiki/Channel_(digital_image)">channel</a>.</p>
+
+<p><b>Compound Type Specifier Kind:</b>
+<p>Specializing.
+
+<p><b>Compound Type Specifier Syntax:</b>
+<p><b>grayscale-image</b> <i>[{ height
+    | <a href="http://www.lispworks.com/documentation/HyperSpec/Body/a_st.htm#ST">*</a>
+    } { width
+    | <a href="http://www.lispworks.com/documentation/HyperSpec/Body/a_st.htm#ST">*</a>
+    }]</i>
+
+<p><b>Compound Type Specifier Arguments:</b>
+<p><i>height, width</i>---<a
+href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_v.htm#valid_array_dimension">valid
+array dimensions</a>
+
+<p><b>Notes:</b>
+<p><tt>(grayscale-image n m) == (image n m 1)</tt>
+
+<hr>
+
+<p><a name="rgb-image"><i>Type</i> <b>RGB-IMAGE</b></a>
+
+<p><b>Supertypes:</b><p><a href="#image"><b>image</b></a>, <a href="http://www.lispworks.com/documentation/HyperSpec/Body/t_array.htm"><b>array</b></a>,
+<a href="http://www.lispworks.com/documentation/HyperSpec/Body/t_t.htm"><b>t</b></a>
+
+<p><b>Description:</b>
+<p>An <a href="#image"><b>image</b></a> with three <a href="http://en.wikipedia.org/wiki/Channel_(digital_image)">channels</a>.</p>
+
+<p><b>Compound Type Specifier Kind:</b>
+<p>Specializing.
+
+<p><b>Compound Type Specifier Syntax:</b>
+<p><b>rgb-image</b> <i>[{ height
+    | <a href="http://www.lispworks.com/documentation/HyperSpec/Body/a_st.htm#ST">*</a>
+    } { width
+    | <a href="http://www.lispworks.com/documentation/HyperSpec/Body/a_st.htm#ST">*</a>
+    }]</i>
+
+<p><b>Compound Type Specifier Arguments:</b>
+<p><i>height, width</i>---<a
+href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_v.htm#valid_array_dimension">valid
+array dimensions</a>
+
+<p><b>Notes:</b>
+<p><tt>(rgb-image n m) == (image n m 3)</tt>
+
+<hr>
+
+<p><a name="make-image"><i>Function</i> <b>MAKE-IMAGE</b></a>
+
+<p><b>Syntax:</b>
+
+<p><b>make-image</b> <i>height width channels <tt>&amp;optional</tt> bit-depth</i> => <i>image</i>
+
+<p><b>Arguments and Values:</b>
+
+<p><i>height, width, channels</i>---<a
+href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_v.htm#valid_array_dimension">valid
+array dimensions</a>
+
+<p><i>bit-depth</i>---either 8, or 16, or <b>nil</b>
+
+<p><i>image</i>---an <a href="#image"><b>image</b></a>
+
+<p><b>Description:</b> <p>Makes a new <a
+href="#image"><b>image</b></a> with the specified height, width, and
+number of <a
+href="http://en.wikipedia.org/wiki/Channel_(digital_image)">channels</a>.
+The image will be an <a href="#8-bit-image"><b>8-bit-image</b></a> if
+<i>bit-depth</i> is 8 or <b>nil</b>, and a <a
+href="#16-bit-image"><b>16-bit-image</b></a> if <i>bit-depth</i> is
+16.  The contents of the image are undefined.
+
+<hr>
+
+<p><a name="image-height"><i>Function</i> <b>IMAGE-HEIGHT</b></a>
+
+<p><b>Syntax:</b>
+
+<p><b>image-height</b> <i>image</i> => <i>height</i>
+
+<p><b>Arguments and Values:</b>
+
+<p><i>image</i>---an <a href="#image"><b>image</b></a>
+<p><i>height</i>---a <a
+href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_v.htm#valid_array_dimension">valid
+array dimension</a>
+
+<p><b>Description:</b>
+<p>Returns the height of <i>image</i>, i.e., the number of rows.</p>
+
+<hr>
+<p><a name="image-width"><i>Function</i> <b>IMAGE-WIDTH</b></a>
+
+<p><b>Syntax:</b>
+
+<p><b>image-width</b> <i>image</i> => <i>width</i>
+
+<p><b>Arguments and Values:</b>
+
+<p><i>image</i>---an <a href="#image"><b>image</b></a>
+<p><i>width</i>---a <a
+href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_v.htm#valid_array_dimension">valid
+array dimension</a>
+
+<p><b>Description:</b>
+<p>Returns the width of <i>image</i>, i.e., the number of columns.</p>
+
+<hr>
+
+<p><a name="image-channels"><i>Function</i> <b>IMAGE-CHANNELS</b></a>
+
+<p><b>Syntax:</b>
+<p><b>image-channels</b> <i>image</i> => <i>channels</i>
+
+<p><b>Arguments and Values:</b>
+<p><i>image</i>---an <a href="#image"><b>image</b></a>
+<p><i>channels</i>---a <a
+href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_v.htm#valid_array_dimension">valid
+array dimension</a>
+
+<p><b>Description:</b>
+<p>Returns the number
+of <a href="http://en.wikipedia.org/wiki/Channel_(digital_image)">channels</a>
+in <i>image</i>.  Grayscale images have one channel, whereas RGB
+images have three.</p>
+
+<hr>
+
+<p><a name="image-bit-depth"><i>Function</i> <b>IMAGE-BIT-DEPTH</b></a>
+
+<p><b>Syntax:</b>
+<p><b>image-bit-depth</b> <i>image</i> => <i>bit-depth</i>
+
+<p><b>Arguments and Values:</b>
+<p><i>image</i>---an <a href="#image"><b>image</b></a>
+<p><i>bit-depth</i>---either 8 or 16
+
+<p><b>Description:</b> <p>Returns the bit-depth of the image, i.e.,
+the number of bits in the byte representing each sample.  The bit
+depth of an <a href="#8-bit-image"><b>8-bit-image</b></a> is 8, and
+the bit-depth of a <a href="#16-bit-image"><b>16-bit-image</b></a> is
+16.</p>
+
+<hr>
+
+<p><a name="copy-image"><i>Function</i> <b>COPY-IMAGE</b></a>
+
+<p><b>Syntax:</b>
+<p><b>copy-image</b> <i>image</i> => <i>copied-image</i>
+
+<p><b>Arguments and Values:</b>
+<p><i>image</i>---an <a href="#image"><b>image</b></a>
+<p><i>copied-image</i>---an <a href="#image"><b>image</b></a>
+
+<p><b>Description:</b> <p>Creates a copy of <i>image</i>.  The
+elements of the new image are the <a
+href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_s.htm#same">same</a>
+as the corresponding elements of <i>image</i>, and <i>copied-image</i>
+has the same height, width, number of channels, and bit depth as
+<i>image</i>.</p>
+
+<hr>
+
+<p><a name="f_8-bit-image"><i>Function</i> <b>8-BIT-IMAGE</b></a>
+
+<p><b>Syntax:</b>
+<p><b>8-bit-image</b> <i>image</i> => <i>result-image</i>
+
+<p><b>Arguments and Values:</b>
+<p><i>image</i>---an <a href="#image"><b>image</b></a>
+<p><i>result-image</i>---an <a href="#image"><b>image</b></a>
+
+<p><b>Description:</b> <p>If <i>image</i> is an <a
+href="#8-bit-image"><b>8-bit-image</b></a>, return it or a copy of it.
+If <i>image</i> is a <a href="#16-bit-image"><b>16-bit-image</b></a>,
+return an <a href="#8-bit-image"><b>8-bit-image</b></a> that has the
+same width, height, and number of channels as <i>image</i>, but where
+each element is the corresponding element in <i>image</i> divided by
+257 and rounded to the nearest integer.  The effect of this division
+is to compress the dynamic range of the image so as to fit within the
+smaller bit depth.</p>
+
+<hr>
+
+<p><a name="f_16-bit-image"><i>Function</i> <b>16-BIT-IMAGE</b></a>
+
+<p><b>Syntax:</b>
+<p><b>16-bit-image</b> <i>image</i> => <i>result-image</i>
+
+<p><b>Arguments and Values:</b>
+<p><i>image</i>---an <a href="#image"><b>image</b></a>
+<p><i>result-image</i>---an <a href="#image"><b>image</b></a>
+
+<p><b>Description:</b> <p>If <i>image</i> is a <a
+href="#16-bit-image"><b>16-bit-image</b></a>, return it or a copy of
+it.  If <i>image</i> is an <a
+href="#8-bit-image"><b>8-bit-image</b></a>, return a <a
+href="#16-bit-image"><b>16-bit-image</b></a> that has the same width,
+height, and number of channels as <i>image</i>, but where each element
+is the corresponding element in <i>image</i> multiplied by 257.  The
+effect of this multiplication is to stretch the dynamic range of the
+image to utilize the increased bit depth.</p>
+
+<hr>
+
+<p><a name="decode"><i>Function</i> <b>DECODE</b></a>
+
+<p><b>Syntax:</b>
+<p><b>decode</b> <i>input</i> => <i>image</i>
+
+<p><b>Arguments and Values:</b>
+<p><i>input</i>---an fd <a
+href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_i.htm#input">input</a>
+<a href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_s.htm#stream">stream</a></p>
+<p><i>image</i>---an <a href="#image"><b>image</b></a>
+
+<p><b>Description:</b> <p>Reads an image in PNG format from
+<i>input</i> and returns an array of type <a
+href="#image"><b>image</b></a>.  If the bit depth of the PNG file is
+less than or equal to 8, an <a
+href="#8-bit-image"><b>8-bit-image</b></a> will be returned;
+otherwise, a <a href="#16-bit-image"><b>16-bit-image</b></a> will be
+returned.
+
+<p>Applications that would like to receive images of consistent bit
+depth (rather than 8 or 16 depending on the PNG file) can apply the
+function <a href="#f_8-bit-image"><b>8-bit-image</b></a> or the
+function <a href="#f_16-bit-image"><b>16-bit-image</b></a> to the
+result of <b>decode</b>.
+
+<p>An image with bit depths below 8 will be converted to 8 bits when
+read, and an image with bit depths between 8 and 16 bits will be
+converted to 16 bits.  As an example, a 2-bit PNG file contains only the
+pixel values 0, 1, 2, and 3.  These will be converted to 0, 85, 170,
+and 255, respectively, in order to fill the dynamic range of the 8-bit
+image that is returned.
+
+<p><b>Exceptional Situations:</b>
+<p>Signals
+an <a href="http://www.lispworks.com/documentation/HyperSpec/Body/e_error.htm#error"><b>error</b></a>
+if reading the image fails.</p>
+
+<hr>
+
+<p><a name="encode"><i>Function</i> <b>ENCODE</b></a>
+
+<p><b>Syntax:</b>
+<p><b>encode</b> <i>image</i> <i>output</i> => <a
+href="http://www.lispworks.com/documentation/HyperSpec/Body/a_t.htm"><b><i>t</i></b></a>
+
+<p><b>Arguments and Values:</b>
+<p><i>image</i>---a <a href="#grayscale-image"><i>grayscale-image</i></a> or <a href="#rgb-image"><i>rgb-image</i></a> 
+<p><i>output</i>---an fd <a
+href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_o.htm#output">output</a>
+<a href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_s.htm#stream">stream</a></p>
+
+<p><b>Description:</b> <p>Writes <i>image</i> in PNG format to
+<i>output</i>.  The current version always writes an 8-bit PNG file if
+<i>image</i> is an <a href="#8-bit-image"><b>8-bit-image</b></a> and a
+16-bit PNG file if <i>image</i> is an <a
+href="#16-bit-image"><b>16-bit-image</b></a>.  Future versions may
+write PNG files of lower bit depths than <i>image</i> when the least
+significant bits may be trimmed without loss of precision.
+
+<p><b>Exceptional Situations:</b> <p>Signals an <a
+href="http://www.lispworks.com/documentation/HyperSpec/Body/e_error.htm#error"><b>error</b></a>
+if writing the image fails.
+</p>
+
+<hr>
+
+<h2><a name="Index">SYMBOL INDEX:</a></h2>
+
+<ul>
+  <li><a href="#8-bit-image"><b>8-bit-image</b></a> (type)
+  <li><a href="#f_8-bit-image"><b>8-bit-image</b></a> (function)
+  <li><a href="#16-bit-image"><b>16-bit-image</b></a> (type)
+  <li><a href="#f_16-bit-image"><b>16-bit-image</b></a> (function)
+  <li><a href="#copy-image"><b>copy-image</b></a>
+  <li><a href="#decode"><b>decode</b></a>
+  <li><a href="#encode"><b>encode</b></a>
+  <li><a href="#grayscale-image"><b>grayscale-image</b></a>
+  <li><a href="#image"><b>image</b></a>
+  <li><a href="#image-bit-depth"><b>image-bit-depth</b></a>
+  <li><a href="#image-channels"><b>image-channels</b></a>
+  <li><a href="#image-height"><b>image-height</b></a>
+  <li><a href="#image-width"><b>image-width</b></a>
+  <li><a href="#make-image"><b>make-image</b></a>
+  <li><a href="#rgb-image"><b>rgb-image</b></a>
+</ul>
+
+<hr>
+
+<p>Last updated: 2013-07-24</p>
+</div>
+</BODY>
+</HTML>

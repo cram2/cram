@@ -4,11 +4,17 @@
   <arg name="boxy" default="false" />
   <arg name="donbot" default="false" />
   <arg name="kukabot" default="false" />
+<<<<<<< HEAD
+  <arg name="tiago" default="false" />
+=======
   <arg name="hsrb" default="false" />
+>>>>>>> noetic
 
   <!-- choose environment -->
   <arg name="household" default="false" />
   <arg name="retail" default="false" />
+  <arg name="storage" default="false" />
+  <arg name="apartment" default="false" />
 
   <!-- upload or not upload the robot description (in case one is already uploaded) -->
   <arg name="upload_robot" default="true" />
@@ -17,8 +23,11 @@
   <!-- this is mostly used to examine the URDF and use the GUI sliders etc. -->
   <arg name="publish_robot" default="false" />
 
+  <!-- environment joint state is always publishes but GUI can be turned off or on -->
+  <arg name="environment_gui" default="false" />
+
   <!-- upload the occupancy map or not -->
-  <arg name="occupancy_map" default="true" />
+  <arg name="occupancy_map" default="false" />
 
   <!-- start the tf2 buffer server -->
   <arg name="tf2_buffer" default="false" />
@@ -34,16 +43,24 @@
       <include file="$(find iai_boxy_description)/launch/upload_boxy.launch" />
     </group>
     <group if="$(arg donbot)">
-      <include file="$(find iai_donbot_description)/launch/upload_with_refills_finger.launch" />
+      <param name="robot_description"
+             command="$(find xacro)/xacro
+                      '$(find cram_projection_demos)/resource/robots/iai_donbot.urdf.xacro'" />
     </group>
     <group if="$(arg kukabot)">
       <include file="$(find iai_kmr_iiwa_description)/launch/upload_kmr_iiwa.launch" />
     </group>
+    <group if="$(arg tiago)">
+      <include file="$(find tiago_dual_description)/robots/upload.launch">
+        <arg name="end_effector_left" value="pal-gripper" />
+        <arg name="end_effector_right" value="pal-gripper" />
+      </include>
+
     <group if="$(arg hsrb)">
     <param name="robot_description"
            command="$(find xacro)/xacro
                     '$(find hsr_description)/robots/hsrb4s.urdf.xacro'"/>
-    </group>
+     </group>
   </group>
 
   <!-- robot state publisher -->
@@ -77,13 +94,23 @@
                       '$(find iai_refills_lab)/urdf/dm_room.urdf.xacro'"/>
     </group>
   </group>
+  <group if="$(arg storage)">
+    <param name="kitchen_description"
+           command="$(find xacro)/xacro
+                    '$(find cram_projection_demos)/resource/retail/storage.urdf.xacro'"/>
+  </group>
+  <group if="$(arg apartment)">
+    <param name="kitchen_description"
+           command="$(find xacro)/xacro
+                    '$(find iai_apartment)/urdf/apartment.urdf'"/>
+  </group>
 
   <!-- environment state publisher -->
   <node pkg="joint_state_publisher" type="joint_state_publisher"
         name="environment_joint_state_publisher" output="screen">
     <remap from="robot_description" to="kitchen_description"/>
     <param name="rate" value="25"/>
-    <param name="use_gui" value="False"/>
+    <param name="use_gui" value="$(arg environment_gui)"/>
     <remap from="joint_states" to="kitchen/joint_states" />
     <rosparam param="source_list">
       - /kitchen/cram_joint_states
@@ -96,9 +123,16 @@
     <remap from="robot_description" to="kitchen_description" />
     <remap from="joint_states" to="kitchen/joint_states" />
   </node>
-  <node pkg="tf" type="static_transform_publisher" name="kitchen_link_broadcaster"
-        args="0 0 0 0 0 0 /map /iai_kitchen/world 25">
-  </node>
+  <group if="$(arg apartment)">
+    <node pkg="tf" type="static_transform_publisher" name="kitchen_link_broadcaster"
+          args="0 0 0 0 0 0 /map /iai_kitchen/apartment_root 25">
+    </node>
+  </group>
+  <group unless="$(arg apartment)">
+    <node pkg="tf" type="static_transform_publisher" name="kitchen_link_broadcaster"
+          args="0 0 0 0 0 0 /map /iai_kitchen/world 25">
+    </node>
+  </group>
 
   <!-- environment occupancy maps  -->
   <group if="$(arg occupancy_map)">

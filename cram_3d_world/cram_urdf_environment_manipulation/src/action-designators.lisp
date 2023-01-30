@@ -1,5 +1,6 @@
 ;;;
 ;;; Copyright (c) 2018, Christopher Pollok <cpollok@uni-bremen.de>
+;;;               2022, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -40,15 +41,28 @@
     (man-int:object-type-subtype :container ?container-type)
     (spec:property ?container-designator (:urdf-name ?container-name))
     (spec:property ?container-designator (:part-of ?btr-environment))
-    (-> (spec:property ?container-designator (:handle-axis ?handle-axis))
-        (true)
-        (lisp-fun get-handle-axis ?container-designator ?handle-axis))
+    ;; find the handle which should be grasped
+    (lisp-fun get-handle-link ?container-name ?btr-environment
+              ?handle-link-object)
+    (lisp-fun cl-urdf:name ?handle-link-object ?handle-link-string)
+    (lisp-fun roslisp-utilities:lispify-ros-underscore-name
+              ?handle-link-string :keyword ?handle-link)
+    ;; find the arm to use for the action
+    (rob-int:robot ?robot)
     (-> (spec:property ?action-designator (:arm ?arm))
         (true)
-        (man-int:robot-free-hand ?_ ?arm))
-    (lisp-fun get-container-link ?container-name ?btr-environment ?container-link)
+        (man-int:robot-free-hand ?robot ?arm))
+    ;; find the grasp type
+    (-> (spec:property ?action-designator (:grasp ?grasp))
+        (true)
+        (and (lisp-fun man-int:get-action-grasps :handle ?arm nil ?grasps)
+             (member ?grasp ?grasps)))
+    ;; find the joint
+    (lisp-fun get-environment-link ?container-name ?btr-environment ?container-link)
     (lisp-fun get-connecting-joint ?container-link ?connecting-joint)
+    (lisp-fun cl-urdf:name ?connecting-joint ?joint-name)
 
+    ;; find the target joint state to open / close to
     (-> (spec:property ?action-designator (:distance ?distance))
         (true)
         (-> (equal ?action-type :opening)
@@ -72,15 +86,6 @@
               ?action-type
               ?clipped-distance)
 
-    ;; infer joint information
-    ;; joint-name
-    (lisp-fun get-handle-link ?container-name ?btr-environment
-              ?handle-link-object)
-    (lisp-fun cl-urdf:name ?handle-link-object ?handle-link-string)
-    (lisp-fun roslisp-utilities:lispify-ros-underscore-name
-              ?handle-link-string :keyword ?handle-link)
-    (lisp-fun cl-urdf:name ?connecting-joint ?joint-name)
-
     ;; environment
     (btr:bullet-world ?world)
     (lisp-fun btr:object ?world ?btr-environment ?environment-object)
@@ -95,26 +100,12 @@
     (lisp-fun man-int:get-action-gripper-opening ?container-type
               ?gripper-opening)
 
-    ;; TODO: this is here so far only for logging, in the future we should
-    ;; implement grasps such as front grasp, top grasp etc.
-    ;; and incorporate this into GET-ACTION-TRAJECTORY
-    (-> (spec:property ?action-designator (:grasp ?grasp))
-        (true)
-        (or (and
-             (lisp-fun get-container-pose-and-transform ?container-name ?btr-environment
-                       (?_ ?object-transform))
-             (lisp-fun man-int:get-action-grasps ?container-type ?arm ?object-transform
-                       ?grasps)
-             (member ?grasp ?grasps))
-            (true)))
-
     ;; calculate trajectory
     (equal (?container-designator) ?objects)
     (-> (equal ?arm :left)
         (and (lisp-fun man-int:get-action-trajectory ?action-type
-                       ?arm NIL NIL ?objects
+                       ?arm ?grasp NIL ?objects
                        :opening-distance ?clipped-distance
-                       :handle-axis ?handle-axis
                        ?left-trajectory)
              (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory
                        :reaching
@@ -134,9 +125,8 @@
              (equal ?left-retract-poses NIL)))
     (-> (equal ?arm :right)
         (and (lisp-fun man-int:get-action-trajectory ?action-type
-                       ?arm NIL NIL ?objects
+                       ?arm ?grasp NIL ?objects
                        :opening-distance ?clipped-distance
-                       :handle-axis ?handle-axis
                        ?right-trajectory)
              (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory
                        :reaching
@@ -154,20 +144,26 @@
              (equal ?right-grasp-poses NIL)
              (equal ?right-manipulate-poses NIL)
              (equal ?right-retract-poses NIL)))
-    (or (lisp-pred identity ?left-trajectory)
-        (lisp-pred identity ?right-trajectory))
+    (once (or (lisp-pred identity ?left-trajectory)
+              (lisp-pred identity ?right-trajectory)))
 
     (-> (lisp-pred identity ?left-reach-poses)
         (equal ?left-reach-poses (?look-pose . ?_))
         (equal ?right-reach-poses (?look-pose . ?_)))
 
+    (-> (man-int:robot-arm-is-also-a-neck ?robot ?arm)
+        (equal ?robot-arm-is-also-a-neck T)
+        (equal ?robot-arm-is-also-a-neck NIL))
+
     ;; make new action designator
     (desig:designator :action ((:type ?action-type)
                                (:arm ?arm)
+                               (:grasp ?grasp)
                                (:gripper-opening ?gripper-opening)
                                (:distance ?clipped-distance)
                                (:absolute-distance ?absolute-distance)
                                (:look-pose ?look-pose)
+                               (:robot-arm-is-also-a-neck ?robot-arm-is-also-a-neck)
                                (:left-reach-poses ?left-reach-poses)
                                (:right-reach-poses ?right-reach-poses)
                                (:left-grasp-poses ?left-grasp-poses)

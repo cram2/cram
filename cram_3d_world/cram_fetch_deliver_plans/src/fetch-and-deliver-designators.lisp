@@ -89,13 +89,16 @@ the `look-pose-stamped'."
     (desig:current-designator ?some-location-designator ?location-designator)
     ;; robot-location
     (-> (man-int:location-always-reachable ?location-designator)
-        (lisp-fun cram-tf:robot-current-pose ?robot-rotated-pose)
-        (lisp-fun calculate-robot-navigation-goal-towards-target ?location-designator
-              ?robot-rotated-pose))
+        (and (lisp-fun cram-tf:robot-current-pose ?robot-rotated-pose)
+             (equal ?target-always-reachable T))
+        (and (lisp-fun calculate-robot-navigation-goal-towards-target ?location-designator
+                       ?robot-rotated-pose)
+             (equal ?target-always-reachable NIL)))
     (desig:designator :location ((:pose ?robot-rotated-pose)) ?robot-location)
     (desig:designator :action ((:type :turning-towards)
                                (:target ?location-designator)
-                               (:robot-location ?robot-location))
+                               (:robot-location ?robot-location)
+                               (:target-always-reachable ?target-always-reachable))
                       ?resolved-action-designator))
 
 
@@ -109,21 +112,19 @@ the `look-pose-stamped'."
     (spec:property ?action-designator (:location ?some-location-designator))
     (desig:current-designator ?some-location-designator ?location-designator)
     ;; object
-    (once (or (spec:property ?location-designator (:in ?some-object-designator))
-              (spec:property ?location-designator (:above ?some-object-designator))))
+    (once (or (and (or (spec:property ?location-designator (:in ?some-object-designator))
+                       (spec:property ?location-designator (:above ?some-object-designator)))
+                   (equal ?object-accessible nil))
+              (and (spec:property ?location-designator (:on ?some-object-designator))
+                   (equal ?object-accessible t))))
     (desig:current-designator ?some-object-designator ?object-designator)
     ;; location of the object that we are trying to access
     (once (or (spec:property ?object-designator (:location ?object-location-desig))
               (equal ?object-location-desig nil)))
-    ;; arm
-    (-> (spec:property ?action-designator (:arm ?arm))
+    ;; arms
+    (-> (spec:property ?action-designator (:arms ?arms))
         (true)
-        (man-int:robot-free-hand ?robot ?arm)
-        ;; (and (man-int:robot-free-hand ?robot ?arm)
-        ;;      (-> (spec:property ?object-designator (:type :fridge))
-        ;;          (equal ?arm :right)
-        ;;          (equal ?arm :left)))
-        )
+        (setof ?arm (man-int:robot-free-hand ?robot ?arm) ?arms))
     ;; distance
     (once (or (spec:property ?action-designator (:distance ?distance))
               (equal ?distance NIL)))
@@ -132,13 +133,14 @@ the `look-pose-stamped'."
                                                       ?some-robot-location))
                    (desig:current-designator ?robot-location ?robot-location))
               (desig:designator :location ((:reachable-for ?robot)
-                                           (:arm ?arm)
+                                           ;; (:arm ?arm)
                                            (:object ?object-designator))
                                 ?robot-location)))
     (desig:designator :action ((:type ?action-type)
                                (:object ?object-designator)
+                               (:object-accessible ?object-accessible)
                                (:object-location ?object-location-desig)
-                               (:arm ?arm)
+                               (:arms ?arms)
                                (:distance ?distance)
                                (:robot-location ?robot-location))
                       ?resolved-action-designator))
@@ -197,7 +199,6 @@ the `look-pose-stamped'."
     ;; arms
     (-> (spec:property ?action-designator (:arms ?arms))
         (true)
-        ;; (equal ?arms NIL)
         (setof ?arm (man-int:robot-free-hand ?robot ?arm) ?arms))
     ;; grasps
     (-> (spec:property ?action-designator (:grasps ?grasps))

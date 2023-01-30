@@ -1,10 +1,10 @@
 ;;;
 ;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
@@ -14,7 +14,7 @@
 ;;;       Technische Universitaet Muenchen nor the names of its contributors 
 ;;;       may be used to endorse or promote products derived from this software 
 ;;;       without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -31,14 +31,10 @@
 (cl:eval-when (:load-toplevel :execute)
   (asdf:operate 'asdf:load-op 'cffi-ros-utils))
 
-;; We need to use g++ instead of cc here because assimp doesn't
-;; typedef its structs which causes compilation to fail.
-(setf cffi-grovel::*cc* "g++")
-
 (defsystem cram-physics-utils
   :author "Lorenz Moesenlechner"
   :license "BSD"
-  
+
   :depends-on (cl-transforms cffi cffi-ros-utils cram-tf
                              ros-load-manifest roslisp
                              geometry_msgs-msg shape_msgs-msg)
@@ -56,4 +52,11 @@
              (:file "event-queue" :depends-on ("package"))
              (cffi-ros-utils:ros-grovel-file "assimp-grovel"
                                              :ros-package "cram_physics_utils"
-                                             :depends-on ("package"))))))
+                                             :depends-on ("package")))))
+
+  ;; We need to use g++ instead of cc here because assimp doesn't
+  ;; typedef its structs which causes compilation to fail.
+  :perform (asdf:prepare-op :after (operation cram-physics-utils-component)
+                            (setf cffi-toolchain:*cc* "g++"))
+  :perform (asdf:compile-op :after (operation cram-physics-utils-component)
+                            (setf cffi-toolchain:*cc* "cc")))

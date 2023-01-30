@@ -48,7 +48,7 @@
    #:check-arms-for-object-type
    #:object-in-arms
    #:object-type-subtype #:object-type-direct-subtype
-   #:robot-free-hand #:joint-state-for-arm-config
+   #:robot-free-hand #:robot-arm-is-also-a-neck #:joint-state-for-arm-config
    #:object-rotationally-symmetric
    #:orientation-matters
    #:unidirectional-attachment
@@ -104,13 +104,20 @@
    #:get-object-placement-transform
    #:def-object-type-in-other-object-transform
    #:get-object-look-from-pose
+   ;;
+   #:get-source-object-in-target-object-transform
+   #:get-tilt-angle-for-pouring
+   #:get-wait-duration-for-pouring
    ;; standard-grasps
    #:*x-across-z-grasp-rotation*
    #:*x-across-z-grasp-rotation-2*
    #:*-x-across-z-grasp-rotation*
    #:*-x-across-z-grasp-rotation-2*
    #:*x-across-y-grasp-rotation*
+   #:*x-across-y-30-deg-grasp-rotation*
+   #:*x-across-y-24-deg-grasp-rotation*
    #:*-x-across-y-grasp-rotation*
+   #:*-x-across-y-flipped-grasp-rotation*
    #:*y-across-z-grasp-rotation*
    #:*-y-across-z-grasp-rotation*
    #:*y-across-z-flipped-grasp-rotation*
@@ -124,8 +131,9 @@
    ;; standard-rotations
    #:*rotation-around-z-90-matrix*
    #:*rotation-around-z+90-matrix*
+   #:*rotation-around-z+180-matrix*
    #:*rotation-around-x+90-matrix*
-   #:*rotation-around-z-180-and-x+90-matrix*
+   #:*rotation-around-z-90-then-x+90-matrix*
    #:*identity-matrix*
    #:*rotation-around-x-180-matrix*
    #:*rotation-around-y-180-matrix*

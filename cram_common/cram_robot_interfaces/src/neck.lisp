@@ -31,7 +31,10 @@
 (def-fact-group neck (camera-frame
                       camera-minimal-height camera-maximal-height
                       camera-horizontal-angle camera-vertical-angle
-                      neck robot-neck-links robot-neck-joints robot-neck-base-link
+                      neck robot-neck-links robot-neck-joints
+                      robot-neck-pan-joint-forward-facing-axis-sign
+                      robot-neck-tilt-joint-forward-facing-axis-sign
+                      robot-neck-base-link
                       camera-in-neck-ee-pose
                       neck-camera-z-offset
                       neck-camera-pose-unit-vector-multiplier
@@ -70,6 +73,16 @@
   (<- (robot-neck-links ?robot ?pan-link ?tilt-link)
     (fail))
   (<- (robot-neck-joints ?robot ?pan-joint ?tilt-joint)
+    (fail))
+
+  ;; For necks with 2 joints
+  (<- (robot-neck-pan-joint-forward-facing-axis-sign ?robot
+                                                     ?axis-function
+                                                     ?sign)
+    (fail))
+  (<- (robot-neck-tilt-joint-forward-facing-axis-sign ?robot
+                                                      ?axis-function
+                                                      ?sign)
     (fail))
 
   ;; For necks with more than 2 joints

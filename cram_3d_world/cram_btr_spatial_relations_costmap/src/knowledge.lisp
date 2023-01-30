@@ -48,12 +48,15 @@
   (<- (%item-type-shape :mug :complex))
   (<- (%item-type-shape :plate :circle))
   (<- (%item-type-shape :fork :rectangle))
+  (<- (%item-type-shape :spoon :rectangle))
   (<- (%item-type-shape :knife :rectangle))
   (<- (%item-type-shape :big-knife :rectangle))
   (<- (%item-type-shape :weisswurst :rectangle))
   (<- (%item-type-shape :bread :rectangle))
   (<- (%item-type-shape :pancake-maker :circle))
   (<- (%item-type-shape :colored-box :rectangle))
+  (<- (%item-type-shape :cup :circle))
+
   (<- (%item-type-shape :spatula :rectangle))
   ;;
   (<- (item-type-shape ?type ?shape)
@@ -89,7 +92,7 @@
   (<- (object-type-padding-size :pancake-maker 0.018d0))
   (<- (object-type-padding-size :colored-box 0.1d0))
   (<- (object-type-padding-size :spatula 0.01d0))
-  (<- (object-type-padding-size :cup 0.1d0))
+  (<- (object-type-padding-size :cup 0.0d0))
   ;;
   (<- (padding-size ?world ?object-name ?padding)
     (btr:item-type ?world ?object-name ?object-type)
@@ -127,7 +130,7 @@
   (<- (%paddings-list :sink-area-surface :table-setting
                       (0.03d0 0.03d0 0.03d0 0.03d0)))
   (<- (%paddings-list :dining-area-jokkmokk-table-main :table-setting
-                      (0.1d0 0.1d0 0.1d0 0.1d0)))
+                      (0.03d0 0.03d0 0.03d0 0.03d0)))
   (<- (paddings-list ?environment-object-name :table-setting ?paddings-list)
     (setof ?object-name (%paddings-list ?object-name :table-setting ?_)
            ?defined-paddings-list-objects)
