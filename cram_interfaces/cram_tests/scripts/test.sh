@@ -51,7 +51,7 @@ for system in "${systems_under_test[@]}"; do
     create_test_script $system $report_file
     let starttime=$(date +%s)
     # if the tests get stuck, e.g. on a memory fault, terminate them after 3 minutes to continue
-    timeout 3m /usr/bin/sbcl --dynamic-space-size 8192 --noinform --load $tmp_test_script --quit
+    timeout 3m /usr/bin/sbcl --dynamic-space-size 8192 --noinform --disable-debugger --load $tmp_test_script --quit
     if [ $? -eq 124 ]
     then
         echo "Tests for system $system timed out after 3 minutes. Terminating."
