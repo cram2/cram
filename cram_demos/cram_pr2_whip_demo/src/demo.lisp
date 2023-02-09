@@ -191,7 +191,8 @@
 	       (target (desig:a location (pose ?pose-container)))))
     
     (let ((?object-container(urdf-proj::detect
-			     (desig:an object (type big-bowl)))))
+			     (desig:an object (type big-bowl))))
+          (?reso 4))
       
 
       ;; (exe:perform (desig:an action
@@ -203,10 +204,13 @@
       (exe:perform (desig:an action
                              (type whisking)
 			     (context :mix)
+                             (reso ?reso)
+
+                             ;; (sides ?reso)
                              (arm (:right))
                              (object ?object-container)
                              (grasp :top)
-                             (reso 4)
+                             
                              ))))))
 
 (defun testdesig()

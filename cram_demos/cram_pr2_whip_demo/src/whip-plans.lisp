@@ -69,7 +69,6 @@
   (format t "My action designator is executable; ~%
              flipping: object-type ~a object-name ~a arm: ~a grasp: ~a ~%"
 	  ?object-type ?object-name ?arms ?grasp)
-(format t "my reso is: ~a" ?reso)
 
 ;  (roslisp:ros-info (cut-pour pour) "Approaching")
 
@@ -105,8 +104,8 @@
                ;;(desig:when ?collision-mode
   	       (collision-mode :allow-all)))
     (cpl:sleep 2)
-
-  (if  (eq ?context :mix)
+  
+ (if  (eq ?context :mix)
     (exe:perform
      (desig:an action
                (type blending)

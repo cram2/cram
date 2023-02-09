@@ -44,8 +44,8 @@
                                                          objects-acted-on
                                                          &key
                                                          context
-                                                         reso  
-                                                           )
+                                                         reso
+                                                         )
                                                          
   (print "entered mixing")
   
@@ -57,8 +57,7 @@
          (object-type
            (desig:desig-prop-value object :type))
          (bTo
-           (man-int:get-object-transform object)
-         
+           (man-int:get-object-transform object)         
            )
 
          ;; The first part of the btb-offset transform encodes the
@@ -194,7 +193,7 @@
     ((object-type (eql :big-bowl))
      (arm (eql :left))
      (grasp (eql :top)))
-   '((0 -0.12  0.161)(1 0 0 0))) ;x -0.12
+   '((0 -0.12  0.161)(1 0 0 0)))
 
 ;;TODO: change name and numbers this name should be the same as the function belows
 (defmethod get-object-type-robot-frame-mix-approach-transform
@@ -224,16 +223,62 @@
 
 ;should be defined in household later--cos 12 is too close to rim
 ;decided to use the z axis as radius measure (important for mix center point calculation)
-(defmethod get-object-type-robot-frame-mix-rim-bottom-transform
-   ((object-type (eql :big-bowl)))
-  '((0.0 -0.12 0.06)(1 0 0 0)))
+;for top rim look at mix-approach-transform
+(defmethod get-object-type-robot-frame-mix-rim-grip-deep-approach-transform
+    ((object-type (eql :big-bowl))
+        (arm (eql :right))
+     (grasp (eql :top)))
+  '((0.0 -0.12 0.15)(1 0 0 0)))
 
-(defmethod get-object-type-robot-frame-mix-rim-top-transform
-   ((object-type (eql :big-bowl)))
-  '((0.0 -0.9 0.11)(1 0 0 0)))
+;;height depending on tool...center to bottom measurment
+;;-bowl bottom can be looked up in rim-bottom-transform ^
+;decided y is height/lenght of object from center grip
+ (defmethod get-object-type-robot-frame-mix-tool-grip-bottom-transform
+ ((object-type (eql :whisk))
+      (arm (eql :right))
+     (grasp (eql :top)))
+  '((0.02 -0.12 0.06)(1 0 0 0)))
+
 
 ;; =========  is in trajectory defined normaly ==========
+(defgeneric get-object-type-robot-frame-mix-rim-grip-deep-approach-transform (object-type arm grasp)
+  (:documentation "Returns a transform stamped")
+  (:method (object-type arm grasp)
+    (man-int::call-with-specific-type #'get-object-type-robot-frame-mix-rim-grip-deep-approach-transform
+                             object-type arm grasp)))
 
+(defmethod get-object-type-robot-frame-mix-rim-grip-deep-approach-transform  (object-type arm grasp)
+  (destructuring-bind
+      ((x y z) (ax ay az aw))
+      (call-next-method)
+    (cl-tf:transform->transform-stamped
+     cram-tf:*robot-base-frame*
+     cram-tf:*robot-base-frame*
+     0.0
+     (cl-tf:pose->transform
+      (cl-transforms:make-pose
+       (cl-transforms:make-3d-vector x y z)
+       (cl-transforms:make-quaternion ax ay az aw))))))
+
+(defgeneric get-object-type-robot-frame-mix-tool-grip-bottom-transform (object-type arm grasp)
+  (:documentation "Returns a transform stamped")
+  (:method (object-type arm grasp)
+    (man-int::call-with-specific-type #'get-object-type-robot-frame-mix-tool-grip-bottom-transform
+                             object-type arm grasp)))
+
+(defmethod get-object-type-robot-frame-mix-tool-grip-bottom-transform  (object-type arm grasp)
+  (destructuring-bind
+      ((x y z) (ax ay az aw))
+      (call-next-method)
+    (cl-tf:transform->transform-stamped
+     cram-tf:*robot-base-frame*
+     cram-tf:*robot-base-frame*
+     0.0
+     (cl-tf:pose->transform
+      (cl-transforms:make-pose
+       (cl-transforms:make-3d-vector x y z)
+       (cl-transforms:make-quaternion ax ay az aw))))))
+   
 (defgeneric get-object-type-robot-frame-mix-grip-retract-transform (object-type arm grasp)
   (:documentation "Returns a transform stamped")
   (:method (object-type arm grasp)
@@ -319,26 +364,23 @@
         (defaultreso 12)
 	)
 
-    (if (eq context :mix-eclipse) (setf erate 0.03))
-    (print reso)
-   ; (if (> reso 2) (setf defaultreso reso))
-
-    (setf angle (/(* 2  pi) defaultreso));reso))
-    ;(and (setf angle (/(* 2 pi) ?reso)) (setf defaultreso ?reso))
- ;   )
-    
+    ;(if (eq context :mix-eclipse) (setf erate 0.03))
+   ; (if (not reso))
+   ; (if (null reso) (print "reso is nil")
+   ;     (if (> reso 2) (setf defaultreso reso)))    
+    (setf angle (/(* 2  pi) defaultreso))
     
  ;defaultreso is this case is jsut the holder for whatever ?reso was decided on or real default reso- look above
-    (if (eq context :mix)
+   ; (if (eq context :mix)
         (loop while (<= x defaultreso)
   do (setf x   (+ x  1))           ; or better: do (decf row)
     collect  (change-v pose :x-offset (* erate (* containerrim (cos (* x angle))))
 			    :y-offset (* containerrim (sin (* x angle))))
 		  
-              ))
-    (if (eq context :mix-orbit)
-       (orbital-poses pose reso)
-        )
+              )
+   ; (if (eq context :mix-orbit)
+    ;   (orbital-poses pose reso)
+     ;   ))
 
     )) 
 
@@ -472,11 +514,12 @@
   ;; iteration through psi
   (let
     ((positions (list pose))
-    (part (/ 360 12)) ;make sure it's int
+    (part (/ 360 12)) ;make sure its int
      (angle (/(* 2 pi)(/ 360 12))) ; 12 is replacment for reso for now
      (currentpose pose)
 	      )
 
+    ()
 
   (loop for x from 1 to part
 	; resolution of circle; angle from 0 to (*2 pi) ;phi in radians
@@ -493,28 +536,6 @@
 ;(print "translating spiral poses to otb")
 
     ))))
-
-;; (defun get-circle-poses(reso)
-;;   (print "whisking circle calculated")
-;;     (let
-;;     ((positions get-object-type-robot-frame-mix-approach-transform)
-;;     (part (/ 360 reso)) ;make sure it's int
-;;      (angle (/(* 2 pi)(/ 360 reso)))
-;;      (currentpose get-object-type-robot-frame-mix-approach-transform)
-;;      )
-      
-;;   (loop for x from 1 to part
-;; 	; resolution of circle; angle from 0 to (*2 pi) ;phi in radians
-;; 	do
-;; 	   (* (cos (* angle part)) (currentpose )); = x
-;; 	   (* (sin (* angle part)) r) ; =y
-;; 	   (cons positions
-		 
-;; 	;	(change-v (currentpose :x-offset () :y-offset ())) ;<- ==r
-;; ;r = get 
-;; 					;pi 2*r ; (x-h)² +(y-v)² = r² while h,v center(h = horizontal, v = vertical) of circle and r radius
-;;   ;x= r * cos +x; y= r*sin +y 
-;;   ))))
 
 ;; =========  is in trajectory defined normly ==========
 (defun get-flip-tilt-poses (grasp approach-poses &optional (angle (cram-math:degrees->radians 15))
