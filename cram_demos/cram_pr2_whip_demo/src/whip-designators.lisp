@@ -11,7 +11,10 @@
     (spec:property ?current-object-desig (:type ?object-type))
     (spec:property ?current-object-desig (:name ?object-name))
     (spec:property ?action-designator (:context ?context))
-       
+     (-> (spec:property ?action-designator (:reso ?reso))
+        (true)
+        (format "no reso specified"))
+    
     
     ;; ==============   extract arms or set arms               ==============
     (man-int:arms-for-object-type ?object-type ?arms-for-object)
@@ -19,6 +22,7 @@
         (-> (spec:property ?action-designator (:arm ?arm))
 	    (true)
 	    (format "Please set a specific arm ~%")))
+    
 
 
     ;; ==============  infer missing information like ?grasp   ==============
@@ -35,41 +39,6 @@
     ;;(lisp-fun man-int:get-action-gripping-effort ?object-type ?effort)
     ;;(lisp-fun man-int:get-action-gripper-opening ?object-type ?gripper-opening)
 
-;temporary ..stay 
-   ; (->( equal ?reso nil)
-    ;(true))
-    ;;======infer reso AHHHHHHH?! =====
-  ;  (format "printout: ~a" (type-of ?action-designator))
-                                        ;         (get-reso-from-list ?action-designator) ; (cdr (assoc ,:reso ,?action-designator :reso #'equal)))
-    (->(spec:property ?action-designator (:reso ?reso))
-       (true)
-       (format "no reso. Reso is :~a" ?reso); (lisp-fun get-action-reso ?reso)
-       )
-       (->(equal 12 ?reso); true ..cos reso is nil laughs in sadness where is my 4
-    (true))
-    ;    (?reso is (get-action-reso ?reso))
-     ;   )
-;   (defmacro getassoc (key alist)
-;  `(cdr (assoc ,key ,alist :test #'equal)))
-
-;(defun get-object-transform (object-designator)
- ; (car (getassoc :transform (desig:desig-prop-value object-designator :pose))))
-
-       ;(and  (format "reso was nil and set to: ~a" ?reso)
-        ;    (get-action-reso :reso)
-         ;   ))
-          ;  (format "reso is prolly not nil ~a" ?reso)
-       ; )
-      ;  (lisp-fun get-action-reso ?reso))
-         ;   (format "reso is:  ~a" ?reso))
-      ;  (true))
-      ; (equal ?reso 12)) ;default reso
-    
-	     ;TODO reso changes (and (lisp-fun get-default-reso ?reso)
-	    
- 
-  ;      (true)
-       ;)   
     
     ;;TODO: THIS STAYS THE SAME DONT CHANGE TILL HERE !!!! ++++++++++++
 
@@ -79,7 +48,7 @@
     (-> (member :left ?arm)
 	;;TODO change name here nad start with one pose only
 	(and (lisp-fun man-int:get-action-trajectory :mixing
-		       :left ?grasp T ?objects ?context ?reso
+		       :left ?grasp T ?objects :context ?context :reso ?reso
 		       ?left-trajectory)
 	    ; (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :grip-container
 		;       ?right-grip-container-poses)
@@ -109,8 +78,9 @@
 
     (-> (member :right ?arm)
 	;;TODO change name here nad start with one pose only
-	 (and (lisp-fun man-int:get-action-trajectory :mixing
-			:right ?grasp T ?objects ?context ?reso
+        (and
+         (lisp-fun man-int:get-action-trajectory :mixing
+			:right ?grasp T ?objects :context ?context :reso ?reso
 			?right-trajectory)
 	    ;  (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :grip-container
 		;	?left-grip-container-poses)
@@ -168,9 +138,3 @@
 ;;thats just for fun
 (defun get-arm-return (?arm)
   ?arm)
-
- (defun get-action-reso (?reso)
-(if (eq ?reso nil) 12 ?reso))
-
-(defun get-reso-from-list (alist)
- (cdr (assoc :reso alist)))

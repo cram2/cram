@@ -126,6 +126,16 @@
     	       (collision-mode :allow-all))))
   (cpl:sleep 2)
 
+    (if  (eq ?context :mix-orbit)
+    (exe:perform
+     (desig:an action
+               (type blending)
+               (left-poses ?left-mid-mix-poses)
+               (right-poses ?right-mid-mix-poses)
+               ;;(desig:when ?collision-mode
+    	       (collision-mode :allow-all))))
+ (cpl:sleep 2)
+  
     (exe:perform
      (desig:an action
                (type blending)

@@ -48,7 +48,6 @@
                                                            )
                                                          
   (print "entered mixing")
-  
   ;;TODO DONT CHANGE THIS SAME +++++++++++
   (let* ((object
            (car objects-acted-on))
@@ -107,7 +106,7 @@
               arm oTg-std)
             :orientation 
             (cl-tf:rotation bTb-offset)))
-         (mix-poses (adjust-circle-poses approach-pose reso context))
+         (mix-poses (adjust-circle-poses-context approach-pose reso context))
 					;(mix-poses  (circle-poses approach-pose))
 	(start-mix-poses (rec-spiral-poses object-type approach-pose reso))
                                         ; (spiral-poses approach-pose))
@@ -311,36 +310,43 @@
        (cl-transforms:make-3d-vector x y z)
        (cl-transforms:make-quaternion ax ay az aw))))))
 
-(defun adjust-circle-poses(pose reso context)
+(defun adjust-circle-poses-context (pose reso context)
+  (if (eq context :mix)
+      (adjust-circle-poses pose reso 1
+                           )
+      (if (eq context :mix-eclipse)
+           (adjust-circle-poses pose reso 0.03
+                               )
+          (if (eq context :mix-orbit)
+             (orbital-poses pose reso
+                             )))
+      ))
+
+(defun adjust-circle-poses(pose reso newerate)
   (let ((containerrim 0.06); <- currently - big-bowl hard gecoded, gotta adjust top and bottom rim
-	(erate 1);<- circle;  stirring == (erate 0.03)
+	(erate 1);== circle;  stirring == (erate 0.03)
 	(angle 0)
 	(x 1)
         (defaultreso 12)
 	)
-
-    (if (eq context :mix-eclipse) (setf erate 0.03))
-    (print reso)
-   ; (if (> reso 2) (setf defaultreso reso))
-
-    (setf angle (/(* 2  pi) defaultreso));reso))
+    (setf erate newerate)
+    ;; (if (eq context :mix-orbit)
+    ;;    (orbital-poses pose reso)
+    ;;     )
+     (if (>= reso 2) (setf defaultreso reso))
+     (setf angle (/(* 2  pi) defaultreso))
+                                        ;reso))
     ;(and (setf angle (/(* 2 pi) ?reso)) (setf defaultreso ?reso))
  ;   )
     
-    
  ;defaultreso is this case is jsut the holder for whatever ?reso was decided on or real default reso- look above
-    (if (eq context :mix)
+   
         (loop while (<= x defaultreso)
-  do (setf x   (+ x  1))           ; or better: do (decf row)
+              do (setf x   (+ x  1))
+            (print "entered circle")                            ; or better: do (decf row)
     collect  (change-v pose :x-offset (* erate (* containerrim (cos (* x angle))))
 			    :y-offset (* containerrim (sin (* x angle))))
-		  
-              ))
-    (if (eq context :mix-orbit)
-       (orbital-poses pose reso)
-        )
-
-    )) 
+    ))) 
 
 (defun rec-spiral-poses(object-type pose reso)
   (let
@@ -374,7 +380,6 @@
      (start-pose nil)
      )
     
-   ; (print "~a" reso)
     (setf rim (nth 2 (car (get-object-type-robot-frame-mix-rim-bottom-transform object-type))))
    
     (setf angle (/(* 2  pi) defaultreso))
@@ -399,73 +404,43 @@
 	(x 1)
         (defaultreso 12)
         (smallercircle 0.04) ;radius 3 cm circle for now
-        (currentpose-smaller-radius) ;ever changing small circle center 
+         (currentpose-smaller-radius) ;ever changing small circle center
+         (smallcircleposes '());list of one small circle at a time
+         (orbitalposes '())
 	)
-
+   (if (>= reso 2) (setf defaultreso reso))
     (setf angle (/(* 2  pi) defaultreso));reso))
-    ;(and (setf angle (/(* 2 pi) ?reso)) (setf defaultreso ?reso))
- ;   )
       
  ;defaultreso is this case is jsut the holder for whatever ?reso was decided on or real default reso- look above
 (loop while (<= x defaultreso)
       do (setf x   (+ x  1))
+         (setf currentpose-smaller-radius (cl-tf:copy-pose-stamped (change-v pose :x-offset (* erate (* containerrim (cos (* x angle))))
+                                                                                  :y-offset (* containerrim (sin (* x angle))))))
+         (setf smallcircleposes (adjust-circle-poses currentpose-smaller-radius 9 1))
              ; or better: do (decf row)
-    collect  (and (change-v pose :x-offset (* erate (* containerrim (cos (* x angle))))
-                                 :y-offset (* containerrim (sin (* x angle))))
-       ;going for fixed reso 9 cos small circle doesn't need to be super clean(?) 
-                  (adjust-circle-poses (setf currentpose-smaller-radius (change-v pose :x-offset (* erate (* smallercircle (cos (* x angle))))
-                                                                                       :y-offset (* smallercircle  (sin (* x angle)))))
-                                       9 :mix))
-		  
+      
+        ;; (cons smallcircleposes (change-v pose :x-offset (* erate (* containerrim (cos (* x angle))))
+         ;;                          :y-offset (* containerrim (sin (* x angle)))))
+        ; (collect currentpose-smaller-radius)
+        append smallcircleposes)
+                                        ;calc origin pose to current pose distance
+                  ;(adjust-circle-poses currentpose-smaller-radius 9 1)
+                                        ;x-offset below
       ))
-  
+                  
+                  
+
+                                        ;full small circle
+                  
+       ;going for fixed reso 9 cos small circle doesn't need to be super clean(?) 
+                 ; (adjust-circle-poses (setf currentpose-smaller-radius (change-v pose :x-offset (* erate (* smallercircle (cos (* x angle))))
+                  ;                                                                     :y-offset (* smallercircle  (sin (* x angle)))))
+                   ;                   9 1))
+		  
+      
+ ; cl-transforms:copy-3d-vector
 ; for small circle: (adjust-circle-poses pose reso :mix-circle/:mix)
-  )
-
-;; (defun spiral-poses(pose)
-;;   (print "spiral")
-;;   (let
-;;    ( (k 0.4) ;0.3
-;;      (a 12)
-;;      (rim 0.06)
-;;     )  
-;;   (list
-;;    ;spiral made iwth r = 0.06; phi = angle ,  r= a*e^(k* phi); a = amount of segments
-;;    ;k = gradient of one segment to the other
-;;    		 ;; (change-v pose :x-offset (*(* 0.06 (exp 0))(cos 0))
-;;                  ;;                :y-offset (*(* 0.06 (exp 0)) (sin 0)))
-;;    		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (/ pi 6)))) (cos (/ pi 6)))
-;; 				    :y-offset (*(* (/ rim a) (exp (* k(/ pi 6)))) (sin (/ pi 6))))
-;;    		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (/ pi 3)))) (cos (/ pi 3)))
-;; 				    :y-offset (*(* (/ rim a) (exp (* k(/ pi 3)))) (sin (/ pi 3))))
-;;    		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (/ pi 2)))) (cos (/ pi 2)))
-;; 				    :y-offset (*(* (/ rim a) (exp (* k(/ pi 2)))) (sin (/ pi 2))))
-;;    		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k(* 2(/ pi 3))))) (cos (* 2(/ pi 3))))
-;; 				    :y-offset (*(* (/ rim a) (exp (* k(* 2(/ pi 3))))) (sin (* 2(/ pi 3)))))
-;;    		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (* 5(/ pi 6))))) (cos  (* 5(/ pi 6))))
-;; 				    :y-offset (*(* (/ rim a) (exp (* k (* 5(/ pi 6))))) (sin  (* 5(/ pi 6)))))
-
-;;   		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k pi))) (cos pi))
-;; 				    :y-offset (*(* (/ rim a) (exp (* k pi))) (sin pi)))
-
-;;    		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (* 7(/ pi 6))))) (cos  (* 7(/ pi 6))))
-;; 				    :y-offset (*(* (/ rim a) (exp (* k (* 7(/ pi 6))))) (sin  (* 7(/ pi 6)))))		    
-;;    		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (* 4(/ pi 3))))) (cos  (* 4(/ pi 3))))
-;; 				    :y-offset (*(* (/ rim a) (exp (* k (* 4(/ pi 3))))) (sin  (* 4(/ pi 3)))))
-;;    		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (* 3(/ pi 2))))) (cos  (* 3(/ pi 2))))
-;; 				    :y-offset (*(* (/ rim a) (exp (* k (* 3(/ pi 2))))) (sin  (* 3(/ pi 2)))))
-;;    		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (* 5(/ pi 3))))) (cos  (* 5(/ pi 3))))
-;; 				    :y-offset (*(* (/ rim a) (exp (* k (* 5(/ pi 3))))) (sin  (* 5(/ pi 3)))))
-;;    		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (* 11(/ pi 6))))) (cos  (* 11(/ pi 6))))
-;; 				    :y-offset (*(* (/ rim a) (exp (* k (* 11(/ pi 6))))) (sin  (* 11(/ pi 6)))))
-
-;;    		    (change-v pose :x-offset (*(* (/ rim a) (exp (* k (* 2 pi)))) (cos  (* 2 pi)))
-;; 				    :y-offset (*(* (/ rim a) (exp (* k (* 2 pi)))) (sin  (* 2 pi))))
-
-;; 	     ;ausgangs posi -> should be in mid-mix
-;; 		    ;; (change-v pose :x-offset (* 0.06 (cos 0))
-;;        		    ;;                :y-offset (* 0.06 (sin 0)))
-;;  )))
+  
 
 (defun get-start-mix-poses(reso pose);grasp start-mix-poses &optional) - for pose z axis is needed to be in object coordinationsys
 (print "spiral calculation")  
@@ -516,39 +491,6 @@
 ;;   ;x= r * cos +x; y= r*sin +y 
 ;;   ))))
 
-;; =========  is in trajectory defined normly ==========
-(defun get-flip-tilt-poses (grasp approach-poses &optional (angle (cram-math:degrees->radians 15))
-						   (height 0))
-  (print "flip-tilt-poses-calculated")
-
-  (mapcar (lambda (?approach-pose)
-	    (let ((?pose (change-v ?approach-pose :z-offset height)))
-	      ;;depending on the grasp the angle to tilt is different
-	      (case grasp
-		(:front (rotate-once-pose-flip ?pose (- angle) :y))
-		(:left (rotate-once-pose-flip ?pose (- angle) :x))
-		(:right (rotate-once-pose-flip ?pose (+ angle) :x))
-		(:top (rotate-once-pose-flip ?pose (+ angle) :y))
-		(t (error "front, left, right, top")))))
-          approach-poses))
-
-;;helper function for tilting
-;;rotate the pose around the axis in an angle
-(defun rotate-once-pose-flip (pose angle axis)
-  (print "rotate once")
-  (cl-transforms-stamped:copy-pose-stamped
-   pose
-   :orientation (let ((pose-orientation (cl-transforms:orientation pose)))
-                  (cl-tf:normalize
-                   (cl-transforms:q*
-                    (cl-transforms:axis-angle->quaternion
-                     (case axis
-                       (:x (cl-transforms:make-3d-vector 1 0 0))
-                       (:y (cl-transforms:make-3d-vector 0 1 0))
-                       (:z (cl-transforms:make-3d-vector 0 0 1))
-                       (t (error "in ROTATE-ONCE-POSE forgot to specify axis properly: ~a" axis)))
-                     angle)
-                    pose-orientation)))))
 (defvar test)
 
 (defun change-v (pose &key (x-offset 0.0) (y-offset 0.0) (z-offset 0.0))
