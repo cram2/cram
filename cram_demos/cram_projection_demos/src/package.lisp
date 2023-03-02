@@ -38,4 +38,6 @@
    ;; assembly-demo
    #:assembly-demo
    ;; retail-demo
-   #:retail-demo))
+   #:retail-demo
+   ;; setup
+   *broadcast-robot-and-environment*))
