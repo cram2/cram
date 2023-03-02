@@ -29,7 +29,7 @@
 (in-package :urdf-proj)
 
 (defvar *last-timeline* nil)
-(setf cram-tf:*tf-broadcasting-topic* "tf")
+(setf cram-tf:*tf-broadcasting-topic* "tf_projection")
 ;; (defmethod desig:resolve-designator :around (designator (role (eql 'projection-role)))
 ;;   (cram-projection:with-partially-ordered-clock-disabled *projection-clock*
 ;;     (call-next-method)))
