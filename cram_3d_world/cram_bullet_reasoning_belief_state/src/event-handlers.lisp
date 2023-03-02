@@ -398,12 +398,14 @@ If there is no other method with 1 as qualifier, this method will be executed al
 
 (defmethod cram-occasions-events:on-event open-container 2 ((event cpoe:container-opening-event))
   (move-joint-by-event event :open)
-  (unless cram-projection:*projection-environment*
+  (when (or (not cram-projection:*projection-environment*)
+            cram-tf:*broadcast-environment-from-projection*)
     (publish-environment-joint-state (btr:joint-states (cpoe:environment-event-object event)))))
 
 (defmethod cram-occasions-events:on-event close-container 2 ((event cpoe:container-closing-event))
   (move-joint-by-event event :close)
-  (unless cram-projection:*projection-environment*
+  (when (or (not cram-projection:*projection-environment*)
+            cram-tf:*broadcast-environment-from-projection*)
     (publish-environment-joint-state (btr:joint-states (cpoe:environment-event-object event)))))
 
 
