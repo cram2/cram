@@ -6,7 +6,7 @@
 - git:
     local-name: roslisp_common
     uri: git@github.com:ros/roslisp_common.git
-    version: master  
+    version: master
 - git:
     local-name: giskard_msgs
     uri: git@github.com:SemRoCo/giskard_msgs.git
@@ -22,10 +22,14 @@
 - git:
     local-name: iai_robots
     uri: git@github.com:code-iai/iai_robots.git
-    version: master    
+    version: master
 - git:
     local-name: kdl_ik_services
-    uri: git@github.com:cram2/kdl_ik_service.git      
-
-    
-
+    uri: git@github.com:cram2/kdl_ik_service.git
+- git:
+    local-name: ur_description
+    uri: git@github.com:fmauch/universal_robot.git
+    version: calibration_devel
+- git:
+    local-name: assembly_models
+    uri: git@github.com:code-iai/assembly_models.git

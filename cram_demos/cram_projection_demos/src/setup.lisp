@@ -34,7 +34,6 @@
 (defun init-projection ()
   ;; (setf cram-tf:*transformer* (make-instance 'cl-tf2:buffer-client))
   (setf cram-tf:*tf-default-timeout* 0.5) ; projection tf is very fast
-  ;; (setf cram-tf:*tf-broadcasting-enabled* t)
 
   ;; (btr-belief:setup-world-database)
   (coe:clear-belief)
@@ -43,12 +42,12 @@
 
   (btr:clear-costmap-vis-object)
 
-  ;; (btr:add-objects-to-mesh-list "assembly_models"
-  ;;                               :directory "fixtures"
-  ;;                               :extension "stl")
-  ;; (btr:add-objects-to-mesh-list "assembly_models"
-  ;;                               :directory "battat/convention"
-  ;;                               :extension "stl")
+  (btr:add-objects-to-mesh-list "assembly_models"
+                                :directory "fixtures"
+                                :extension "stl")
+  (btr:add-objects-to-mesh-list "assembly_models"
+                                :directory "battat/convention"
+                                :extension "stl")
   (btr:add-objects-to-mesh-list "cram_bullet_reasoning")
   (btr:add-objects-to-mesh-list "cram_projection_demos"
                                 :directory "resource/household")
@@ -56,3 +55,10 @@
                                 :directory "resource/retail"))
 
 (roslisp-utilities:register-ros-init-function init-projection)
+
+(defun init-enable-broadcast ()
+  (setf cram-tf:*tf-broadcasting-enabled* t)
+  (setf cram-tf:*tf-broadcasting-topic* "tf")
+  (setf cram-tf:*broadcast-environment-from-projection* t))
+
+(roslisp-utilities:register-ros-init-function init-enable-broadcast)
