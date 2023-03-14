@@ -43,11 +43,11 @@
   ;; 0.5
   0.25 "In meters/s")
 (defparameter *base-max-velocity-fast-theta*
-  0.4 "In rad/s, about 23 deg/s.")
+  1.0 "In rad/s, about 23 deg/s.")
 (defparameter *base-max-velocity-slow-xy*
   0.04 "In meters/s")
 (defparameter *base-max-velocity-slow-theta*
-  0.07 "In rad/s, about 11.5 deg.")
+  0.1 "In rad/s, about 11.5 deg.")
 
 (defun make-giskard-base-action-goal (pose base-velocity)
   (declare (type cl-transforms-stamped:pose-stamped pose)
@@ -63,7 +63,8 @@
                      (make-cartesian-constraint
                       cram-tf:*odom-frame* cram-tf:*robot-base-frame* pose
                       :avoid-collisions-much t
-                      :max-velocity *base-max-velocity-fast-xy*))
+                      :max-linear-velocity *base-max-velocity-fast-xy*
+                      :max-angular-velocity *base-max-velocity-fast-theta*))
                  (when (eq (rob-int:get-environment-name) :iai-kitchen)
                    (make-base-collision-avoidance-hint-constraint
                     *base-collision-avoidance-hint-link*
@@ -109,9 +110,10 @@
   (cram-tf:visualize-marker goal-pose :r-g-b-list '(0 1 0))
 
   ;; Trying with slow velocity should happen on the motion level, not action level.
-  (call-action
-   :action-goal (make-giskard-base-action-goal goal-pose base-velocity)
-   :action-timeout action-timeout
-   :check-goal-function (lambda (result status)
-                          (declare (ignore result status))
-                          (ensure-base-goal-reached goal-pose))))
+  (let ((goal (make-giskard-base-action-goal goal-pose base-velocity)))
+    (call-action
+     :action-goal goal
+     :action-timeout action-timeout
+     :check-goal-function (lambda (result status)
+                            (declare (ignore result status))
+                            (ensure-base-goal-reached goal-pose)))))

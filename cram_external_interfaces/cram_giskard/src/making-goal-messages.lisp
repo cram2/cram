@@ -180,7 +180,7 @@
    (alist->json-string
     `(("root_link" . ,root-frame)
       ("tip_link" . ,tip-frame)
-      ("root_normal"
+      ("goal_normal"
        . (("message_type" . "geometry_msgs/Vector3Stamped")
           ("message" . ,(to-hash-table root-vector))))
       ("tip_normal"
@@ -228,8 +228,14 @@
           ("message" . ,(to-hash-table
                          (cram-tf:pose-stamped->point-stamped
                           goal-pose)))))
-      ,@(when pointing-vector
-          `(("pointing_axis" . ,(to-hash-table pointing-vector))))))))
+      ,@(if pointing-vector
+            `(("pointing_axis" . ,(to-hash-table pointing-vector)))
+            `(("pointing_axis" . (("message_type" . "geometry_msgs/Vector3Stamped")
+                                  ("message" . ,(to-hash-table
+                                                 (cl-transforms-stamped:make-vector-stamped
+                                                  tip-frame
+                                                  0.0
+                                                  (cl-transforms:make-3d-vector 0 0 1))))))))))))
 
 (defun make-head-pointing-constraint (goal-pose)
   (declare (type cl-transforms-stamped:pose-stamped goal-pose))
@@ -348,10 +354,11 @@
          . ,root-link))))))
 
 (defun make-cartesian-constraint (root-frame tip-frame goal-pose
-                                  &key max-velocity avoid-collisions-much straight-line)
+                                  &key max-linear-velocity max-angular-velocity
+                                    avoid-collisions-much straight-line)
   (declare (type string root-frame tip-frame)
            (type cl-transforms-stamped:pose-stamped goal-pose)
-           (type (or number null) max-velocity)
+           (type (or number null) max-linear-velocity max-angular-velocity)
            (type boolean avoid-collisions-much straight-line))
   (roslisp:make-message
    'giskard_msgs-msg:constraint
@@ -366,8 +373,10 @@
       ("goal_pose"
        . (("message_type" . "geometry_msgs/PoseStamped")
           ("message" . ,(to-hash-table goal-pose))))
-      ,@(when max-velocity
-          `(("reference_velocity" . ,max-velocity)))
+      ,@(when max-linear-velocity
+          `(("reference_linear_velocity" . ,max-linear-velocity)))
+      ,@(when max-angular-velocity
+          `(("reference_angular_velocity" . ,max-angular-velocity)))
       ,@(if avoid-collisions-much
             `(("weight" . ,(roslisp-msg-protocol:symbol-code
                             'giskard_msgs-msg:constraint

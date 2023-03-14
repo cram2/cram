@@ -77,10 +77,14 @@
                                                    (rob-int:arm-joints
                                                     ?robot-name :right ?joints))))))))
                    (when allow-base
-                     (make-prefer-base-constraint
-                      :base-weight (if prefer-base
-                                       *prefer-base-low-cost*
-                                       *allow-base-high-cost*)))
+                     ;; PREFER BASE is implemented in a very hacky way.
+                     ;; For now, disabling it, so the robot will always use the
+                     ;; the arm and won't help the arm with the base much.
+                     ;; (make-prefer-base-constraint
+                     ;;  :base-weight (if prefer-base
+                     ;;                   *prefer-base-low-cost*
+                     ;;                   *allow-base-high-cost*))
+                     )
                    (when align-planes-left
                      (make-align-planes-constraint
                       pose-base-frame
@@ -187,7 +191,8 @@
                   (cl-transforms-stamped:pose->pose-stamped
                    cram-tf:*robot-base-frame* 0.0
                    (cl-transforms:make-identity-pose))
-                  :max-velocity *base-max-velocity-slow-xy*
+                  :max-linear-velocity *base-max-velocity-slow-xy*
+                  :max-angular-velocity *base-max-velocity-slow-theta*
                   :avoid-collisions-much nil)
                  (when align-planes-left
                    (make-align-planes-tool-frame-constraint
@@ -330,28 +335,29 @@
    (list goal-pose-left goal-pose-right)
    :r-g-b-list '(1 0 1))
 
-  (call-action
-   :action-goal (make-arm-cartesian-action-goal
-                 goal-pose-left goal-pose-right
-                 pose-base-frame
-                 collision-mode
-                 :collision-object-b collision-object-b
-                 :collision-object-b-link collision-object-b-link
-                 :collision-object-a collision-object-a
-                 :allow-base move-base
-                 :prefer-base prefer-base
-                 :straight-line straight-line
-                 :align-planes-left align-planes-left
-                 :align-planes-right align-planes-right
-                 :unmovable-joints unmovable-joints
-                 :precise-tracking precise-tracking)
-   :action-timeout action-timeout
-   :check-goal-function (lambda (result status)
-                          (declare (ignore result status))
-                          (or (ensure-arm-cartesian-goal-reached
-                               goal-pose-left cram-tf:*robot-left-tool-frame*)
-                              (ensure-arm-cartesian-goal-reached
-                               goal-pose-right cram-tf:*robot-right-tool-frame*)))))
+  (let ((goal (make-arm-cartesian-action-goal
+               goal-pose-left goal-pose-right
+               pose-base-frame
+               collision-mode
+               :collision-object-b collision-object-b
+               :collision-object-b-link collision-object-b-link
+               :collision-object-a collision-object-a
+               :allow-base move-base
+               :prefer-base prefer-base
+               :straight-line straight-line
+               :align-planes-left align-planes-left
+               :align-planes-right align-planes-right
+               :unmovable-joints unmovable-joints
+               :precise-tracking precise-tracking)))
+    (call-action
+     :action-goal goal
+     :action-timeout action-timeout
+     :check-goal-function (lambda (result status)
+                            (declare (ignore result status))
+                            (or (ensure-arm-cartesian-goal-reached
+                                 goal-pose-left cram-tf:*robot-left-tool-frame*)
+                                (ensure-arm-cartesian-goal-reached
+                                 goal-pose-right cram-tf:*robot-right-tool-frame*))))))
 
 
 

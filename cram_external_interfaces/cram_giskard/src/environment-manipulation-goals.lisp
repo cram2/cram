@@ -41,7 +41,11 @@
   (make-giskard-goal
    :constraints (list
                  (when prefer-base
-                   (make-prefer-base-constraint :do-not-rotate T))
+                   ;; PREFER BASE is implemented in a very hacky way.
+                   ;; For now, disabling it, so the robot will always use the
+                   ;; the arm and won't help the arm with the base much.
+                   ;; (make-prefer-base-constraint :do-not-rotate T)
+                   )
                  ;; (make-base-velocity-constraint
                  ;;  *base-max-velocity-slow-xy* *base-max-velocity-slow-theta*)
                  (make-open-or-close-constraint
