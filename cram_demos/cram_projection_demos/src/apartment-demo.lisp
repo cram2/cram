@@ -51,7 +51,6 @@
   ;; (setf proj-reasoning::*projection-checks-enabled* t)
 
   (kill-and-detach-all)
-  (giskard:reset-collision-scene)
   (setf (btr:joint-state (btr:get-environment-object)
                          "cabinet1_door_top_left_joint")
         0.0
@@ -64,9 +63,9 @@
   (btr-belief::publish-environment-joint-state
    (btr:joint-states (btr:get-environment-object)))
 
-  (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))
+  (coe:clear-belief)
 
-  ;; (coe:clear-belief)
+  (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))
 
   (btr:clear-costmap-vis-object))
 
@@ -841,4 +840,3 @@
                (target (a location
                           (pose ?on-counter-top-cup-pose)))))
     )))
-
