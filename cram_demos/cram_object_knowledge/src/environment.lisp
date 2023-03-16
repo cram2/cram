@@ -55,6 +55,10 @@
   (<- (costmap:costmap-origin :apartment -5 -5))
   (<- (costmap:costmap-resolution :apartment 0.04))
 
+  (<- (costmap:costmap-size :kitchen 10 10))
+  (<- (costmap:costmap-origin :kitchen -5 -5))
+  (<- (costmap:costmap-resolution :kitchen 0.04))
+
   (<- (man-int:object-tf-prefix ?environment "iai_kitchen/")
     (member ?environment (:iai-kitchen :apartment :dm-shelves :dm-room :store :storage))))
 

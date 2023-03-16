@@ -116,7 +116,7 @@
                           'json_prolog_msgs-srv:PrologQuery
                           :id query-id
                           :mode mode
-                          :query (prolog->query-string exp :prologify prologify))
+                          :query (print (prolog->query-string exp :prologify prologify)))
      :lispify lispify :package package)))
 
 (defun prolog-1 (exp &key (mode 0) (prologify t) (lispify nil) (package *package*))

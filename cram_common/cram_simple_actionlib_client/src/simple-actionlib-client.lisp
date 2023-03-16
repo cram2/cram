@@ -43,6 +43,8 @@
 
 
 (defun init-simple-action-client (name)
+  (let ((*print-readably* t))
+    (print actionlib-client::*action-ros-names*))
   (let ((action-client
           (setf (gethash name *action-clients*)
                 (actionlib:make-action-client
@@ -87,7 +89,7 @@ do their magic invisibly in the background.
 `ros-type' is the type expected by make-action-client, e.g. 'move_base_msgs/MoveBaseAction',
 `timeout' is the time to wait for the action to execute in seconds,
 `initialize-now' defines if the topic communication should be setup at once."
-
+ 
   ;; store the timeout duration, ROS action name and ROS action type for the client
   (setf (gethash name *action-timeouts*) timeout)
   (setf (gethash name *action-ros-names*) ros-name)

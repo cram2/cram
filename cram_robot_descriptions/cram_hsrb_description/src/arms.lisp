@@ -84,10 +84,12 @@
     (lisp-fun search "palm" ?link ?pos)
     (not (lisp-pred identity ?pos)))
 
-  (<- (gripper-joint :hsrb :left "hand_motor_joint"))
+  (<- (gripper-joint :hsrb :left "hand_l_proximal_joint"))
+  (<- (gripper-joint :hsrb :right "hand_r_proximal_joint"))
 
   (<- (gripper-meter-to-joint-multiplier :hsrb 1.0))
   (<- (gripper-minimal-position :hsrb ?_ 0.0))
+  (<- (gripper-maximal-position :hsrb ?_ 1.24))
   (<- (gripper-convergence-delta :hsrb ?_ 0.001))
 
   (<- (standard<-particular-gripper-transform :hsrb ?transform)
@@ -102,7 +104,7 @@
 
   (<- (robot-joint-states :hsrb :arm :left :carry
                           (("arm_flex_joint" 0)
-                           ("arm_roll_joint" 1.5)
+                           ("arm_roll_joint" 2.0)
                            ("wrist_flex_joint" -1.85)
                            ("wrist_roll_joint" 0))))
   (<- (robot-joint-states :hsrb :arm :left :park ?joint-states)

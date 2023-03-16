@@ -91,7 +91,7 @@
       (exe:perform
        (desig:an action
                  (type setting-gripper)
-                 (gripper ?arm)
+                 (gripper :left)
                  (position ?gripper-opening)
                  (goal ?goal))))
     (cpl:with-failure-handling
@@ -181,7 +181,7 @@
                ;; TODO: this will not work with dual-arm grasping
                ;; but as our ?arm is declared as a keyword,
                ;; for now this code is the right code
-               (arms (?arm))))))
+               (arms (?arm)))))))
 
 
 (defun place (&key
@@ -317,7 +317,7 @@
   (exe:perform
    (desig:an action
              (type parking-arms)
-             (arms (?arm))))))
+             (arms (?arm)))))
 
 
 (defun park-arms (&key

@@ -29,6 +29,18 @@
 
 (in-package :demo)
 
+
+(defun pokerino ()
+  (pr2-pms:with-real-robot 
+    (let* ((?source-object-desig
+             (desig:an object
+                       (color yellow)))
+      (?source-perceived-object-desig
+       (exe:perform (desig:an action
+                             (type detecting)
+                             (object ?source-object-desig)))))
+      ?source-perceived-object-desig)))
+
 (defparameter *object-cad-models*
   '(;; (:cup . "cup_eco_orange")
     ;; (:bowl . "edeka_red_bowl")

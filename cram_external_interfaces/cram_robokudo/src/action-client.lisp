@@ -206,8 +206,9 @@
     (t '(0.5 0.5 0.5))))
 
 (defun which-estimator-for-object (object-description)
-  :ClusterPosePCAAnnotator
-  :ICPPOSEREFINEMENTANNOTATOR
+  :CLUSTERPOSEBBANNOTATOR
+  ;;:CLUSTERPOSITIONANNOTATOR
+  ;;:ICPPOSEREFINEMENTANNOTATOR
   ;; (let ((type (second (find :type object-description :key #'car)))
   ;;       (cad-model (find :cad-model object-description :key #'car))
   ;;       (obj-part (find :obj-part object-description :key #'car)))
@@ -221,6 +222,7 @@
   )
 
 (defun find-pose-in-object-designator (object-description)
+  (print object-description)
   (let* ((estimator
            (which-estimator-for-object object-description))
          (all-poses
@@ -229,14 +231,43 @@
            (second (find :posesource object-description :key #'car)))
          (pose-description-we-want
            (find-if (lambda (source-pose-pair)
+                      (print (car source-pose-pair))
+                      (print estimator)
                       (eq (car source-pose-pair) estimator))
                     (mapcar #'list all-posesources all-poses))))
+    ;; (print "222")
+    ;; (print estimator)
+    ;; (print all-poses)
+    ;; (print all-posesources)
+    ;; (print pose-description-we-want)
+ 
     (unless pose-description-we-want
       (cpl:fail 'common-fail:perception-low-level-failure
                 :description (format nil
                                      "Robokudo object didn't have a POSE from estimator ~a."
                                      estimator)))
-    (second pose-description-we-want)))
+    (print "final")
+    (print (second pose-description-we-want))
+    (second  pose-description-we-want)))
+
+;; (defun find-pose-in-object-designator (object-description)
+;;   (let* ((estimator
+;;            (which-estimator-for-object object-description))
+;;          (all-poses
+;;            (second (find :pose object-description :key #'car)))
+;;          (all-posesources
+;;            (second (find :posesource object-description :key #'car)))
+;;          (pose-description-we-want
+;;            (find-if (lambda (source-pose-pair)
+;;                       (eq (car source-pose-pair) estimator))
+;;                     (mapcar #'list all-posesources all-poses))))
+;;     (unless pose-description-we-want
+;;       (cpl:fail 'common-fail:perception-low-level-failure
+;;                 :description (format nil
+;;                                      "Robokudo object didn't have a POSE from estimator ~a."
+;;                                      estimator)))
+;;     (second pose-description-we-want)))
+
 
 (defun make-robokudo-designator (rs-answer keyword-key-value-pairs-list)
   (when (and (find :type rs-answer :key #'car)

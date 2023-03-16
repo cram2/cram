@@ -1,5 +1,6 @@
 ;;;
-;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2019, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;                      Vanessa Hassouna <hassouna@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -29,13 +30,7 @@
 
 (in-package :cl-user)
 
-(defpackage cram-common-designators
-  (:nicknames :common-desig)
-  (:use #:common-lisp #:prolog #:desig #:spec)
-  (:export
-   ;; motions
-   #:move-base #:move-torso #:move-head #:detect #:inspect #:move-gripper-joint
-   #:move-tcp #:move-arm-push #:move-arm-pull #:move-joints #:move-custom #:move-gripper
-   #:world-state-detect #:monitor-joint-state #:wait #:reach #:lift #:place #:retract #:prepare-place
-   ;; wait-pm
-   #:wait-pm))
+(defpackage cram-hsrb-pick-demo
+  (:nicknames #:demo)
+  (:use #:common-lisp #:cram-prolog #:cram-designators #:cram-executive)
+  (:export))

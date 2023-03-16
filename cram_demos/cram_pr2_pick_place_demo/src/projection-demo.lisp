@@ -266,12 +266,12 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
 ;;        (desig:a motion (type opening-gripper) (gripper left)))
 ;;       (exe:perform
 ;;        (desig:a motion (type looking) (direction forward)))
-;;       (exe:perform
-;;        (let ((?pose (cl-transforms-stamped:make-pose-stamped
-;;                      cram-tf:*robot-base-frame* 0.0
-;;                      (cl-transforms:make-3d-vector 0.7 0.3 0.85)
-;;                      (cl-transforms:make-identity-rotation))))
-;;          (desig:a motion (type moving-tcp) (left-pose ?pose)))))))
+      ;; (exe:perform
+      ;;  (let ((?pose (cl-transforms-stamped:make-pose-stamped
+      ;;                cram-tf:*robot-base-frame* 0.0
+      ;;                (cl-transforms:make-3d-vector 0.7 0.3 0.85)
+      ;;                (cl-transforms:make-identity-rotation))))
+      ;;    (desig:a motion (type moving-tcp) (left-pose ?pose)))))))
 
 ;; (defun test-desigs ()
 ;;   (let ((?pose (desig:reference (desig:a location

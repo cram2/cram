@@ -60,10 +60,11 @@
   (<- (robot-neck-joints :hsrb "head_pan_joint" "head_tilt_joint"))
 
   ;; TODO: this needs to be corrected for this robot:
+  ;; update: this does not need do be +1 anymore -> new urdf i guess (vanessa 2023)
   (<- (robot-neck-pan-joint-forward-facing-axis-sign :hsrb
-                                                     cl-transforms:x +1))
+                                                     cl-transforms:x -1))
   (<- (robot-neck-tilt-joint-forward-facing-axis-sign :hsrb
-                                                      cl-transforms:x +1))
+                                                      cl-transforms:x -1))
 
   (<- (robot-joint-states :hsrb :neck ?_ :forward ((?pan_joint 0.0) (?tilt_joint 0.0)))
     (robot-neck-joints :hsrb ?pan_joint ?tilt_joint))

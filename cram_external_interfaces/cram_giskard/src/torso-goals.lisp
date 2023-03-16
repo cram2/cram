@@ -89,7 +89,6 @@
            (type (or number null) action-timeout))
 
   (setf goal-joint-state (ensure-torso-goal-input goal-joint-state))
-
   (call-action
    :action-goal (make-torso-action-goal goal-joint-state)
    :action-timeout action-timeout

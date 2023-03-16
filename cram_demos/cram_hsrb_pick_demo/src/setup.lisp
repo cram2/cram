@@ -1,5 +1,6 @@
 ;;;
-;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2019, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;                      Vanessa Hassouna <hassouna@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,15 +28,34 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cl-user)
+(in-package :demo)
 
-(defpackage cram-common-designators
-  (:nicknames :common-desig)
-  (:use #:common-lisp #:prolog #:desig #:spec)
-  (:export
-   ;; motions
-   #:move-base #:move-torso #:move-head #:detect #:inspect #:move-gripper-joint
-   #:move-tcp #:move-arm-push #:move-arm-pull #:move-joints #:move-custom #:move-gripper
-   #:world-state-detect #:monitor-joint-state #:wait #:reach #:lift #:place #:retract #:prepare-place
-   ;; wait-pm
-   #:wait-pm))
+(defun init-projection ()
+    (def-fact-group costmap-metadata (costmap:costmap-size
+                                    costmap:costmap-origin
+                                    costmap:costmap-resolution
+                                    costmap:orientation-samples
+                                    costmap:orientation-sample-step)
+    (<- (costmap:costmap-size 12 12))
+    (<- (costmap:costmap-origin -6 -6))
+    (<- (costmap:costmap-resolution 0.04))
+    (<- (costmap:orientation-samples 2))
+      (<- (costmap:orientation-sample-step 0.3)))
+  
+  (btr-belief:setup-world-database)
+
+  (setf cram-tf:*tf-default-timeout* 2.0)
+  (setf cram-tf:*tf-broadcasting-enabled* t)
+  (setf cram-tf:*transformer* (make-instance 'cl-tf2:buffer-client))
+
+  (setf prolog:*break-on-lisp-errors* t)
+
+  (btr:clear-costmap-vis-object)
+
+  (btr:add-objects-to-mesh-list "cram_hsrb_pick_demo"))
+
+
+(roslisp-utilities:register-ros-init-function init-projection)
+
+
+

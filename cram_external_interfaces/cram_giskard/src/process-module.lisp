@@ -46,7 +46,13 @@
         :straight-line (tenth rest-args)
         :align-planes-left (eighth rest-args)
         :align-planes-right (ninth rest-args)
-        :precise-tracking (nth 10 rest-args))) ; that's eleventh element
+        :precise-tracking (nth 10 rest-args); that's eleventh element
+        :box-pose (nth 11 rest-args)
+        ;; :grasp-type (nth 12 rest-args)
+        ;; :box-size (nth 12 rest-args)
+        :knob-pose (nth 12 rest-args)
+        :open-drawer (nth 13 rest-args)
+        )) 
       (cram-common-designators:move-joints
        (giskard:call-arm-joint-action
         :goal-configuration-left argument-1
@@ -88,4 +94,120 @@
        (giskard:call-gripper-action
         :action-type-or-position argument-1
         :arm (first rest-args)
-        :effort (second rest-args))))))
+        :effort (second rest-args)))
+      (cram-common-designators:move-gripper
+       (giskard:call-custom-gripper-action
+        :open-gripper argument-1
+        ))
+      (cram-common-designators:reach
+       (giskard:call-arm-cartesian-action
+        :goal-pose-left argument-1
+        :goal-pose-right (first rest-args)
+        :collision-mode (second rest-args)
+        :collision-object-b (third rest-args)
+        :collision-object-b-link (fourth rest-args)
+        :collision-object-a (fifth rest-args)
+        :move-base (sixth rest-args)
+        :prefer-base (seventh rest-args)
+        :straight-line (tenth rest-args)
+        :align-planes-left (eighth rest-args)
+        :align-planes-right (ninth rest-args)
+        :precise-tracking (nth 10 rest-args); that's eleventh element
+        :object-pose (nth 11 rest-args)
+        :object-size (nth 12 rest-args)
+        :action-type 'reach
+        ))
+      (cram-common-designators:lift
+       (giskard:call-arm-cartesian-action
+        :goal-pose-left argument-1
+        :goal-pose-right (first rest-args)
+        :collision-mode (second rest-args)
+        :collision-object-b (third rest-args)
+        :collision-object-b-link (fourth rest-args)
+        :collision-object-a (fifth rest-args)
+        :move-base (sixth rest-args)
+        :prefer-base (seventh rest-args)
+        :straight-line (tenth rest-args)
+        :align-planes-left (eighth rest-args)
+        :align-planes-right (ninth rest-args)
+        :precise-tracking (nth 10 rest-args); that's eleventh element
+        :object-pose (nth 11 rest-args)
+        ;; :size (nth 11 rest-args)
+        :action-type 'lift
+        ))
+      (cram-common-designators:retract
+       (giskard:call-arm-cartesian-action
+        :goal-pose-left argument-1
+        :goal-pose-right (first rest-args)
+        :collision-mode (second rest-args)
+        :collision-object-b (third rest-args)
+        :collision-object-b-link (fourth rest-args)
+        :collision-object-a (fifth rest-args)
+        :move-base (sixth rest-args)
+        :prefer-base (seventh rest-args)
+        :straight-line (tenth rest-args)
+        :align-planes-left (eighth rest-args)
+        :align-planes-right (ninth rest-args)
+        :precise-tracking (nth 10 rest-args); that's eleventh element
+        :object-pose (nth 11 rest-args)
+        ;; :size (nth 11 rest-args)
+        :action-type 'retract
+        ))
+      (cram-common-designators:prepare-place
+       (giskard:call-arm-cartesian-action
+        :goal-pose-left argument-1
+        :goal-pose-right (first rest-args)
+        :collision-mode (second rest-args)
+        :collision-object-b (third rest-args)
+        :collision-object-b-link (fourth rest-args)
+        :collision-object-a (fifth rest-args)
+        :move-base (sixth rest-args)
+        :prefer-base (seventh rest-args)
+        :straight-line (tenth rest-args)
+        :align-planes-left (eighth rest-args)
+        :align-planes-right (ninth rest-args)
+        :precise-tracking (nth 10 rest-args); that's eleventh element
+        :target-pose (nth 11 rest-args)
+        :object-height (nth 12 rest-args)
+        :action-type 'prepare-place
+        ))
+      (cram-common-designators:place
+       (giskard:call-arm-cartesian-action
+        :goal-pose-left argument-1
+        :goal-pose-right (first rest-args)
+        :collision-mode (second rest-args)
+        :collision-object-b (third rest-args)
+        :collision-object-b-link (fourth rest-args)
+        :collision-object-a (fifth rest-args)
+        :move-base (sixth rest-args)
+        :prefer-base (seventh rest-args)
+        :straight-line (tenth rest-args)
+        :align-planes-left (eighth rest-args)
+        :align-planes-right (ninth rest-args)
+        :precise-tracking (nth 10 rest-args); that's eleventh element
+        :target-pose (nth 11 rest-args)
+        :object-height (nth 12 rest-args)
+        :action-type 'place
+        ))
+      ;; (cram-common-designators:reach
+      ;;  (giskard:call-reach-action
+      ;;   :object-pose argument-1
+      ;;   :size (first rest-args)
+      ;;   ))
+      ;; (cram-common-designators:lift
+      ;;  (giskard:call-lift-action
+      ;;   :move-base argument-1
+      ;;   ))
+      ;; (cram-common-designators:place
+      ;;  (giskard:call-place-action
+      ;;   :move-base argument-1
+      ;;   ))
+      ;; (cram-common-designators:pick-up
+      ;;  (giskard:call-place-action
+      ;;   :object-pose argument-1
+      ;;   :size (first rest-args)
+      ;;   ))
+      )))
+
+
+

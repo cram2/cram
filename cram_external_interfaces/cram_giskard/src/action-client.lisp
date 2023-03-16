@@ -43,11 +43,13 @@
            (type (or function null) check-goal-function))
 
   ;; check if the goal has already been reached
-  (when (and check-goal-function
-             (not (funcall check-goal-function nil nil)))
-    (roslisp:ros-warn (giskard action-client)
-                      "Giskard action goal already reached.")
-    (return-from call-action))
+  ;; commented out by Luca Krohm for the time being, since the check-goal-function
+  ;; always thinks that the goal has already been reached
+  ;; (when (and check-goal-function
+  ;;            (not (funcall check-goal-function nil nil)))
+  ;;   (roslisp:ros-warn (giskard action-client)
+  ;;                     "Giskard action goal already reached.")
+  ;;   (return-from call-action))
 
   ;; call the actionlib action
   (multiple-value-bind (result status)
