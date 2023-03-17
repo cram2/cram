@@ -80,10 +80,6 @@
           ("message" . ,(giskard::to-hash-table box-pose))))
       ("box_name"
          . ,box-name)
-      ;; ("grasp_type"
-      ;;    . ,grasp-type)
-      ;; ("box_size"
-      ;;  . (("message" . ,(giskard::to-hash-table box-size))))
       
       ,@(if avoid-collisions-not-much
             `(("weight" . ,(roslisp-msg-protocol:symbol-code
@@ -94,9 +90,9 @@
                             :weight_below_ca)))))))))
 
 ;;@author Luca Krohm
-(defun make-reach-constraint (object-pose object-name object-size ;; grasp-type
-                                     &key avoid-collisions-not-much)
-  ;; (break)
+(defun make-reach-constraint (object-pose object-name object-size
+                              &key avoid-collisions-not-much)
+  "Receives parameters used by manipulation. Creates Constraint of the type GraspObject which is a classname inside the manipulation code, which is responsible for 'reaching'"
   (roslisp:make-message
    'giskard_msgs-msg:constraint
    :type
@@ -111,10 +107,6 @@
       ("object_size"
        . (("message_type" . "geometry_msgs/Vector3")
           ("message" . ,(giskard::to-hash-table object-size))))
-      ;; ("grasp_type"
-      ;;    . ,grasp-type)
-      ;; ("box_size"
-      ;;  . (("message" . ,(giskard::to-hash-table box-size))))
       
       ,@(if avoid-collisions-not-much
             `(("weight" . ,(roslisp-msg-protocol:symbol-code
@@ -125,9 +117,9 @@
                             :weight_below_ca)))))))))
 
 ;;@author Luca Krohm
-(defun make-lift-constraint (object-name ;; box-size ;; grasp-type
-                                     &key avoid-collisions-not-much)
-  ;; (break)
+(defun make-lift-constraint (object-name
+                             &key avoid-collisions-not-much)
+  "Receives parameters used by manipulation. Creates Constraint of the type LiftObject which is a classname inside the manipulation code, which is responsible for 'lifting'"  
   (roslisp:make-message
    'giskard_msgs-msg:constraint
    :type
@@ -145,9 +137,9 @@
                             :weight_below_ca)))))))))
 
 ;;@author Luca Krohm
-(defun make-retract-constraint (object-name ;; box-size ;; grasp-type
+(defun make-retract-constraint (object-name
                                      &key avoid-collisions-not-much)
-  ;; (break)
+  "Receives parameters used by manipulation. Creates Constraint of the type Retracting which is a classname inside the manipulation code, which is responsible for 'retracting'"
   (roslisp:make-message
    'giskard_msgs-msg:constraint
    :type
@@ -166,7 +158,7 @@
 
 (defun make-prepare-place-constraint (target-pose object-height
                                      &key avoid-collisions-not-much)
-  ;; (break)
+  "Receives parameters used by manipulation. Creates Constraint of the type PreparePlacing which is a classname inside the manipulation code, which is responsible for 'preparing-placing'"
   (roslisp:make-message
    'giskard_msgs-msg:constraint
    :type
@@ -178,10 +170,6 @@
           ("message" . ,(giskard::to-hash-table target-pose))))
       ("object_height"
        . ,object-height)
-      ;; ("grasp_type"
-      ;;    . ,grasp-type)
-      ;; ("box_size"
-      ;;  . (("message" . ,(giskard::to-hash-table box-size))))
       
       ,@(if avoid-collisions-not-much
             `(("weight" . ,(roslisp-msg-protocol:symbol-code
@@ -191,9 +179,9 @@
                             'giskard_msgs-msg:constraint
                             :weight_below_ca)))))))))
 
-(defun make-place-constraint (target-pose object-name object-height ;; grasp-type
+(defun make-place-constraint (target-pose object-name object-height
                                      &key avoid-collisions-not-much)
-  ;; (break)
+  "Receives parameters used by manipulation. Creates Constraint of the type PlaceObject which is a classname inside the manipulation code, which is responsible for 'placing'"
   (roslisp:make-message
    'giskard_msgs-msg:constraint
    :type
@@ -207,10 +195,6 @@
        . ,object-name)
       ("object_height"
        . ,object-height)
-      ;; ("grasp_type"
-      ;;    . ,grasp-type)
-      ;; ("box_size"
-      ;;  . (("message" . ,(giskard::to-hash-table box-size))))
       
       ,@(if avoid-collisions-not-much
             `(("weight" . ,(roslisp-msg-protocol:symbol-code
@@ -236,7 +220,6 @@
                                          action-type
                                          object-size
                                          object-height
-                                         ;;grasp-type
                                          knob-pose
                                          open-drawer)
   (declare (type (or null cl-transforms-stamped:pose-stamped) left-pose right-pose)
@@ -321,20 +304,24 @@
                       right-pose
                       :straight-line straight-line
                       :avoid-collisions-much nil))
+                   ;;;;
+                   ;; Constraints for motions
                    (when (eq action-type 'reach)
                      (make-reach-constraint object-pose "pringles" object-size ))
                    (when (eq action-type 'lift)
                      (make-lift-constraint "pringles" ))
-                    (when (eq action-type 'retract)
+                   (when (eq action-type 'retract)
                       (make-retract-constraint "pringles" ))
-                    (when (eq action-type 'prepare-place)
-                      (make-prepare-place-constraint target-pose object-height))
+                   (when (eq action-type 'prepare-place)
+                     (make-prepare-place-constraint target-pose object-height))
                    (when (eq action-type 'place)
-                      (make-place-constraint target-pose "pringles" object-height))
-                    (when box-pose
-                      (make-custom-grasp-constraint box-pose "pringles" )) ;; box-size));; grasp-type))
-                    (when knob-pose
-                      (make-custom-return-grasp-constraint knob-pose open-drawer))
+                     (make-place-constraint target-pose "pringles" object-height))
+                   ;;;;
+                   
+                   (when box-pose
+                     (make-custom-grasp-constraint box-pose "pringles" ))
+                   (when knob-pose
+                     (make-custom-return-grasp-constraint knob-pose open-drawer))
 
                     )
      :collisions (ecase collision-mode
