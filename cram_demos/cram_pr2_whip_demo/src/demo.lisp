@@ -158,7 +158,7 @@
                      (target (desig:a location (pose ?pose-utensil)))))  
      
  ;;           ;CAN SEE THE FORK? hardcoded recognition of utensil type TODO make it adaptible
-       (setf ?object-utensil (urdf-proj::detect (desig:an object (type whisk))))            
+       (setf ?object-utensil (urdf-proj::detect (desig:an object (type whisk))))  
                                      
  ;;      ;(btr::add-vis-axis-object 'whisk-1) 
       
@@ -171,15 +171,13 @@
                                    (type picking-up)
                                    (object ?object-utensil)
                                     (arm (:right)) 
-                                   (grasp :top)))
-                                   
-      
-
+                                    (grasp :top)))
+     
+      (start-mix ?object-utensil)
       )))
 
-(defun start-mix ()
-  (urdf-proj::with-simulated-robot
-    (btr-utils::park-robot)
+(defun start-mix (object-utensil)
+    
   (let ((?pose-container (cl-tf:pose->pose-stamped
 			  cram-tf:*fixed-frame*
 			  0 
@@ -191,7 +189,7 @@
 	       (target (desig:a location (pose ?pose-container)))))
     
     (let ((?object-container(urdf-proj::detect
-      		     (desig:an object (type big-bowl))))
+                             (desig:an object (type big-bowl))))
           (?reso 4))
 
       ;; (exe:perform (desig:an action
@@ -199,15 +197,15 @@
       ;;                        (arm (:left))
       ;;                        (object ?object-container)
       ;;                        (grasp :left-top)))
-      
       (exe:perform (desig:an action
                              (type whisking)
 			     (context :mix)
                              (arm (:right))
                              (reso ?reso)
-                             (object ?object-container)
+                             (objects ?object-container)
                              (grasp :top)
-                             ))))))
+                             (object object-utensil)
+                             )))))
 
 (defun testdesig()
 (urdf-proj::with-simulated-robot 

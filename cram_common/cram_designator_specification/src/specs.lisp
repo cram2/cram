@@ -227,9 +227,12 @@
 
 (def-fact-group object-designator-specs (%property)
 
-  (<- (%property ?designator (:type ?type))
-    (lisp-pred typep ?designator desig:object-designator)
+ (<- (%property ?designator (?keyword-key ?type))
+  ;(<- (%property ?designator (:type ?type))
+   ; (lisp-pred typep ?designator desig:object-designator)
+    (member ?keyword-key (:type :tool))
     (property-member (:type ?type) ?designator)
+    (property-member (?keyword-key ?value) ?designator)
     (assert-type ?type keyword "OBJECT SPEC:PROPERTY"))
 
   (<- (%property ?designator (?keyword-key ?name))
