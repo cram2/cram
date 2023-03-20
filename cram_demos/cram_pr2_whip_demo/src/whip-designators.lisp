@@ -11,10 +11,22 @@
     (spec:property ?current-object-desig (:type ?object-type))
     (spec:property ?current-object-desig (:name ?object-name))
     (spec:property ?action-designator (:context ?context))
+<<<<<<< HEAD
     ;(spec:property ?action-designator (:sides ?reso))
     (-> (spec:property ?action-designator (:reso ?reso))
         (true)
         (format "no reso specified"))
+=======
+    (->(true)(format "bowl entered sucesfful")(true))
+    (spec:property ?action-designator (:objects ?tool-object-designator))
+    (-> (true)(format "whisk desig entered sucessful")(true))
+    (desig:current-designator ?tool-object-designator ?current-tool-object-desig)
+    (spec:property ?current-tool-object-desig (:tool ?tool-object-type))
+    (-> (spec:property ?action-designator (:reso ?reso))
+        (true)
+        (format "no reso specified"))
+    
+>>>>>>> experimental-temp
     
     ;; ==============   extract arms or set arms               ==============
     (man-int:arms-for-object-type ?object-type ?arms-for-object)
@@ -22,6 +34,7 @@
         (-> (spec:property ?action-designator (:arm ?arm))
 	    (true)
 	    (format "Please set a specific arm ~%")))
+    
 
 
     ;; ==============  infer missing information like ?grasp   ==============
@@ -35,6 +48,12 @@
         (and (member ?arm ?arms)
              (lisp-fun man-int:get-action-grasps ?object-type ?arm ?object-transform ?grasps)
              (member ?grasp ?grasps)))
+<<<<<<< HEAD
+=======
+    ;;(lisp-fun man-int:get-action-gripping-effort ?object-type ?effort)
+    ;;(lisp-fun man-int:get-action-gripper-opening ?object-type ?gripper-opening)
+
+>>>>>>> experimental-temp
     
     ;;TODO: THIS STAYS THE SAME DONT CHANGE TILL HERE !!!! ++++++++++++
 
@@ -43,8 +62,10 @@
     (equal ?objects (?current-object-desig))
     (-> (member :left ?arm)
 	;;TODO change name here nad start with one pose only
-	(and (lisp-fun man-int:get-action-trajectory :mixing
-		       :left ?grasp T ?objects ?context ?reso
+	(and
+(format "here??")
+         (lisp-fun man-int:get-action-trajectory :mixing
+		       :left ?grasp T ?objects :context ?context :reso ?reso :tool  ?tool-object-type
 		       ?left-trajectory)
 	    ; (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :grip-container
 		;       ?right-grip-container-poses)
@@ -74,8 +95,11 @@
 
     (-> (member :right ?arm)
 	;;TODO change name here nad start with one pose only
-        (and (lisp-fun man-int:get-action-trajectory :mixing
-			:right ?grasp T ?objects ?context ?reso
+
+        (and
+         (format "right one????")
+         (lisp-fun man-int:get-action-trajectory :mixing
+			:right ?grasp T ?objects :context ?context :reso ?reso :tool ?tool-object-type
 			?right-trajectory)
 	    ;  (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :grip-container
 		;	?left-grip-container-poses)
@@ -113,10 +137,8 @@
 		               (:grasp ?grasp)
 			       (:context ?context)
 			       (:reso ?reso)
-			       ;;(:effort ?effort)
-			       ;;(:gripper-opening ?gripper-opening)
-			      ; (:left-grip-container-poses ?left-grip-container-poses)
-			      ; (:right-grip-container-poses ?right-grip-container-poses)
+                               (:objects ?tool-object-designator)
+
 		               (:left-approach-poses ?left-approach-poses)
 			       (:right-approach-poses ?right-approach-poses)
 			       (:left-start-mix-poses ?left-start-mix-poses)
@@ -133,9 +155,3 @@
 ;;thats just for fun
 (defun get-arm-return (?arm)
   ?arm)
-
- (defun get-action-reso (?reso)
-(if (eq ?reso nil) 12 ?reso))
-
-(defun get-reso-from-list (alist)
- (cdr (assoc :reso alist)))

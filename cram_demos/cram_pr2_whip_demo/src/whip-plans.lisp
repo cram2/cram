@@ -48,7 +48,8 @@
 	       ((:arms ?arms))
 	       ((:grasp ?grasp))
 	       ((:context ?context))
-	       ((:reso ?reso))
+                ((:reso ?reso))
+                ((:objects ?tool-object-designator))
 	       ;;((:effort ?effort))
 	       ;;((:gripper-opening ?gripper-opening))
 	      ; ((:left-grip-container-poses ?left-grip-container-poses))
@@ -69,6 +70,8 @@
   (format t "My action designator is executable; ~%
              flipping: object-type ~a object-name ~a arm: ~a grasp: ~a ~%"
 	  ?object-type ?object-name ?arms ?grasp)
+
+(format t "my tool is: ~a" ?tool-object-designator)
 
 ;  (roslisp:ros-info (cut-pour pour) "Approaching")
 
@@ -125,6 +128,16 @@
     	       (collision-mode :allow-all))))
   (cpl:sleep 2)
 
+    (if  (eq ?context :mix-orbit)
+    (exe:perform
+     (desig:an action
+               (type blending)
+               (left-poses ?left-mid-mix-poses)
+               (right-poses ?right-mid-mix-poses)
+               ;;(desig:when ?collision-mode
+    	       (collision-mode :allow-all))))
+ (cpl:sleep 2)
+  
     (exe:perform
      (desig:an action
                (type blending)
