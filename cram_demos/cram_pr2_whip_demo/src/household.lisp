@@ -1186,3 +1186,12 @@
 (defmethod get-object-type-robot-frame-mix-rim-top-transform
    ((object-type (eql :big-bowl)))
   '((0.0 -0.9 0.11)(1 0 0 0)))
+  
+;;purely bowl object frames
+  (defmethod get-object-type-robot-frame-mix-rim-bottom-transform
+   ((object-type (eql :bowl-round)))
+  '((0.0 -0.025 0.06)(1 0 0 0)))
+  
+  (defmethod get-object-type-robot-frame-mix-rim-bottom-transform
+   ((object-type (eql :bowl)))
+  '((0.0 -0.03 0.06)(1 0 0 0)))

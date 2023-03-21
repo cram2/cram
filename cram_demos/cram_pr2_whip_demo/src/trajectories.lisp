@@ -402,17 +402,7 @@
 	(x 1)
         (defaultreso 12)
 	)
-<<<<<<< HEAD
 
-    ;(if (eq context :mix-eclipse) (setf erate 0.03))
-   ; (if (not reso))
-   ; (if (null reso) (print "reso is nil")
-   ;     (if (> reso 2) (setf defaultreso reso)))    
-    (setf angle (/(* 2  pi) defaultreso))
-    
- ;defaultreso is this case is jsut the holder for whatever ?reso was decided on or real default reso- look above
-   ; (if (eq context :mix)
-=======
     (setf erate newerate)
     (setf containerrim (nth 2 (car (get-object-type-robot-frame-mix-rim-bottom-transform object-type))))
     (print containerrim)
@@ -427,23 +417,12 @@
     
  ;defaultreso is this case is jsut the holder for whatever ?reso was decided on or real default reso- look above
    
->>>>>>> experimental-temp
         (loop while (<= x defaultreso)
               do (setf x   (+ x  1))
             
     collect  (change-v pose :x-offset (* erate (* containerrim (cos (* x angle))))
 			    :y-offset (* containerrim (sin (* x angle))))
-<<<<<<< HEAD
-		  
-              )
-   ; (if (eq context :mix-orbit)
-    ;   (orbital-poses pose reso)
-     ;   ))
-
-    )) 
-=======
     ))) 
->>>>>>> experimental-temp
 
 (defun rec-spiral-poses(object-type pose reso)
   (let
