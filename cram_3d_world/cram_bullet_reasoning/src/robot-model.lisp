@@ -304,6 +304,16 @@ Otherwise, the attachment is only used as information but does not affect the wo
           (second
            (find object-name (attached-objects robot-object) :key #'car))))
 
+(defun urdf-make-compound-shape (collision-elems collision-T-link color compound)
+  (let ((compound-shape (make-instance 'compound-shape)))
+    (dolist (collision collision-elems)
+      (add-child-shape compound-shape
+                       (cl-transforms:transform-pose
+                        collision-T-link (cl-urdf:origin collision))
+                       (urdf-make-collision-shape (cl-urdf:geometry collision) color compound)))
+    compound-shape))
+
+
 (defmethod initialize-instance :after ((robot-object robot-object)
                                        &key color name pose
                                          (collision-group :character-filter)
@@ -315,43 +325,56 @@ Otherwise, the attachment is only used as information but does not affect the wo
   Set `compound' T to spawn the robot as compound-shapes, instead of colored-boxes
   or convex-hull-shapes."
   (with-slots (rigid-bodies links urdf pose-reference-body) robot-object
-    (labels ((make-link-bodies (pose link)
+    (labels ((make-link-bodies (root-P-link link)
                "Returns the list of rigid bodies of `link' and all its sub-links"
-               (let* ((pose-transform (cl-transforms:reference-transform pose))
+               (let* ((root-T-link (cl-transforms:reference-transform root-P-link))
                       (collision-elem (cl-urdf:collision link))
+                      (collision-elems-list (cl-urdf:collisions link))
                       (bodies (mapcan (lambda (joint)
                                         (make-link-bodies (cl-transforms:transform-pose
-                                                           pose-transform (cl-urdf:origin joint))
+                                                           root-T-link (cl-urdf:origin joint))
                                                           (cl-urdf:child joint)))
-                                      (cl-urdf:to-joints link))))
+                                      (cl-urdf:to-joints link)))
+                      (color (apply-alpha-value
+                              (or color
+                                  (when (and (cl-urdf:visual link)
+                                             (cl-urdf:material
+                                              (cl-urdf:visual link)))
+                                    (cl-urdf:color
+                                     (cl-urdf:material
+                                      (cl-urdf:visual link))))
+                                  (let ((some-gray (/ (+ (random 5) 3) 10.0)))
+                                    (list some-gray some-gray some-gray
+                                          (or *robot-model-alpha* 1.0))))
+                              *robot-model-alpha*)))
                  (if collision-elem
-                     (cons (cons
-                            (cl-urdf:name link)
-                            (make-instance
-                                'rigid-body
-                              :name (make-rigid-body-name name (cl-urdf:name link))
-                              :mass 0
-                              :pose (cl-transforms:transform-pose
-                                     pose-transform (cl-urdf:origin collision-elem))
-                              :collision-shape (urdf-make-collision-shape
-                                                (cl-urdf:geometry collision-elem)
-                                                (apply-alpha-value
-                                                 (or color
-                                                     (when (and (cl-urdf:visual link)
-                                                                (cl-urdf:material
-                                                                 (cl-urdf:visual link)))
-                                                       (cl-urdf:color
-                                                        (cl-urdf:material
-                                                         (cl-urdf:visual link))))
-                                                     (let ((some-gray (/ (+ (random 5) 3) 10.0)))
-                                                       (list some-gray some-gray some-gray
-                                                             (or *robot-model-alpha* 1.0))))
-                                                 *robot-model-alpha*)
-                                                compound)
-                              :collision-flags :cf-default
-                              :group collision-group
-                              :mask collision-mask))
-                           bodies)
+                     (let ((link-P-collision (cl-urdf:origin collision-elem)))
+                       (cons (cons
+                              (cl-urdf:name link)
+                              (make-instance
+                                  'rigid-body
+                                :name (make-rigid-body-name name (cl-urdf:name link))
+                                :mass 0
+                                :pose (cl-transforms:transform-pose root-T-link link-P-collision)
+                                :collision-shape
+                                ;; If the urdf link has more than one collision element
+                                ;; make a compound shape and add all collisions to it.
+                                ;; For calculating the link pose, the rigid-body pose stays
+                                ;; the origin of the first collision root-P-collision.
+                                ;; The compound collision is offset by the inverse link-P-collision
+                                ;; to originate at root-T-link.
+                                (if (> (length collision-elems-list) 1)
+                                    (urdf-make-compound-shape collision-elems-list
+                                                              (cl-tf:transform-inv link-P-collision)
+                                                              color
+                                                              compound)
+                                    (urdf-make-collision-shape (cl-urdf:geometry collision-elem)
+                                                               color
+                                                               compound))
+                                :collision-flags :cf-default
+                                :group collision-group
+                                :mask collision-mask))
+                             bodies))
                      bodies))))
       (let ((bodies (make-link-bodies pose (cl-urdf:root-link urdf))))
         (initialize-rigid-bodies robot-object (mapcar #'cdr bodies))
