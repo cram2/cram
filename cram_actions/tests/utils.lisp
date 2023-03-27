@@ -11,8 +11,8 @@
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
 ;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors 
-;;;       may be used to endorse or promote products derived from this software 
+;;;       Technische Universitaet Muenchen nor the names of its contributors
+;;;       may be used to endorse or promote products derived from this software
 ;;;       without specific prior written permission.
 ;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -35,8 +35,8 @@
   (when (and (not (null args)) (typep (first args) 'symbol))
     (add-error-count-for-error (first args))))
 
-
 (defun init-test-env ()
+  (setf btr-belief:*spawn-debug-window* nil)
   (coe:clear-belief)
   (setf cram-tf:*tf-default-timeout* 2.0)
   (setf prolog:*break-on-lisp-errors* t)
@@ -45,6 +45,8 @@
 (roslisp-utilities:register-ros-init-function init-test-env)
 
 (defun init-projection ()
+  (unless (eq (roslisp:node-status) :RUNNING)
+    (roslisp-utilities:startup-ros))
   (btr:clear-costmap-vis-object)
   (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo")
   (btr-utils:kill-all-objects)
