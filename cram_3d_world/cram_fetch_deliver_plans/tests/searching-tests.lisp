@@ -11,8 +11,8 @@
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
 ;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors 
-;;;       may be used to endorse or promote products derived from this software 
+;;;       Technische Universitaet Muenchen nor the names of its contributors
+;;;       may be used to endorse or promote products derived from this software
 ;;;       without specific prior written permission.
 ;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -42,12 +42,12 @@
   (urdf-proj:with-simulated-robot
     (perform (an action
                  (type searching)
-                 (location (a location 
+                 (location (a location
                               (poses (*valid-location-on-island*
                                       *valid-location-on-sink-area-surface*))))
                  (object (an object
                              (type bowl)
-                             (location (a location 
+                             (location (a location
                                           (poses (*valid-location-on-island*
                                                   *valid-location-on-sink-area-surface*))))))
                  (robot-location (a location (poses (*valid-robot-pose-towards-island*)))))))
@@ -59,12 +59,12 @@
   (urdf-proj:with-simulated-robot
     (perform (an action
                  (type searching)
-                 (location (a location 
+                 (location (a location
                               (poses (*valid-location-on-island*
                                       *valid-location-on-sink-area-surface*))))
                  (object (an object
                              (type bowl)
-                             (location (a location 
+                             (location (a location
                                           (poses (*valid-location-on-island*
                                                   *valid-location-on-sink-area-surface*))))))
                  (robot-location (a location (poses (*valid-robot-pose-towards-island*)))))))
@@ -81,12 +81,12 @@
    (urdf-proj:with-simulated-robot
      (perform (an action
                   (type searching)
-                  (location (a location 
+                  (location (a location
                                (poses (*valid-location-on-island*
                                        *valid-location-on-sink-area-surface*))))
                   (object (an object
                               (type bowl)
-                              (location (a location 
+                              (location (a location
                                            (poses (*valid-location-on-island*
                                                    *valid-location-on-sink-area-surface*))))))
                   (robot-location (a location (poses (*valid-robot-pose-towards-island-near-wall*
@@ -103,11 +103,11 @@
    (urdf-proj:with-simulated-robot
      (perform (an action
                   (type searching)
-                  (location (a location 
+                  (location (a location
                                (poses (*valid-location-on-sink-area-surface*))))
                   (object (an object
                               (type bowl)
-                              (location (a location 
+                              (location (a location
                                            (poses (*valid-location-on-sink-area-surface*))))))
                   (robot-location (a location (poses (*invalid-robot-pose-towards-sink-area-surface*))))))))
   (assert-equal 1 (get-error-count-for-error 'common-fail:searching-failed))
@@ -122,11 +122,11 @@
   (urdf-proj:with-simulated-robot
     (perform (an action
                  (type searching)
-                 (location (a location 
+                 (location (a location
                               (poses (*valid-location-on-sink-area-surface*))))
                  (object (an object
                              (type bowl)
-                             (location (a location 
+                             (location (a location
                                           (poses (*valid-location-on-sink-area-surface*))))))
                  (robot-location (a location (poses (*invalid-robot-pose-towards-sink-area-surface*
                                                      *valid-robot-pose-towards-sink-area-surface*)))))))
