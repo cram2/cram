@@ -85,6 +85,16 @@
                      ;;                   *prefer-base-low-cost*
                      ;;                   *allow-base-high-cost*))
                      )
+                   (unless allow-base
+                     ;; Keep the base steady if base movement is not allowed
+                     (make-cartesian-constraint
+                      cram-tf:*odom-frame* cram-tf:*robot-base-frame*
+                      (cl-transforms-stamped:pose->pose-stamped
+                       cram-tf:*robot-base-frame* 0.0
+                       (cl-transforms:make-identity-pose))
+                      :max-linear-velocity *base-max-velocity-slow-xy*
+                      :max-angular-velocity *base-max-velocity-slow-theta*
+                      :avoid-collisions-much nil))
                    (when align-planes-left
                      (make-align-planes-constraint
                       pose-base-frame
@@ -186,6 +196,7 @@
                  ;;  (if try-harder
                  ;;      (/ *arm-max-velocity-slow-theta* 3.0)
                  ;;      *arm-max-velocity-slow-theta*))
+                 ;; Keep the base steady while parking arms
                  (make-cartesian-constraint
                   cram-tf:*odom-frame* cram-tf:*robot-base-frame*
                   (cl-transforms-stamped:pose->pose-stamped

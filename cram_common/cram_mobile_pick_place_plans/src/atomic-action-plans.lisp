@@ -39,7 +39,7 @@
   "Go to `?pose-stamped', if a failure happens retry, with a slower speed."
 
   (unwind-protect
-       (cpl:with-retry-counters ((nav-retries 1))
+       (cpl:with-retry-counters ((nav-retries 2))
          (cpl:with-failure-handling
              ((common-fail:navigation-low-level-failure (e)
                 (roslisp:ros-warn (pick-and-place go)

@@ -83,7 +83,9 @@
                    (cl-transforms:make-3d-vector 1 0 0)
                    (cl-transforms:make-identity-rotation))))
    :joint-constraints (make-current-joint-state-constraint '(:left :right))
-   :collisions (make-avoid-all-collision *base-collision-avoidance-distance*)))
+   ;; 20 cm collision distance only for fast, for slow we can use the default 10 cm.
+   :collisions (unless (eq base-velocity :slow)
+                 (make-avoid-all-collision *base-collision-avoidance-distance*))))
 
 (defun ensure-base-goal-input (pose)
   (cram-tf:ensure-pose-in-frame pose cram-tf:*fixed-frame*))
