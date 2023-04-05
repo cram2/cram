@@ -46,6 +46,7 @@
   (<- (man-int:object-type-direct-subtype :kitchen-item :milk))
   (<- (man-int:object-type-direct-subtype :kitchen-item :cereal))
   (<- (man-int:object-type-direct-subtype :kitchen-item :bowl))
+  (<- (man-int:object-type-direct-subtype :kitchen-item :open-box))
 
   (<- (man-int:object-type-direct-subtype :kitchen-item :pot))
   (<- (man-int:object-type-direct-subtype :kitchen-item :spatula))
@@ -133,7 +134,7 @@
                                  )))
 
   (<- (orientation-matters ?object-type)
-    (member ?object-type (:knife :fork :spoon :cutlery :spatula))))
+    (member ?object-type (:knife :fork :spoon :cutlery :spatula :package))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; CUTLERY ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -621,6 +622,27 @@
   (man-int:get-object-type-wrt-base-frame-lift-transforms type :left grasp location))
 
 
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;; OPEN-BOX ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *open-box-top-grasp-x-offset* 0.0 "in meters")
+(defparameter *open-box-top-grasp-y-offset* 0.245 "in meters")
+(defparameter *open-box-top-grasp-z-offset* 0.05 "in meters")
+(defparameter *open-box-lift-z-offset* 0.1 "in meters")
+
+;; TOP grasp
+(man-int:def-object-type-to-gripper-transforms :open-box '(:left :right) :top
+  :grasp-translation `(,(- *open-box-top-grasp-x-offset*)
+                        ,(- *open-box-top-grasp-y-offset*)
+                        ,*open-box-top-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,*open-box-lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,*open-box-lift-z-offset*)
+  :lift-translation `(0.0 0.0 ,*open-box-lift-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*open-box-lift-z-offset*))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;; mug ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

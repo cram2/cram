@@ -95,4 +95,5 @@
      (:file "apartment-demo" :depends-on ("package" "utils"
                                                     ;; for initializing
                                                     "household-demo"))
+     (:file "eurobin-demo" :depends-on ("package" "household-demo"))
      (:file "experiment-log-generator" :depends-on ("package" "household-demo"))))))
