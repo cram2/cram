@@ -93,7 +93,7 @@
          (?item-delivery-pose
            (cl-transforms-stamped:make-pose-stamped
             "map" (roslisp:ros-time)
-            (cl-tf:make-3d-vector 16.2d0 3.0d0 0.53d0)
+            (cl-tf:make-3d-vector 16.2d0 3.0d0 0.48d0)
             (cl-tf:euler->quaternion :az (* pi 0.0)))))
 
     ;;; ---
