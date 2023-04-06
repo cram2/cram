@@ -109,27 +109,28 @@
           (desig:an action
                     (type opening)
                     (arm right)
-                    (distance 0.5)
+                    (distance 1.5)
                     (grasps (left-side))
                     (object (desig:an object
                                       (type cupboard)
                                       (urdf-name window4-right)
                                       (part-of apartment)))))
-      (exe:perform
-       (desig:an action
-                 (type going)
-                 (target (desig:a location
-                                  (pose ?accessing-window-base-pose-2)))))
-      (exe:perform
-          (desig:an action
-                    (type opening)
-                    (arm left)
-                    (distance 1.5)
-                    (grasps (front))
-                    (object (desig:an object
-                                      (type cupboard)
-                                      (urdf-name window4-right)
-                                      (part-of apartment))))))
+      ;; (exe:perform
+      ;;  (desig:an action
+      ;;            (type going)
+      ;;            (target (desig:a location
+      ;;                             (pose ?accessing-window-base-pose-2)))))
+      ;; (exe:perform
+      ;;     (desig:an action
+      ;;               (type opening)
+      ;;               (arm left)
+      ;;               (distance 1.5)
+      ;;               (grasps (front))
+      ;;               (object (desig:an object
+      ;;                                 (type cupboard)
+      ;;                                 (urdf-name window4-right)
+      ;;                                 (part-of apartment)))))
+      )
 
     (unless (btr:object btr:*current-bullet-world* :package-stand)
       (btr:add-object btr:*current-bullet-world*
@@ -138,7 +139,7 @@
                       '((9.95 5.40 0.35)(0 0 0 1))
                       :size '(0.3 0.3 0.7)
                       :mass 1.0))
-    (btr-utils:spawn-object :open-box :open-box :pose '((9.95 5.40 0.8)(0 0 0 1)))
+    (btr-utils:spawn-object :open-box :open-box :pose '((9.95 5.40 0.8) (0 0 0 1)))
 
     ;;; ---
     ;;; Take the package and carry it to the table
