@@ -38,8 +38,6 @@
    (cut:force-ll
     (prolog `(and
               (btr:bullet-world ?w)
-              ,@(when *spawn-debug-window*
-                  '((btr:debug-window ?w)))
               (btr:assert ?w (btr:object :static-plane
                                          :floor ((0 0 0) (0 0 0 1))
                                          :normal (0 0 1) :constant 0
@@ -74,7 +72,9 @@
                        (assert (btr:joint-state ?world ?robot
                                                 ((?torso-joint ?average-joint-value)))))
                   (warn "ROB-INT:ROBOT was not defined. ~
-                         Have you loaded a robot package?")))))))
+                         Have you loaded a robot package?"))
+              ,@(when *spawn-debug-window*
+                  '((btr:debug-window ?w))))))))
 
 (defun setup-world-database ()
   ;; make a clean world instance
