@@ -39,6 +39,7 @@
   (btr-belief::publish-environment-joint-state
    (btr:joint-states (btr:get-environment-object)))
   (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))
+  (giskard:reset-collision-scene)
   ;; (coe:clear-belief)
   (btr:clear-costmap-vis-object))
 
@@ -47,17 +48,6 @@
   ;;urdf-proj:with-simulated-robot
   (setf proj-reasoning::*projection-checks-enabled* nil)
   (setf btr:*visibility-threshold* 0.7)
-
-  ;;; ---
-  ;;; Step 0: Init apartment, reset joints, desigs and objects
-  (when (<= step 0)
-    (initialize-eurobin)
-    (park-robot (cl-transforms-stamped:make-pose-stamped
-                 cram-tf:*fixed-frame*
-                 0.0
-                 (cl-transforms:make-3d-vector 9.7d0 3.0d0 0.0d0)
-                 (cl-transforms:make-quaternion 0 0 1 0))))
-
 
   (let* (;; Initialize desigs for objects and locations
          (?accessing-window-base-pose
@@ -70,6 +60,11 @@
             "map" (roslisp:ros-time)
             (cl-tf:make-3d-vector 9.5d0 4.3d0 0.0d0)
             (cl-tf:euler->quaternion :az (* pi 0.25))))
+         (?accessing-window-base-front-pose
+           (cl-transforms-stamped:make-pose-stamped
+            "map" (roslisp:ros-time)
+            (cl-tf:make-3d-vector 9.7d0 4.3d0 0.0d0)
+            (cl-tf:euler->quaternion :az (* pi 0.5))))
          (?picking-up-package-base-pose
            (cl-transforms-stamped:make-pose-stamped
             "map" (roslisp:ros-time)
@@ -97,40 +92,49 @@
             (cl-tf:euler->quaternion :az (* pi 0.0)))))
 
     ;;; ---
+    ;;; Step 0: Init apartment, reset joints, desigs and objects
+    (when (<= step 0)
+      (initialize-eurobin))
+
+    ;;; ---
     ;;; Go and open the door
     (when (<= step 1)
-      (exe:perform
-       (desig:an action
-                 (type going)
-                 (target (desig:a location
-                                  (pose ?accessing-window-base-pose)))))
-
-      (exe:perform
-          (desig:an action
-                    (type opening)
-                    (arm right)
-                    (distance 1.5)
-                    (grasps (left-side))
-                    (object (desig:an object
-                                      (type cupboard)
-                                      (urdf-name window4-right)
-                                      (part-of apartment)))))
+      (park-robot ?accessing-window-base-front-pose)
       ;; (exe:perform
       ;;  (desig:an action
       ;;            (type going)
       ;;            (target (desig:a location
-      ;;                             (pose ?accessing-window-base-pose-2)))))
-      ;; (exe:perform
-      ;;     (desig:an action
-      ;;               (type opening)
-      ;;               (arm left)
-      ;;               (distance 1.5)
-      ;;               (grasps (front))
-      ;;               (object (desig:an object
-      ;;                                 (type cupboard)
-      ;;                                 (urdf-name window4-right)
-      ;;                                 (part-of apartment)))))
+      ;;                             (pose ?accessing-window-base-front-pose)))))
       )
+    (when (<= step 2)
+      (exe:perform
+          (desig:an action
+                    (type opening)
+                    (arm left)
+                    (distance 0.3)
+                    (grasps (door-left))
+                    (object (desig:an object
+                                      (type cupboard)
+                                      (urdf-name window4-right)
+                                      (part-of apartment))))))
+    (when (<= step 3)
+      (exe:perform
+       (desig:an action
+                 (type going)
+                 (target (desig:a location
+                                  (pose ?accessing-window-base-pose-2))))))
+
+    (when (<= step 4)
+      (exe:perform
+          (desig:an action
+                    (type opening)
+                    (arm right)
+                    (distance 1.2)
+                    (grasps (door-left))
+                    (object (desig:an object
+                                      (type cupboard)
+                                      (urdf-name window4-right)
+                                      (part-of apartment))))))
 
     (unless (btr:object btr:*current-bullet-world* :package-stand)
       (btr:add-object btr:*current-bullet-world*
@@ -143,7 +147,7 @@
 
     ;;; ---
     ;;; Take the package and carry it to the table
-    (when (<= step 2)
+    (when (<= step 5)
       ;; go to open door
       (exe:perform
        (desig:an action
