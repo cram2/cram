@@ -193,3 +193,21 @@
   :2nd-pregrasp-offsets `(,*handle-2nd-pregrasp-x-offset-open* 0.0 0.0)
   :lift-translation '(0 0 0)
   :2nd-lift-translation '(0 0 0))
+
+;; ANGLED from the right for doors
+(man-int:def-object-type-to-gripper-transforms :handle '(:left :right) :door-right
+  :grasp-translation `(,(- 0.05) 0.025 ,*handle-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-x-across-z+45-deg-grasp-rotation*
+  :pregrasp-offsets `(,(- *handle-pregrasp-x-offset-open*) 0.10 0.0)
+  :2nd-pregrasp-offsets `(,(- *handle-2nd-pregrasp-x-offset-open*) 0.10 0.0)
+  :lift-translation '(0 0 0)
+  :2nd-lift-translation '(0 0 0))
+
+;; ANGLED from the left for doors
+(man-int:def-object-type-to-gripper-transforms :handle '(:left :right) :door-left
+  :grasp-translation `(,(- 0.025) -0.015 ,*handle-grasp-z-offset*)
+  :grasp-rot-matrix  man-int:*-x-across-z-45-deg-grasp-rotation*
+  :pregrasp-offsets `(,(- *handle-pregrasp-x-offset-open*) -0.10 0.0)
+  :2nd-pregrasp-offsets `(,(- *handle-2nd-pregrasp-x-offset-open*) -0.10 0.0)
+  :lift-translation '(0 0 0)
+  :2nd-lift-translation '(0 0 0))

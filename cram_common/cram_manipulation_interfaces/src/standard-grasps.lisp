@@ -53,6 +53,19 @@
   '(( 0  0  1)
     (-1  0  0)
     ( 0 -1  0)))
+(defparameter *-x-across-z+45-deg-grasp-rotation*
+  `((,(sin (/ pi 2)) 0 ,(sin (/ pi 2)))
+    (,(sin (/ pi 2)) 0 ,(sin (/ pi -2)))
+    (0               1 0)))
+(defparameter *-x-across-z-45-deg-grasp-rotation*
+  `((,(sin (/ pi -2)) 0 ,(sin (/ pi 2)))
+    (,(sin (/ pi 2))  0 ,(sin (/ pi 2)))
+    (0                1 0)))
+;; (defparameter *-x-across-z-30-deg-grasp-rotation*
+;;   `((0 0 1)
+;;     (1 0 0)
+;;     (0 1 0)))
+
 (defparameter *x-across-y-grasp-rotation*
   '(( 0  0 -1)
     ( 0 -1  0)
