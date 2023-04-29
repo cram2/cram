@@ -99,14 +99,18 @@
    "GraspObject"
    :parameter_value_pair
    (giskard::alist->json-string
-    `(("object_pose"
-       . (("message_type" . "geometry_msgs/PoseStamped")
-          ("message" . ,(giskard::to-hash-table object-pose))))
+    `(,@(when object-pose
+          `(("object_pose"
+             . (("message_type" . "geometry_msgs/PoseStamped")
+                ("message" . ,(giskard::to-hash-table object-pose))))))
       ("object_name"
        . ,object-name)
-      ("object_size"
-       . (("message_type" . "geometry_msgs/Vector3")
-          ("message" . ,(giskard::to-hash-table object-size))))
+      ,@(when object-size
+          `(("object_size"
+           . (("message_type" . "geometry_msgs/Vector3")
+              ("message" . ,(giskard::to-hash-table object-size))))))
+      ("frontal_grasping"
+       . 1)
       
       ,@(if avoid-collisions-not-much
             `(("weight" . ,(roslisp-msg-protocol:symbol-code
@@ -137,9 +141,10 @@
                             :weight_below_ca)))))))))
 
 ;;@author Luca Krohm
-(defun make-retract-constraint (object-name
+(defun make-retract-constraint (object-name tip-link
                                      &key avoid-collisions-not-much)
   "Receives parameters used by manipulation. Creates Constraint of the type Retracting which is a classname inside the manipulation code, which is responsible for 'retracting'"
+  (print tip-link)
   (roslisp:make-message
    'giskard_msgs-msg:constraint
    :type
@@ -147,29 +152,34 @@
    :parameter_value_pair
    (giskard::alist->json-string
     `(("object_name"
-         . ,object-name)      
+       . ,object-name)   
+      ,@(when tip-link
+          `(("tip_link"
+             . "hand_palm_link")))
       ,@(if avoid-collisions-not-much
             `(("weight" . ,(roslisp-msg-protocol:symbol-code
-                           'giskard_msgs-msg:constraint
-                           :weight_above_ca))
+                            'giskard_msgs-msg:constraint
+                            :weight_above_ca))
               (("weight" . (roslisp-msg-protocol:symbol-code
                             'giskard_msgs-msg:constraint
                             :weight_below_ca)))))))))
 
-(defun make-prepare-place-constraint (target-pose object-height
+(defun make-align-height-constraint (goal-pose object-height
                                      &key avoid-collisions-not-much)
   "Receives parameters used by manipulation. Creates Constraint of the type PreparePlacing which is a classname inside the manipulation code, which is responsible for 'preparing-placing'"
   (roslisp:make-message
    'giskard_msgs-msg:constraint
    :type
-   "PreparePlacing"
+   "AlignHeight"
    :parameter_value_pair
    (giskard::alist->json-string
-    `(("target_pose"
+    `(("goal_pose"
        . (("message_type" . "geometry_msgs/PoseStamped")
-          ("message" . ,(giskard::to-hash-table target-pose))))
+          ("message" . ,(giskard::to-hash-table goal-pose))))
       ("object_height"
        . ,object-height)
+      ("frontal_grasping"
+       . 1)
       
       ,@(if avoid-collisions-not-much
             `(("weight" . ,(roslisp-msg-protocol:symbol-code
@@ -216,10 +226,13 @@
                                          precise-tracking
                                          box-pose
                                          object-pose
+                                         object-name
                                          target-pose
                                          action-type
                                          object-size
                                          object-height
+                                         tip-link
+                                         goal-pose
                                          knob-pose
                                          open-drawer)
   (declare (type (or null cl-transforms-stamped:pose-stamped) left-pose right-pose)
@@ -307,13 +320,13 @@
                    ;;;;
                    ;; Constraints for motions
                    (when (eq action-type 'reach)
-                     (make-reach-constraint object-pose "pringles" object-size ))
+                     (make-reach-constraint object-pose object-name object-size ))
                    (when (eq action-type 'lift)
                      (make-lift-constraint "pringles" ))
                    (when (eq action-type 'retract)
-                      (make-retract-constraint "pringles" ))
-                   (when (eq action-type 'prepare-place)
-                     (make-prepare-place-constraint target-pose object-height))
+                      (make-retract-constraint "pringles" tip-link))
+                   (when (eq action-type 'align-height)
+                     (make-align-height-constraint goal-pose object-height))
                    (when (eq action-type 'place)
                      (make-place-constraint target-pose "pringles" object-height))
                    ;;;;
@@ -499,7 +512,10 @@
                                     action-type
                                     target-pose
                                     object-size
+                                    object-name
                                     object-height
+                                    tip-link
+                                    goal-pose
                                     ;; grasp-type
                                     knob-pose
                                     open-drawer
@@ -511,7 +527,6 @@
            (type boolean move-base prefer-base straight-line precise-tracking
                  align-planes-left align-planes-right)
            (type (or list null) unmovable-joints))
-
   ;; (unless (or goal-pose-left goal-pose-right)
   ;;   (roslisp:ros-info (giskard cart) "Got an empty goal...")
   ;;   ;; return NIL as observation if the goal is empty
@@ -551,7 +566,10 @@
                  :action-type action-type
                  :target-pose target-pose
                  :object-size object-size
+                 :object-name object-name
                  :object-height object-height
+                 :tip-link tip-link
+                 :goal-pose goal-pose
                  ;; :grasp-type grasp-type
                  :knob-pose knob-pose
                  :open-drawer open-drawer)

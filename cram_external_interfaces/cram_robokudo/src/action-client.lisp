@@ -294,12 +294,16 @@
                :bowl)
               (:SoupSpoon
                :spoon)
+              (:apple
+               :apple)
               (:spoon
                :spoon)
               (:IkeaRedCup
                :cup)
               (:bowl
                :bowl)
+              (:mustard-bottle
+               :mustard-bottle)
               (:cup
                :cup)
               (:mug
@@ -319,7 +323,9 @@
               (:JeroenCup
                :jeroen-cup)
               (:jeroen-cup
-               :jeroen-cup))))
+               :jeroen-cup)
+              (:pringles
+               :pringles))))
       (setf rs-answer
             (subst-if `(:type ,cram-type)
                       (lambda (x)

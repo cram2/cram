@@ -34,7 +34,7 @@
                                            prefer-base
                                            &optional hinge-point-stamped)
   (declare (type keyword open-or-close arm)
-           (type symbol handle-link)
+           ;; (type symbol handle-link)
            (type (or number null) joint-state)
            (type boolean prefer-base)
            (type (or null cl-transforms-stamped:point-stamped) hinge-point-stamped))
@@ -99,7 +99,7 @@
                                                prefer-base
                                                joint-pose)
   (declare (type keyword open-or-close arm)
-           (type symbol handle-link)
+           ;;(type symbol handle-link)
            (type (or number null) joint-angle action-timeout)
            (type boolean prefer-base)
            (type (or cl-transforms:pose null) joint-pose))

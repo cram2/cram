@@ -264,7 +264,7 @@
 
 (defun make-open-or-close-constraint (open-or-close arm handle-link &optional goal-joint-state)
   (declare (type keyword open-or-close arm)
-           (type keyword handle-link)
+           ;;(type keyword handle-link)
            (type (or number null) goal-joint-state))
   (let ((tool-frame
           (cut:var-value
@@ -281,8 +281,7 @@
      :parameter_value_pair
      (alist->json-string
       `(("tip_link" . ,tool-frame)
-        ("environment_link" . ,(roslisp-utilities:rosify-underscores-lisp-name
-                                handle-link))
+        ("environment_link" . ,handle-link)
         ,@(when (and (eq open-or-close :open) goal-joint-state)
             `(("goal_joint_state" . ,goal-joint-state))))))))
 
@@ -697,7 +696,8 @@ a keyword, a number or NIL."
 
 (defun make-allow-hand-collision (arms body-b &optional body-b-link)
   (declare (type list arms)
-           (type (or null keyword) body-b body-b-link))
+           ;; (type (or null keyword) body-b body-b-link)
+           )
   "Allows collision between all given hands (in arms) and body-b-link if defined, or just body-b."
   (let ((hand-roots
           (find-root-links
@@ -715,13 +715,14 @@ a keyword, a number or NIL."
                               body-b)))
     (when body-b-link
       (register-group :root-link
-                      (roslisp-utilities:rosify-underscores-lisp-name
-                       body-b-link)
+                      ;; (roslisp-utilities:rosify-underscores-lisp-name
+                       body-b-link ;; )     
                       :parent-group-name
                       (roslisp-utilities:rosify-underscores-lisp-name
                        (or body-b (rob-int:get-environment-name))))
-      (setf collision-group2 (roslisp-utilities:rosify-underscores-lisp-name
-                              body-b-link)))
+      (setf collision-group2 ;; (roslisp-utilities:rosify-underscores-lisp-name
+            body-b-link ;;)
+            )) 
     (loop for root in hand-roots
           do (register-group :root-link root
                              :parent-group-name

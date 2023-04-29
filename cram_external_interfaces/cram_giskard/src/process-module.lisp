@@ -115,6 +115,7 @@
         :precise-tracking (nth 10 rest-args); that's eleventh element
         :object-pose (nth 11 rest-args)
         :object-size (nth 12 rest-args)
+        :object-name (nth 13 rest-args)
         :action-type 'reach
         ))
       (cram-common-designators:lift
@@ -149,11 +150,11 @@
         :align-planes-left (eighth rest-args)
         :align-planes-right (ninth rest-args)
         :precise-tracking (nth 10 rest-args); that's eleventh element
-        :object-pose (nth 11 rest-args)
+        :tip-link (nth 11 rest-args)
         ;; :size (nth 11 rest-args)
         :action-type 'retract
         ))
-      (cram-common-designators:prepare-place
+      (cram-common-designators:align-height
        (giskard:call-arm-cartesian-action
         :goal-pose-left argument-1
         :goal-pose-right (first rest-args)
@@ -167,9 +168,9 @@
         :align-planes-left (eighth rest-args)
         :align-planes-right (ninth rest-args)
         :precise-tracking (nth 10 rest-args); that's eleventh element
-        :target-pose (nth 11 rest-args)
+        :goal-pose (nth 11 rest-args)
         :object-height (nth 12 rest-args)
-        :action-type 'prepare-place
+        :action-type 'align-height
         ))
       (cram-common-designators:place
        (giskard:call-arm-cartesian-action
