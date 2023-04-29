@@ -72,6 +72,19 @@
 
 (def-fact-group gripper-motions (motion-grounding)
 
+  ;;;;;;;;;;;; SUTURO
+
+  (<- (motion-grounding ?designator (?open-or-close ?effort))
+    (spec:property ?designator (:type :gripper-motion))
+    (or (and (spec:property ?designator (:open-close :open))
+             (equal ?open-or-close open-gripper))
+        (and (spec:property ?designator (:open-close :close))
+             (equal ?open-or-close close-gripper)))
+    (once (or (desig:desig-prop ?designator (:effort ?effort))
+              (equal ?effort 0))))
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
   (<- (motion-grounding ?designator (move-gripper ?open-gripper))
     (property ?designator (:type :moving-gripper))
     (once (or (property ?designator (:open-gripper ?open-gripper))
@@ -172,6 +185,7 @@
                                               ?precise-tracking
                                               ?object-pose
                                               ?object-size
+                                              ?object-name
                                               ))
     (property ?designator (:type :reaching))
     (once (or (property ?designator (:left-pose ?left-pose))
@@ -202,7 +216,9 @@
     (once (or (desig:desig-prop ?designator (:object-pose ?object-pose))
               (equal ?object-pose nil)))
     (once (or (desig:desig-prop ?designator (:object-size ?object-size))
-              (equal ?object-size nil))))
+              (equal ?object-size nil)))
+    (once (or (desig:desig-prop ?designator (:object-name ?object-name))
+              (equal ?object-name nil))))
 
 
   (<- (motion-grounding ?designator (lift ?left-pose ?right-pose
@@ -256,7 +272,7 @@
                                               ?align-planes-right
                                               ?straight-line
                                               ?precise-tracking
-                                              ?object-pose
+                                              ?tip-link
                                               ))
     (property ?designator (:type :retracting))
     (once (or (property ?designator (:left-pose ?left-pose))
@@ -284,8 +300,8 @@
               (equal ?align-planes-right nil)))
     (once (or (desig:desig-prop ?designator (:precise-tracking ?precise-tracking))
               (equal ?precise-tracking nil)))
-    (once (or (desig:desig-prop ?designator (:object-pose ?object-pose))
-              (equal ?object-pose nil))))
+    (once (or (desig:desig-prop ?designator (:tip-link ?tip-link))
+              (equal ?tip-link nil))))  
 
   (<- (motion-grounding ?designator (place ?left-pose ?right-pose
                                               ?collision-mode
@@ -331,7 +347,7 @@
     (once (or (desig:desig-prop ?designator (:object-height ?object-height))
               (equal ?object-height nil))))
 
-  (<- (motion-grounding ?designator (prepare-place ?left-pose ?right-pose
+  (<- (motion-grounding ?designator (align-height ?left-pose ?right-pose
                                               ?collision-mode
                                               ?collision-object-b
                                               ?collision-object-b-link
@@ -341,10 +357,10 @@
                                               ?align-planes-right
                                               ?straight-line
                                               ?precise-tracking
-                                              ?target-pose
+                                              ?goal-pose
                                               ?object-height
                                               ))
-    (property ?designator (:type :prepare-placing))
+    (property ?designator (:type :aligning-height))
     (once (or (property ?designator (:left-pose ?left-pose))
               (equal ?left-pose nil)))
     (once (or (property ?designator (:right-pose ?right-pose))
@@ -370,8 +386,8 @@
               (equal ?align-planes-right nil)))
     (once (or (desig:desig-prop ?designator (:precise-tracking ?precise-tracking))
               (equal ?precise-tracking nil)))
-    (once (or (desig:desig-prop ?designator (:target-pose ?target-pose))
-              (equal ?target-pose nil)))
+    (once (or (desig:desig-prop ?designator (:goal-pose ?goal-pose))
+              (equal ?goal-pose nil)))
     (once (or (desig:desig-prop ?designator (:object-height ?object-height))
               (equal ?object-height nil))))
 
@@ -396,7 +412,8 @@
         (and (property ?designator (:type :pulling))
              (equal ?push-or-pull move-arm-pull)))
     (property ?designator (:arm ?arm))
-    (property ?designator (:poses ?poses))
+    (once (or (desig:desig-prop ?designator (:poses ?poses))
+              (equal ?poses nil)))
     (once (or (desig:desig-prop ?designator (:joint-angle ?joint-angle))
               (equal ?joint-angle nil)))
     (once (or (desig:desig-prop ?designator (:collision-mode ?collision-mode))
