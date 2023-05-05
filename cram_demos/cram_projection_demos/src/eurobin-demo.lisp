@@ -63,7 +63,7 @@
          (?accessing-window-base-front-pose
            (cl-transforms-stamped:make-pose-stamped
             "map" (roslisp:ros-time)
-            (cl-tf:make-3d-vector 9.7d0 4.3d0 0.0d0)
+            (cl-tf:make-3d-vector 9.3d0 4.2d0 0.0d0)
             (cl-tf:euler->quaternion :az (* pi 0.5))))
          (?picking-up-package-base-pose
            (cl-transforms-stamped:make-pose-stamped
@@ -104,37 +104,40 @@
       ;;  (desig:an action
       ;;            (type going)
       ;;            (target (desig:a location
-      ;;                             (pose ?accessing-window-base-front-pose)))))
+      ;;                             (pose ?accessing-window-base-pose-2)))))
       )
     (when (<= step 2)
       (exe:perform
           (desig:an action
                     (type opening)
-                    (arm left)
-                    (distance 0.3)
-                    (grasps (door-left))
-                    (object (desig:an object
-                                      (type cupboard)
-                                      (urdf-name window4-right)
-                                      (part-of apartment))))))
-    (when (<= step 3)
-      (exe:perform
-       (desig:an action
-                 (type going)
-                 (target (desig:a location
-                                  (pose ?accessing-window-base-pose-2))))))
-
-    (when (<= step 4)
-      (exe:perform
-          (desig:an action
-                    (type opening)
                     (arm right)
-                    (distance 1.2)
-                    (grasps (door-left))
+                    (distance 1.55)
+                    (grasps (door-angled))
+                    ;; (link window4-left-handle)
                     (object (desig:an object
                                       (type cupboard)
                                       (urdf-name window4-right)
                                       (part-of apartment))))))
+
+
+    ;; (when (<= step 3)
+    ;;   (exe:perform
+    ;;    (desig:an action
+    ;;              (type going)
+    ;;              (target (desig:a location
+    ;;                               (pose ?accessing-window-base-pose-2))))))
+
+    ;; (when (<= step 4)
+    ;;   (exe:perform
+    ;;       (desig:an action
+    ;;                 (type opening)
+    ;;                 (arm right)
+    ;;                 (distance 1.2)
+    ;;                 (grasps (door-left))
+    ;;                 (object (desig:an object
+    ;;                                   (type cupboard)
+    ;;                                   (urdf-name window4-right)
+    ;;                                   (part-of apartment))))))
 
     (unless (btr:object btr:*current-bullet-world* :package-stand)
       (btr:add-object btr:*current-bullet-world*
@@ -220,3 +223,22 @@
                  (target (desig:a location
                                   (pose ?item-delivery-pose)))))))
   (finalize))
+
+
+;; visualize the gripper frames for opening a container
+;; (let ((door-traj
+;;         (urdf-proj:with-simulated-robot
+;;           (man-int:get-action-trajectory :opening :left :door-left NIL
+;;                                          (list (desig:AN OBJECT
+;;                                                          (TYPE CUPBOARD)
+;;                                                          (URDF-NAME window4-right)
+;;                                                          (PART-OF APARTMENT)))
+;;                                          :opening-distance 0.1))))
+;;   (mapcan (lambda (pose)
+;;             (btr:add-vis-axis-object pose)
+;;             (sleep 0.5))
+;;           (append  ;; (man-int:get-traj-poses-by-label door-traj :reaching)
+;;            (man-int:get-traj-poses-by-label door-traj :grasping)
+;;            ;; (man-int:get-traj-poses-by-label door-traj :opening)
+;;            ;; (man-int:get-traj-poses-by-label door-traj :retracting)
+;;            )))

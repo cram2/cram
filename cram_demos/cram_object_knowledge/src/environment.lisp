@@ -110,10 +110,10 @@
 (defparameter *handle-grasp-x-offset* 0.0 "in meters")
 (defparameter *handle-grasp-y-offset* 0.0 "in meters")
 (defparameter *handle-grasp-z-offset* 0.0 "in meters")
-(defparameter *handle-pregrasp-x-offset-open* 0.06 "in meters")
-(defparameter *handle-2nd-pregrasp-x-offset-open* 0.02 "in meters")
-(defparameter *handle-pregrasp-y-offset-open* 0.06 "in meters")
-(defparameter *handle-2nd-pregrasp-y-offset-open* 0.02 "in meters")
+(defparameter *handle-pregrasp-x-offset-open* 0.2 "in meters")
+(defparameter *handle-2nd-pregrasp-x-offset-open* 0.15 "in meters")
+(defparameter *handle-pregrasp-y-offset-open* 0.15 "in meters")
+(defparameter *handle-2nd-pregrasp-y-offset-open* 0.15 "in meters")
 (defparameter *handle-pregrasp-x-offset-close* -0.0 "in meters")
 ;; (defparameter *handle-retract-offset* 0.15 "in meters") ; defined in env-manip
 (defparameter *handle-side-grasp-x-offset* 0.0  "in meters")
@@ -194,17 +194,17 @@
   :lift-translation '(0 0 0)
   :2nd-lift-translation '(0 0 0))
 
-;; ANGLED from the right for doors
-(man-int:def-object-type-to-gripper-transforms :handle '(:left :right) :door-right
-  :grasp-translation `(,(- 0.05) 0.025 ,*handle-grasp-z-offset*)
+;; ANGLED 45 degree for door handles towards pos x & neg y
+(man-int:def-object-type-to-gripper-transforms :handle '(:left :right) :door-angled-2
+  :grasp-translation `(,(- 0.025) 0.025 ,*handle-grasp-z-offset*)
   :grasp-rot-matrix man-int:*-x-across-z+45-deg-grasp-rotation*
   :pregrasp-offsets `(,(- *handle-pregrasp-x-offset-open*) 0.10 0.0)
   :2nd-pregrasp-offsets `(,(- *handle-2nd-pregrasp-x-offset-open*) 0.10 0.0)
   :lift-translation '(0 0 0)
   :2nd-lift-translation '(0 0 0))
 
-;; ANGLED from the left for doors
-(man-int:def-object-type-to-gripper-transforms :handle '(:left :right) :door-left
+;; ANGLED 45 degree for door handles towards pos x & pos y
+(man-int:def-object-type-to-gripper-transforms :handle '(:left :right) :door-angled
   :grasp-translation `(,(- 0.025) -0.015 ,*handle-grasp-z-offset*)
   :grasp-rot-matrix  man-int:*-x-across-z-45-deg-grasp-rotation*
   :pregrasp-offsets `(,(- *handle-pregrasp-x-offset-open*) -0.10 0.0)
