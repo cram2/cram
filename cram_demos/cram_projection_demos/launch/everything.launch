@@ -105,7 +105,7 @@
   <group if="$(arg apartment)">
     <param name="kitchen_description"
            command="$(find xacro)/xacro
-                    '$(find iai_apartment)/urdf/apartment_with_window4.xacro'"/>
+                    '$(find iai_apartment)/urdf/apartment_unreal_with_window4.xacro'"/>
   </group>
 
   <!-- environment state publisher -->
