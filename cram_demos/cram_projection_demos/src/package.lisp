@@ -38,4 +38,6 @@
    ;; assembly-demo
    #:assembly-demo
    ;; retail-demo
-   #:retail-demo))
+   #:retail-demo
+   ;; eurobin-demo
+   #:eurobin-demo))
