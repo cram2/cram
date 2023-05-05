@@ -40,4 +40,7 @@
    ;; retail-demo
    #:retail-demo
    ;; setup
-   *broadcast-robot-and-environment*))
+   *broadcast-robot-and-environment*
+   ;; eurobin-demo
+   #:eurobin-demo))
+
