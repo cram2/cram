@@ -96,24 +96,14 @@
                        ?left-trajectory)
              (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :reaching
                        ?left-reach-poses)
-             (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :tilting-down
-                       ?left-tilt-down-poses)
              (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :tilting
-                       ?left-tilt-up-poses)
-             (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :tilting-second
-                       ?left-tilt-second-poses)
-             (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :tilting-third
-                       ?left-tilt-third-poses)
+                       ?left-tilt-poses)
              ;; (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :retracting
              ;;           ?left-retract-poses)
              )
         
         (and (equal ?left-reach-poses NIL)
-             (equal ?left-tilt-down-poses NIL)
-             (equal ?left-tilt-up-poses NIL)
-             (equal ?left-tilt-second-poses NIL)
-             (equal ?left-tilt-third-poses NIL)
-             (equal ?left-retract-poses NIL)))
+             (equal ?left-tilt-poses NIL)))
     
     (-> (equal ?arm :right)
         (and (lisp-fun man-int:get-action-trajectory :pouring
@@ -122,14 +112,8 @@
                        ?right-trajectory)
              (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :reaching
                        ?right-reach-poses)
-             (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :tilting-down
-                       ?right-tilt-down-poses)
              (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :tilting
-                       ?right-tilt-up-poses)
-             (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :tilting-second
-                       ?right-tilt-second-poses)
-             (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :tilting-third
-                       ?right-tilt-third-poses)
+                       ?right-tilt-poses)
              ;; (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :retracting
              ;;           ?right-retract-poses)
              )
@@ -141,11 +125,7 @@
         ;;      (equal ?right-retract-poses t))
         
         (and (equal ?right-reach-poses NIL)
-             (equal ?right-tilt-down-poses NIL)
-             (equal ?right-tilt-up-poses NIL)
-             (equal ?right-tilt-second-poses NIL)
-             (equal ?right-tilt-third-poses NIL)
-             (equal ?right-retract-poses NIL)))
+             (equal ?right-tilt-poses NIL)))
     
     
     ;; wait duration
@@ -178,16 +158,10 @@
                                ;;(:wait-duration ?wait-duration)
                                
                                (:left-reach-poses ?left-reach-poses)
-                               (:left-tilt-down-poses ?left-tilt-down-poses)
-                               (:left-tilt-up-poses ?left-tilt-up-poses)
-                               (:left-tilt-second-poses ?left-tilt-second-poses)
-                               (:left-tilt-third-poses ?left-tilt-third-poses)
+                               (:left-tilt-poses ?left-tilt-poses)
                                
                                (:right-reach-poses ?right-reach-poses)
-                               (:right-tilt-down-poses ?right-tilt-down-poses)
-                               (:right-tilt-up-poses ?right-tilt-up-poses)
-                               (:right-tilt-second-poses ?right-tilt-second-poses)
-                               (:right-tilt-third-poses ?right-tilt-third-poses)
+                               (:right-tilt-poses ?right-tilt-poses)
                                )
                       
                       ?resolved-action-designator)))

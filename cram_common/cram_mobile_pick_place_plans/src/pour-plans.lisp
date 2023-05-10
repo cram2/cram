@@ -44,17 +44,11 @@
                                ((:side ?side))
                                ;;grasp
                                ((:left-reach-poses ?left-reach-poses))
-                               ((:left-tilt-down-poses ?left-tilt-down-poses))
-                               ((:left-tilt-up-poses ?left-tilt-up-poses))
-                               ((:left-tilt-second-poses ?left-tilt-second-poses))
-                               ((:left-tilt-third-poses ?left-tilt-third-poses))
+                               ((:left-tilt-poses ?left-tilt-poses))
                                
                                ((:right-reach-poses ?right-reach-poses))
-                               ((:right-tilt-down-poses ?right-tilt-down-poses))
-                               ((:right-tilt-up-poses ?right-tilt-up-poses))
-                               ((:right-tilt-second-poses ?right-tilt-second-poses))
-                               ((:right-tilt-third-poses ?right-tilt-third-poses))
-                               
+                               ((:right-tilt-poses ?right-tilt-poses))
+
                                ((:on-object ?on-object))
                                ;;object
                                ((:wait-duration ?wait-duration))
@@ -138,13 +132,13 @@
              (return)))
 
         
-        (let ((?goal `(cpoe:tool-frames-at ,?left-tilt-up-poses ,?right-tilt-up-poses)))
+        (let ((?goal `(cpoe:tool-frames-at ,?left-tilt-poses ,?right-tilt-poses)))
           (exe:perform
            (desig:an action
                      (type tilting)
                      (object ?on-object)
-                     (left-poses ?left-tilt-up-poses)
-                     (right-poses ?right-tilt-up-poses)
+                     (left-poses ?left-tilt-poses)
+                     (right-poses ?right-tilt-poses)
                      (align-planes-left ?align-planes-left)
                      (align-planes-right ?align-planes-right)
                      (move-base ?movy)
@@ -258,13 +252,13 @@
     ((object-type (eql :bowl))
      arm
      (grasp (eql :top-left)))
-  '((-0.01 0.245 0.020)(0 0 0 1)))
+  '((-0.02 -0.17 0.06)(0 0 0 1)))
 
 (defmethod man-int:get-object-type-robot-frame-tilt-approach-transform
     ((object-type (eql :bowl))
      arm
      (grasp (eql :top-right)))
-  '((-0.02 0.17 0.05)(0 0 0 1)))
+  '((-0.02 0.17 0.06)(0 0 0 1)))
 
 (defmethod man-int:get-object-type-robot-frame-tilt-approach-transform
     ((object-type (eql :bowl))

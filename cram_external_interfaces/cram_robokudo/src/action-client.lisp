@@ -159,6 +159,7 @@
       (:posesource ,(map 'list #'to-keyword (roslisp:msg-slot-value message :posesource))))))
 
 (defun ensure-robokudo-result (result quantifier status)
+  ;;TODO: Rokokudo traceback returns with aborted status, i should implement an failure-handling for this specific case.
   (when (or (eql status :preempted) (eql status :aborted) (not result))
     (cpl:fail 'common-fail:perception-low-level-failure
               :description "robokudo didn't answer"))

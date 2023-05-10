@@ -790,7 +790,7 @@
                  (exe:perform
                   (desig:an action
                             (type fetching)
-                            (arms (right))
+                            (arms (right)) ;;was right
                             (grasps (front))
                             (object ?source-perceived-object-desig)
                             (robot-location (desig:a location
@@ -828,8 +828,8 @@
            (desig:an action
                      (type pouring)
                      (on-object ?target-perceived-object-desig)
-                     (arm :right)
-                     (sides (:top-right))
+                     (arm :right) ;;was right
+                     (sides (:top-right)) ;; was top-right
                      (wait-duration 5))))
         
     (exe:perform
@@ -840,3 +840,5 @@
                (target (a location
                           (pose ?on-counter-top-cup-pose)))))
     )))
+
+

@@ -635,17 +635,35 @@ so we assume that all the source contents drops into the target right away."
               arm oTg-std)
             :orientation 
             (cl-tf:rotation to-T-to-offset)))
-         (tilt-angle (cram-math:degrees->radians 40))
-         (pre-tilting-poses
+         (tilt-angle (cram-math:degrees->radians 80))
+         (tilting-poses
            (case side
              (:top-front (rotate-pose-in-own-frame-and-change-z
                           approach-pose :y (cram-math:degrees->radians 60) 0.05 0 0.031))
-             (:top-left (rotate-pose-in-own-frame-and-change-z
-                         approach-pose :x (cram-math:degrees->radians 60) 0.0 -0.05 0.031))
+             (:top-left (cram-tf:apply-transform
+                          (cram-tf:pose-stamped->transform-stamped
+                           (rotate-pose-in-own-frame-and-change-z
+                            approach-pose :x  (+ (cram-math:degrees->radians 80)) 0.0 0.0 0.06)
+                           ;;stable demo 80degree
+                           (if (eq arm :left)
+                               cram-tf:*robot-left-tool-frame*
+                               cram-tf:*robot-right-tool-frame*))
+                          (cl-transforms-stamped:make-transform-stamped
+                           (if (eq arm :left)
+                               cram-tf:*robot-left-tool-frame*
+                               cram-tf:*robot-right-tool-frame*)
+                           (if (eq arm :left)
+                               cram-tf:*robot-left-tool-frame*
+                               cram-tf:*robot-right-tool-frame*)
+                           0
+                           (cl-transforms:make-3d-vector 0 0.0 0)
+                           (cl-transforms:make-identity-rotation))
+                          :result-as-pose-or-transform :pose))
              (:top-right (cram-tf:apply-transform
                           (cram-tf:pose-stamped->transform-stamped
                            (rotate-pose-in-own-frame-and-change-z
-                            approach-pose :x  (- (cram-math:degrees->radians 80)) 0.0 0.0 0.06)
+                            approach-pose :x  (- (cram-math:degrees->radians 120)) 0.0 0.0 0.06)
+                           ;;stable demo 80degree
                            (if (eq arm :left)
                                cram-tf:*robot-left-tool-frame*
                                cram-tf:*robot-right-tool-frame*))
@@ -661,50 +679,9 @@ so we assume that all the source contents drops into the target right away."
                            (cl-transforms:make-identity-rotation))
                           :result-as-pose-or-transform :pose))
              ;;0.031 z
-             (t (error "can only pour from :side or :front"))))
-
-         (tilting-poses
-           (case side
-             (:top-front (rotate-pose-in-own-frame-and-change-z
-                          pre-tilting-poses :y tilt-angle -0.02 0 0.06))
-             (:top-left (rotate-pose-in-own-frame-and-change-z 
-                         pre-tilting-poses :x tilt-angle 0 0 -0.05))
-             (:top-right (cram-tf:rotate-pose-in-own-frame
-                          pre-tilting-poses :x (- tilt-angle)))
-             (t (error "can only pour from :side or :front"))))
-         
-         (tilting-poses-second
-           (case side
-             (:top-front (cram-tf:rotate-pose-in-own-frame
-                              tilting-poses :y tilt-angle))
-             (:top-left (cram-tf:rotate-pose-in-own-frame
-                         tilting-poses :x tilt-angle))
-             (:top-right (cram-tf:rotate-pose-in-own-frame
-                          tilting-poses :x (- tilt-angle)))
-             (t (error "can only pour from :side or :front"))) )
-
-         (tilting-poses-third
-           (case side
-             (:top-front (cram-tf:rotate-pose-in-own-frame
-                          tilting-poses-second :y tilt-angle))
-             (:top-left (cram-tf:rotate-pose-in-own-frame
-                         tilting-poses-second :x tilt-angle))
-             (:top-right (cram-tf:rotate-pose-in-own-frame
-                          tilting-poses-second :x (- tilt-angle)))
              (t (error "can only pour from :side or :front")))))
 
-           ;;(tilting-poses
-           ;; rotate-pose-in-own-frame 
-        ;; (get-tilting-poses side (list approach-pose))))
-         ;; (print "tilting-poses:")
-         ;; (print tilting-poses)
-    ;; (sleep 5)
-
-       
-    ;; (print "poses")
-    ;; (print approach-pose)
-    ;; (print pre-tilting-poses)
-    ;; (sleep 10)
+      
          
         (mapcar (lambda (label poses-in-base)
               (man-int:make-traj-segment
@@ -725,21 +702,14 @@ so we assume that all the source contents drops into the target right away."
                        poses-in-base)))
          
             '(:reaching
-              :tilting-down
               :tilting
-              :tilting-second
-              :tilting-third
-              ;; :retracting
               )
             `((,approach-pose)
-              (,pre-tilting-poses)
               (,tilting-poses)
-              (,tilting-poses-second)
-              (,tilting-poses-third)
               ;; (,to-T-stdg
-              )))
+              ))))
  
-)
+
 
 (defun get-tilting-poses (grasp approach-poses &optional (angle (cram-math:degrees->radians 100)))
   (mapcar (lambda (?approach-pose)
