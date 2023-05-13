@@ -33,3 +33,11 @@
 - git:
     local-name: assembly_models
     uri: https://github.com/code-iai/assembly_models.git
+- git:
+    local-name: iai_tiago
+    uri: http://github.com/code-iai/iai_tiago.git
+    version: main
+- git:
+    local-name: robokudo_msgs
+    uri: http://gitlab.informatik.uni-bremen.de/robokudo/robokudo_msgs.git
+    version: main
