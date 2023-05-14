@@ -65,7 +65,7 @@
   (<- (robot-neck-pan-joint-forward-facing-axis-sign :pr2
                                                      cl-transforms:x +1))
   (<- (robot-neck-tilt-joint-forward-facing-axis-sign :pr2
-                                                      cl-transforms:x -1))
+                                                      cl-transforms:x +1))
 
   (<- (robot-joint-states :pr2 :neck ?_ :forward ((?pan_joint 0.0) (?tilt_joint 0.0)))
     (robot-neck-joints :pr2 ?pan_joint ?tilt_joint))
