@@ -210,6 +210,7 @@
                          varied-kitchen)
   (urdf-proj:with-simulated-robot
 
+    (setf proj-reasoning::*projection-checks-enabled* T)
     (if varied-kitchen
         (btr-belief:vary-kitchen-urdf *furniture-offsets-offset-kitchen*)
         (btr-belief:vary-kitchen-urdf *furniture-offsets-original-kitchen*))
@@ -248,7 +249,6 @@
     ;;   (spawn-objects-on-fixed-spots
     ;;    :object-types object-list
     ;;    :spawning-poses-relative *delivery-poses-relative*))
-
     (dolist (?object-type (reverse object-list))
       (let ((?grasps (cdr (assoc ?object-type *object-grasps*))))
         (exe:perform

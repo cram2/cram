@@ -371,6 +371,7 @@
     (if (eql (rob-int:get-robot-name) :kmr-iiwa)
         (setf btr:*visibility-threshold* 0.7)
         (setf btr:*visibility-threshold* 0.5))
+    (setf proj-reasoning::*projection-checks-enabled* t)
     (kill-and-detach-all)
     (let ((?pose (cl-transforms-stamped:make-pose-stamped
                   "map" 0.0
@@ -423,7 +424,7 @@
                                     (urdf-name ?source-shelf-base-urdf-name)
                                     (part-of ?environment-name)
                                     (level ?source-shelf-base-level)))
-                      (side left)
+                      (side right)
                       (range 0.2)))
 
            (?dish-washer-tabs-desig
