@@ -5,6 +5,8 @@
   <arg name="donbot" default="false" />
   <arg name="kukabot" default="false" />
   <arg name="tiago" default="false" />
+  <arg name="armar" default="false" />
+  <arg name="armar_complex" default="false" />
 
   <!-- choose environment -->
   <arg name="household" default="false" />
@@ -51,6 +53,16 @@
         <arg name="end_effector_left" value="pal-gripper" />
         <arg name="end_effector_right" value="pal-gripper" />
       </include>
+    </group>
+    <group if="$(arg armar)">
+      <param name="robot_description"
+             command="$(find xacro)/xacro
+                      '$(find armar6_description)/urdf/armar6.urdf'" />
+    </group>
+    <group if="$(arg armar_complex)">
+      <param name="robot_description"
+             command="$(find xacro)/xacro
+                      '$(find armar6_description)/urdf/armar6_complex.urdf'" />
     </group>
   </group>
 
