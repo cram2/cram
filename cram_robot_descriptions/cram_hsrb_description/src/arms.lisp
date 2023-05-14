@@ -97,7 +97,7 @@
 
   (<- (robot-tool-frame :hsrb :left "gripper_tool_frame"))
 
-  (<- (tcp-in-ee-pose :hsrb ?pose)
+  (<- (tcp-in-ee-pose :hsrb ?arm ?pose)
     (symbol-value *tcp-in-ee-pose* ?pose))
 
   (<- (robot-joint-states :hsrb :arm :left :carry

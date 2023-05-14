@@ -140,7 +140,7 @@
 
   (<- (robot-tool-frame :iai-donbot :left "refills_tool_frame"))
 
-  (<- (tcp-in-ee-pose :iai-donbot ?pose)
+  (<- (tcp-in-ee-pose :iai-donbot ?arm ?pose)
     (symbol-value *tcp-in-ee-pose* ?pose))
 
   (<- (robot-joint-states :iai-donbot :arm :left :carry

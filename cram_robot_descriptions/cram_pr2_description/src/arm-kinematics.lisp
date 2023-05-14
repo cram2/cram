@@ -213,7 +213,7 @@
   (<- (robot-tool-frame :pr2 :left "l_gripper_tool_frame"))
   (<- (robot-tool-frame :pr2 :right "r_gripper_tool_frame"))
 
-  (<- (tcp-in-ee-pose :pr2 ?transform)
+  (<- (tcp-in-ee-pose :pr2 ?arm ?transform)
     (symbol-value *tcp-in-ee-pose* ?transform))
 
   ;; (<- (end-effector-parking-pose :pr2 ?pose :left)

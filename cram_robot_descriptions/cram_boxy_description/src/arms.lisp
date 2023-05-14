@@ -125,7 +125,7 @@
   (<- (robot-tool-frame :boxy-description :left "left_gripper_tool_frame"))
   (<- (robot-tool-frame :boxy-description :right "right_gripper_tool_frame"))
 
-  (<- (tcp-in-ee-pose :boxy-description ?pose)
+  (<- (tcp-in-ee-pose :boxy-description ?arm ?pose)
     (symbol-value *tcp-in-ee-pose* ?pose))
 
   (<- (robot-joint-states :boxy-description :arm :left :carry

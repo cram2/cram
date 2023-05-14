@@ -32,7 +32,6 @@
 (defparameter *forward-looking-position-in-base-frame*
   (cl-transforms:make-3d-vector 10.0 0.0 0.9))
 
-;; TODO: this can be different for different hands
 #+use-this-function-to-calculate-tcp-in-ee-pose
 (defun calculate-tcp-in-ee-pose-from-bullet (robot-name arm-alias)
   (let* ((map-P-tcp
@@ -284,7 +283,7 @@
   (<- (robot-tool-frame :tiago-dual :left "gripper_left_grasping_frame"))
   (<- (robot-tool-frame :tiago-dual :right "gripper_right_grasping_frame"))
 
-  (<- (tcp-in-ee-pose :tiago-dual ?pose)
+  (<- (tcp-in-ee-pose :tiago-dual ?arm ?pose)
     (symbol-value *tcp-in-ee-pose* ?pose))
 
   (<- (robot-joint-states :tiago-dual :arm :left :park ?joint-states

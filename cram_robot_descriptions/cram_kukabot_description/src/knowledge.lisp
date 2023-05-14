@@ -142,7 +142,7 @@
 
   (<- (robot-tool-frame :kmr-iiwa :left "gripper_tool_frame"))
 
-  (<- (tcp-in-ee-pose :kmr-iiwa ?pose)
+  (<- (tcp-in-ee-pose :kmr-iiwa ?arm ?pose)
     (symbol-value *tcp-in-ee-pose* ?pose))
 
   (<- (robot-joint-states :kmr-iiwa :arm :left :carry

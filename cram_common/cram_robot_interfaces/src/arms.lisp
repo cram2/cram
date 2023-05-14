@@ -110,6 +110,6 @@
   (<- (robot-tool-frame ?robot ?arm ?frame)
     (fail))
 
-  ;; Defines cl-transforms:pose of ee_P_tcp (should be the same for all arms)
-  (<- (tcp-in-ee-pose ?robot ?transform)
+  ;; Defines cl-transforms:pose of ee_P_tcp
+  (<- (tcp-in-ee-pose ?robot ?arm ?transform)
     (fail)))

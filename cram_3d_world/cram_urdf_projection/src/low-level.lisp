@@ -147,7 +147,7 @@ but to some small value.")
                (ecase joint-angle
                  (:upper-limit upper-limit)
                  (:lower-limit lower-limit)
-                 (:middle (/ (- upper-limit lower-limit) 2))))))
+                 (:middle (+ (/ (- upper-limit lower-limit) 2) lower-limit))))))
     (prolog:prolog
      `(btr:assert (btr:joint-state ?w ?robot ((?joint ,cropped-joint-angle))))
      bindings)
@@ -189,7 +189,8 @@ but to some small value.")
   (btr:add-vis-axis-object pose-stamped :length 0.03 :width 0.03)
 
   ;; first look forward, because our IK with 2 joints is buggy...
-  (look-at-joint-angles '(0 0))
+  ;; I think the bug is finally squashed!
+  ;; (look-at-joint-angles '(0 0))
 
   (cut:with-vars-strictly-bound (?pan-link
                                  ?tilt-link
@@ -914,7 +915,7 @@ collision by moving its torso and base"
 
 ;;; cartesian movement
 
-(defun tcp-pose->ee-pose (tcp-pose tool-frame end-effector-frame)
+(defun tcp-pose->ee-pose (tcp-pose tool-frame end-effector-frame arm)
   "TCP-POSE is in map frame"
   (when tcp-pose
     (let* ((ee-P-tcp
@@ -923,7 +924,7 @@ collision by moving its torso and base"
               (cut:lazy-car
                (prolog:prolog
                 `(and (rob-int:robot ?robot)
-                      (rob-int:tcp-in-ee-pose ?robot ?tcp-in-ee-pose))))))
+                      (rob-int:tcp-in-ee-pose ?robot ,arm ?tcp-in-ee-pose))))))
            (map-T-tcp
              (cram-tf:pose->transform-stamped
               cram-tf:*fixed-frame*
@@ -1132,7 +1133,7 @@ collision by moving its torso and base"
                       "kdl_ik_service/get_ik")))
             (get-ik-joint-positions
              (ee-pose-in-map->ee-pose-in-torso
-              (tcp-pose->ee-pose left-tcp-pose ?left-tool-frame ?left-ee-frame))
+              (tcp-pose->ee-pose left-tcp-pose ?left-tool-frame ?left-ee-frame :left))
              ?torso-link ?left-ee-frame ?left-arm-joints
              ?torso-joint ?lower-limit ?upper-limit
              validation-function
@@ -1144,7 +1145,7 @@ collision by moving its torso and base"
                         "kdl_ik_service/get_ik")))
               (get-ik-joint-positions
                (ee-pose-in-map->ee-pose-in-torso
-                (tcp-pose->ee-pose right-tcp-pose ?right-tool-frame ?right-ee-frame))
+                (tcp-pose->ee-pose right-tcp-pose ?right-tool-frame ?right-ee-frame :right))
                ?torso-link ?right-ee-frame ?right-arm-joints
                ?torso-joint ?lower-limit ?upper-limit
                validation-function

@@ -283,7 +283,7 @@
                                (lisp-fun cram-tf:frame-to-transform-in-frame
                                          ?link ?parent-frame
                                          ?map-t-ee)
-                               (rob-int:tcp-in-ee-pose ?robot ?ee-p-tcp-not-stamped)
+                               (rob-int:tcp-in-ee-pose ?robot ?arm ?ee-p-tcp-not-stamped)
                                (lisp-fun cram-tf:pose->transform-stamped
                                          ?link ?tool-frame 0.0 ?ee-p-tcp-not-stamped
                                          ?ee-t-tcp)

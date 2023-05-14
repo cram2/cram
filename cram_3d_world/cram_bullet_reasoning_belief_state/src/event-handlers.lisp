@@ -156,7 +156,7 @@ and renames POSE into OLD-POSE."
         `(and
           (rob-int:robot ?robot)
           (rob-int:end-effector-link ?robot ,arm ?ee-frame)
-          (rob-int:tcp-in-ee-pose ?robot ?ee-P-tcp)
+          (rob-int:tcp-in-ee-pose ?robot ,arm ?ee-P-tcp)
           (rob-int:standard<-particular-gripper-transform ?robot ?std-gripper-T-gripper))))
 
     (let* ((map-T-ee

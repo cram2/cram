@@ -227,7 +227,7 @@
               (car
                (prolog:prolog
                 `(and (rob-int:robot ?robot-name)
-                      (rob-int:tcp-in-ee-pose ?robot-name ?ee-P-tcp))))))
+                      (rob-int:tcp-in-ee-pose ?robot-name ,arm ?ee-P-tcp))))))
            (tool-T-wrist
              (cl-transforms-stamped:transform->transform-stamped
               tool-frame
