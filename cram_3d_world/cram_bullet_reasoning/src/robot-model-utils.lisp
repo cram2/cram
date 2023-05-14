@@ -53,19 +53,19 @@
               (or only-these-links
                   (loop for name being the hash-keys in (slot-value robot 'links)
                         collect name))))
-       (loop for name in link-names
-             do (handler-case
-                    (setf (link-pose robot name)
-                          (cl-transforms:transform->pose
-                           (cl-transforms:transform*
-                            robot-transform
-                            (cl-transforms-stamped:lookup-transform
-                             tf-buffer root-link name
-                             :time timestamp
-                             :timeout *tf-default-timeout*))))
-                  (transform-stamped-error (error)
-                    (roslisp:ros-warn (set-robot-state-from-tf)
-                                      "Failed with transform-stamped-error: ~a" error))))))))
+        (loop for name in link-names
+              do (handler-case
+                     (setf (link-pose robot name)
+                           (cl-transforms:transform->pose
+                            (cl-transforms:transform*
+                             robot-transform
+                             (cl-transforms-stamped:lookup-transform
+                              tf-buffer root-link name
+                              :time timestamp
+                              :timeout *tf-default-timeout*))))
+                   (transform-stamped-error (error)
+                     (roslisp:ros-warn (set-robot-state-from-tf)
+                                       "Failed with transform-stamped-error: ~a" error))))))))
 
 (defgeneric set-robot-state-from-joints (joint-states robot)
   (:method ((joint-states sensor_msgs-msg:jointstate) (robot robot-object))
@@ -129,32 +129,35 @@
 Returns a list: (pan-angle tilt-angle).
 Used in visibility costmap calculations and in projection."
   (flet ((non-zero-unit-vector (3d-vector)
+           "`3d-vector' has two elements as 0 and one as not zero.
+            For that one, returns CL-TRANSFORMS:X or :Y or :Z."
            (cond ((/= (cl-transforms:x 3d-vector) 0)
                   'cl-transforms:x)
                  ((/= (cl-transforms:y 3d-vector) 0)
                   'cl-transforms:y)
                  ((/= (cl-transforms:z 3d-vector) 0)
-                  'cl-transforms:z))))
-    (let* ((map-T-pan-link
-             (cl-transforms:reference-transform (link-pose robot pan-link)))
-           (map-T-tilt-link
-             (cl-transforms:reference-transform (link-pose robot tilt-link)))
-           (map-T-look-pose
+                  'cl-transforms:z)))
+         (unit-vector-from-axis (cl-transforms-x-y-or-z)
+           (ecase cl-transforms-x-y-or-z
+             (cl-transforms:x (cl-transforms:make-3d-vector 1 0 0))
+             (cl-transforms:y (cl-transforms:make-3d-vector 0 1 0))
+             (cl-transforms:z (cl-transforms:make-3d-vector 0 0 1)))))
+    (let* ((map-T-look-pose
              (etypecase pose
                (cl-transforms:3d-vector
                 (cl-transforms:make-transform
-                 pose (cl-transforms:make-quaternion 0 0 0 1)))
+                 pose
+                 (cl-transforms:make-quaternion 0 0 0 1)))
                (cl-transforms:pose
                 (cl-transforms:reference-transform pose))
                (cl-transforms:transform
                 pose)))
+
+           (map-T-pan-link
+             (cl-transforms:reference-transform (link-pose robot pan-link)))
            (pan-link-T-look-pose     ; pan-link-T-map * map-T-look-pose
              (cl-transforms:transform*
               (cl-transforms:transform-inv map-T-pan-link)
-              map-T-look-pose))
-           (tilt-link-T-look-pose   ; tilt-link-T-map * map-T-look-pose
-             (cl-transforms:transform*
-              (cl-transforms:transform-inv map-T-tilt-link)
               map-T-look-pose))
 
            (pan-joint
@@ -180,6 +183,63 @@ Used in visibility costmap calculations and in projection."
            (pan-joint-axis-sign
              (funcall pan-joint-rotational-axis pan-joint-axis))
 
+           (pan-link-T-look-pose-translation
+             (cl-transforms:translation pan-link-T-look-pose))
+           (pan-link-T-look-pose-forward-facing-axis
+             (funcall pan-joint-forward-facing-axis
+                      pan-link-T-look-pose-translation))
+           (pan-link-T-look-pose-other-axis
+             (funcall pan-joint-other-axis
+                      pan-link-T-look-pose-translation))
+
+           (pan-link-forward-facing-axis-rotated-by-90-degrees
+             (cl-transforms:transform*
+              (cl-transforms:make-transform
+               (cl-transforms:make-identity-vector)
+               (cl-transforms:axis-angle->quaternion pan-joint-axis (/ pi 2)))
+              (cl-transforms:make-transform
+               (unit-vector-from-axis pan-forward-axis)
+               (cl-transforms:make-identity-rotation))))
+           (pan-joint-rotating-toward-other-axis-sign
+             (funcall pan-joint-other-axis
+                      (cl-transforms:translation
+                       pan-link-forward-facing-axis-rotated-by-90-degrees)))
+
+           ;; tan(pan-angle-offset) = proj of look pose onto other axis /
+           ;;                         proj of look pose onto forward facing axis
+           (pan-angle-offset
+             (atan (* pan-joint-axis-sign
+                      pan-joint-rotating-toward-other-axis-sign
+                      pan-link-T-look-pose-other-axis)
+                   (* pan-joint-forward-facing-sign
+                      pan-link-T-look-pose-forward-facing-axis)))
+           (pan-angle
+             (cl-transforms:normalize-angle
+              (+ (joint-state robot pan-joint-name)
+                 pan-angle-offset)))
+
+           (map-T-tilt-link
+             (cl-transforms:reference-transform (link-pose robot tilt-link)))
+           (tilt-link-T-pan-link ; tilt-link-T-map * map-T-pan-link
+             (cl-transforms:transform*
+              (cl-transforms:transform-inv map-T-tilt-link)
+              map-T-pan-link))
+           (pan-link-T-tilt-link
+             (cl-transforms:transform-inv
+              tilt-link-T-pan-link))
+           (map-T-tilt-link-with-applied-pan-offset ; map-T-tilt * tilt-T-pan pan-T-pan' pan-T-tilt
+             (cl-transforms:transform*
+              map-T-tilt-link
+              tilt-link-T-pan-link
+              (cl-transforms:make-transform
+               (cl-transforms:make-identity-vector)
+               (cl-tf:axis-angle->quaternion pan-joint-axis pan-angle-offset))
+              pan-link-T-tilt-link))
+           (tilt-link-T-look-pose  ; tilt-link'-T-map * map-T-look-pose
+             (cl-transforms:transform*
+              (cl-transforms:transform-inv map-T-tilt-link-with-applied-pan-offset)
+              map-T-look-pose))
+
            (tilt-joint
              (cl-urdf:from-joint
               (gethash tilt-link (cl-urdf:links (urdf robot)))))
@@ -203,15 +263,6 @@ Used in visibility costmap calculations and in projection."
            (tilt-joint-axis-sign
              (funcall tilt-joint-rotational-axis tilt-joint-axis))
 
-           (pan-link-T-look-pose-translation
-             (cl-transforms:translation pan-link-T-look-pose))
-           (pan-link-T-look-pose-forward-facing-axis
-             (funcall pan-joint-forward-facing-axis
-                      pan-link-T-look-pose-translation))
-           (pan-link-T-look-pose-other-axis
-             (funcall pan-joint-other-axis
-                      pan-link-T-look-pose-translation))
-
            (tilt-link-T-look-pose-translation
              (cl-transforms:translation tilt-link-T-look-pose))
            (tilt-link-T-look-pose-forward-facing-axis
@@ -220,25 +271,32 @@ Used in visibility costmap calculations and in projection."
            (tilt-link-T-look-pose-other-axis
              (funcall tilt-joint-other-axis
                       tilt-link-T-look-pose-translation))
-           (tilt-link-T-look-pose-rotational-axis
-             (funcall tilt-joint-rotational-axis
-                      tilt-link-T-look-pose-translation))
 
-           (pan-angle
-             (cl-transforms:normalize-angle
-              (+ (joint-state robot pan-joint-name)
-                 (atan (* pan-joint-axis-sign
-                          pan-joint-forward-facing-sign
-                          pan-link-T-look-pose-other-axis)
-                       pan-link-T-look-pose-forward-facing-axis))))
+           (tilt-link-forward-facing-axis-rotated-by-90-degrees
+             (cl-transforms:transform*
+              (cl-transforms:make-transform
+               (cl-transforms:make-identity-vector)
+               (cl-transforms:axis-angle->quaternion tilt-joint-axis (/ pi 2)))
+              (cl-transforms:make-transform
+               (unit-vector-from-axis tilt-forward-axis)
+               (cl-transforms:make-identity-rotation))))
+           (tilt-joint-rotating-toward-other-axis-sign
+             (funcall tilt-joint-other-axis
+                      (cl-transforms:translation
+                       tilt-link-forward-facing-axis-rotated-by-90-degrees)))
+
+           ;; tan(tilt-angle) = proj of look pose onto other axis /
+           ;;                   proj of look pose onto forward facing axis
            (tilt-angle
              (cl-transforms:normalize-angle
               (+ (joint-state robot tilt-joint-name)
                  (atan (* tilt-joint-axis-sign
-                          tilt-joint-forward-facing-sign
+                          tilt-joint-rotating-toward-other-axis-sign
                           tilt-link-T-look-pose-other-axis)
-                       (+ (expt tilt-link-T-look-pose-rotational-axis 2)
-                          (expt tilt-link-T-look-pose-forward-facing-axis 2))))))
+                       ;; (sqrt (+ (expt tilt-link-T-look-pose-rotational-axis 2)
+                       ;;          (expt tilt-link-T-look-pose-forward-facing-axis 2)))
+                       (* tilt-joint-forward-facing-sign
+                          tilt-link-T-look-pose-forward-facing-axis)))))
 
            (cropped-pan-angle
              (if (and pan-lower-limit pan-upper-limit)
@@ -397,6 +455,6 @@ board or level or shelf in them"
                                      (search "Floor" child-name))
                                  (push child-link levels-found)
                                  (find-levels child-link))))
-                           child-links))))
+                         child-links))))
       (find-levels parent-link))
     levels-found))
