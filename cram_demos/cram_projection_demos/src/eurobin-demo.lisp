@@ -39,7 +39,7 @@
   (btr-belief::publish-environment-joint-state
    (btr:joint-states (btr:get-environment-object)))
   (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))
-  (giskard:reset-collision-scene)
+  ;; (giskard:reset-collision-scene)
   ;; (coe:clear-belief)
   (btr:clear-costmap-vis-object))
 
@@ -105,19 +105,37 @@
       ;;            (type going)
       ;;            (target (desig:a location
       ;;                             (pose ?accessing-window-base-pose-2)))))
-      )
+      (when (eq (rob-int:get-robot-name) :armar6)
+        (let ((?armar-window-poses
+                (list (cram-tf:list->pose
+                       '((9.45d0 3.9499994913736978d0 0.0d0)
+                         (0.0d0 0.0d0 0.6314993500709534d0 0.7753764986991882d0)))
+                      (cram-tf:list->pose
+                       '((9.351750691731771d0 3.868633778889974d0 0.0d0)
+                         (0.0d0 0.0d0 0.6378369927406311d0 0.7701714038848877d0)))
+                      (cram-tf:list->pose
+                       '((9.447592163085938d0 3.7549702962239584d0 0.0d0)
+                         (0.0d0 0.0d0 0.6983217597007751d0 0.7157840132713318d0))))))
+          (exe:perform
+           (desig:an action
+                     (type navigating)
+                     (location (desig:a location
+                                        (poses ?armar-window-poses))))))))
     (when (<= step 2)
-      (exe:perform
-          (desig:an action
-                    (type opening)
-                    (arm right)
-                    (distance 1.55)
-                    (grasps (door-angled))
-                    ;; (link window4-left-handle)
-                    (object (desig:an object
-                                      (type cupboard)
-                                      (urdf-name window4-right)
-                                      (part-of apartment))))))
+      (let ((?grasps (if (eq (rob-int:get-robot-name) :armar6)
+                         '(:back :back-flipped :back-flipped-angled)
+                         '(:door-angled))))
+       (exe:perform
+        (desig:an action
+                  (type opening)
+                  (arm right)
+                  (distance 1.55)
+                  (grasps ?grasps)
+                  ;; (link window4-left-handle)
+                  (object (desig:an object
+                                    (type cupboard)
+                                    (urdf-name window4-right)
+                                    (part-of apartment)))))))
 
 
     ;; (when (<= step 3)
