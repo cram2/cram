@@ -176,6 +176,15 @@
   :lift-translation '(0 0 0)
   :2nd-lift-translation '(0 0 0))
 
+;; FRONT grasp for handle along Z flipped
+(man-int:def-object-type-to-gripper-transforms :handle '(:left :right) :front-flipped
+  :grasp-translation `(,*handle-grasp-x-offset* 0.0d0 ,*handle-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-z-grasp-rotation-2*
+  :pregrasp-offsets `(,*handle-pregrasp-x-offset-open* 0.0 0.0)
+  :2nd-pregrasp-offsets `(,*handle-2nd-pregrasp-x-offset-open* 0.0 0.0)
+  :lift-translation '(0 0 0)
+  :2nd-lift-translation '(0 0 0))
+
 ;; FRONT grasp for handle along Y
 (man-int:def-object-type-to-gripper-transforms :handle '(:left :right) :front-along-y
   :grasp-translation `(,*handle-grasp-x-offset* ,*handle-grasp-y-offset* ,*handle-grasp-z-offset*)
