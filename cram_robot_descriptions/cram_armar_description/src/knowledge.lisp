@@ -366,8 +366,17 @@
                                                      ("arm_t67_joint_r1" 1.6415)
                                                      ("arm_t78_joint_r1" 0)
                                                      ("arm_t8_joint_r1" -0.0))))
+  (<- (robot-joint-states :armar6 :arm :right :carry
+                          (("arm_t12_joint_r1" 1.0)
+                           ("arm_t23_joint_r1" 0)
+                           ("arm_t34_joint_r1" 1.6)
+                           ("arm_t45_joint_r1" 2.64)
+                           ("arm_t56_joint_r1" 2.3)
+                           ("arm_t67_joint_r1" 1.6415)
+                           ("arm_t78_joint_r1" 0)
+                           ("arm_t8_joint_r1" -0.0))))
   (<- (robot-joint-states :armar6 :arm :right ?config-name ?joint-states)
-    (member ?config-name (:carry :carry-top :hand-over :carry-top-basket))
+    (member ?config-name (:carry-top :hand-over :carry-top-basket))
     (robot-joint-states :armar6 :arm :right :park ?joint-states)))
 
 
