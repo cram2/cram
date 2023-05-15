@@ -168,7 +168,7 @@
     (cl-transforms:transform ee-T-map map-P-tcp)))
 (defparameter *tcp-in-ee-pose-left*
   (cl-transforms:make-pose
-   (cl-transforms:make-3d-vector -0.08
+   (cl-transforms:make-3d-vector -0.07
                                  0.01
                                  0.29)
    (cl-transforms-stamped:make-quaternion -3.702278117475241d-4
@@ -177,7 +177,7 @@
                                           0.9238797619694639d0)))
 (defparameter *tcp-in-ee-pose-right*
   (cl-transforms:make-pose
-   (cl-transforms:make-3d-vector 0.08
+   (cl-transforms:make-3d-vector 0.07
                                  0.01
                                  0.29)
    (cl-transforms-stamped:make-quaternion 0.38268251896193783d0
