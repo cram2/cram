@@ -46,9 +46,9 @@
   (<- (costmap:costmap-resolution ?name 0.04)
     (is-dm-room-urdf-name ?name))
 
-  (<- (costmap:costmap-size :apartment 10 10))
-  (<- (costmap:costmap-origin :apartment -5 -5))
-  (<- (costmap:costmap-resolution :apartment 0.04))
+  (<- (costmap:costmap-size :apartment 40 40))
+  (<- (costmap:costmap-origin :apartment -20 -20))
+  (<- (costmap:costmap-resolution :apartment 0.1))
 
   (<- (man-int:object-tf-prefix :iai-kitchen "iai_kitchen/")))
 
@@ -153,6 +153,26 @@
 (man-int:def-object-type-to-gripper-transforms :handle '(:left :right) :back
   :grasp-translation `(,(- *handle-grasp-x-offset*) 0.0d0 ,*handle-grasp-z-offset*)
   :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation*
+  :pregrasp-offsets `(,(- *handle-pregrasp-x-offset-open*) 0.0 0.0)
+  :2nd-pregrasp-offsets `(,(- *handle-2nd-pregrasp-x-offset-open*) 0.0 0.0)
+  :lift-translation '(0 0 0)
+  :2nd-lift-translation '(0 0 0))
+
+;; BACK grasp for handle along Z flipped
+(man-int:def-object-type-to-gripper-transforms :handle '(:left :right) :back-flipped
+  :grasp-translation `(,(- *handle-grasp-x-offset*) 0.0d0 ,*handle-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation-2*
+  :pregrasp-offsets `(,(- *handle-pregrasp-x-offset-open*) 0.0 0.0)
+  :2nd-pregrasp-offsets `(,(- *handle-2nd-pregrasp-x-offset-open*) 0.0 0.0)
+  :lift-translation '(0 0 0)
+  :2nd-lift-translation '(0 0 0))
+
+;; BACK grasp for handle along Z flipped and tilted a bit for hands with fingers
+(man-int:def-object-type-to-gripper-transforms :handle '(:left :right) :back-flipped-angled
+  :grasp-translation `(,(- (+ *handle-grasp-x-offset* 0.00)) 0.0d0 ,*handle-grasp-z-offset*)
+  :grasp-rot-matrix '((-0.14943812970050985d0 0.0d0 0.9887710549223456d0)
+                      (-0.9887710549223456d0 0.0d0 -0.14943812970050985d0)
+                      (0.0d0 -0.9999999768303169d0 0.0d0))
   :pregrasp-offsets `(,(- *handle-pregrasp-x-offset-open*) 0.0 0.0)
   :2nd-pregrasp-offsets `(,(- *handle-2nd-pregrasp-x-offset-open*) 0.0 0.0)
   :lift-translation '(0 0 0)
