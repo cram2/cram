@@ -168,24 +168,29 @@
     (cl-transforms:transform ee-T-map map-P-tcp)))
 (defparameter *tcp-in-ee-pose-left*
   (cl-transforms:make-pose
-   (cl-transforms:make-3d-vector -0.1 0.01 0.29)
-   (cl-transforms-stamped:make-quaternion -2.841355389524569d-4
-                                          -0.7071067333964176d0
-                                          -2.81665149480137d-4
-                                          0.7071069413763289d0)))
+   (cl-transforms:make-3d-vector -0.08
+                                 0.01
+                                 0.29)
+   (cl-transforms-stamped:make-quaternion -3.702278117475241d-4
+                                          -0.3826825663634556d0
+                                          -1.533283476191083d-4
+                                          0.9238797619694639d0)))
 (defparameter *tcp-in-ee-pose-right*
   (cl-transforms:make-pose
-   (cl-transforms:make-3d-vector 0.1 0.01 0.29)
-   (cl-transforms-stamped:make-quaternion -0.7071066671012218d0
-                                          2.8154699660014435d-4
-                                          -0.707106699648289d0
-                                          -2.789516220367832d-4)))
+   (cl-transforms:make-3d-vector 0.08
+                                 0.01
+                                 0.29)
+   (cl-transforms-stamped:make-quaternion 0.38268251896193783d0
+                                          -3.688499091666769d-4
+                                          0.9238797712152454d0
+                                          1.4996594144343206d-4)))
 
 (def-fact-group armar-arm-facts (arm
                                  arm-links arm-joints
                                  hand-links hand-link hand-finger-link
                                  gripper-joint
                                  gripper-meter-to-joint-multiplier
+                                 gripper-joint-min-limit-is-open-state
                                  gripper-minimal-position
                                  gripper-convergence-delta
                                  standard<-particular-gripper-transform
@@ -314,7 +319,7 @@
                     "Middle L 1 Joint" "Middle L 2 Joint" "Middle L 3 Joint"
                     "Ring L 1 Joint" "Ring L 2 Joint" "Ring L 3 Joint"
                     "Pinky L 1 Joint" "Pinky L 2 Joint" "Pinky L 3 Joint")))
-  (<- (gripper-joint :armar6 :left ?joint)
+  (<- (gripper-joint :armar6 :right ?joint)
     (member ?joint ("Thumb R 1 Joint"
                     "Thumb R 2 Joint"
                     "Index R 1 Joint" "Index R 2 Joint" "Index R 3 Joint"
@@ -322,7 +327,8 @@
                     "Ring R 1 Joint" "Ring R 2 Joint" "Ring R 3 Joint"
                     "Pinky R 1 Joint" "Pinky R 2 Joint" "Pinky R 3 Joint")))
 
-  (<- (gripper-meter-to-joint-multiplier :armar6 1.0))
+  (<- (gripper-meter-to-joint-multiplier :armar6 16.0))
+  (<- (gripper-joint-min-limit-is-open-state :armar6))
   (<- (gripper-minimal-position :armar6 ?_ 1.57))
   (<- (gripper-convergence-delta :armar6 ?_ 0.005))
 
@@ -340,7 +346,7 @@
   (<- (tcp-in-ee-pose :armar6 :right ?pose)
     (symbol-value *tcp-in-ee-pose-right* ?pose))
 
-  (<- (robot-joint-states :armar6 :arm :left :park (("arm_t12_joint_r0" -0.5)
+  (<- (robot-joint-states :armar6 :arm :left :park (("arm_t12_joint_r0" 0)
                                                     ("arm_t23_joint_r0" 0)
                                                     ("arm_t34_joint_r0" 1.5)
                                                     ("arm_t45_joint_r0" 0.5)
@@ -348,11 +354,11 @@
                                                     ("arm_t67_joint_r0" 1.5)
                                                     ("arm_t78_joint_r0" 0)
                                                     ("arm_t8_joint_r0" 0.0))))
-  ;; (<- (robot-joint-states :armar6 :arm :left ?config-name ?joint-states)
-  ;;   (member ?config-name (:carry :carry-top :hand-over :carry-top-basket))
-  ;;   (robot-joint-states :armar6 :arm :left :park ?joint-states))
+  (<- (robot-joint-states :armar6 :arm :left ?config-name ?joint-states)
+    (member ?config-name (:carry :carry-top :hand-over :carry-top-basket))
+    (robot-joint-states :armar6 :arm :left :park ?joint-states))
 
-  (<- (robot-joint-states :armar6 :arm :right :park (("arm_t12_joint_r1" 0.5)
+  (<- (robot-joint-states :armar6 :arm :right :park (("arm_t12_joint_r1" 0)
                                                      ("arm_t23_joint_r1" 0)
                                                      ("arm_t34_joint_r1" 1.5)
                                                      ("arm_t45_joint_r1" 2.64)
@@ -360,10 +366,9 @@
                                                      ("arm_t67_joint_r1" 1.6415)
                                                      ("arm_t78_joint_r1" 0)
                                                      ("arm_t8_joint_r1" -0.0))))
-  ;; (<- (robot-joint-states :armar6 :arm :right ?config-name ?joint-states)
-  ;;   (member ?config-name (:carry :carry-top :hand-over :carry-top-basket))
-  ;;   (robot-joint-states :armar6 :arm :right :park ?joint-states))
-  )
+  (<- (robot-joint-states :armar6 :arm :right ?config-name ?joint-states)
+    (member ?config-name (:carry :carry-top :hand-over :carry-top-basket))
+    (robot-joint-states :armar6 :arm :right :park ?joint-states)))
 
 
 (def-fact-group armar-cm-metadata (costmap:costmap-padding
@@ -400,8 +405,8 @@
            (radius-y
              (/ aabb-dims-y 2.0)))
       (list radius-x radius-y)))
-  (<- (costmap:costmap-padding :armar6 0.5))
-  (<- (costmap:costmap-manipulation-padding :armar6 0.5))
+  (<- (costmap:costmap-padding :armar6 0.4))
+  (<- (costmap:costmap-manipulation-padding :armar6 0.4))
   ;; This is the length of the outstretched arm from base center to fingertip
   ;; But shorten it slightly (10-20cm):
   ;; the robot will rarely reach with an outstretched arm
@@ -431,8 +436,8 @@
              (cl-transforms:copy-3d-vector base-P-tcp-origin :z 0.0))
            (length (cl-transforms:v-norm projected-on-the-floor)))
       length))
-  (<- (costmap:costmap-in-reach-distance :armar6 1.2))
-  (<- (costmap:costmap-reach-minimal-distance :armar6 0.5))
+  (<- (costmap:costmap-in-reach-distance :armar6 1.3))
+  (<- (costmap:costmap-reach-minimal-distance :armar6 0.4))
   (<- (costmap:orientation-samples :armar6 1))
   (<- (costmap:orientation-sample-step :armar6 0.3))
   (<- (costmap:visibility-costmap-size :armar6 2)))
