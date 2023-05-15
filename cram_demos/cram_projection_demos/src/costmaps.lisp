@@ -56,7 +56,7 @@
             1.0
             (if (and (> x 0.0) (< -1.5 y 1.0))
                 1.0
-                (if (and (> x -1.5) (< -1.5 y 2.5))
+                (if (and (> x -1.5) (< -1.5 y 2.0))
                     1.0
                     (if (and (> x -4.0) (< -1.0 y 1.0))
                         1.0
@@ -117,11 +117,13 @@
     ;; if it is, don't generate a costmap
     (once (or (and (desig:desig-prop ?designator (:object ?some-object))
                    (desig:current-designator ?some-object ?object)
-                   (lisp-fun man-int:get-object-pose-in-map ?object ?to-reach-pose)
-                   (lisp-pred identity ?to-reach-pose)
-                   (-> (desig:desig-prop ?object (:location ?loc))
-                       (not (man-int:location-always-reachable ?loc))
-                       (true)))
+                   (or (desig:desig-prop ?object (:part-of ?_))
+                       (and (lisp-fun man-int:get-object-pose-in-map ?object
+                                      ?to-reach-pose)
+                            (lisp-pred identity ?to-reach-pose)
+                            (-> (desig:desig-prop ?object (:location ?loc))
+                                (not (man-int:location-always-reachable ?loc))
+                                (true)))))
               (and (desig:desig-prop ?designator (:location ?some-location))
                    (desig:current-designator ?some-location ?location)
                    ;; if the location is on the robot itself,
