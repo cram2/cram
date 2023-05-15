@@ -65,11 +65,31 @@
             "map" (roslisp:ros-time)
             (cl-tf:make-3d-vector 9.3d0 4.2d0 0.0d0)
             (cl-tf:euler->quaternion :az (* pi 0.5))))
+         (armar-opening-window-base-pose
+           (cl-transforms-stamped:make-pose-stamped
+            cram-tf:*fixed-frame*
+            0.0
+            (cl-transforms:make-3d-vector 9.45d0 3.9499994913736978d0 0.0d0)
+            (cl-transforms:make-quaternion 0.0d0
+                                           0.0d0
+                                           0.6314993500709534d0
+                                           0.7753764986991882d0)))
          (?picking-up-package-base-pose
            (cl-transforms-stamped:make-pose-stamped
             "map" (roslisp:ros-time)
             (cl-tf:make-3d-vector 9.5d0 4.6d0 0.0d0)
             (cl-tf:euler->quaternion :az (* pi 0.5))))
+         (?armar-picking-up-package-base-pose
+           (cl-transforms-stamped:make-pose-stamped
+            cram-tf:*fixed-frame*
+            0.0
+            (cl-transforms:make-3d-vector 9.82268575032552d0
+                                          4.26075185139974d0
+                                          0.0d0)
+            (cl-transforms:make-quaternion 0.0d0
+                                           0.0d0
+                                           0.6314994096755981d0
+                                           0.7753763794898987d0)))
          (?placing-package-base-pose
            (cl-transforms-stamped:make-pose-stamped
             "map" (roslisp:ros-time)
@@ -99,28 +119,15 @@
     ;;; ---
     ;;; Go and open the door
     (when (<= step 1)
-      (park-robot ?accessing-window-base-front-pose)
+      (park-robot (if (eq (rob-int:get-robot-name) :armar6)
+                      armar-opening-window-base-pose
+                      ?accessing-window-base-front-pose))
       ;; (exe:perform
       ;;  (desig:an action
       ;;            (type going)
       ;;            (target (desig:a location
       ;;                             (pose ?accessing-window-base-pose-2)))))
-      (when (eq (rob-int:get-robot-name) :armar6)
-        (let ((?armar-window-poses
-                (list (cram-tf:list->pose
-                       '((9.45d0 3.9499994913736978d0 0.0d0)
-                         (0.0d0 0.0d0 0.6314993500709534d0 0.7753764986991882d0)))
-                      (cram-tf:list->pose
-                       '((9.351750691731771d0 3.868633778889974d0 0.0d0)
-                         (0.0d0 0.0d0 0.6378369927406311d0 0.7701714038848877d0)))
-                      (cram-tf:list->pose
-                       '((9.447592163085938d0 3.7549702962239584d0 0.0d0)
-                         (0.0d0 0.0d0 0.6983217597007751d0 0.7157840132713318d0))))))
-          (exe:perform
-           (desig:an action
-                     (type navigating)
-                     (location (desig:a location
-                                        (poses ?armar-window-poses))))))))
+      )
     (when (<= step 2)
       (let ((?grasps (if (eq (rob-int:get-robot-name) :armar6)
                          '(:back :back-flipped :back-flipped-angled)
@@ -170,15 +177,19 @@
     ;;; Take the package and carry it to the table
     (when (<= step 5)
       ;; go to open door
-      (exe:perform
-       (desig:an action
-                 (type going)
-                 (target (desig:a location
-                                  (pose ?picking-up-package-base-pose)))))
+      (let ((?robot-base-pose
+              (if (eq (rob-int:get-robot-name) :armar6)
+                  ?armar-picking-up-package-base-pose
+                  ?picking-up-package-base-pose)))
+       (exe:perform
+        (desig:an action
+                  (type going)
+                  (target (desig:a location
+                                   (pose ?robot-base-pose))))))
       ;; look at package
       (let ((?door-poi
                (cl-tf:make-pose-stamped
-                "base_footprint" 0.0
+                cram-tf:*robot-base-frame* 0.0
                 (cl-tf:make-3d-vector 1.0 -0.5 0.5)
                 (cl-tf:make-identity-rotation))))
         (exe:perform
