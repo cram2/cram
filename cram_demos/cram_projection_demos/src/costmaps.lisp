@@ -80,7 +80,7 @@
 
 (defun make-apartment-restricted-area-cost-function ()
   (lambda (x y)
-    (if (and (< 0.0 x 3.0) (< 0.0 y 5.0))
+    (if (and (< 0.0 x 19.0) (< 0.0 y 5.0))
         1.0
         0.0)))
 
