@@ -563,36 +563,65 @@ with the object, calculates similar angle around Y axis and applies the rotation
 (defun one-gripper-action (action-type arm &optional maximum-effort)
   (declare (ignore maximum-effort))
   "Opens or closes the specific gripper."
-  (mapc
 
-   (lambda (solution-bindings)
-     (prolog:prolog
-      `(and
-        (btr:bullet-world ?world)
-        (assert ?world
-                (btr:joint-state ?robot
-                                 ((?joint ,(case action-type
-                                             (:open '?max-limit)
-                                             (:close '?min-limit)
-                                             (:grip (+ *gripper-gripped-offset*
-                                                       (cut:var-value
-                                                        '?min-limit
-                                                        solution-bindings)))
-                                             (T (if (numberp action-type)
-                                                    (* action-type
-                                                       (cut:var-value
-                                                        '?mult solution-bindings))
-                                                    (error
-                                                     "[PROJ GRIP] failed")))))))))
-      solution-bindings))
+  (let ((flip-min-and-max
+          (prolog:prolog
+           `(and (rob-int:robot ?robot)
+                 (rob-int:gripper-joint-min-limit-is-open-state ?robot)))))
 
-   (cut:force-ll
-    (prolog:prolog
-     `(and (rob-int:robot ?robot)
-           (rob-int:gripper-joint ?robot ,arm ?joint)
-           (rob-int:joint-lower-limit ?robot ?joint ?min-limit)
-           (rob-int:joint-upper-limit ?robot ?joint ?max-limit)
-           (rob-int:gripper-meter-to-joint-multiplier ?robot ?mult)))))
+    (mapc
+
+     (lambda (solution-bindings)
+
+       (let* ((min-limit (cut:var-value
+                          '?min-limit
+                          solution-bindings))
+              (max-limit (cut:var-value
+                          '?max-limit
+                          solution-bindings))
+              (multiplier (cut:var-value
+                           '?mult
+                           solution-bindings))
+              (open-state (if flip-min-and-max
+                              min-limit
+                              max-limit))
+              (closed-state (if flip-min-and-max
+                                max-limit
+                                min-limit))
+              (grip-state (if flip-min-and-max
+                              (- closed-state
+                                 (* *gripper-gripped-offset*
+                                    multiplier))
+                              (+ closed-state
+                                 (* *gripper-gripped-offset*
+                                    multiplier)))))
+         (prolog:prolog
+          `(and
+            (btr:bullet-world ?world)
+            (assert ?world
+                    (btr:joint-state ?robot
+                                     ((?joint ,(case action-type
+                                                 (:open open-state)
+                                                 (:close closed-state)
+                                                 (:grip grip-state)
+                                                 (T (if (numberp action-type)
+                                                        (if flip-min-and-max
+                                                            (- closed-state
+                                                               (* action-type
+                                                                  multiplier))
+                                                            (* action-type
+                                                               multiplier))
+                                                        (error
+                                                         "[PROJ GRIP] failed")))))))))
+          solution-bindings)))
+
+     (cut:force-ll
+      (prolog:prolog
+       `(and (rob-int:robot ?robot)
+             (rob-int:gripper-joint ?robot ,arm ?joint)
+             (rob-int:joint-lower-limit ?robot ?joint ?min-limit)
+             (rob-int:joint-upper-limit ?robot ?joint ?max-limit)
+             (rob-int:gripper-meter-to-joint-multiplier ?robot ?mult))))))
 
   ;; check if there is an object to grip
   ;; i.e. if action was gripping check if gripper collided with an item

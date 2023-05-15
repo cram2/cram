@@ -36,6 +36,7 @@
                       hand-links hand-link hand-finger-link gripper-joint
                       end-effector-link robot-tool-frame
                       gripper-meter-to-joint-multiplier
+                      gripper-joint-min-limit-is-open-state
                       gripper-minimal-position gripper-convergence-delta
                       standard<-particular-gripper-transform
                       tcp-in-ee-pose)
@@ -83,6 +84,12 @@
   ;; To keep the interfaces consistent, we assume CM and each robot defines
   ;; how to convert CM opening distance for the gripper into its own unit.
   (<- (gripper-meter-to-joint-multiplier ?robot ?multiplier)
+    (fail))
+
+  ;; Most robots have their gripper closed at minimal joint state,
+  ;; but for some the minimal joint state is the open state, e.g.,
+  ;; for hands with many fingers.
+  (<- (gripper-joint-min-limit-is-open-state ?robot)
     (fail))
 
   ;; Sometimes the gripper joint doesn't converge all the way to 0.0
