@@ -27,7 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(-Package :Cram-Designator-Specification)
+(in-package :cram-designator-specification)
 
 ;; (Defgeneric get-designator-property (designator key)
 ;;   (:method (desig key)
@@ -143,7 +143,7 @@
   (<- (%property ?designator (?object-key ?object))
     (lisp-pred typep ?designator desig:action-designator)
     (member ?object-key (:object :on-object :with-object :supporting-object
-                         :container-object))
+                         :container-object :source))
     (property-member (?object-key ?object) ?designator)
     (assert-type ?object desig:object-designator "ACTION SPEC:PROPERTY"))
 
@@ -229,10 +229,10 @@
 
  (<- (%property ?designator (?keyword-key ?type))
   ;(<- (%property ?designator (:type ?type))
-   ; (lisp-pred typep ?designator desig:object-designator)
+   (lisp-pred typep ?designator desig:object-designator)
     (member ?keyword-key (:type :tool))
-    (property-member (:type ?type) ?designator)
-    (property-member (?keyword-key ?value) ?designator)
+    ;(property-member (:type ?type) ?designator)
+    (property-member (?keyword-key ?type) ?designator)
     (assert-type ?type keyword "OBJECT SPEC:PROPERTY"))
 
   (<- (%property ?designator (?keyword-key ?name))

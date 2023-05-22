@@ -49,7 +49,8 @@
 	       ((:grasp ?grasp))
 	       ((:context ?context))
                 ((:reso ?reso))
-                ((:objects ?tool-object-designator))
+                ((:source ?source-designator))
+                ((:source-type ?source-type))
 	       ;;((:effort ?effort))
 	       ;;((:gripper-opening ?gripper-opening))
 	      ; ((:left-grip-container-poses ?left-grip-container-poses))
@@ -71,7 +72,7 @@
              flipping: object-type ~a object-name ~a arm: ~a grasp: ~a ~%"
 	  ?object-type ?object-name ?arms ?grasp)
 
-(format t "my tool is: ~a" ?tool-object-designator)
+(format t "my tool is: ~a" ?source-designator)
 
 ;  (roslisp:ros-info (cut-pour pour) "Approaching")
 

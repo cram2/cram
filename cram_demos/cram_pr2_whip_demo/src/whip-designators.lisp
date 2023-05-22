@@ -1,7 +1,7 @@
 (in-package :demo)
 
  
-(def-fact-group pancake-actions (desig:action-grounding)
+(def-fact-group whip-actions (desig:action-grounding)
   (<- (desig:action-grounding ?action-designator (whisk ?resolved-action-designator))
     (spec:property ?action-designator (:type :whisking))
 ;;TODO: THIS STAYS THE SAME DONT CHANGE !!!! ++++++++++++++++++++++++++++++++
@@ -11,22 +11,14 @@
     (spec:property ?current-object-desig (:type ?object-type))
     (spec:property ?current-object-desig (:name ?object-name))
     (spec:property ?action-designator (:context ?context))
-<<<<<<< HEAD
-    ;(spec:property ?action-designator (:sides ?reso))
+
     (-> (spec:property ?action-designator (:reso ?reso))
         (true)
         (format "no reso specified"))
-=======
-    (->(true)(format "bowl entered sucesfful")(true))
-    (spec:property ?action-designator (:objects ?tool-object-designator))
-    (-> (true)(format "whisk desig entered sucessful")(true))
-    (desig:current-designator ?tool-object-designator ?current-tool-object-desig)
-    (spec:property ?current-tool-object-desig (:tool ?tool-object-type))
-    (-> (spec:property ?action-designator (:reso ?reso))
-        (true)
-        (format "no reso specified"))
-    
->>>>>>> experimental-temp
+
+    (spec:property ?action-designator (:source ?source-designator))
+    (desig:current-designator ?source-designator ?current-source-desig)
+    (spec:property ?current-source-desig (:type ?source-type))
     
     ;; ==============   extract arms or set arms               ==============
     (man-int:arms-for-object-type ?object-type ?arms-for-object)
@@ -35,7 +27,6 @@
 	    (true)
 	    (format "Please set a specific arm ~%")))
     
-
 
     ;; ==============  infer missing information like ?grasp   ==============
     (lisp-fun man-int:get-object-transform ?current-object-desig ?object-transform)
@@ -48,24 +39,17 @@
         (and (member ?arm ?arms)
              (lisp-fun man-int:get-action-grasps ?object-type ?arm ?object-transform ?grasps)
              (member ?grasp ?grasps)))
-<<<<<<< HEAD
-=======
-    ;;(lisp-fun man-int:get-action-gripping-effort ?object-type ?effort)
-    ;;(lisp-fun man-int:get-action-gripper-opening ?object-type ?gripper-opening)
-
->>>>>>> experimental-temp
     
     ;;TODO: THIS STAYS THE SAME DONT CHANGE TILL HERE !!!! ++++++++++++
 
     
     ;; ==============  calculate trajectory with given grasp  ==============
-    (equal ?objects (?current-object-desig))
+    (equal ?object (?current-object-desig))
     (-> (member :left ?arm)
 	;;TODO change name here nad start with one pose only
 	(and
-(format "here??")
          (lisp-fun man-int:get-action-trajectory :mixing
-		       :left ?grasp T ?objects :context ?context :reso ?reso :tool  ?tool-object-type
+		       :left ?grasp T ?object :context ?context :reso ?reso :tool-object-type ?source-type
 		       ?left-trajectory)
 	    ; (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :grip-container
 		;       ?right-grip-container-poses)
@@ -99,7 +83,7 @@
         (and
          (format "right one????")
          (lisp-fun man-int:get-action-trajectory :mixing
-			:right ?grasp T ?objects :context ?context :reso ?reso :tool ?tool-object-type
+			:right ?grasp T ?object :context ?context :reso ?reso :tool-object-type ?source-type
 			?right-trajectory)
 	    ;  (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :grip-container
 		;	?left-grip-container-poses)
@@ -137,7 +121,8 @@
 		               (:grasp ?grasp)
 			       (:context ?context)
 			       (:reso ?reso)
-                               (:objects ?tool-object-designator)
+                               (:source ?source-designator)
+                               (:source-type ?source-type)
 
 		               (:left-approach-poses ?left-approach-poses)
 			       (:right-approach-poses ?right-approach-poses)

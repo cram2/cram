@@ -108,7 +108,7 @@
             :orientation 
             (cl-tf:rotation bTb-offset)))
          ;top+ bottom, append
-         (mix-poses (adjust-circle-poses-context approach-pose reso context object-type))
+         (mix-poses (adjust-circle-poses-context approach-pose reso context object-type tool-object-type))
 					;(mix-poses  (circle-poses approach-pose))
 	(start-mix-poses (rec-spiral-poses object-type approach-pose reso))
                                         ; (spiral-poses approach-pose))
@@ -275,13 +275,13 @@
        (cl-transforms:make-3d-vector x y z)
        (cl-transforms:make-quaternion ax ay az aw))))))
 
-(defgeneric get-object-type-robot-frame-mix-tool-grip-bottom-transform (object-type arm grasp)
+(defgeneric get-object-type-robot-frame-mix-tool-grip-bottom-transform ( object-type arm grasp)
   (:documentation "Returns a transform stamped")
   (:method (object-type arm grasp)
     (man-int::call-with-specific-type #'get-object-type-robot-frame-mix-tool-grip-bottom-transform
                              object-type arm grasp)))
 
-(defmethod get-object-type-robot-frame-mix-tool-grip-bottom-transform  (object-type arm grasp)
+(defmethod get-object-type-robot-frame-mix-tool-grip-bottom-transform (object-type arm grasp)
   (destructuring-bind
       ((x y z) (ax ay az aw))
       (call-next-method)
@@ -371,16 +371,16 @@
        (cl-transforms:make-3d-vector x y z)
        (cl-transforms:make-quaternion ax ay az aw))))))
 
-(defun adjust-circle-poses-context (pose reso context object-type)
+(defun adjust-circle-poses-context (pose reso context object-type tool-object-type)
   (if (eq context :mix)
-      (adjust-circle-poses pose reso 1 object-type
+      (adjust-circle-poses pose reso 1 object-type tool-object-type
                            )
       (if (eq context :mix-eclipse)
-           (adjust-circle-poses pose reso 0.03 object-type
+           (adjust-circle-poses pose reso 0.03 object-type tool-object-type
                                )
            (if (eq
                 context :mix-orbit)
-             (orbital-poses pose reso object-type
+             (orbital-poses pose reso object-type tool-object-type
                              )))
       ))
 
@@ -394,8 +394,8 @@
                                         ;returns a rim number
   ))
 
-(defun adjust-circle-poses(pose reso newerate object-type)
-  (print object-type)
+(defun adjust-circle-poses(pose reso newerate object-type tool-object-type)
+  (print tool-object-type)
   (let ((containerrim 0); <- currently - big-bowl hard gecoded, gotta adjust top and bottom rim
 	(erate 1);== circle;  stirring == (erate 0.03) elipsiness
 	(angle 0)
@@ -467,7 +467,7 @@
   )
 
  ;orbital cos my dream gave me inspiration..
-(defun orbital-poses(pose reso object-type)
+(defun orbital-poses(pose reso object-type tool-object-type)
    (let ((containerrim 0); <- currently - big-bowl hard gecoded, gotta adjust top and bottom rim
 	(erate 1);<- circle;  stirring == (erate 0.03)
 	(angle 0)
@@ -486,7 +486,7 @@
       do (setf x   (+ x  1))
          (setf currentpose-smaller-radius-pose (cl-tf:copy-pose-stamped (change-v pose :x-offset (* erate (* containerrim (cos (* x angle))))
                                                                                   :y-offset (* containerrim (sin (* x angle))))))
-         (setf smallcircleposes (adjust-circle-poses currentpose-smaller-radius-pose  9 1 object-type))
+         (setf smallcircleposes (adjust-circle-poses currentpose-smaller-radius-pose  9 1 object-type tool-object-type))
              ; or better: do (decf row)
       
         ;; (cons smallcircleposes (change-v pose :x-offset (* erate (* containerrim (cos (* x angle))))
@@ -540,41 +540,7 @@
 
     ))))
 
-<<<<<<< HEAD
-;; =========  is in trajectory defined normly ==========
-(defun get-flip-tilt-poses (grasp approach-poses &optional (angle (cram-math:degrees->radians 15))
-						   (height 0))
-  (print "flip-tilt-poses-calculated")
 
-  (mapcar (lambda (?approach-pose)
-	    (let ((?pose (change-v ?approach-pose :z-offset height)))
-	      ;;depending on the grasp the angle to tilt is different
-	      (case grasp
-		(:front (rotate-once-pose-flip ?pose (- angle) :y))
-		(:left (rotate-once-pose-flip ?pose (- angle) :x))
-		(:right (rotate-once-pose-flip ?pose (+ angle) :x))
-		(:top (rotate-once-pose-flip ?pose (+ angle) :y))
-		(t (error "front, left, right, top")))))
-          approach-poses))
-
-;;helper function for tilting
-;;rotate the pose around the axis in an angle
-(defun rotate-once-pose-flip (pose angle axis)
-  (print "rotate once")
-  (cl-transforms-stamped:copy-pose-stamped
-   pose
-   :orientation (let ((pose-orientation (cl-transforms:orientation pose)))
-                  (cl-tf:normalize
-                   (cl-transforms:q*
-                    (cl-transforms:axis-angle->quaternion
-                     (case axis
-                       (:x (cl-transforms:make-3d-vector 1 0 0))
-                       (:y (cl-transforms:make-3d-vector 0 1 0))
-                       (:z (cl-transforms:make-3d-vector 0 0 1))
-                       (t (error "in ROTATE-ONCE-POSE forgot to specify axis properly: ~a" axis)))
-                     angle)
-                    pose-orientation)))))
-=======
 ;; (defun get-circle-poses(reso)
 ;;   (print "whisking circle calculated")
 ;;     (let
@@ -597,7 +563,6 @@
 ;;   ;x= r * cos +x; y= r*sin +y 
 ;;   ))))
 
->>>>>>> experimental-temp
 (defvar test)
 
 (defun change-v (pose &key (x-offset 0.0) (y-offset 0.0) (z-offset 0.0))

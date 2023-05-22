@@ -144,8 +144,9 @@
         (?pose-utensil nil)
         (?pose-container nil)
         (?object-container nil)
+        (?object-desig-source (desig:an object (type :whisk)))
         )
-                            
+                
                 ;getting utensil pose and saving it                        
       (setf ?pose-utensil (cl-tf:pose->pose-stamped
                              cram-tf:*fixed-frame*
@@ -157,9 +158,9 @@
                      (type looking)
                      (target (desig:a location (pose ?pose-utensil)))))  
      
- ;;           ;CAN SEE THE FORK? hardcoded recognition of utensil type TODO make it adaptible
-       (setf ?object-utensil (urdf-proj::detect (desig:an object (type whisk))))  
-                                     
+ ;;           ;CAN SEE THE FORK?
+       (setf ?object-utensil (urdf-proj::detect (desig:an object (type whisk))))
+                                    
  ;;      ;(btr::add-vis-axis-object 'whisk-1) 
       
  ;; ))) 
@@ -172,16 +173,18 @@
                                    (object ?object-utensil)
                                     (arm (:right)) 
                                     (grasp :top)))
-     
-      (start-mix ?object-utensil)
+   
+      (start-mix ?object-desig-source)
       )))
 
-(defun start-mix (object-utensil)
+(defun start-mix (?object-desig-source)
     
   (let ((?pose-container (cl-tf:pose->pose-stamped
 			  cram-tf:*fixed-frame*
 			  0 
-			  (btr:object-pose 'big-bowl-1))))
+			  (btr:object-pose 'big-bowl-1)))
+	;(?object-desig (desig:an object (type ?object-source-type)))
+			  )
     
     (cram-executive:perform
      (desig:an action
@@ -189,31 +192,28 @@
 	       (target (desig:a location (pose ?pose-container)))))
     
     (let ((?object-container(urdf-proj::detect
-<<<<<<< HEAD
-			     (desig:an object (type big-bowl))))
-          (?reso 4))
-      
-=======
+
                              (desig:an object (type big-bowl))))
           (?reso 4))
->>>>>>> experimental-temp
 
       ;; (exe:perform (desig:an action
       ;;                        (type ) - how to look up types again
       ;;                        (arm (:left))
       ;;                        (object ?object-container)
       ;;                        (grasp :left-top)))
+      
       (exe:perform (desig:an action
                              (type whisking)
-			     (context :mix)
+			      (context :mix)
                              (reso ?reso)
 
                              ;; (sides ?reso)
                              (arm (:right))
                              (reso ?reso)
-                             (objects ?object-container)
+                             (object ?object-container)
                              (grasp :top)
-                             (object object-utensil)
+                             ;;this not working WIP
+                             (source ?object-desig-source)
                              )))))
 
 (defun testdesig()
