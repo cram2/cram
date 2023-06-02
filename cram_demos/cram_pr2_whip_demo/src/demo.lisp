@@ -194,7 +194,7 @@
     (let ((?object-container(urdf-proj::detect
 
                              (desig:an object (type big-bowl))))
-          (?reso 4))
+          (?reso 12))
 
       ;; (exe:perform (desig:an action
       ;;                        (type ) - how to look up types again
@@ -204,7 +204,7 @@
       
       (exe:perform (desig:an action
                              (type whisking)
-			      (context :mix)
+			      (context :mix-orbit)
                              (reso ?reso)
 
                              ;; (sides ?reso)

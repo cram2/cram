@@ -110,10 +110,10 @@
          ;top+ bottom, append
          (mix-poses (adjust-circle-poses-context approach-pose reso context object-type tool-object-type))
 					;(mix-poses  (circle-poses approach-pose))
-	(start-mix-poses (rec-spiral-poses object-type approach-pose reso))
+	(start-mix-poses (rec-spiral-poses object-type approach-pose reso tool-object-type))
                                         ; (spiral-poses approach-pose))
          ;spiral inwards
-         (end-mix-poses (reverse-spiral-poses object-type approach-pose reso))
+         (end-mix-poses (reverse-spiral-poses object-type approach-pose reso tool-object-type))
          ;retract
          (retract-pose
            (cl-tf:copy-pose-stamped 
@@ -235,10 +235,9 @@
 ;;height depending on tool...center to bottom measurment
 ;;-bowl bottom can be looked up in rim-bottom-transform ^
 ;decided y is height/lenght of object from center grip
- (defmethod get-object-type-robot-frame-mix-tool-grip-bottom-transform
- ((object-type (eql :whisk))
-      (arm (eql :right))
-     (grasp (eql :top)))
+
+(defmethod get-object-type-robot-frame-mix-rim-tool-grip-bottom-transform
+    ((object-type (eql :whisk)))
   '((0.02 -0.12 0.06)(1 0 0 0)))
 
                                         ;decided to use the z axis as radius measure (important for mix center point calculation)
@@ -252,8 +251,9 @@
   '((0.0 -0.09 0.11)(1 0 0 0))) ;0.11
 
 (defmethod get-object-type-robot-frame-mix-tool-transform
-  ((object-type (eql :whisk)))
-  '((0.0 0.145 0.015)(1 0 0 0))) ;why did I thought that 0.3 would be a good x ?? asking past tina . it gotta be 0.14 says my  19.02. brain
+    ((object-type (eql :whisk))
+     )
+  '((0.03 0.145 0.015)(1 0 0 0))) ;why did I thought that 0.3 would be a good x ?? asking past tina . it gotta be 0.14 says my  19.02. brain - nohooo 28.05. tina brain answer: 0.03 is the whisk hair width on x axis (so diameter of 0.06), the 0.14 is for lenght of the whole whisk from top to bottom
 
 ;; =========  is in trajectory defined normaly ==========
 (defgeneric get-object-type-robot-frame-mix-rim-grip-deep-approach-transform (object-type arm grasp)
@@ -275,24 +275,24 @@
        (cl-transforms:make-3d-vector x y z)
        (cl-transforms:make-quaternion ax ay az aw))))))
 
-(defgeneric get-object-type-robot-frame-mix-tool-grip-bottom-transform ( object-type arm grasp)
-  (:documentation "Returns a transform stamped")
-  (:method (object-type arm grasp)
-    (man-int::call-with-specific-type #'get-object-type-robot-frame-mix-tool-grip-bottom-transform
-                             object-type arm grasp)))
+;; (defgeneric get-object-type-robot-frame-mix-tool-grip-bottom-transform (object-type arm grasp)
+;;   (:documentation "Returns a transform stamped")
+;;   (:method (object-type arm grasp)
+;;     (man-int::call-with-specific-type #'get-object-type-robot-frame-mix-tool-grip-bottom-transform
+;;                              object-type arm grasp)))
 
-(defmethod get-object-type-robot-frame-mix-tool-grip-bottom-transform (object-type arm grasp)
-  (destructuring-bind
-      ((x y z) (ax ay az aw))
-      (call-next-method)
-    (cl-tf:transform->transform-stamped
-     cram-tf:*robot-base-frame*
-     cram-tf:*robot-base-frame*
-     0.0
-     (cl-tf:pose->transform
-      (cl-transforms:make-pose
-       (cl-transforms:make-3d-vector x y z)
-       (cl-transforms:make-quaternion ax ay az aw))))))
+;; (defmethod get-object-type-robot-frame-mix-tool-grip-bottom-transform (object-type arm grasp)
+;;   (destructuring-bind
+;;       ((x y z) (ax ay az aw))
+;;       (call-next-method)
+;;     (cl-tf:transform->transform-stamped
+;;      cram-tf:*robot-base-frame*
+;;      cram-tf:*robot-base-frame*
+;;      0.0
+;;      (cl-tf:pose->transform
+;;       (cl-transforms:make-pose
+;;        (cl-transforms:make-3d-vector x y z)
+;;        (cl-transforms:make-quaternion ax ay az aw))))))
    
 (defgeneric get-object-type-robot-frame-mix-grip-retract-transform (object-type arm grasp)
   (:documentation "Returns a transform stamped")
@@ -371,6 +371,10 @@
        (cl-transforms:make-3d-vector x y z)
        (cl-transforms:make-quaternion ax ay az aw))))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;gets upstairs, drawing functions below
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defun adjust-circle-poses-context (pose reso context object-type tool-object-type)
   (if (eq context :mix)
       (adjust-circle-poses pose reso 1 object-type tool-object-type
@@ -394,18 +398,25 @@
                                         ;returns a rim number
   ))
 
-(defun adjust-circle-poses(pose reso newerate object-type tool-object-type)
-  (print tool-object-type)
+(defun adjust-circle-poses(pose reso newerate object-type tool-object-type &rest toolhalvingtoggle)
+  (print "current containerrim iiiis: subtract from y") ; for bowl 0.06 should be the result
   (let ((containerrim 0); <- currently - big-bowl hard gecoded, gotta adjust top and bottom rim
+        (toolrim 0)
 	(erate 1);== circle;  stirring == (erate 0.03) elipsiness
 	(angle 0)
 	(x 1)
         (defaultreso 12)
+        (rim 0)
 	)
 
     (setf erate newerate)
     (setf containerrim (nth 2 (car (get-object-type-robot-frame-mix-rim-bottom-transform object-type))))
-    (print containerrim)
+     (setf toolrim (nth 2 (car (get-object-type-robot-frame-mix-tool-transform tool-object-type))))
+    (if (null toolhalvingtoggle)
+        (setf rim (- containerrim toolrim)) 
+        (setf rim (/ (- containerrim toolrim) 2)))
+    ;;brain: (container center till rim)  - (tool width) = rim
+
     ;; (if (eq context :mix-orbit)
     ;;    (orbital-poses pose reso)
     ;;     )
@@ -416,25 +427,25 @@
  ;   )
     
  ;defaultreso is this case is jsut the holder for whatever ?reso was decided on or real default reso- look above
-   
         (loop while (<= x defaultreso)
               do (setf x   (+ x  1))
             
-    collect  (change-v pose :x-offset (* erate (* containerrim (cos (* x angle))))
-			    :y-offset (* containerrim (sin (* x angle))))
+    collect  (change-v pose :x-offset (* erate (* rim (cos (* x angle))))
+			    :y-offset (* rim (sin (* x angle))))
     ))) 
 
-(defun rec-spiral-poses(object-type pose reso)
+(defun rec-spiral-poses(object-type pose reso tool-object-type)
   (let
    ( (k 0.4) ;0.3 <-'spiralness'
      (defaultreso 12)
-     (rim 0.06); needs to be pulled out from household - same goes for top and bottom diffrence.
+     (rim 0); needs to be pulled out from household - same goes for top and bottom diffrence.
      ;for spiral only top rim needed.
      (angle 0)  
      (x 1)
      )
     
-    (setf rim (nth 2 (car (get-object-type-robot-frame-mix-rim-bottom-transform object-type))))
+    (setf rim (-(nth 2 (car (get-object-type-robot-frame-mix-rim-bottom-transform object-type)))
+     (nth 2 (car (get-object-type-robot-frame-mix-tool-transform tool-object-type)))))
                                         ; adjustment cos of get-object...-rim-bottom changes of structure (nth 2 (car (get-object-type-robot-frame-mix-rim-bottom-transform object-type))))
  (setf angle (/(* 2  pi) defaultreso))
     (loop while (<= x defaultreso)
@@ -443,7 +454,7 @@
 				   :y-offset (*(* (/ rim defaultreso) (exp (* k(* x  angle))) (sin (* x  angle)))))
 	  )))
 
-(defun reverse-spiral-poses(object-type pose reso)
+(defun reverse-spiral-poses(object-type pose reso tool-object-type)
   (let
    ( (k 0.4) ;0.3 <-'spiralness'
      (defaultreso 11)
@@ -455,7 +466,8 @@
      )
     
     (setf rim ;(get-object-type-robot-frame-mix-rim-bottom-transform object-type))
-          (nth 2 (car (get-object-type-robot-frame-mix-rim-bottom-transform object-type))))
+          (-(nth 2 (car (get-object-type-robot-frame-mix-rim-bottom-transform object-type)))
+          (nth 2 (car (get-object-type-robot-frame-mix-tool-transform tool-object-type)))))
    
     (setf angle (/(* 2  pi) defaultreso))
     (setf x defaultreso)
@@ -473,22 +485,25 @@
 	(angle 0)
 	(x 1)
         (defaultreso 12)
-        (smallercircle 0.04) ;radius 3 cm circle for now
+       ; (smallercircle 0.04) ;radius 3 cm circle for now
          (currentpose-smaller-radius-pose) ;ever changing small circle center
          (smallcircleposes '());list of one small circle at a time
          (orbitalposes '())
-	)
+         )
+;containerrim  = container radius - tool width
+     (setf containerrim (- (nth 2 (car (get-object-type-robot-frame-mix-rim-bottom-transform object-type)))
+                           (nth 2 (car (get-object-type-robot-frame-mix-tool-transform tool-object-type)))))
+     
    (if (>= reso 2) (setf defaultreso reso))
-    (setf angle (/(* 2  pi) defaultreso));reso))
-      
+     (setf angle (/(* 2  pi) defaultreso));reso))
  ;defaultreso is this case is jsut the holder for whatever ?reso was decided on or real default reso- look above
 (loop while (<= x defaultreso)
       do (setf x   (+ x  1))
          (setf currentpose-smaller-radius-pose (cl-tf:copy-pose-stamped (change-v pose :x-offset (* erate (* containerrim (cos (* x angle))))
-                                                                                  :y-offset (* containerrim (sin (* x angle))))))
-         (setf smallcircleposes (adjust-circle-poses currentpose-smaller-radius-pose  9 1 object-type tool-object-type))
+                                                                                       :y-offset (* containerrim (sin (* x angle))))))
+         ;fixed 9 for reso of the smaller circle detail  and 1 for circle form; 2 for halved tool-object-width circle size
+        (setf smallcircleposes (adjust-circle-poses currentpose-smaller-radius-pose 9 1 object-type tool-object-type 2))
              ; or better: do (decf row)
-      
         ;; (cons smallcircleposes (change-v pose :x-offset (* erate (* containerrim (cos (* x angle))))
          ;;                          :y-offset (* containerrim (sin (* x angle)))))
         ; (collect currentpose-smaller-radius)

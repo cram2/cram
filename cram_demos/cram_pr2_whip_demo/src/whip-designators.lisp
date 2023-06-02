@@ -14,7 +14,7 @@
 
     (-> (spec:property ?action-designator (:reso ?reso))
         (true)
-        (format "no reso specified"))
+        (?reso format "no reso specified"))
 
     (spec:property ?action-designator (:source ?source-designator))
     (desig:current-designator ?source-designator ?current-source-desig)
