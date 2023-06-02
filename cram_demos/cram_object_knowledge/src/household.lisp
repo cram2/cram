@@ -48,7 +48,7 @@
   (<- (man-int:object-type-direct-subtype :kitchen-item :milk))
   (<- (man-int:object-type-direct-subtype :kitchen-item :cereal))
   (<- (man-int:object-type-direct-subtype :kitchen-item :bowl))
-  (<- (man-int:object-type-direct-subtype :kitchen-item :package))
+  (<- (man-int:object-type-direct-subtype :kitchen-item :open-box))
 
   (<- (man-int:object-type-direct-subtype :kitchen-item :pot))
   (<- (man-int:object-type-direct-subtype :kitchen-item :spatula))
@@ -156,7 +156,7 @@
 
   (<- (orientation-matters ?object-type)
     (member ?object-type (:knife :fork :spoon :cutlery :spatula :weisswurst
-			  :bread :big-knife :package))))
+			  :bread :big-knife :open-box))))
 
 (def-fact-group popcorn-attachment-knowledge (man-int:unidirectional-attachment)
   (<- (man-int:unidirectional-attachment ?attachment-type)
