@@ -536,6 +536,13 @@
             (cl-transforms:make-3d-vector 1.6 2.5 0.0)
             (cl-transforms:make-quaternion 0 0 0 1)))
 
+         (?fetch-blue-cup-pose-pouring
+           (cl-transforms-stamped:make-pose-stamped
+            cram-tf:*fixed-frame*
+            0.0
+            (cl-transforms:make-3d-vector 1.75 2.5 0.0)
+            (cl-transforms:make-quaternion 0 0 0 1)))
+
          (?on-counter-top-source-cup-look-pose
            (cl-transforms-stamped:make-pose-stamped
             "map"
@@ -603,7 +610,7 @@
                             (grasps (front))
                             (object ?source-perceived-object-desig)
                             (robot-location (desig:a location
-                                                     (pose ?percieve-blue-cup-pose-pouring)))
+                                                     (pose ?fetch-blue-cup-pose-pouring)))
                             (look-location (desig:a location
                                                     (pose ?on-counter-top-source-cup-look-pose)))
                             (goal ?goal))))))))
