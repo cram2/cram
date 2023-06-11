@@ -59,6 +59,7 @@
   (<- (man-int:object-type-direct-subtype :cutlery :fork))
   (<- (man-int:object-type-direct-subtype :cutlery :spoon))
 
+ (<- (man-int:object-type-direct-subtype :kitchen-item :saucepan))
  (<- (man-int:object-type-direct-subtype :household-item :big-bowl))
  (<- (man-int:object-type-direct-subtype :cutlery :whisk))
 
@@ -1740,13 +1741,39 @@
   :2nd-pregrasp-offsets `(0.0, *big-bowl-grasp-xy-offset* ,*big-bowl-pregrasp-z-offset*)
   :lift-translation `(0.0 0.0 ,*big-bowl-pregrasp-z-offset*)
   :2nd-lift-translation `(0.0 0.0 ,*big-bowl-pregrasp-z-offset*))
-;;TODO: tina add stuff here
-;;hier ist ja garnichts defined?
-;;grr ich mach das jetzt erstmal fuer den pancake-mixer  aber du musst
-;;hier auch sachen fuer big-bowl define, wie fuer whisk
-;;kannst dich da ja an der normalen bowl orientieren...
-;;basicly das selbe wie fuer pancake-maker
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;saucepan;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defparameter *saucepan-grasp-x-offset* 0.153 "in meters")
+(defparameter *saucepan-pregrasp-z-offset* 0.30 "in meters")
+(defparameter *saucepan-grasp-z-offset* 0.01 "in meters")
+
+;side-grasps
+(man-int:def-object-type-to-gripper-transforms '(:saucepan) '(:left :right) :top
+  :grasp-translation `(0.0 ,(- *saucepan-grasp-x-offset*) 0.0d0 ,*saucepan-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,*saucepan-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(*saucepan-grasp-x-offset*, 0.0 ,*saucepan-pregrasp-z-offset*)
+  :lift-translation `(0.0 0.0 ,*saucepan-pregrasp-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*saucepan-pregrasp-z-offset*))
+  
+  (man-int:def-object-type-to-gripper-transforms '(:saucepan)
+    '(:left :right) :right
+  :grasp-translation `(0.0,*saucepan-grasp-x-offset* ,*saucepan-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+    :pregrasp-offsets `(0.0 0.0 ,*saucepan-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,*saucepan-pregrasp-z-offset*)
+  :lift-translation `(0.0 0.0 ,*saucepan-pregrasp-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*saucepan-pregrasp-z-offset*))
+
+;; right-TOP grasp
+(man-int:def-object-type-to-gripper-transforms '(:saucepan)
+    '(:left :right) :left
+  :grasp-translation `(0.0,(- *saucepan-grasp-x-offset*) 0.0d0 ,*saucepan-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+    :pregrasp-offsets `(0.0 0.0 ,*saucepan-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0, *saucepan-grasp-x-offset* ,*saucepan-pregrasp-z-offset*)
+  :lift-translation `(0.0 0.0 ,*saucepan-pregrasp-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*saucepan-pregrasp-z-offset*))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; pancake-maker ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -67,6 +67,7 @@
   (<- (%scenario-object-color :visualization-box (1.0 0.0 0.0 0.5)))
   (<- (%scenario-object-color :whisk   (0 1 1 1)))
   (<- (%scenario-object-color :big-bowl  (0.61 0.17 0.06)))
+  (<- (%scenario-object-color :saucepan  (0.4 0.17 0.06)))
   (<- (%scenario-object-color :bowl-round (0.15 0.24 0.35)))
   (<- (%scenario-object-color :denkmit-entkalker (0.96 0.89 0.3)))
   (<- (%scenario-object-color :heitmann-citronensaeure (0.92 0.92 0.92)))

@@ -136,7 +136,8 @@
 	
 	(move-pr2)
 	(spawn-whisk)
-        (spawn-bigbowl)
+       ; (spawn-bigbowl)
+        (spawn-saucepan)
         
     (let* (
          ;utensil: fork,spoon,whisky or sth - for now spawn a fork
@@ -152,7 +153,6 @@
                              cram-tf:*fixed-frame*
                              0 
                              (btr:object-pose 'whisk-1)))
-           
             (cram-executive:perform
            (desig:an action
                      (type looking)
@@ -161,7 +161,7 @@
  ;;           ;CAN SEE THE FORK?
        (setf ?object-utensil (urdf-proj::detect (desig:an object (type whisk))))
                                     
- ;;      ;(btr::add-vis-axis-object 'whisk-1) 
+      
       
  ;; ))) 
 
@@ -182,8 +182,8 @@
   (let ((?pose-container (cl-tf:pose->pose-stamped
 			  cram-tf:*fixed-frame*
 			  0 
-			  (btr:object-pose 'big-bowl-1)))
-	;(?object-desig (desig:an object (type ?object-source-type)))
+			 ; (btr:object-pose 'big-bowl-1)))
+			  (btr:object-pose 'saucepan-1)))
 			  )
     
     (cram-executive:perform
@@ -193,18 +193,21 @@
     
     (let ((?object-container(urdf-proj::detect
 
-                             (desig:an object (type big-bowl))))
-          (?reso 12))
+                            ; (desig:an object (type big-bowl))))
+                             (desig:an object (type saucepan))))
+          (?reso 4))
 
       ;; (exe:perform (desig:an action
       ;;                        (type ) - how to look up types again
       ;;                        (arm (:left))
       ;;                        (object ?object-container)
       ;;                        (grasp :left-top)))
+;(btr::add-vis-axis-object 'saucepan-1) 
+ 
       
       (exe:perform (desig:an action
                              (type whisking)
-			      (context :mix-orbit)
+			      (context :mix)
                              (reso ?reso)
 
                              ;; (sides ?reso)
@@ -212,9 +215,17 @@
                              (reso ?reso)
                              (object ?object-container)
                              (grasp :top)
-                             ;;this not working WIP
                              (source ?object-desig-source)
                              )))))
+
+(defun testaxis()
+  (testdesig)
+  	(move-pr2)
+	(spawn-whisk)
+        (spawn-bigbowl)
+  (spawn-saucepan)
+  (btr::add-vis-axis-object 'saucepan-1) 
+  )
 
 (defun testdesig()
 (urdf-proj::with-simulated-robot 
@@ -257,6 +268,12 @@
       (btr-utils:spawn-object 'big-bowl-1 :big-bowl
                               :pose (cl-transforms:make-pose
                                      (cl-tf:make-3d-vector -0.85 0.55 0.93)
+                                     (cl-tf:make-identity-rotation))))
+
+(defun spawn-saucepan()
+      (btr-utils:spawn-object 'saucepan-1 :saucepan
+                              :pose (cl-transforms:make-pose
+                                     (cl-tf:make-3d-vector -0.85 0.65 0.9)
                                      (cl-tf:make-identity-rotation))))
                                      
 (defun spawn-cup()

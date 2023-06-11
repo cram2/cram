@@ -59,7 +59,9 @@
     (:shoe "package://cram_bullet_reasoning/resource/shoe.stl" nil)
     (:arrow "package://cram_bullet_reasoning/resource/arrow.stl" nil)
   (:whisk "package://cram_pr2_whip_demo/resource/whisk.stl" nil)
-    (:big-bowl "package://cram_pr2_whip_demo/resource/big-bowl.stl" nil))
+    (:big-bowl "package://cram_pr2_whip_demo/resource/big-bowl.stl" nil)
+    (:saucepan "package://cram_pr2_whip_demo/resource/saucepan.stl" nil)
+    )
   "(mesh-name-in-CRAM  mesh-ROS-uri-path  flip-winding-order-of-the-mesh")
 
 

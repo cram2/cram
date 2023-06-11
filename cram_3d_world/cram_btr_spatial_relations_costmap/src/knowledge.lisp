@@ -57,6 +57,7 @@
   (<- (%item-type-shape :cup :circle))
   (<- (%item-type-shape :spatula :rectangle))
   (<- (%item-type-shape :big-bowl :circle))
+  (<- (%item-type-shape :saucepan :oval))
   (<- (%item-type-shape :whisk :rectangle))
   ;;
   (<- (item-type-shape ?type ?shape)
@@ -93,6 +94,7 @@
   (<- (object-type-padding-size :spatula 0.01d0))
   (<- (object-type-padding-size :cup 0.1d0))
   (<- (object-type-padding-size :big-bowl 0.03d0))
+  (<- (object-type-padding-size :saucepan 0.03d0))
   (<- (object-type-padding-size :whisk 0.005d0)) 
 
   (<- (object-type-padding-size :cup 0.0d0))
@@ -122,6 +124,7 @@
   (<- (object-type-costmap-threshold :cup 0.8d0)) ; 0.99d0))
   (<- (object-type-costmap-threshold :whisk 0.8d0)) ; 0.99d0))
 (<- (object-type-costmap-threshold :big-bowl 0.8d0)) ; 0.99d0))
+(<- (object-type-costmap-threshold :saucepan 0.8d0)) ; 0.99d0))
 
   ;;
   (<- (object-costmap-threshold ?world ?object-name ?threshold)
