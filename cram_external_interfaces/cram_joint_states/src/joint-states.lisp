@@ -51,7 +51,7 @@ updating `*robot-joint-states-msg*' with frequency given in `*joint-state-freque
                (setf *joint-state-timestamp* (the double-float (roslisp:ros-time)))
                (setf (cpl:value *robot-joint-states-msg*) joint-state-msg))))
       (setf *joint-state-sub*
-            (roslisp:subscribe "joint_states"
+            (roslisp:subscribe "/hsrb/robot_state/joint_states"
                                "sensor_msgs/JointState"
                                #'joint-state-sub-cb)))))
 
