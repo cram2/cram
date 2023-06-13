@@ -116,6 +116,7 @@
         :object-pose (nth 11 rest-args)
         :object-size (nth 12 rest-args)
         :object-name (nth 13 rest-args)
+        :frontal-grasping (nth 14 rest-args)
         :action-type 'reach
         ))
       (cram-common-designators:lift
@@ -170,6 +171,7 @@
         :precise-tracking (nth 10 rest-args); that's eleventh element
         :goal-pose (nth 11 rest-args)
         :object-height (nth 12 rest-args)
+        :object-name (nth 13 rest-args)
         :action-type 'align-height
         ))
       (cram-common-designators:place
@@ -188,7 +190,39 @@
         :precise-tracking (nth 10 rest-args); that's eleventh element
         :target-pose (nth 11 rest-args)
         :object-height (nth 12 rest-args)
+        :frontal-placing (nth 13 rest-args)
         :action-type 'place
+        ))
+      (cram-common-designators:place-neatly
+       (giskard:call-arm-cartesian-action
+        :goal-pose-left argument-1
+        :goal-pose-right (first rest-args)
+        :collision-mode (second rest-args)
+        :collision-object-b (third rest-args)
+        :collision-object-b-link (fourth rest-args)
+        :collision-object-a (fifth rest-args)
+        :move-base (sixth rest-args)
+        :prefer-base (seventh rest-args)
+        :straight-line (tenth rest-args)
+        :align-planes-left (eighth rest-args)
+        :align-planes-right (ninth rest-args)
+        :precise-tracking (nth 10 rest-args); that's eleventh element
+        :target-pose (nth 11 rest-args)
+        :frontal-placing (nth 12 rest-args)
+        :action-type 'place-neatly
+        ))
+      (cram-common-designators:tilt
+       (giskard:call-arm-cartesian-action
+        :goal-pose-left argument-1
+        :goal-pose-right (first rest-args)
+        :collision-mode (second rest-args)
+        :collision-object-b (third rest-args)
+        :collision-object-b-link (fourth rest-args)
+        :collision-object-a (fifth rest-args)
+        :tilt-direction (sixth rest-args)
+        :tilt-angle (seventh rest-args)
+        :object-name (eighth rest-args)
+        :action-type 'tilt
         ))
       ;; (cram-common-designators:reach
       ;;  (giskard:call-reach-action

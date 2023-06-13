@@ -90,7 +90,7 @@
                             :weight_below_ca)))))))))
 
 ;;@author Luca Krohm
-(defun make-reach-constraint (object-pose object-name object-size
+(defun make-reach-constraint (object-pose object-name object-size frontal-grasping
                               &key avoid-collisions-not-much)
   "Receives parameters used by manipulation. Creates Constraint of the type GraspObject which is a classname inside the manipulation code, which is responsible for 'reaching'"
   (roslisp:make-message
@@ -109,8 +109,10 @@
           `(("object_size"
            . (("message_type" . "geometry_msgs/Vector3")
               ("message" . ,(giskard::to-hash-table object-size))))))
-      ("frontal_grasping"
-       . 1)
+      
+      ,@(when frontal-grasping
+          `(("frontal_grasping"
+             . 1)))
       
       ,@(if avoid-collisions-not-much
             `(("weight" . ,(roslisp-msg-protocol:symbol-code
@@ -144,7 +146,6 @@
 (defun make-retract-constraint (object-name tip-link
                                      &key avoid-collisions-not-much)
   "Receives parameters used by manipulation. Creates Constraint of the type Retracting which is a classname inside the manipulation code, which is responsible for 'retracting'"
-  (print tip-link)
   (roslisp:make-message
    'giskard_msgs-msg:constraint
    :type
@@ -155,7 +156,7 @@
        . ,object-name)   
       ,@(when tip-link
           `(("tip_link"
-             . "hand_palm_link")))
+             . "hand_gripper_tool_frame")))
       ,@(if avoid-collisions-not-much
             `(("weight" . ,(roslisp-msg-protocol:symbol-code
                             'giskard_msgs-msg:constraint
@@ -164,7 +165,7 @@
                             'giskard_msgs-msg:constraint
                             :weight_below_ca)))))))))
 
-(defun make-align-height-constraint (goal-pose object-height
+(defun make-align-height-constraint (object-name goal-pose object-height
                                      &key avoid-collisions-not-much)
   "Receives parameters used by manipulation. Creates Constraint of the type PreparePlacing which is a classname inside the manipulation code, which is responsible for 'preparing-placing'"
   (roslisp:make-message
@@ -173,13 +174,15 @@
    "AlignHeight"
    :parameter_value_pair
    (giskard::alist->json-string
-    `(("goal_pose"
-       . (("message_type" . "geometry_msgs/PoseStamped")
-          ("message" . ,(giskard::to-hash-table goal-pose))))
-      ("object_height"
-       . ,object-height)
-      ("frontal_grasping"
-       . 1)
+    `(,@(when goal-pose
+          `(("goal_pose"
+             . (("message_type" . "geometry_msgs/PoseStamped")
+                ("message" . ,(giskard::to-hash-table goal-pose))))))
+      ,@(when object-height
+          `(("object_height"
+             . ,object-height)))
+      ("object_name"
+       . ,object-name)
       
       ,@(if avoid-collisions-not-much
             `(("weight" . ,(roslisp-msg-protocol:symbol-code
@@ -189,7 +192,7 @@
                             'giskard_msgs-msg:constraint
                             :weight_below_ca)))))))))
 
-(defun make-place-constraint (target-pose object-name object-height
+(defun make-place-constraint (target-pose object-name object-height frontal-placing
                                      &key avoid-collisions-not-much)
   "Receives parameters used by manipulation. Creates Constraint of the type PlaceObject which is a classname inside the manipulation code, which is responsible for 'placing'"
   (roslisp:make-message
@@ -205,6 +208,57 @@
        . ,object-name)
       ("object_height"
        . ,object-height)
+      ,@(when frontal-placing
+          `(("frontal_placing"
+             . 1)))
+      
+      ,@(if avoid-collisions-not-much
+            `(("weight" . ,(roslisp-msg-protocol:symbol-code
+                           'giskard_msgs-msg:constraint
+                           :weight_above_ca))
+              (("weight" . (roslisp-msg-protocol:symbol-code
+                            'giskard_msgs-msg:constraint
+                            :weight_below_ca)))))))))
+
+(defun make-place-neatly-constraint (target-pose frontal-placing
+                                     &key avoid-collisions-not-much)
+  "Receives parameters used by manipulation. Creates Constraint of the type PlaceObject which is a classname inside the manipulation code, which is responsible for 'placing'"
+  (roslisp:make-message
+   'giskard_msgs-msg:constraint
+   :type
+   "PlaceNeatly"
+   :parameter_value_pair
+   (giskard::alist->json-string
+    `(("target_pose"
+       . (("message_type" . "geometry_msgs/PoseStamped")
+          ("message" . ,(giskard::to-hash-table target-pose))))
+      ,@(when frontal-placing
+          `(("frontal_placing"
+             . 1)))
+      
+      ,@(if avoid-collisions-not-much
+            `(("weight" . ,(roslisp-msg-protocol:symbol-code
+                           'giskard_msgs-msg:constraint
+                           :weight_above_ca))
+              (("weight" . (roslisp-msg-protocol:symbol-code
+                            'giskard_msgs-msg:constraint
+                            :weight_below_ca)))))))))
+
+(defun make-tilt-constraint (tilt-direction tilt-angle
+                                     &key avoid-collisions-not-much)
+  "Receives parameters used by manipulation. Creates Constraint of the type PlaceObject which is a classname inside the manipulation code, which is responsible for 'placing'"
+  (roslisp:make-message
+   'giskard_msgs-msg:constraint
+   :type
+   "Tilting"
+   :parameter_value_pair
+   (giskard::alist->json-string
+    `(,@(when tilt-direction
+          `(("direction"
+             . ,tilt-direction)))
+      ,@(when tilt-angle
+          `(("tilt_angle"
+             . ,tilt-angle)))
       
       ,@(if avoid-collisions-not-much
             `(("weight" . ,(roslisp-msg-protocol:symbol-code
@@ -233,8 +287,12 @@
                                          object-height
                                          tip-link
                                          goal-pose
+                                         tilt-direction
+                                         tilt-angle
                                          knob-pose
-                                         open-drawer)
+                                         open-drawer
+                                         frontal-grasping
+                                         frontal-placing)
   (declare (type (or null cl-transforms-stamped:pose-stamped) left-pose right-pose)
            (type (or null string) pose-base-frame)
            (type boolean prefer-base straight-line
@@ -320,15 +378,19 @@
                    ;;;;
                    ;; Constraints for motions
                    (when (eq action-type 'reach)
-                     (make-reach-constraint object-pose object-name object-size ))
-                   (when (eq action-type 'lift)
+                     (make-reach-constraint object-pose object-name object-size frontal-grasping))
+                   (when (eq action-type 'lift) ;;'lift)
                      (make-lift-constraint "pringles" ))
                    (when (eq action-type 'retract)
                       (make-retract-constraint "pringles" tip-link))
                    (when (eq action-type 'align-height)
-                     (make-align-height-constraint goal-pose object-height))
+                     (make-align-height-constraint object-name goal-pose object-height))
                    (when (eq action-type 'place)
-                     (make-place-constraint target-pose "pringles" object-height))
+                     (make-place-constraint target-pose "pringles" object-height frontal-placing))
+                   (when (eq action-type 'place-neatly)
+                     (make-place-neatly-constraint target-pose frontal-placing))
+                   (when (eq action-type 'tilt)
+                     (make-tilt-constraint tilt-direction tilt-angle))
                    ;;;;
                    
                    (when box-pose
@@ -516,10 +578,14 @@
                                     object-height
                                     tip-link
                                     goal-pose
+                                    tilt-direction
+                                    tilt-angle
                                     ;; grasp-type
                                     knob-pose
                                     open-drawer
-                                    object-pose)
+                                    object-pose
+                                    frontal-grasping
+                                    frontal-placing)
   (declare (type (or number null) action-timeout)
            (type (or cl-transforms-stamped:pose-stamped null)
                  goal-pose-left goal-pose-right)
@@ -542,6 +608,8 @@
   ;; (setf goal-pose-right
   ;;       (ensure-arm-cartesian-goal-input pose-base-frame goal-pose-right :right))
 
+
+  ;; EINKOMMENTIEREN wenn goal-pose-left vernuenftig verwendet wird, bzw die target posen eine einheiliche variable haben
   ;; (cram-tf:visualize-marker
   ;;  (list goal-pose-left goal-pose-right)
   ;;  :r-g-b-list '(1 0 1))
@@ -570,9 +638,13 @@
                  :object-height object-height
                  :tip-link tip-link
                  :goal-pose goal-pose
+                 :tilt-direction tilt-direction
+                 :tilt-angle tilt-angle
                  ;; :grasp-type grasp-type
                  :knob-pose knob-pose
-                 :open-drawer open-drawer)
+                 :open-drawer open-drawer
+                 :frontal-grasping frontal-grasping
+                 :frontal-placing frontal-placing)
    :action-timeout action-timeout
    ;; :check-goal-function (lambda (result status)
    ;;                        (declare (ignore result status))

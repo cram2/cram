@@ -112,6 +112,11 @@
                             "Giskard register-groups service doesn't reply. Ignoring.")
          nil))))
 
+(roslisp-utilities:register-ros-init-function init-giskard-environment-service)
+(roslisp-utilities:register-ros-init-function init-giskard-groups-service)
+(roslisp-utilities:register-ros-init-function init-giskard-register-groups-service)
+
+
 (defun get-giskard-environment-service ()
   (if (and *giskard-environment-service*
            (roslisp:persistent-service-ok *giskard-environment-service*))
@@ -371,7 +376,7 @@ The `parent-group-name' is usually the robot or environment."
             (rob-int:get-environment-name))
      :pose (cl-transforms-stamped:pose->pose-stamped
             cram-tf:*fixed-frame* 0.0 (btr:pose (btr:get-environment-object)))
-     :joint-state-topic "kitchen/joint_states")))
+     :joint-state-topic "iai_kitchen/joint_states")))
 
 (defun update-object-pose-in-collision-scene (object-name)
   (when object-name
@@ -565,5 +570,11 @@ The `parent-group-name' is usually the robot or environment."
 
 (defmethod coe:on-event giskard-perceived ((event cpoe:object-perceived-event))
   (unless cram-projection:*projection-environment*
-    (add-object-to-collision-scene
-     (desig:desig-prop-value (cpoe:event-object-designator event) :name))))
+    ;; (add-object-to-collision-scene
+    ;;  (desig:desig-prop-value (cpoe:event-object-designator event) :name))
+    ))
+
+
+
+
+
