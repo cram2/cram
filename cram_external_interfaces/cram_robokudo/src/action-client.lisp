@@ -74,6 +74,7 @@
            :color (convert-entry :color :atom-or-list :list)
            :location (convert-entry :location)
            :size (convert-entry :size)
+           ;; :objectsize (convert-entry :objectsize)
            ;; :pose (convert-entry :pose :atom-otherwise-list nil)
            ;; :posesource (convert-entry :posesource :atom-otherwise-list nil)
            ))))
@@ -92,6 +93,7 @@
                                  (eql key :color)
                                  (eql key :location)
                                  (eql key :size)
+                                 (eql key :objectsize)
                                  (eql key :material))
                              (list key
                                    (etypecase value
@@ -138,7 +140,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;; OUTPUT ;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun parse-result (message)
-  (declare (type robokudo_msgs-msg:objectdesignator message))
+  ;;(declare (type robokudo_msgs-msg:objectdesignator message))
   "Returns a keyword key-value pairs list"
   (flet ((to-keyword (string &key (underscores-or-camelcase :underscores))
            (if (string-equal string "")
@@ -154,6 +156,8 @@
       (:shape ,(map 'list #'to-keyword (roslisp:msg-slot-value message :shape)))
       (:color ,(map 'list #'to-keyword (roslisp:msg-slot-value message :color)))
       (:size ,(to-keyword (roslisp:msg-slot-value message :size)))
+      ;;(:dimension ,(to-keyword (roslisp:msg-slot-value message :dimension)))
+      (:objectsize ,(roslisp:msg-slot-value message :objectsize))
       (:location ,(to-keyword (roslisp:msg-slot-value message :location)))
       (:pose ,(map 'list #'cl-transforms-stamped:from-msg (roslisp:msg-slot-value message :pose)))
       (:posesource ,(map 'list #'to-keyword (roslisp:msg-slot-value message :posesource))))))
@@ -235,18 +239,12 @@
                       (print estimator)
                       (eq (car source-pose-pair) estimator))
                     (mapcar #'list all-posesources all-poses))))
-    ;; (print "222")
-    ;; (print estimator)
-    ;; (print all-poses)
-    ;; (print all-posesources)
-    ;; (print pose-description-we-want)
  
     (unless pose-description-we-want
       (cpl:fail 'common-fail:perception-low-level-failure
                 :description (format nil
                                      "Robokudo object didn't have a POSE from estimator ~a."
                                      estimator)))
-    (print "final")
     (print (second pose-description-we-want))
     (second  pose-description-we-want)))
 
@@ -280,52 +278,160 @@
     ;; so for now we'll have a mapping...
     (let ((cram-type
             (ecase (second (find :type rs-answer :key #'car))
-              (:KoellnMuesliKnusperHonigNuss
-               :breakfast-cereal)
-              (:muesli
-               :breakfast-cereal)
-              (:milk
-               :milk)
-              (:CupEcoOrange
-               :cup)
-              (:EdekaRedBowl
-               :bowl)
-              (:IkeaRedBowl
-               :bowl)
-              (:SoupSpoon
-               :spoon)
-              (:apple
-               :apple)
-              (:spoon
-               :spoon)
-              (:IkeaRedCup
-               :cup)
+              (:everything
+               :everything)
+              (:breakfast
+               :breakfast)
+              (:trashbin
+               :trashbin)
+              (:plasticknife
+               :plasticknife)
+              (:designedchair
+               :designedchair)
+              (:cupboard
+               :cupboard)
+              (:foambrick
+               :foambrick)
+              (:fork
+               :fork)
+              (:spatula
+               :spatula)
+              (:pitcher
+               :pitcher)
+              (:bleachcleanserbottle
+               :bleachcleanserbottle)
+              (:kitchencabinet
+               :kitchencabinet)
+              (:crackerbox
+               :crackerbox)
+              (:minisoccerball
+               :minisoccerball)
+              (:baseball
+               :baseball)
+              (:tablecloth
+               :tablecloth)
+              (:washer
+               :washer)
+              (:designedhandle
+               :designedhandle)
+              (:pot
+               :pot)
+              (:napkin
+               :napkin)
+              (:mustardbottle
+               :mustardbottle)
+              (:puddingbox
+               :puddingbox)
+              (:door
+               :door)
+              (:servingmat
+               :servingmat)
+              (:dishwasher
+               :dishwasher)
+              (:naturalperson
+               :naturalperson)
+              (:wineglass
+               :wineglass)
+              (:shelf
+               :shelf)
+              (:tray
+               :tray)
+              (:orange
+               :orange)
+              (:table
+               :table)
               (:bowl
                :bowl)
-              (:mustard-bottle
-               :mustard-bottle)
+              (:glass
+               :glass)
+              (:coffeepack
+               :coffeepack)
+              (:golfball
+               :golfball)
+              (:softball
+               :softball)
+              (:saltshaker
+               :saltshaker)
+              (:metalplate
+               :metalplate)
+              (:pringleschipscan
+               :pringleschipscan)
+              (:strawberry
+               :strawberry)
+              (:glasscleanerspraybottle
+               :glasscleanerspraybottle)
+              (:tennisball
+               :tennisball)
+              (:spoon
+               :spoon)
+              (:marble
+               :marble)
+              (:bottle
+               :bottle)
+              (:metalmug
+               :metalmug)
+              (:rope
+               :rope)
+              (:stackingblocks
+               :stackingblocks)
+              (:abrasivesponge
+               :abrasivesponge)
+              (:racquetball
+               :racquetball)
+              (:jellobox
+               :jellobox)
+              (:dishwashertab
+               :dishwashertab)
+              (:knife
+               :knife)
+              (:plasticchain
+               :plasticchain)
+              (:plate
+               :plate)
               (:cup
                :cup)
-              (:mug
-               :cup)
-              (:WeideMilchSmall
-               :milk)
-              (:BLUEPLASTICSPOON
-               :spoon)
-              (:BALEAREINIGUNGSMILCHVITAL
-               :balea-bottle)
-              (:DENKMITGESCHIRRREINIGERNATURE
-               :dish-washer-tabs)
-              (:GarnierMineralUltraDry
-               :deodorant)
-              (:DMRoteBeteSaftBio
-               :juice-box)
-              (:JeroenCup
-               :jeroen-cup)
-              (:jeroen-cup
-               :jeroen-cup)
-              (:pringles
-               :pringles))))
+              (:dice
+               :dice)
+              (:cerealbox
+               :cerealbox)
+              (:metalbowl
+               :metalbowl)
+              (:sugarbox
+               :sugarbox)
+              (:skillet
+               :skillet)
+              (:kiwi
+               :kiwi)
+              (:drawer
+               :drawer)
+              (:toyotahsr
+               :toyotahsr)
+              (:coffeecan
+               :coffeecan)
+              (:milkpack
+               :milkpack)
+              (:toothpaste
+               :toothpaste)
+              (:oreganoshaker
+               :oreganoshaker)
+              (:apple
+               :apple)
+              (:tomatosoupcan
+               :tomatosoupcan)
+              (:tunafishcan
+               :tunafishcan)
+              (:bag
+               :bag)
+              (:juicebox
+               :juicebox)
+              (:pancakemixbottle
+               :pancakemixbottle)
+              (:jellostrawberrybox
+               :jellostrawberrybox)
+              (:teabagbox
+               :teabagbox)
+              (:pastrybox
+               :pastrybox))))
       (setf rs-answer
             (subst-if `(:type ,cram-type)
                       (lambda (x)
@@ -351,7 +457,7 @@
   (setf rs-answer (remove :material rs-answer :key #'car)) ; <- if we don't do this
                                         ; might end up asking about different materials
   (setf rs-answer (remove :shape rs-answer :key #'car)); <- SHAPE comes from original query
-  (setf rs-answer (remove :size rs-answer :key #'car)) ; <- don't care about size
+  ;;(setf rs-answer (remove :size rs-answer :key #'car)) ; <- don't care about size
   ;; (when (and (find :pose rs-answer :key #'car)
   ;;            (find :pose keyword-key-value-pairs-list :key #'car))
   ;;   (remove :pose keyword-key-value-pairs-list :key #'car))
@@ -363,6 +469,11 @@
              (or (second (find :name combined-properties :key #'car))
                  (cpl:fail 'common-fail:perception-low-level-failure
                            :description "Robokudo object didn't have a NAME")))
+           (size
+             (second (find :size combined-properties :key #'car)))
+           (objectsize
+             (second (find :objectsize combined-properties :key #'car)))
+
            (color
              (let ((rs-colors (assoc :color combined-properties
                                      :test #'equal)))
@@ -375,6 +486,7 @@
 
       (let* ((pose-stamped-in-whatever
                (find-pose-in-object-designator combined-properties))
+             ;; (pose-stamped-in-map-frame
              (pose-stamped-in-map-frame-original-orientation
                (if cram-tf:*fixed-frame*
                    (cram-tf:ensure-pose-in-frame
@@ -413,7 +525,7 @@
                 (roslisp-utilities:rosify-underscores-lisp-name name))))
 
         ;; (cram-tf:visualize-marker pose-stamped-in-whatever :r-g-b-list '(0 0 1) :id 1234)
-        ;; (cram-tf:visualize-marker pose-stamped-in-map-frame :r-g-b-list '(1 0 0) :id 1235)
+        (cram-tf:visualize-marker pose-stamped-in-map-frame :r-g-b-list '(1 0 0) :id 1235)
 
         (let* ((properties-without-pose
                  (remove :pose combined-properties :key #'car))
@@ -432,7 +544,10 @@
                   (make-instance 'desig:object-designator-data
                     :object-identifier name
                     :pose pose-stamped-in-map-frame
-                    :color color))
+                    :color color
+                    :size size
+                    :objectsize objectsize
+                    ))
 
             output-designator))))))
 
@@ -443,7 +558,6 @@
   (declare (type (or keyword number) quantifier))
   (multiple-value-bind (key-value-pairs-list quantifier)
       (ensure-robokudo-input-parameters keyword-key-value-pairs-list quantifier)
-
     (multiple-value-bind (result status)
         (actionlib-client:call-simple-action-client
          'robokudo-action
