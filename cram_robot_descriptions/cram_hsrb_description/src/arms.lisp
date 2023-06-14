@@ -120,7 +120,7 @@
   (<- (standard<-particular-gripper-transform :hsrb ?transform)
     (symbol-value *standard-to-hsrb-gripper-transform* ?transform))
 
-  (<- (end-effector-link :hsrb :left "wrist_roll_link"))
+  (<- (end-effector-link :hsrb :left "hand_gripper_tool_frame"))
 
   (<- (robot-tool-frame :hsrb :left "hand_gripper_tool_frame"))
   (<- (robot-tool-frame :hsrb :right "hand_gripper_tool_frame"))

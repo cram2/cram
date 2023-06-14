@@ -163,3 +163,60 @@
 (defclass container-opening-event (environment-manipulation-event) ())
 
 (defclass container-closing-event (environment-manipulation-event) ())
+
+
+;;;;;;;;;;;;;;;;;;; GISKARD-KNOWROB-EVENTS ;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defclass object-perceived-event-knowrob (event)
+  ((object-designator
+    :initarg :object-designator :reader event-object-designator
+    :initform (error
+               'simple-error
+               :format-control "OBJECT-PERCEIVED-EVENT requires an object."))
+   (perception-source
+    :initarg :perception-source :reader perception-source
+    :initform (error
+               'simple-error
+               :format-control "OBJECT-PERCEIVED-EVENT requires a perception source.")))
+  (:documentation "Event that is generated whenever an object is
+  perceived. The slot `object-designator' contains a reference to the
+  designator describing the perceived object and the slot `source'
+  contains a symbol indicating the sensor that produces the
+  perception."))
+
+
+(defclass object-attached-robot-knowrob (object-connection-event)
+  ((arm
+    :initarg :arm
+    :reader event-arm
+    :initform nil)
+   (link
+    :initarg :link
+    :reader event-link
+    :initform nil)
+   (grasp
+    :initarg :grasp
+    :reader event-grasp
+    :initform nil)
+   (not-loose
+    :initarg :not-loose
+    :reader event-not-loose
+    :initform nil)
+   (other-object-name
+    :initarg :other-object-name
+    :reader event-other-object-name
+    :initform nil)
+   (object-designator
+    :initarg :object-designator
+    :reader event-object-designator
+    :initform nil)))
+
+(defclass object-detached-robot-knowrob (object-connection-event)
+  ((height
+    :initarg :height
+    :reader event-height
+    :initform nil)
+   (pose
+    :initarg :pose
+    :reader event-pose
+    :initform nil)))

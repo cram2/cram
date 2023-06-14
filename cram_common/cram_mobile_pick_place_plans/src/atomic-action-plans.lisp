@@ -472,7 +472,6 @@ equate resulting designator to the original one."
              (cpl:do-retry perceive-retries
                (roslisp:ros-warn (pick-and-place perceive) "~a" e)
                (cpl:retry))))
-
         (let* ((resulting-designators
                  (exe:perform
                   (desig:a motion
@@ -483,21 +482,23 @@ equate resulting designator to the original one."
           (if (listp resulting-designators)
               (mapc (lambda (desig)
                       (cram-occasions-events:on-event
-                       (make-instance 'cram-plan-occasions-events:object-perceived-event
+                       (make-instance 'cram-plan-occasions-events:object-perceived-event-knowrob
                          :object-designator desig
                          :perception-source :whatever))
                       ;; doesn't make sense to equate all these desigs together
                       ;; (desig:equate ?object-designator desig)
                       )
                     resulting-designators)
-              ;; (progn
-              ;;   (cram-occasions-events:on-event
-              ;;    (make-instance 'cram-plan-occasions-events:object-perceived-event
-              ;;      :object-designator resulting-designators
-              ;;      :perception-source :whatever))
-              ;;   (desig:equate ?object-designator resulting-designator))
+              (progn
+                (cram-occasions-events:on-event
+                 (make-instance 'cram-plan-occasions-events:object-perceived-event-knowrob
+                   :object-designator resulting-designators
+                   :perception-source :whatever))
+                (desig:equate ?object-designator resulting-designator))
               )
-          (desig:current-desig resulting-designator))))))
+          ;;(desig:current-desig resulting-designator)
+          resulting-designator
+          )))))
 
 
 (defun monitor-joint-state (&key

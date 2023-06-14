@@ -445,6 +445,21 @@
                                (:function ?function))
                       ?resolved-action-designator))
 
+  (<- (desig:action-grounding ?action-designator (monitor-joint-state
+                                                  ?resolved-action-designator))
+    (spec:property ?action-designator (:type :monitoring-joint-state))
+    (spec:property ?action-designator (:joint-name ?joint-name))
+    (rob-int:robot ?robot)
+    (rob-int:gripper-minimal-position ?robot ?joint-name ?minimum)
+    (rob-int:gripper-convergence-delta ?robot ?joint-name ?delta)
+    (lisp-fun + ?minimum ?delta ?joint-angle-threshold)
+    (lisp-fun symbol-function < ?function)
+    (desig:designator :action ((:type :monitoring-joint-state)
+                               (:joint-name ?joint-name)
+                               (:joint-angle-threshold ?joint-angle-threshold)
+                               (:function ?function))
+                      ?resolved-action-designator))
+
 
 
   (<- (desig:action-grounding ?action-designator (wait ?action-designator))
