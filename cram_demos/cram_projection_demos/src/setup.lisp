@@ -31,10 +31,16 @@
 
 ;; roslaunch cram_projection_demos ....launch
 
+(defparameter *broadcast-robot-and-environment* t)
+
 (defun init-projection ()
   ;; (setf cram-tf:*transformer* (make-instance 'cl-tf2:buffer-client))
   (setf cram-tf:*tf-default-timeout* 0.5) ; projection tf is very fast
-  ;; (setf cram-tf:*tf-broadcasting-enabled* t)
+
+  (when *broadcast-robot-and-environment*
+    (setf cram-tf:*tf-broadcasting-enabled* t)
+    (setf cram-tf:*tf-broadcasting-topic* "tf")
+    (setf cram-tf:*broadcast-environment-from-projection* t))
 
   ;; (btr-belief:setup-world-database)
   (coe:clear-belief)

@@ -75,6 +75,7 @@
    #:*robot-left-tool-frame* #:*robot-right-tool-frame*
    #:*robot-left-wrist-frame* #:*robot-right-wrist-frame*
    #:*broadcaster*
-   *tf-broadcasting-enabled* *tf-broadcasting-topic* *tf-broadcasting-interval*
+   *tf-broadcasting-enabled* *tf-broadcasting-topic*
+   *tf-broadcasting-interval* *broadcast-environment-from-projection*
    ;; visualization
    #:visualize-marker))

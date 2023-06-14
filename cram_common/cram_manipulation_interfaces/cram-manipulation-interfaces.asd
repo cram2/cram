@@ -33,6 +33,7 @@
   :description "Object interfaces"
 
   :depends-on (cram-prolog
+               cram-math
                cram-utilities ; for lazy lists in manipulation.lisp
                cram-designators
                cram-tf

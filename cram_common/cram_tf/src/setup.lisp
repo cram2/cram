@@ -43,6 +43,7 @@
 (defparameter *tf-broadcasting-enabled* nil)
 (defparameter *tf-broadcasting-topic* "tf")
 (defparameter *tf-broadcasting-interval* 0.1)
+(defparameter *broadcast-environment-from-projection* nil)
 
 
 (defvar *fixed-frame* nil

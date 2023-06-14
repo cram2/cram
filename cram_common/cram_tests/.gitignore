@@ -1,0 +1,4 @@
+# Ignore everything in this directory
+scripts/tmp-test-script.lisp
+# Except this file
+!.gitignore
