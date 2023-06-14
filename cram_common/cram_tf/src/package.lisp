@@ -73,6 +73,7 @@
    #:*fixed-frame* #:*robot-base-frame* #:*odom-frame*
    #:*robot-torso-frame* #:*robot-torso-joint*
    #:*robot-left-tool-frame* #:*robot-right-tool-frame*
+   #:*robot-left-wrist-frame* #:*robot-right-wrist-frame*
    #:*broadcaster*
    *tf-broadcasting-enabled* *tf-broadcasting-topic*
    *tf-broadcasting-interval* *broadcast-environment-from-projection*

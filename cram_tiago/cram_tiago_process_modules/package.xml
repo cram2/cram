@@ -13,9 +13,16 @@
   <depend>cram_process_modules</depend>
   <depend>cram_designators</depend>
   <depend>cram_prolog</depend>
+  <depend>cram_language</depend>
   <depend>cram_tf</depend>
   <depend>cram_common_designators</depend>
+  <depend>cram_common_failures</depend>
   <depend>cram_robokudo</depend>
   <depend>cram_giskard</depend>
   <depend>cram_joint_states</depend>
+
+  <depend>teleop_tools_msgs</depend>
+  <depend>cram_simple_actionlib_client</depend>
+  <depend>roslisp</depend>
+  <depend>roslisp_utilities</depend>
 </package>

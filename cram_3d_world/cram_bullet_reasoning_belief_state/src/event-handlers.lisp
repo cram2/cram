@@ -85,6 +85,18 @@ and renames POSE into OLD-POSE."
         (register-object-designator-data
          object-data
          :type (desig:desig-prop-value (cpoe:event-object-designator event) :type)))
+    ;; visualize the pose as estimated by perception
+    (cram-tf:visualize-marker
+     object-pose
+     ;; :topic "cram_items"
+     :namespace (roslisp-utilities:rosify-underscores-lisp-name object-name)
+     :id 10
+     :marker-type :mesh_resource
+     :scale-list '(1 1 1)
+     :r-g-b-list '(1 0 0 0.2)
+     :mesh-path (second (assoc (desig:desig-prop-value
+                                (cpoe:event-object-designator event) :type)
+                               btr::*mesh-files*)))
     ;; after having spawned the object,
     ;; correct noise through world state consistency reasoning
     (stabilize-perceived-object-pose btr:*current-bullet-world* object-name object-pose)

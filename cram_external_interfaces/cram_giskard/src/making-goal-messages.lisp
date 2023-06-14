@@ -51,7 +51,9 @@
 (defun make-giskard-goal (&key
                             constraints joint-constraints cartesian-constraints
                             collisions
-                            (goal-type :plan_and_execute_and_cut_off_shaking))
+                            (goal-type ;:plan_only
+                                       :plan_and_execute_and_cut_off_shaking
+                                       ))
   (roslisp:make-message
    'giskard_msgs-msg:MoveGoal
    :type (roslisp:symbol-code 'giskard_msgs-msg:MoveGoal goal-type)
@@ -119,16 +121,21 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; JSON CONSTRAINTS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun make-avoid-joint-limits-constraint (&optional (percentage
-                                                      *avoid-joint-limits-percentage*))
-  (declare (type number percentage))
+(defun make-avoid-joint-limits-constraint (&key
+                                             (percentage
+                                              *avoid-joint-limits-percentage*)
+                                             joint-list)
+  (declare (type number percentage)
+           (type list joint-list))
   (roslisp:make-message
    'giskard_msgs-msg:constraint
    :type
    "AvoidJointLimits"
    :parameter_value_pair
    (alist->json-string
-    `(("percentage" . ,percentage)))))
+    `(("percentage" . ,percentage)
+      ,@(when joint-list
+          `(("joint_list" . ,(map 'vector #'identity joint-list))))))))
 
 
 (defun make-prefer-base-constraint (&key
@@ -257,7 +264,7 @@
 
 (defun make-open-or-close-constraint (open-or-close arm handle-link &optional goal-joint-state)
   (declare (type keyword open-or-close arm)
-           (type keyword handle-link)
+           ;;(type keyword handle-link)
            (type (or number null) goal-joint-state))
   (let ((tool-frame
           (cut:var-value
@@ -274,10 +281,37 @@
      :parameter_value_pair
      (alist->json-string
       `(("tip_link" . ,tool-frame)
-        ("environment_link" . ,(roslisp-utilities:rosify-underscores-lisp-name
-                                handle-link))
+        ("environment_link" . ,handle-link)
         ,@(when (and (eq open-or-close :open) goal-joint-state)
             `(("goal_joint_state" . ,goal-joint-state))))))))
+
+(defun make-diffdrive-base-arch-constraint (door-joint-point-stamped-in-map
+                                            &key small-weight)
+  (declare (type cl-transforms-stamped:point-stamped door-joint-point-stamped-in-map))
+  (roslisp:make-message
+   'giskard_msgs-msg:constraint
+   :type
+   "DiffDriveTangentialToPoint"
+   :parameter_value_pair
+   (alist->json-string
+    `(("goal_point"
+       . (("message_type" . "geometry_msgs/PointStamped")
+          ("message" . ,(to-hash-table
+                         door-joint-point-stamped-in-map))))
+      ,@(when small-weight
+          `(("weight" . ,(roslisp-msg-protocol:symbol-code
+                          'giskard_msgs-msg:constraint
+                          :weight_below_ca))))))))
+
+(defun make-diffdrive-cartesian-goal-arm-constraint (tip-link)
+  (declare (type string tip-link))
+  (roslisp:make-message
+   'giskard_msgs-msg:constraint
+   :type
+   "KeepHandInWorkspace"
+   :parameter_value_pair
+   (alist->json-string
+    `(("tip_link" . ,tip-link)))))
 
 (defun make-grasp-bar-constraint (arm root-link
                                   tip-grasp-axis
@@ -313,15 +347,17 @@
          . ,root-link))))))
 
 (defun make-cartesian-constraint (root-frame tip-frame goal-pose
-                                  &key max-velocity avoid-collisions-much)
+                                  &key max-velocity avoid-collisions-much straight-line)
   (declare (type string root-frame tip-frame)
            (type cl-transforms-stamped:pose-stamped goal-pose)
            (type (or number null) max-velocity)
-           (type boolean avoid-collisions-much))
+           (type boolean avoid-collisions-much straight-line))
   (roslisp:make-message
    'giskard_msgs-msg:constraint
    :type
-   "CartesianPose"
+   (if straight-line
+       "CartesianPoseStraight"
+       "CartesianPose")
    :parameter_value_pair
    (alist->json-string
     `(("root_link" . ,root-frame)
@@ -330,7 +366,38 @@
        . (("message_type" . "geometry_msgs/PoseStamped")
           ("message" . ,(to-hash-table goal-pose))))
       ,@(when max-velocity
-          `(("max_linear_velocity" . ,max-velocity)))
+          `(("reference_velocity" . ,max-velocity)))
+      ,@(if avoid-collisions-much
+            `(("weight" . ,(roslisp-msg-protocol:symbol-code
+                            'giskard_msgs-msg:constraint
+                            :weight_below_ca
+                            )))
+            `(("weight" . ,(roslisp-msg-protocol:symbol-code
+                            'giskard_msgs-msg:constraint
+                            :weight_above_ca ; that's the default weight anyway
+                            ))))))))
+
+(defun make-diffdrive-base-goal (root-frame tip-frame goal-pose
+                                 &key max-velocity avoid-collisions-much always-forward)
+  (declare (type string root-frame tip-frame)
+           (type cl-transforms-stamped:pose-stamped goal-pose)
+           (type (or number null) max-velocity)
+           (type boolean avoid-collisions-much always-forward))
+  (roslisp:make-message
+   'giskard_msgs-msg:constraint
+   :type
+   "DiffDriveBaseGoal"
+   :parameter_value_pair
+   (alist->json-string
+    `(("root_link" . ,root-frame)
+      ("tip_link" . ,tip-frame)
+      ("goal_pose"
+       . (("message_type" . "geometry_msgs/PoseStamped")
+          ("message" . ,(to-hash-table goal-pose))))
+      ,@(when always-forward
+          `(("always_forward" . T)))
+      ,@(when max-velocity
+          `(("reference_velocity" . ,max-velocity)))
       ,@(if avoid-collisions-much
           `(("weight" . ,(roslisp-msg-protocol:symbol-code
                           'giskard_msgs-msg:constraint
@@ -342,7 +409,7 @@
                           ))))))))
 
 (defun make-joint-constraint (joint-state &optional weights)
-"`joint-state' is a list of two elements: (joint-names joint-positions).
+  "`joint-state' is a list of two elements: (joint-names joint-positions).
 `weights' is a list of the same length as `joint-names' and `joint-positions',
 a keyword, a number or NIL."
   (declare (type list joint-state)
@@ -509,6 +576,15 @@ a keyword, a number or NIL."
      (list gripper-joints
            (make-list (length gripper-joints) :initial-element joint-angle)))))
 
+(defun make-enable-velocity-trajectory-tracking-constraint ()
+  (roslisp:make-message
+   'giskard_msgs-msg:constraint
+   :type
+   "EnableVelocityTrajectoryTracking"
+   :parameter_value_pair
+   (alist->json-string
+    `(("enabled" . T)))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; COLLISIONS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun make-allow-all-collision ()
@@ -569,11 +645,12 @@ a keyword, a number or NIL."
   (let* ((robot-links-table (cl-urdf:links rob-int:*robot-urdf*))
          (link-parent-alist
            (mapcar (lambda (link-name)
-                     `(,link-name
-                       . ,(cl-urdf:name
-                           (cl-urdf:parent
-                            (cl-urdf:from-joint
-                             (gethash link-name robot-links-table))))))
+                     (let ((link-object
+                             (gethash link-name robot-links-table)))
+                       (when link-object
+                         `(,link-name
+                           . ,(cl-urdf:name
+                               (cl-urdf:parent (cl-urdf:from-joint link-object)))))))
                    link-names)))
     ;; remove all whose parent is in `link-names'
     (mapcar #'car
@@ -595,7 +672,7 @@ a keyword, a number or NIL."
                          (car
                           (prolog:prolog
                            `(and (rob-int:robot ?robot)
-                                 (rob-int:arm-links ?robot ,arm ?arm-links))))))
+                                 (rob-int:arm-links ?robot ,arm . ?arm-links))))))
                     arms)))
          collision-group2)
     (when body-b
@@ -619,7 +696,8 @@ a keyword, a number or NIL."
 
 (defun make-allow-hand-collision (arms body-b &optional body-b-link)
   (declare (type list arms)
-           (type (or null keyword) body-b body-b-link))
+           ;; (type (or null keyword) body-b body-b-link)
+           )
   "Allows collision between all given hands (in arms) and body-b-link if defined, or just body-b."
   (let ((hand-roots
           (find-root-links
@@ -637,13 +715,14 @@ a keyword, a number or NIL."
                               body-b)))
     (when body-b-link
       (register-group :root-link
-                      (roslisp-utilities:rosify-underscores-lisp-name
-                       body-b-link)
+                      ;; (roslisp-utilities:rosify-underscores-lisp-name
+                       body-b-link ;; )     
                       :parent-group-name
                       (roslisp-utilities:rosify-underscores-lisp-name
                        (or body-b (rob-int:get-environment-name))))
-      (setf collision-group2 (roslisp-utilities:rosify-underscores-lisp-name
-                              body-b-link)))
+      (setf collision-group2 ;; (roslisp-utilities:rosify-underscores-lisp-name
+            body-b-link ;;)
+            )) 
     (loop for root in hand-roots
           do (register-group :root-link root
                              :parent-group-name

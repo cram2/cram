@@ -52,4 +52,9 @@
    ;; collision-scene
    #:reset-collision-scene
    ;; process-module
-   #:giskard-pm))
+   #:giskard-pm
+   ;;custom
+   #:call-custom-action
+   #:call-custom-gripper-action
+   #:pick-up
+   ))

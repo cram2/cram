@@ -49,16 +49,17 @@
 
   (btr:clear-costmap-vis-object)
 
-  (btr:add-objects-to-mesh-list "assembly_models"
-                                :directory "fixtures"
-                                :extension "stl")
-  (btr:add-objects-to-mesh-list "assembly_models"
-                                :directory "battat/convention"
-                                :extension "stl")
+  ;; (btr:add-objects-to-mesh-list "assembly_models"
+  ;;                               :directory "fixtures"
+  ;;                               :extension "stl")
+  ;; (btr:add-objects-to-mesh-list "assembly_models"
+  ;;                               :directory "battat/convention"
+  ;;                               :extension "stl")
   (btr:add-objects-to-mesh-list "cram_bullet_reasoning")
   (btr:add-objects-to-mesh-list "cram_projection_demos"
                                 :directory "resource/household")
   (btr:add-objects-to-mesh-list "cram_projection_demos"
-                                :directory "resource/retail"))
+                                :directory "resource/popcorn"))
+                                
 
 (roslisp-utilities:register-ros-init-function init-projection)

@@ -493,7 +493,8 @@
 
       (cpl:with-failure-handling
           ((cpl:simple-plan-failure (e)
-             (declare (ignore e))
+             (roslisp:ros-warn (demos retail) "Putting tabs onto Donbot failed: ~a~%~
+                                               Ignoring." e)
              (return)))
         (exe:perform
          (desig:an action
@@ -504,7 +505,8 @@
                    )))
       (cpl:with-failure-handling
           ((cpl:simple-plan-failure (e)
-             (declare (ignore e))
+             (roslisp:ros-warn (demos retail) "Transporting balea bottle failed: ~a~%~
+                                               Ignoring." e)
              (return)))
         (exe:perform
          (desig:an action
@@ -515,7 +517,8 @@
                    )))
       (cpl:with-failure-handling
           ((cpl:simple-plan-failure (e)
-             (declare (ignore e))
+             (roslisp:ros-warn (demos retail) "Putting tabs onto shelf failed: ~a~%~
+                                               Ignoring." e)
              (return)))
         (exe:perform
          (desig:an action
@@ -536,6 +539,33 @@
 
 (defmethod cram-occasions-events:on-event
     publish-object 3 ((event cram-plan-occasions-events:robot-state-changed))
+
+  (let ((items (remove-if-not (lambda (object)
+                                (typep object 'btr:item))
+                              (btr:objects btr:*current-bullet-world*))))
+    (dolist (item items)
+      (let* ((name
+               (btr:name item))
+             (ros-name
+               (roslisp-utilities:rosify-underscores-lisp-name name))
+             (pose
+               (btr:pose item))
+             (mesh-path
+               (second (assoc (car (btr:item-types item)) btr::*mesh-files*)))
+             (color
+               (cl-bullet-vis:collision-shape-color
+                (cl-bullet:collision-shape
+                 (btr:rigid-body item name)))))
+        (cram-tf:visualize-marker pose
+                                  ;; :topic "cram_items"
+                                  :namespace ros-name
+                                  :marker-type :mesh_resource
+                                  :scale-list '(1 1 1)
+                                  :r-g-b-list color
+                                  :mesh-path mesh-path)))))
+
+(defmethod cram-occasions-events:on-event
+    publish-object 3 ((event cram-plan-occasions-events:object-perceived-event))
 
   (let ((items (remove-if-not (lambda (object)
                                 (typep object 'btr:item))

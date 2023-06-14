@@ -77,6 +77,9 @@
      (:file "torso-goals" :depends-on ("package"
                                        "making-goal-messages"
                                        "action-client"))
+     (:file "custom-goal" :depends-on ("package"
+                                       "making-goal-messages"
+                                       "action-client"))
      (:file "gripper-goals" :depends-on ("package"
                                          "making-goal-messages"
                                          "action-client"))

@@ -94,4 +94,7 @@
                                                   "household-demo"))
      (:file "apartment-demo" :depends-on ("package" "utils"
                                                     ;; for initializing
+                                                    "household-demo"))
+     (:file "popcorn-demo" :depends-on ("package" "utils"
+                                                    ;; for initializing
                                                     "household-demo"))))))

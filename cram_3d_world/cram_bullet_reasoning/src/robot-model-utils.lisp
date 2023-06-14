@@ -226,7 +226,7 @@ Used in visibility costmap calculations and in projection."
 
            (pan-angle
              (cl-transforms:normalize-angle
-              (+ (joint-state robot pan-joint-name)
+              (- (joint-state robot pan-joint-name)
                  (atan (* pan-joint-axis-sign
                           pan-joint-forward-facing-sign
                           pan-link-T-look-pose-other-axis)
@@ -256,7 +256,6 @@ Used in visibility costmap calculations and in projection."
                          tilt-upper-limit
                          tilt-angle))
                  tilt-angle)))
-
       (values (list cropped-pan-angle cropped-tilt-angle)
               (list pan-angle tilt-angle)))))
 

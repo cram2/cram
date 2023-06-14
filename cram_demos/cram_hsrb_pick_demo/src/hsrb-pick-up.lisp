@@ -132,40 +132,73 @@ to grasp the object, if that fails the next position in list will be tried"
                                    "~%Failed with given msgs ~a~%" e)
                  (cpl:retry)))
              (roslisp:ros-warn (grasp-object fail)
-?                               "~%No more retries~%")))
+                               "~%No more retries~%")))
         ;; park-robot (percieve pose)
         (btr-utils:park-robot)
+        (open-close-gripper 1.24)
         (let* ((?nav-pose
                  (car (car nav-pose)))
                (?object-pose
                  (cl-transforms-stamped:pose->pose-stamped
-                  "map" 0 (btr:object-pose object-name))))
+                  "map" 0 (btr:object-pose object-name)))
+               (?object-hc-pose
+                  (cl-tf:pose->pose-stamped
+                             cram-tf:*fixed-frame*
+                             0 
+                             (btr:object-pose object-name))))
+           ;; (cl-transforms-stamped:make-pose-stamped
+           ;;  "map"
+           ;;  0.0
+           ;;  (cl-transforms:make-3d-vector -0.7 -0.7 0.85)
+           ;;  (cl-transforms:make-quaternion 0.0d0 0.0d0 1 0))
+           ;;))
           ;; perform a action type going to first pose
           (exe:perform
            (desig:an action
                      (type going)
                      (target (desig:a location (pose ?nav-pose)))))
 
+          ;; hardcoded for now
+          (urdf-proj::move-joints '(-2.6d0
+                           0.0d0
+                           1.0d0
+                           0.0d0
+                           )
+                         )
           ;;perform a action type looking towards the object
           (exe:perform
            (desig:an action
                      (type looking)
-                     (target (desig:a location (pose ?object-pose))))))
+                     (target (desig:a location (pose ?object-hc-pose))))))
 
         (let* ((?object-desig
-                 (exe:perform (desig:a motion
+                (exe:perform (desig:a motion
                                        (type detecting)
                                        (object (desig:an object
                                                          (type ?object-type))))))
                (?grasp (caadar nav-pose)))
-
+          (open-close-gripper 1.24)
           ;; perform a action type picking-up with given grasp and object
           (exe:perform (desig:an action
                                  (type picking-up)
-                                 (arm :left)
+                                 (arm (:left))
                                  (grasp ?grasp)
                                  (object ?object-desig))))))))
 
+  ;;todo luca schreib 2 function offen yu mit richtigen werden hehe
+(defun open-close-gripper (?position)
+  (exe:perform
+   (desig:an action
+             (type setting-gripper)
+             (gripper :left)
+             (position ?position))))
+
+;; (defun look-to-pringles
 
 
-
+;; (urdf-proj::with-simulated-robot
+;;     (let ((?object (detect-pringles)))
+;;                    (exe:perform (desig:an action
+;;                                  (type picking-up)
+;;                                  (arm :left)
+;;                                  (object ?object)))))

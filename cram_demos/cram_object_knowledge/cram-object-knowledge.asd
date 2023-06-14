@@ -41,8 +41,8 @@
     :components
     ((:file "package")
      (:file "environment" :depends-on ("package"))
-     (:file "household" :depends-on ("package"))
+     (:file "multiple-trajectory-poses" :depends-on ("package"))
+     (:file "household" :depends-on ("package" "multiple-trajectory-poses"))
      (:file "pouring-and-slicing" :depends-on ("package"))
      (:file "assembly" :depends-on ("package"))
-     (:file "retail" :depends-on ("package"))
-     (:file "multiple-trajectory-poses" :depends-on ("package"))))))
+     (:file "retail" :depends-on ("package" "multiple-trajectory-poses"))))))

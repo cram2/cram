@@ -454,9 +454,9 @@ Store found pose into designator or throw error if good pose not found."
                         (right-poses-4
                           (desig:desig-prop-value action-referenced :right-retract-poses)))
 
-                   (mapc (lambda (pose)
-                           (btr:add-vis-axis-object pose :id (random 100) :length 0.1))
-                         (append left-poses-3 right-poses-3))
+                   ;; (mapc (lambda (pose)
+                   ;;         (btr:add-vis-axis-object pose :id (random 100) :length 0.1))
+                   ;;       (append left-poses-3 right-poses-3))
 
                    (urdf-proj::gripper-action gripper-opening arm)
 
@@ -483,6 +483,8 @@ Store found pose into designator or throw error if good pose not found."
                             (cpl:fail 'common-fail:manipulation-goal-in-collision)))))
                     (list left-poses-1 left-poses-2 left-poses-3 left-poses-4)
                     (list right-poses-1 right-poses-2 right-poses-3 right-poses-4)
+                    ;; have to avoid collisions when grasping, otherwise the grasp pose
+                    ;; will be perpendicular to the handle instead of parallel to it
                     (list :avoid-all :avoid-all :allow-all :allow-all))
                    ;; (when (eq (desig:desig-prop-value action-desig :type) :opening)
                    ;;   (when (btr:robot-colliding-objects-without-attached)

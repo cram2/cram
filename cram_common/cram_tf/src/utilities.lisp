@@ -143,11 +143,12 @@
      (cl-transforms:make-3d-vector x y z)
      (cl-transforms:make-quaternion q1 q2 q3 w))))
 
-(defun ensure-pose-in-frame (pose frame &key use-current-ros-time use-zero-time)
+(defun ensure-pose-in-frame (pose frame
+                             &key use-current-ros-time use-zero-time transformer)
   (declare (type (or null cl-transforms:pose cl-transforms-stamped:pose-stamped)))
   (when pose
     (cl-transforms-stamped:transform-pose-stamped
-     *transformer*
+     (or transformer *transformer*)
      :pose (let ((pose-stamped
                    (cl-transforms-stamped:ensure-pose-stamped pose frame 0.0)))
              (if use-zero-time
@@ -157,10 +158,11 @@
      :timeout *tf-default-timeout*
      :use-current-ros-time use-current-ros-time)))
 
-(defun ensure-point-in-frame (point frame &key use-current-ros-time use-zero-time)
+(defun ensure-point-in-frame (point frame
+                              &key use-current-ros-time use-zero-time transformer)
   (declare (type (or cl-transforms:point cl-transforms-stamped:point-stamped)))
   (cl-transforms-stamped:transform-point-stamped
-   *transformer*
+   (or transformer *transformer*)
    :point (if (typep point 'cl-transforms-stamped:point-stamped)
               (if use-zero-time
                   (with-slots (frame-id origin) point
@@ -173,7 +175,7 @@
    :use-current-ros-time use-current-ros-time))
 
 (defun ensure-transform-in-frame (transform frame
-                                  &key use-current-ros-time use-zero-time)
+                                  &key use-current-ros-time use-zero-time transformer)
   (declare (type (or null cl-transforms-stamped:transform-stamped)))
   (when transform
     (let* ((child-frame
@@ -182,7 +184,8 @@
              (ensure-pose-in-frame (strip-transform-stamped transform)
                                    frame
                                    :use-current-ros-time use-current-ros-time
-                                   :use-zero-time use-zero-time)))
+                                   :use-zero-time use-zero-time
+                                   :transformer transformer)))
       (pose-stamped->transform-stamped new-pose-stamped child-frame))))
 
 (defun translate-pose (pose &key (x 0.0) (y 0.0) (z 0.0))
@@ -222,6 +225,15 @@
       (cl-transforms:pose
        (cl-transforms:copy-pose pose :orientation new-orientation)))))
 
+(defun copy-transform-stamped (transform-stamped &key frame-id child-frame-id stamp
+                                                   translation rotation)
+  (cl-transforms-stamped:make-transform-stamped
+   (or frame-id (cl-transforms-stamped:frame-id transform-stamped))
+   (or child-frame-id (cl-transforms-stamped:child-frame-id transform-stamped))
+   (or stamp (cl-transforms-stamped:stamp transform-stamped))
+   (or translation (cl-transforms-stamped:translation transform-stamped))
+   (or rotation (cl-transforms-stamped:rotation transform-stamped))))
+
 (defun rotate-pose-in-own-frame (pose axis angle)
   (let* ((pose-orientation
            (cl-transforms:orientation pose))
@@ -239,7 +251,8 @@
       (cl-transforms-stamped:pose-stamped
        (cl-transforms-stamped:copy-pose-stamped pose :orientation new-orientation))
       (cl-transforms:pose
-       (cl-transforms:copy-pose pose :orientation new-orientation)))))
+       (cl-transforms:copy-pose pose :orientation new-orientation))
+       )))
 
 (defun rotate-transform-in-own-frame (transform axis angle)
   (let* ((transform-rotation
@@ -298,19 +311,19 @@ Multiply from the right with the yTz transform -- xTy * yTz == xTz."
 
   (when (string-not-equal (cl-transforms-stamped:frame-id x-y-transform)
                           x-frame)
-    (warn "~%~%~%~%!!!!!~%~%~%In multiply-transform-stampeds X-Y-TRANSFORM~%~
+    (warn "In multiply-transform-stampeds X-Y-TRANSFORM~%~
            did not have correct parent frame: ~a and ~a"
           (cl-transforms-stamped:frame-id x-y-transform) x-frame))
 
   (when (string-not-equal (cl-transforms-stamped:child-frame-id y-z-transform)
                           z-frame)
-    (warn "~%~%~%~%!!!!!~%~%~%In multiply-transform-stampeds Y-Z-TRANSFORM~%~
+    (warn "In multiply-transform-stampeds Y-Z-TRANSFORM~%~
            did not have correct child frame: ~a and ~a"
           (cl-transforms-stamped:child-frame-id y-z-transform) z-frame))
 
   (when (string-not-equal (cl-transforms-stamped:child-frame-id x-y-transform)
                           (cl-transforms-stamped:frame-id y-z-transform))
-    (warn "~%~%~%~%!!!!!~%~%~%In multiply-transform-stampeds X-Y-TRANSFORM and~%~
+    (warn "In multiply-transform-stampeds X-Y-TRANSFORM and~%~
            Y-Z-TRANSFORM did not have equal corresponding frames: ~a and ~a"
           (cl-transforms-stamped:child-frame-id x-y-transform)
           (cl-transforms-stamped:frame-id y-z-transform)))
@@ -340,14 +353,6 @@ Multiply from the right with the yTz transform -- xTy * yTz == xTz."
    (cl-transforms-stamped:translation transform-stamped)
    (cl-transforms:rotation transform-stamped)))
 
-(defun copy-transform-stamped (transform-stamped &key frame-id child-frame-id stamp
-                                                   translation rotation)
-  (cl-transforms-stamped:make-transform-stamped
-   (or frame-id (cl-transforms-stamped:frame-id transform-stamped))
-   (or child-frame-id (cl-transforms-stamped:child-frame-id transform-stamped))
-   (or stamp (cl-transforms-stamped:stamp transform-stamped))
-   (or translation (cl-transforms-stamped:translation transform-stamped))
-   (or rotation (cl-transforms-stamped:rotation transform-stamped))))
 
 (defun translate-transform-stamped (transform
                                     &key (x-offset 0.0) (y-offset 0.0) (z-offset 0.0))
@@ -391,6 +396,10 @@ Multiply from the right with the yTz transform -- xTy * yTz == xTz."
 (defun values-converged (values goal-values deltas)
   (flet ((value-converged (value goal-value delta)
            (<= (abs (- value goal-value)) delta)))
+    ;; if both values are NIL, assume they converged...
+    (when (and (null goal-values)
+               (null values))
+      (return-from values-converged T))
     ;; correct arguments
     (if (listp values)
         (if (or (atom goal-values)

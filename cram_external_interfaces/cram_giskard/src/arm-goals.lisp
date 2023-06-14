@@ -40,95 +40,391 @@
 (defparameter *arm-max-velocity-slow-theta* 0.5
   "in rad/s")
 
+
+;;@author Felix Krause
+(defun make-custom-return-grasp-constraint (knob-pose open-drawer
+                                     &key avoid-collisions-not-much)
+  ;; (declare  (type cl-transforms-stamped:pose-stamped goal-pose))
+  (roslisp:make-message
+   'giskard_msgs-msg:constraint
+   :type
+   "MoveDrawer"
+   :parameter_value_pair
+   (giskard::alist->json-string
+    `(("knob_pose"
+       . (("message_type" . "geometry_msgs/PoseStamped")
+          ("message" . ,(giskard::to-hash-table knob-pose))))
+      ("open_drawer"
+         . ,open-drawer)
+      
+      ,@(if avoid-collisions-not-much
+            `(("weight" . ,(roslisp-msg-protocol:symbol-code
+                           'giskard_msgs-msg:constraint
+                           :weight_above_ca))
+              (("weight" . (roslisp-msg-protocol:symbol-code
+                            'giskard_msgs-msg:constraint
+                            :weight_below_ca)))))))))
+
+;;@author Felix Krause
+(defun make-custom-grasp-constraint (box-pose box-name;; box-size ;; grasp-type
+                                     &key avoid-collisions-not-much)
+  ;; (break)
+  (roslisp:make-message
+   'giskard_msgs-msg:constraint
+   :type
+   "GraspObject"
+   :parameter_value_pair
+   (giskard::alist->json-string
+    `(("box_pose"
+       . (("message_type" . "geometry_msgs/PoseStamped")
+          ("message" . ,(giskard::to-hash-table box-pose))))
+      ("box_name"
+         . ,box-name)
+      
+      ,@(if avoid-collisions-not-much
+            `(("weight" . ,(roslisp-msg-protocol:symbol-code
+                           'giskard_msgs-msg:constraint
+                           :weight_above_ca))
+              (("weight" . (roslisp-msg-protocol:symbol-code
+                            'giskard_msgs-msg:constraint
+                            :weight_below_ca)))))))))
+
+;;@author Luca Krohm
+(defun make-reach-constraint (object-pose object-name object-size frontal-grasping
+                              &key avoid-collisions-not-much)
+  "Receives parameters used by manipulation. Creates Constraint of the type GraspObject which is a classname inside the manipulation code, which is responsible for 'reaching'"
+  (roslisp:make-message
+   'giskard_msgs-msg:constraint
+   :type
+   "GraspObject"
+   :parameter_value_pair
+   (giskard::alist->json-string
+    `(,@(when object-pose
+          `(("object_pose"
+             . (("message_type" . "geometry_msgs/PoseStamped")
+                ("message" . ,(giskard::to-hash-table object-pose))))))
+      ("object_name"
+       . ,object-name)
+      ,@(when object-size
+          `(("object_size"
+           . (("message_type" . "geometry_msgs/Vector3")
+              ("message" . ,(giskard::to-hash-table object-size))))))
+      
+      ,@(when frontal-grasping
+          `(("frontal_grasping"
+             . 1)))
+      
+      ,@(if avoid-collisions-not-much
+            `(("weight" . ,(roslisp-msg-protocol:symbol-code
+                           'giskard_msgs-msg:constraint
+                           :weight_above_ca))
+              (("weight" . (roslisp-msg-protocol:symbol-code
+                            'giskard_msgs-msg:constraint
+                            :weight_below_ca)))))))))
+
+;;@author Luca Krohm
+(defun make-lift-constraint (object-name
+                             &key avoid-collisions-not-much)
+  "Receives parameters used by manipulation. Creates Constraint of the type LiftObject which is a classname inside the manipulation code, which is responsible for 'lifting'"  
+  (roslisp:make-message
+   'giskard_msgs-msg:constraint
+   :type
+   "LiftObject"
+   :parameter_value_pair
+   (giskard::alist->json-string
+    `(("object_name"
+         . ,object-name)      
+      ,@(if avoid-collisions-not-much
+            `(("weight" . ,(roslisp-msg-protocol:symbol-code
+                           'giskard_msgs-msg:constraint
+                           :weight_above_ca))
+              (("weight" . (roslisp-msg-protocol:symbol-code
+                            'giskard_msgs-msg:constraint
+                            :weight_below_ca)))))))))
+
+;;@author Luca Krohm
+(defun make-retract-constraint (object-name tip-link
+                                     &key avoid-collisions-not-much)
+  "Receives parameters used by manipulation. Creates Constraint of the type Retracting which is a classname inside the manipulation code, which is responsible for 'retracting'"
+  (roslisp:make-message
+   'giskard_msgs-msg:constraint
+   :type
+   "Retracting"
+   :parameter_value_pair
+   (giskard::alist->json-string
+    `(("object_name"
+       . ,object-name)   
+      ,@(when tip-link
+          `(("tip_link"
+             . "hand_gripper_tool_frame")))
+      ,@(if avoid-collisions-not-much
+            `(("weight" . ,(roslisp-msg-protocol:symbol-code
+                            'giskard_msgs-msg:constraint
+                            :weight_above_ca))
+              (("weight" . (roslisp-msg-protocol:symbol-code
+                            'giskard_msgs-msg:constraint
+                            :weight_below_ca)))))))))
+
+(defun make-align-height-constraint (object-name goal-pose object-height
+                                     &key avoid-collisions-not-much)
+  "Receives parameters used by manipulation. Creates Constraint of the type PreparePlacing which is a classname inside the manipulation code, which is responsible for 'preparing-placing'"
+  (roslisp:make-message
+   'giskard_msgs-msg:constraint
+   :type
+   "AlignHeight"
+   :parameter_value_pair
+   (giskard::alist->json-string
+    `(,@(when goal-pose
+          `(("goal_pose"
+             . (("message_type" . "geometry_msgs/PoseStamped")
+                ("message" . ,(giskard::to-hash-table goal-pose))))))
+      ,@(when object-height
+          `(("object_height"
+             . ,object-height)))
+      ("object_name"
+       . ,object-name)
+      
+      ,@(if avoid-collisions-not-much
+            `(("weight" . ,(roslisp-msg-protocol:symbol-code
+                           'giskard_msgs-msg:constraint
+                           :weight_above_ca))
+              (("weight" . (roslisp-msg-protocol:symbol-code
+                            'giskard_msgs-msg:constraint
+                            :weight_below_ca)))))))))
+
+(defun make-place-constraint (target-pose object-name object-height frontal-placing
+                                     &key avoid-collisions-not-much)
+  "Receives parameters used by manipulation. Creates Constraint of the type PlaceObject which is a classname inside the manipulation code, which is responsible for 'placing'"
+  (roslisp:make-message
+   'giskard_msgs-msg:constraint
+   :type
+   "PlaceObject"
+   :parameter_value_pair
+   (giskard::alist->json-string
+    `(("target_pose"
+       . (("message_type" . "geometry_msgs/PoseStamped")
+          ("message" . ,(giskard::to-hash-table target-pose))))
+      ("object_name"
+       . ,object-name)
+      ("object_height"
+       . ,object-height)
+      ,@(when frontal-placing
+          `(("frontal_placing"
+             . 1)))
+      
+      ,@(if avoid-collisions-not-much
+            `(("weight" . ,(roslisp-msg-protocol:symbol-code
+                           'giskard_msgs-msg:constraint
+                           :weight_above_ca))
+              (("weight" . (roslisp-msg-protocol:symbol-code
+                            'giskard_msgs-msg:constraint
+                            :weight_below_ca)))))))))
+
+(defun make-place-neatly-constraint (target-pose frontal-placing
+                                     &key avoid-collisions-not-much)
+  "Receives parameters used by manipulation. Creates Constraint of the type PlaceObject which is a classname inside the manipulation code, which is responsible for 'placing'"
+  (roslisp:make-message
+   'giskard_msgs-msg:constraint
+   :type
+   "PlaceNeatly"
+   :parameter_value_pair
+   (giskard::alist->json-string
+    `(("target_pose"
+       . (("message_type" . "geometry_msgs/PoseStamped")
+          ("message" . ,(giskard::to-hash-table target-pose))))
+      ,@(when frontal-placing
+          `(("frontal_placing"
+             . 1)))
+      
+      ,@(if avoid-collisions-not-much
+            `(("weight" . ,(roslisp-msg-protocol:symbol-code
+                           'giskard_msgs-msg:constraint
+                           :weight_above_ca))
+              (("weight" . (roslisp-msg-protocol:symbol-code
+                            'giskard_msgs-msg:constraint
+                            :weight_below_ca)))))))))
+
+(defun make-tilt-constraint (tilt-direction tilt-angle
+                                     &key avoid-collisions-not-much)
+  "Receives parameters used by manipulation. Creates Constraint of the type PlaceObject which is a classname inside the manipulation code, which is responsible for 'placing'"
+  (roslisp:make-message
+   'giskard_msgs-msg:constraint
+   :type
+   "Tilting"
+   :parameter_value_pair
+   (giskard::alist->json-string
+    `(,@(when tilt-direction
+          `(("direction"
+             . ,tilt-direction)))
+      ,@(when tilt-angle
+          `(("tilt_angle"
+             . ,tilt-angle)))
+      
+      ,@(if avoid-collisions-not-much
+            `(("weight" . ,(roslisp-msg-protocol:symbol-code
+                           'giskard_msgs-msg:constraint
+                           :weight_above_ca))
+              (("weight" . (roslisp-msg-protocol:symbol-code
+                            'giskard_msgs-msg:constraint
+                            :weight_below_ca)))))))))
+
 (defun make-arm-cartesian-action-goal (left-pose right-pose
                                        pose-base-frame collision-mode
                                        &key
                                          collision-object-b
                                          collision-object-b-link
                                          collision-object-a
-                                         prefer-base allow-base
+                                         prefer-base allow-base straight-line
                                          align-planes-left align-planes-right
-                                         unmovable-joints)
+                                         unmovable-joints
+                                         precise-tracking
+                                         box-pose
+                                         object-pose
+                                         object-name
+                                         target-pose
+                                         action-type
+                                         object-size
+                                         object-height
+                                         tip-link
+                                         goal-pose
+                                         tilt-direction
+                                         tilt-angle
+                                         knob-pose
+                                         open-drawer
+                                         frontal-grasping
+                                         frontal-placing)
   (declare (type (or null cl-transforms-stamped:pose-stamped) left-pose right-pose)
            (type (or null string) pose-base-frame)
-           (type boolean prefer-base align-planes-left align-planes-right)
+           (type boolean prefer-base straight-line
+                 align-planes-left align-planes-right precise-tracking)
            (type (or null list) unmovable-joints))
   (let ((arms (append (when left-pose '(:left))
                       (when right-pose '(:right)))))
     (make-giskard-goal
      :constraints (list
-                   (make-avoid-joint-limits-constraint)
+                   (make-avoid-joint-limits-constraint
+                    :joint-list (append (when left-pose
+                                          (cut:var-value
+                                           '?joints
+                                           (car
+                                            (prolog:prolog
+                                             `(and (rob-int:robot ?robot-name)
+                                                   (rob-int:arm-joints
+                                                    ?robot-name :left ?joints))))))
+                                        (when right-pose
+                                          (cut:var-value
+                                           '?joints
+                                           (car
+                                            (prolog:prolog
+                                             `(and (rob-int:robot ?robot-name)
+                                                   (rob-int:arm-joints
+                                                    ?robot-name :right ?joints))))))))
                    (when allow-base
                      (make-prefer-base-constraint
                       :base-weight (if prefer-base
                                        *prefer-base-low-cost*
                                        *allow-base-high-cost*)))
-                   ;; ;; align planes is WIP in giskard
-                   ;; (when align-planes-left
-                   ;;   (make-align-planes-constraint
-                   ;;    pose-base-frame
-                   ;;    "refills_finger"
-                   ;;    (cl-transforms-stamped:make-vector-stamped
-                   ;;     cram-tf:*robot-base-frame* 0.0
-                   ;;     (cl-transforms:make-3d-vector 0 0 1))
-                   ;;    (cl-transforms-stamped:make-vector-stamped
-                   ;;     cram-tf:*robot-base-frame* 0.0
-                   ;;     (cl-transforms:make-3d-vector 0 0 1))))
-                   ;; (when align-planes-right
-                   ;;   (make-align-planes-constraint
-                   ;;    pose-base-frame
-                   ;;    "refills_finger"
-                   ;;    (cl-transforms-stamped:make-vector-stamped
-                   ;;     cram-tf:*robot-base-frame* 0.0
-                   ;;     (cl-transforms:make-3d-vector 0 0 1))
-                   ;;    (cl-transforms-stamped:make-vector-stamped
-                   ;;     cram-tf:*robot-base-frame* 0.0
-                   ;;     (cl-transforms:make-3d-vector 0 0 1))))
+                   (when align-planes-left
+                     (make-align-planes-constraint
+                      pose-base-frame
+                      cram-tf:*robot-left-tool-frame*
+                      (cl-transforms-stamped:make-vector-stamped
+                       cram-tf:*robot-base-frame* 0.0
+                       (cl-transforms:make-3d-vector 0 0 1))
+                      (cl-transforms-stamped:make-vector-stamped
+                       cram-tf:*robot-base-frame* 0.0
+                       (cl-transforms:make-3d-vector 0 0 1))))
+                   (when align-planes-right
+                     (make-align-planes-constraint
+                      pose-base-frame
+                      cram-tf:*robot-right-tool-frame*
+                      (cl-transforms-stamped:make-vector-stamped
+                       cram-tf:*robot-base-frame* 0.0
+                       (cl-transforms:make-3d-vector 0 0 1))
+                      (cl-transforms-stamped:make-vector-stamped
+                       cram-tf:*robot-base-frame* 0.0
+                       (cl-transforms:make-3d-vector 0 0 1))))
                    (when unmovable-joints
                      (make-unmovable-joints-constraint unmovable-joints))
-                   (make-base-velocity-constraint
-                    *base-max-velocity-slow-xy* *base-max-velocity-slow-theta*)
-                   (make-head-pointing-at-hand-constraint
-                    (if left-pose
-                        :left
-                        :right)))
-     :cartesian-constraints (list (when left-pose
-                                    (make-cartesian-constraint
-                                     pose-base-frame
-                                     cram-tf:*robot-left-tool-frame*
-                                     left-pose))
-                                  (when right-pose
-                                    (make-cartesian-constraint
-                                     pose-base-frame
-                                     cram-tf:*robot-right-tool-frame*
-                                     right-pose)))
+                   ;; (make-base-velocity-constraint
+                   ;;  *base-max-velocity-slow-xy* *base-max-velocity-slow-theta*)
+                   ;; (make-head-pointing-at-hand-constraint
+                   ;;  (if left-pose
+                   ;;      :left
+                   ;;      :right))
+                   (when (eq (rob-int:get-robot-name) :tiago-dual)
+                     (make-diffdrive-cartesian-goal-arm-constraint
+                      (if left-pose
+                          cram-tf:*robot-left-wrist-frame*
+                          cram-tf:*robot-right-wrist-frame*)))
+                   (when precise-tracking
+                     (make-enable-velocity-trajectory-tracking-constraint))
+                   (when left-pose
+                     (make-cartesian-constraint
+                      pose-base-frame
+                      cram-tf:*robot-left-wrist-frame*
+                      ;;cram-tf:*robot-left-tool-frame*
+                      left-pose
+                      :straight-line straight-line
+                      :avoid-collisions-much nil))
+                   (when right-pose
+                     (make-cartesian-constraint
+                      pose-base-frame
+                      cram-tf:*robot-right-wrist-frame*
+                      ;;cram-tf:*robot-right-tool-frame*
+                      right-pose
+                      :straight-line straight-line
+                      :avoid-collisions-much nil))
+                   ;;;;
+                   ;; Constraints for motions
+                   (when (eq action-type 'reach)
+                     (make-reach-constraint object-pose object-name object-size frontal-grasping))
+                   (when (eq action-type 'lift) ;;'lift)
+                     (make-lift-constraint "pringles" ))
+                   (when (eq action-type 'retract)
+                      (make-retract-constraint "pringles" tip-link))
+                   (when (eq action-type 'align-height)
+                     (make-align-height-constraint object-name goal-pose object-height))
+                   (when (eq action-type 'place)
+                     (make-place-constraint target-pose "pringles" object-height frontal-placing))
+                   (when (eq action-type 'place-neatly)
+                     (make-place-neatly-constraint target-pose frontal-placing))
+                   (when (eq action-type 'tilt)
+                     (make-tilt-constraint tilt-direction tilt-angle))
+                   ;;;;
+                   
+                   (when box-pose
+                     (make-custom-grasp-constraint box-pose "pringles" ))
+                   (when knob-pose
+                     (make-custom-return-grasp-constraint knob-pose open-drawer))
+
+                    )
      :collisions (ecase collision-mode
                    (:avoid-all (make-avoid-all-collision))
                    (:allow-all (make-allow-all-collision))
                    (:allow-hand (alexandria:flatten
-                                 (list ;; (make-avoid-all-collision)
+                                 (list
                                   (make-allow-hand-collision
                                    arms collision-object-b
                                    collision-object-b-link)
                                   (make-allow-hand-collision
                                    arms (rob-int:get-environment-name)))))
                    (:allow-fingers (alexandria:flatten
-                                    (list ;; (make-avoid-all-collision)
-                                    (make-allow-fingers-collision
-                                     arms collision-object-b
-                                     collision-object-b-link)
-                                    (make-allow-fingers-collision
-                                     arms (rob-int:get-environment-name)))))
+                                    (list
+                                     (make-allow-fingers-collision
+                                      arms collision-object-b
+                                      collision-object-b-link)
+                                     (make-allow-fingers-collision
+                                      arms (rob-int:get-environment-name)))))
                    (:allow-arm (alexandria:flatten
-                                (list ;; (make-avoid-all-collision)
+                                (list
                                  (make-allow-arm-collision
                                   arms collision-object-b
                                   collision-object-b-link)
                                  (make-allow-arm-collision
                                   arms (rob-int:get-environment-name)))))
-                   (:allow-attached (make-avoid-all-collision)
-                                        ; attached objects are handled by giskard
-                                    )))))
+                   ;; TODO: this should allow collision between attached and environment
+                   (:allow-attached (make-avoid-all-collision))))))
 
 (defun make-arm-joint-action-goal (joint-state-left joint-state-right
                                    align-planes-left align-planes-right
@@ -137,30 +433,29 @@
            (type boolean align-planes-left align-planes-right))
   (make-giskard-goal
    :constraints (list
-                 (make-ee-velocity-constraint
-                  :left
-                  (if try-harder
-                      (/ *arm-max-velocity-slow-xy* 3.0)
-                      *arm-max-velocity-slow-xy*)
-                  (if try-harder
-                      (/ *arm-max-velocity-slow-theta* 3.0)
-                      *arm-max-velocity-slow-theta*))
-                 (make-ee-velocity-constraint
-                  :right
-                  (if try-harder
-                      (/ *arm-max-velocity-slow-xy* 3.0)
-                      *arm-max-velocity-slow-xy*)
-                  (if try-harder
-                      (/ *arm-max-velocity-slow-theta* 3.0)
-                      *arm-max-velocity-slow-theta*))
+                 ;; (make-ee-velocity-constraint
+                 ;;  :left
+                 ;;  (if try-harder
+                 ;;      (/ *arm-max-velocity-slow-xy* 3.0)
+                 ;;      *arm-max-velocity-slow-xy*)
+                 ;;  (if try-harder
+                 ;;      (/ *arm-max-velocity-slow-theta* 3.0)
+                 ;;      *arm-max-velocity-slow-theta*))
+                 ;; (make-ee-velocity-constraint
+                 ;;  :right
+                 ;;  (if try-harder
+                 ;;      (/ *arm-max-velocity-slow-xy* 3.0)
+                 ;;      *arm-max-velocity-slow-xy*)
+                 ;;  (if try-harder
+                 ;;      (/ *arm-max-velocity-slow-theta* 3.0)
+                 ;;      *arm-max-velocity-slow-theta*))
                  (make-cartesian-constraint
                   cram-tf:*odom-frame* cram-tf:*robot-base-frame*
                   (cl-transforms-stamped:pose->pose-stamped
                    cram-tf:*robot-base-frame* 0.0
                    (cl-transforms:make-identity-pose))
                   :max-velocity *base-max-velocity-slow-xy*
-                  ;; :avoid-collisions-much t
-                  )
+                  :avoid-collisions-much nil)
                  (when align-planes-left
                    (make-align-planes-tool-frame-constraint
                     :left
@@ -185,9 +480,44 @@
 
 
 
-(defun ensure-arm-cartesian-goal-input (frame goal-pose)
+(defun ensure-arm-cartesian-goal-input (frame goal-pose arm)
   (when goal-pose
-    (cram-tf:ensure-pose-in-frame goal-pose frame)))
+    (let* ((tool-pose-in-correct-base-frame
+             (cram-tf:ensure-pose-in-frame goal-pose frame))
+           (tool-frame
+             (if (eq arm :left)
+                 cram-tf:*robot-left-tool-frame*
+                 cram-tf:*robot-right-tool-frame*))
+           (tool-transform-in-correct-base-frame
+             (cram-tf:pose-stamped->transform-stamped
+              tool-pose-in-correct-base-frame
+              tool-frame))
+           (wrist-frame
+             (if (eq arm :left)
+                 cram-tf:*robot-left-wrist-frame*
+                 cram-tf:*robot-right-wrist-frame*))
+           (ee-P-tcp
+             (cut:var-value
+              '?ee-P-tcp
+              (car
+               (prolog:prolog
+                `(and (rob-int:robot ?robot-name)
+                      (rob-int:tcp-in-ee-pose ?robot-name ?ee-P-tcp))))))
+           (tool-T-wrist
+             (cl-transforms-stamped:transform->transform-stamped
+              tool-frame
+              wrist-frame
+              0.0
+              (cl-transforms:transform-inv
+               (cl-transforms:pose->transform ee-P-tcp))))
+           (wrist-pose-in-correct-base-frame
+             (cram-tf:multiply-transform-stampeds
+              frame wrist-frame
+              tool-transform-in-correct-base-frame
+              tool-T-wrist
+              :result-as-pose-or-transform :pose)))
+      ;; wrist-pose-in-correct-base-frame
+      tool-pose-in-correct-base-frame)))
 
 (defun ensure-arm-joint-goal-input (goal-configuration arm)
   (if (and (listp goal-configuration)
@@ -236,34 +566,53 @@
                                     collision-mode
                                     collision-object-b collision-object-b-link
                                     collision-object-a
-                                    move-base prefer-base
+                                    move-base prefer-base straight-line
                                     align-planes-left align-planes-right
-                                    unmovable-joints)
+                                    unmovable-joints
+                                    precise-tracking
+                                    box-pose
+                                    action-type
+                                    target-pose
+                                    object-size
+                                    object-name
+                                    object-height
+                                    tip-link
+                                    goal-pose
+                                    tilt-direction
+                                    tilt-angle
+                                    ;; grasp-type
+                                    knob-pose
+                                    open-drawer
+                                    object-pose
+                                    frontal-grasping
+                                    frontal-placing)
   (declare (type (or number null) action-timeout)
            (type (or cl-transforms-stamped:pose-stamped null)
                  goal-pose-left goal-pose-right)
            (type (or string null) pose-base-frame)
-           (type boolean move-base prefer-base align-planes-left align-planes-right)
+           (type boolean move-base prefer-base straight-line precise-tracking
+                 align-planes-left align-planes-right)
            (type (or list null) unmovable-joints))
-
-  (unless (or goal-pose-left goal-pose-right)
-    (roslisp:ros-info (giskard cart) "Got an empty goal...")
-    ;; return NIL as observation if the goal is empty
-    (return-from call-arm-cartesian-action))
+  ;; (unless (or goal-pose-left goal-pose-right)
+  ;;   (roslisp:ros-info (giskard cart) "Got an empty goal...")
+  ;;   ;; return NIL as observation if the goal is empty
+  ;;   (return-from call-arm-cartesian-action))
 
   (when prefer-base
     (setf move-base T))
   (if (and move-base (not pose-base-frame))
       (setf pose-base-frame cram-tf:*odom-frame*)
       (setf pose-base-frame cram-tf:*robot-base-frame*))
-  (setf goal-pose-left
-        (ensure-arm-cartesian-goal-input pose-base-frame goal-pose-left))
-  (setf goal-pose-right
-        (ensure-arm-cartesian-goal-input pose-base-frame goal-pose-right))
+  ;; (setf goal-pose-left
+  ;;       (ensure-arm-cartesian-goal-input pose-base-frame goal-pose-left :left))
+  ;; (setf goal-pose-right
+  ;;       (ensure-arm-cartesian-goal-input pose-base-frame goal-pose-right :right))
 
-  (cram-tf:visualize-marker
-   (list goal-pose-left goal-pose-right)
-   :r-g-b-list '(1 0 1))
+
+  ;; EINKOMMENTIEREN wenn goal-pose-left vernuenftig verwendet wird, bzw die target posen eine einheiliche variable haben
+  ;; (cram-tf:visualize-marker
+  ;;  (list goal-pose-left goal-pose-right)
+  ;;  :r-g-b-list '(1 0 1))
 
   (call-action
    :action-goal (make-arm-cartesian-action-goal
@@ -275,16 +624,35 @@
                  :collision-object-a collision-object-a
                  :allow-base move-base
                  :prefer-base prefer-base
+                 :straight-line straight-line
                  :align-planes-left align-planes-left
                  :align-planes-right align-planes-right
-                 :unmovable-joints unmovable-joints)
+                 :unmovable-joints unmovable-joints
+                 :precise-tracking precise-tracking
+                 :box-pose box-pose
+                 :object-pose object-pose
+                 :action-type action-type
+                 :target-pose target-pose
+                 :object-size object-size
+                 :object-name object-name
+                 :object-height object-height
+                 :tip-link tip-link
+                 :goal-pose goal-pose
+                 :tilt-direction tilt-direction
+                 :tilt-angle tilt-angle
+                 ;; :grasp-type grasp-type
+                 :knob-pose knob-pose
+                 :open-drawer open-drawer
+                 :frontal-grasping frontal-grasping
+                 :frontal-placing frontal-placing)
    :action-timeout action-timeout
-   :check-goal-function (lambda (result status)
-                          (declare (ignore result status))
-                          (or (ensure-arm-cartesian-goal-reached
-                               goal-pose-left cram-tf:*robot-left-tool-frame*)
-                              (ensure-arm-cartesian-goal-reached
-                               goal-pose-right cram-tf:*robot-right-tool-frame*)))))
+   ;; :check-goal-function (lambda (result status)
+   ;;                        (declare (ignore result status))
+   ;;                        (or (ensure-arm-cartesian-goal-reached
+   ;;                             goal-pose-left cram-tf:*robot-left-tool-frame*)
+   ;;                            (ensure-arm-cartesian-goal-reached
+   ;;                             goal-pose-right cram-tf:*robot-right-tool-frame*)))
+   ))
 
 
 
@@ -314,3 +682,5 @@
                                  goal-configuration-left :left)
                                 (ensure-arm-joint-goal-reached
                                  goal-configuration-right :right))))))
+
+

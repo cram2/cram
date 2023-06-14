@@ -52,6 +52,11 @@
 (defparameter *base-resampling-y-limit* 0.2d0
   "In meters.")
 
+(defparameter *gripper-gripped-offset* 0.005d0
+  "In meters, the minimal distance at which gripper grasps objects. Such that
+the GRIPPING action closes the gripper not to complete minimal joint limit,
+but to some small value.")
+
 (defparameter *giskard-mode* nil
   "Use giskard or teleporting/IK solver for joint and cartesian motions.")
 
@@ -567,7 +572,11 @@ with the object, calculates similar angle around Y axis and applies the rotation
                 (btr:joint-state ?robot
                                  ((?joint ,(case action-type
                                              (:open '?max-limit)
-                                             ((:close :grip) '?min-limit)
+                                             (:close '?min-limit)
+                                             (:grip (+ *gripper-gripped-offset*
+                                                       (cut:var-value
+                                                        '?min-limit
+                                                        solution-bindings)))
                                              (T (if (numberp action-type)
                                                     (* action-type
                                                        (cut:var-value
@@ -583,7 +592,7 @@ with the object, calculates similar angle around Y axis and applies the rotation
            (rob-int:joint-lower-limit ?robot ?joint ?min-limit)
            (rob-int:joint-upper-limit ?robot ?joint ?max-limit)
            (rob-int:gripper-meter-to-joint-multiplier ?robot ?mult)))))
-
+  ;;(break)
   ;; check if there is an object to grip
   ;; i.e. if action was gripping check if gripper collided with an item
   (when (eql action-type :grip)
@@ -600,11 +609,12 @@ with the object, calculates similar angle around Y axis and applies the rotation
                 :description "There was no object to grip"))))
 
 (defun gripper-action (action-type arm &optional maximum-effort)
-  (if (and arm (listp arm))
+ (let ((arms (list :left :right)))
+  (if (and arms (listp arms))
       (cpl:par
-        (one-gripper-action action-type (first arm) maximum-effort)
-        (one-gripper-action action-type (second arm) maximum-effort))
-      (one-gripper-action action-type arm maximum-effort)))
+        (one-gripper-action action-type (first arms) maximum-effort)
+        (one-gripper-action action-type (second arms) maximum-effort))
+      (one-gripper-action action-type arms maximum-effort))))
 
 ;;;;;;;;;;;;;;;;; ARMS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -787,8 +797,8 @@ with the given offsets (the offsets are specified in the torso frame).
 
 ;;; joint movement
 
-(defun move-joints (left-configuration right-configuration)
-  (declare (type list left-configuration right-configuration))
+(defun move-joints (left-configuration);; right-configuration)
+  (declare (type list left-configuration));; right-configuration))
   (flet ((set-configuration (arm joint-values)
            (when joint-values
              (let ((joint-name-value-list
@@ -801,6 +811,7 @@ with the given offsets (the offsets are specified in the torso frame).
                                         `(and (rob-int:robot ?robot)
                                               (rob-int:arm-joints ?robot ,arm
                                                                   ?joints)))))))
+                           (print joint-names)
                            (unless (= (length joint-values) (length joint-names))
                              (error "[PROJECTION MOVE-JOINTS] length of joints list ~
                                      is incorrect"))
@@ -840,7 +851,8 @@ with the given offsets (the offsets are specified in the torso frame).
                                       goal-joint-state)
                                      *projection-convergence-delta-joint*))))))))
     (set-configuration :left left-configuration)
-    (set-configuration :right right-configuration)))
+    ;; (set-configuration :right right-configuration)
+    ))
 
 (defun move-joints-avoiding-collision (left-configuration right-configuration
                                        &optional collision-mode)
@@ -882,7 +894,8 @@ collision by moving its torso and base"
                         (- ?torso-upper-limit current-torso-angle)
                         (- ?torso-lower-limit current-torso-angle)
                         *torso-resampling-step*)
-                     (move-joints left-configuration right-configuration)))))))
+                     (move-joints left-configuration ;; right-configuration)
+                     )))))))
 
       (when joint-values
         (let* ((torso-offset-z
@@ -1031,6 +1044,7 @@ collision by moving its torso and base"
                  (- *base-resampling-x-limit*)
                  *base-resampling-step*
                  :disable-resampling disable-base-resampling)
+              (format nil "WE ARE IN WITH RESAMPLING X ->>>>>>>>>>>>>>>>>>>")
               (ik:with-resampling
                   (:y
                    *base-resampling-y-limit*
@@ -1043,6 +1057,7 @@ collision by moving its torso and base"
                      (- torso-joint-lower-limit current-torso-angle)
                      *torso-resampling-step*
                      :disable-resampling disable-base-resampling)))))
+        ;;(break)
         (unless ik-solution-msg
           (cpl:fail 'common-fail:manipulation-low-level-failure
                     :description
@@ -1149,7 +1164,9 @@ collision by moving its torso and base"
              ;;                                     require different torso angles).")))
              (move-torso left-torso-angle))
             (right-torso-angle
-             (move-torso right-torso-angle)))
+             (move-torso right-torso-angle))
+            (left-torso-angle
+             (move-torso left-torso-angle)))
           ;; set the base to inferred position
           (cond
             ((and left-base-pose right-base-pose)
@@ -1167,7 +1184,7 @@ collision by moving its torso and base"
             (right-base-pose
              (setf (btr:pose (btr:get-robot-object)) right-base-pose)))
           ;; set the arm joints to inferred position
-          (move-joints left-ik right-ik)
+          (move-joints left-ik) ;;right-ik)
           ;; perform one last collision check
           (perform-collision-check collision-mode left-tcp-pose right-tcp-pose))))))
 

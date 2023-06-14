@@ -89,7 +89,7 @@
                                         (r color) (first r-g-b-list)
                                         (g color) (second r-g-b-list)
                                         (b color) (third r-g-b-list)
-                                        (a color) 0.7
+                                        (a color) (or (fourth r-g-b-list) 0.7)
                                         :frame_locked t
                                         :mesh_resource (or mesh-path ""))))
                ;; (roslisp:ros-warn (ll visualize-marker) "asked to visualize a null pose")

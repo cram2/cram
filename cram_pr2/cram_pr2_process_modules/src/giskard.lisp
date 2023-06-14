@@ -38,7 +38,8 @@
         (desig:desig-prop ?motion-designator (:type :pulling))
         (desig:desig-prop ?motion-designator (:type :pushing))
         (desig:desig-prop ?motion-designator (:type :going))
-        (desig:desig-prop ?motion-designator (:type :moving-torso))))
+        (desig:desig-prop ?motion-designator (:type :moving-torso))
+        (desig:desig-prop ?motion-designator (:type :looking))))
 
   (prolog:<- (cpm:available-process-module giskard:giskard-pm)
     (prolog:not (cpm:projection-running ?_))))

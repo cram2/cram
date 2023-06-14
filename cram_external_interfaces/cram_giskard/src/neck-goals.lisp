@@ -44,13 +44,11 @@
   (declare (type cl-transforms-stamped:pose-stamped goal-pose))
   (let ((neck-joints (first (get-neck-joint-names-and-positions-list))))
     (make-giskard-goal
-     :constraints `(,(make-pointing-constraint
-                      root-link
-                      camera-link
-                      goal-pose)
-                    ;; for PTU heads align planes doesn't make sense
-                    ,@(when (> (length neck-joints) 2)
-                        `((make-align-planes-constraint
+     :constraints (list (make-pointing-constraint
+                         root-link camera-link goal-pose)
+                        ;; for PTU heads align planes doesn't make sense
+                        (when (> (length neck-joints) 2)
+                          (make-align-planes-constraint
                            root-link
                            camera-link
                            (cl-transforms-stamped:make-vector-stamped
@@ -59,10 +57,6 @@
                            (cl-transforms-stamped:make-vector-stamped
                             camera-link 0.0
                             (cl-transforms:make-3d-vector 0 -1 0)))))
-                    ;; (cl-transforms-stamped:make-vector-stamped
-                    ;;  "rs_camera_depth_optical_frame" 0.0
-                    ;;  (cl-transforms:make-3d-vector 0 0 1))
-                    )
      :cartesian-constraints (when camera-offset
                               (make-cartesian-constraint
                                root-link camera-link

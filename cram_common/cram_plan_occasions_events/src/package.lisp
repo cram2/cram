@@ -70,4 +70,8 @@
    #:looking-at
    #:container-state
    #:location-reset
-   #:location-accessible))
+   #:location-accessible
+
+   ;; GISKARD-KNOWROB
+   #:object-perceived-event-knowrob
+   #:object-attached-robot-knowrob #:object-detached-robot-knowrob))

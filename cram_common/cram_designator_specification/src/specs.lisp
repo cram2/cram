@@ -71,7 +71,7 @@
 
   (<- (%property ?designator (?object-key ?object))
     (lisp-pred typep ?designator desig:motion-designator)
-    (member ?object-key (:object :objects))
+    (member ?object-key (:object :objects :source-object :target-object))
     (property-member (?object-key ?object) ?designator)
     (assert-type ?object desig:object-designator "MOTION SPEC:PROPERTY"))
 
@@ -132,11 +132,12 @@
 
   (<- (%property ?designator (?keyword-or-list-key ?value))
     (lisp-pred typep ?designator desig:action-designator)
-    (member ?keyword-or-list-key (:gripper :arm :direction :grasp
-                                  :left-grasp :right-grasp :camera :type
-                                  :context :link :configuration :park-arms
-                                  :left-configuration :right-configuration :collision-mode))
 
+    (member ?keyword-or-list-key (:gripper
+                                  :arm :direction :grasp :camera :type
+                                  :context :link :configuration
+                                  :left-configuration :right-configuration
+                                  :collision-mode :side))
     (property-member (?keyword-or-list-key ?value) ?designator)
     (assert-type ?value (or keyword list) "ACTION SPEC:PROPERTY"))
 
@@ -180,7 +181,13 @@
     (lisp-pred typep ?designator desig:action-designator)
     (member ?key (:function))
     (property-member (?key ?value) ?designator)
-    (assert-type ?value (or function null) "ACTION SPEC:PROPERTY")))
+    (assert-type ?value (or function null) "ACTION SPEC:PROPERTY"))
+
+  (<- (%property ?designator (?key ?value))
+    (lisp-pred typep ?designator desig:action-designator)
+    (member ?key (:park-arms))
+    (property-member (?key ?value) ?designator)
+    (assert-type ?value boolean "ACTION SPEC:PROPERTY")))
 
 
 (def-fact-group location-designator-specs (%property)

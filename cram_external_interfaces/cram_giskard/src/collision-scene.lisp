@@ -112,6 +112,11 @@
                             "Giskard register-groups service doesn't reply. Ignoring.")
          nil))))
 
+(roslisp-utilities:register-ros-init-function init-giskard-environment-service)
+(roslisp-utilities:register-ros-init-function init-giskard-groups-service)
+(roslisp-utilities:register-ros-init-function init-giskard-register-groups-service)
+
+
 (defun get-giskard-environment-service ()
   (if (and *giskard-environment-service*
            (roslisp:persistent-service-ok *giskard-environment-service*))
@@ -155,6 +160,7 @@
                                            pose
                                            mesh-path
                                            dimensions
+                                           scale
                                            joint-state-topic
                                            parent-link
                                            parent-link-group)
@@ -169,13 +175,16 @@
                 (cl-transforms:make-identity-rotation))))
   (unless dimensions
     (setf dimensions '(1.0 1.0 1.0)))
+  (unless scale
+    (setf scale (cl-transforms:make-3d-vector 1.0 1.0 1.0)))
   (let ((body (if mesh-path
                   (roslisp:make-msg
                    'giskard_msgs-msg:worldbody
                    :type (roslisp:symbol-code
                           'giskard_msgs-msg:worldbody
                           :mesh_body)
-                   :mesh mesh-path)
+                   :mesh mesh-path
+                   :scale (cl-transforms-stamped:to-msg scale))
                   (roslisp:make-msg
                    'giskard_msgs-msg:worldbody
                    :type (roslisp:symbol-code
@@ -367,7 +376,7 @@ The `parent-group-name' is usually the robot or environment."
             (rob-int:get-environment-name))
      :pose (cl-transforms-stamped:pose->pose-stamped
             cram-tf:*fixed-frame* 0.0 (btr:pose (btr:get-environment-object)))
-     :joint-state-topic "kitchen/joint_states")))
+     :joint-state-topic "iai_kitchen/joint_states")))
 
 (defun update-object-pose-in-collision-scene (object-name)
   (when object-name
@@ -523,10 +532,13 @@ The `parent-group-name' is usually the robot or environment."
 
 (defmethod coe:on-event giskard-attach-object ((event cpoe:object-attached-robot))
   (unless cram-projection:*projection-environment*
-    (attach-object-to-arm-in-collision-scene
-     (cpoe:event-object-name event)
-     (cpoe:event-arm event)
-     (cpoe:event-link event))))
+    (if (eq (cpoe:event-other-object-name event) (rob-int:get-environment-name))
+        (roslisp:ros-warn (giskard coll-scene)
+                          "Attaching objects to environment is not supported yet.")
+        (attach-object-to-arm-in-collision-scene
+         (cpoe:event-object-name event)
+         (cpoe:event-arm event)
+         (cpoe:event-link event)))))
 
 (defmethod coe:on-event giskard-detach-object 1 ((event cpoe:object-detached-robot))
   (unless cram-projection:*projection-environment*
@@ -558,5 +570,11 @@ The `parent-group-name' is usually the robot or environment."
 
 (defmethod coe:on-event giskard-perceived ((event cpoe:object-perceived-event))
   (unless cram-projection:*projection-environment*
-    (add-object-to-collision-scene
-     (desig:desig-prop-value (cpoe:event-object-designator event) :name))))
+    ;; (add-object-to-collision-scene
+    ;;  (desig:desig-prop-value (cpoe:event-object-designator event) :name))
+    ))
+
+
+
+
+

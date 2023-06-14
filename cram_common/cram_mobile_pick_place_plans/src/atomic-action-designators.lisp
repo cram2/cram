@@ -115,14 +115,49 @@
     (once (or (spec:property ?action-designator (:collision-mode ?collision))
               (equal ?collision :allow-all)))
     (infer-motion-flags ?action-designator
-                        ?_ ?move-base ?align-planes-left ?align-planes-right)
+                        ?_ ?move-base-inferred ?align-planes-left ?align-planes-right)
+    (once (or (desig:desig-prop ?action-designator (:move-base ?move-base))
+              (equal ?move-base ?move-base-inferred)))
+    (-> (equal ?action-type :lifting)
+        (equal ?straight-line T)
+        (equal ?straight-line NIL))
     (desig:designator :action ((:type ?action-type)
                                (:left-poses ?left-poses)
                                (:right-poses ?right-poses)
                                (:collision-mode ?collision)
                                (:move-base ?move-base)
+                               (:straight-line ?straight-line)
                                (:align-planes-left ?align-planes-left)
                                (:align-planes-right ?align-planes-right))
+                      ?resolved-action-designator))
+
+  
+  (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
+                                                  ?resolved-action-designator))
+    (or (spec:property ?action-designator (:type :tilting)))
+    (spec:property ?action-designator (:type ?action-type))
+    (once (or (spec:property ?action-designator (:left-poses ?left-poses))
+              (equal ?left-poses nil)))
+    (once (or (spec:property ?action-designator (:right-poses ?right-poses))
+              (equal ?right-poses nil)))
+    (once (or (spec:property ?action-designator (:collision-mode ?collision))
+              (equal ?collision :allow-all)))
+    (infer-motion-flags ?action-designator
+                        ?_ ?move-base-inferred ?align-planes-left ?align-planes-right)
+    (once (or (desig:desig-prop ?action-designator (:move-base ?move-base))
+              (equal ?move-base ?move-base-inferred)))
+    (-> (equal ?action-type :lifting)
+        (equal ?straight-line T)
+        (equal ?straight-line NIL))
+    (desig:designator :action ((:type ?action-type)
+                               (:left-poses ?left-poses)
+                               (:right-poses ?right-poses)
+                               (:collision-mode ?collision)
+                               (:move-base ?move-base)
+                               (:straight-line ?straight-line)
+                               (:align-planes-left nil)
+                               (:align-planes-right nil)
+                               (:precise-tracking T))
                       ?resolved-action-designator))
 
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
@@ -135,13 +170,20 @@
               (equal ?right-poses nil)))
     (once (or (spec:property ?action-designator (:collision-mode ?collision))
               (equal ?collision :allow-hand)))
-    (infer-motion-flags ?action-designator
-                        ?_ ?move-base ?align-planes-left ?align-planes-right)
+    (-> (desig:desig-prop ?action-designator (:application-context :pouring))
+        (and (equal ?move-base T)
+             (equal ?align-planes-left NIL)
+             (equal ?align-planes-right NIL)
+             (equal ?straight-line NIL))
+        (and (infer-motion-flags ?action-designator
+                                 ?_ ?move-base ?align-planes-left ?align-planes-right)
+             (equal ?straight-line T)))
     (desig:designator :action ((:type ?action-type)
                                (:left-poses ?left-poses)
                                (:right-poses ?right-poses)
                                (:collision-mode ?collision)
                                (:move-base ?move-base)
+                               (:straight-line ?straight-line)
                                (:align-planes-left ?align-planes-left)
                                (:align-planes-right ?align-planes-right))
                       ?resolved-action-designator))
@@ -170,11 +212,16 @@
     (desig:designator :action ((:type ?action-type)
                                (:left-poses ?left-poses)
                                (:right-poses ?right-poses)
+                               ;; TODO: check if :avoid-all is possible to achieve
+                               ;; with environment manipulation as application-context
                                (:collision-mode :allow-hand)
                                (:collision-object-b ?collision-object-b)
                                (:collision-object-b-link ?object-link)
                                (:prefer-base ?prefer-base)
-                               (:move-base ?move-base)
+                               (:move-base NIL;; ?move-base
+                                           )
+                               (:straight-line T)
+                               (:precise-tracking T)
                                (:align-planes-left ?align-planes-left)
                                (:align-planes-right ?align-planes-right))
                       ?resolved-action-designator))
@@ -202,7 +249,7 @@
     (desig:designator :action ((:type :putting)
                                (:left-poses ?left-poses)
                                (:right-poses ?right-poses)
-                               (:collision-mode :allow-all;; :allow-attached
+                               (:collision-mode :allow-all ; :allow-attached
                                                 )
                                (:collision-object-b ?other-object-name)
                                (:collision-object-b-link ?object-link)
@@ -228,6 +275,8 @@
     (spec:property ?action-designator (:link ?handle-link))
     (once (or (spec:property ?action-designator (:distance ?joint-angle))
               (equal ?joint-angle NIL)))
+    (once (or (desig:desig-prop ?action-designator (:door-joint-pose ?door-joint-pose))
+              (equal ?door-joint-pose NIL)))
     ;; infer the missing parameters
     (infer-motion-flags ?action-designator
                         ?prefer-base ?move-base
@@ -241,6 +290,7 @@
                                (:collision-object-b-link ?handle-link)
                                (:prefer-base ?prefer-base)
                                (:move-base ?move-base)
+                               (:door-joint-pose ?door-joint-pose)
                                (:align-planes-left ?align-planes-left)
                                (:align-planes-right ?align-planes-right))
                       ?resolved-action-designator))
@@ -395,8 +445,46 @@
                                (:function ?function))
                       ?resolved-action-designator))
 
+  (<- (desig:action-grounding ?action-designator (monitor-joint-state
+                                                  ?resolved-action-designator))
+    (spec:property ?action-designator (:type :monitoring-joint-state))
+    (spec:property ?action-designator (:joint-name ?joint-name))
+    (rob-int:robot ?robot)
+    (rob-int:gripper-minimal-position ?robot ?joint-name ?minimum)
+    (rob-int:gripper-convergence-delta ?robot ?joint-name ?delta)
+    (lisp-fun + ?minimum ?delta ?joint-angle-threshold)
+    (lisp-fun symbol-function < ?function)
+    (desig:designator :action ((:type :monitoring-joint-state)
+                               (:joint-name ?joint-name)
+                               (:joint-angle-threshold ?joint-angle-threshold)
+                               (:function ?function))
+                      ?resolved-action-designator))
+
 
 
   (<- (desig:action-grounding ?action-designator (wait ?action-designator))
     (spec:property ?action-designator (:type :waiting))
-    (spec:property ?action-designator (:duration ?_))))
+    (spec:property ?action-designator (:duration ?_)))
+
+
+ 
+   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
+                                                  ?resolved-action-designator))
+    (or (spec:property ?action-designator (:type :pancake)))
+    (spec:property ?action-designator (:type ?action-type))
+    (once (or (spec:property ?action-designator (:left-poses ?left-poses))
+              (equal ?left-poses nil)))
+    (once (or (spec:property ?action-designator (:right-poses ?right-poses))
+              (equal ?right-poses nil)))
+    (once (or (spec:property ?action-designator (:collision-mode ?collision))
+              (equal ?collision :avoid-all)))
+    (infer-motion-flags ?action-designator
+                        ?_ ?move-base ?align-planes-left ?align-planes-right)
+    (desig:designator :action ((:type ?action-type)
+                               (:left-poses ?left-poses)
+                               (:right-poses ?right-poses)
+                               (:collision-mode ?collision)
+                               (:move-base t)
+                               (:align-planes-left ?align-planes-left)
+                               (:align-planes-right ?align-planes-right))
+                      ?resolved-action-designator)))

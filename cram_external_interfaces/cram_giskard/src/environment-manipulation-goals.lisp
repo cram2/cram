@@ -31,61 +31,128 @@
 
 (defun make-environment-manipulation-goal (open-or-close arm
                                            handle-link joint-state
-                                           prefer-base)
+                                           prefer-base
+                                           &optional hinge-point-stamped)
   (declare (type keyword open-or-close arm)
-           (type symbol handle-link)
+           ;; (type symbol handle-link)
            (type (or number null) joint-state)
-           (type boolean prefer-base))
+           (type boolean prefer-base)
+           (type (or null cl-transforms-stamped:point-stamped) hinge-point-stamped))
   (make-giskard-goal
    :constraints (list
                  (when prefer-base
                    (make-prefer-base-constraint :do-not-rotate T))
-                 (make-base-velocity-constraint
-                  *base-max-velocity-slow-xy* *base-max-velocity-slow-theta*)
+                 ;; (make-base-velocity-constraint
+                 ;;  *base-max-velocity-slow-xy* *base-max-velocity-slow-theta*)
                  (make-open-or-close-constraint
                   open-or-close arm handle-link joint-state)
-                 (make-avoid-joint-limits-constraint)
+                 (when (eq (rob-int:get-robot-name) :tiago-dual)
+                   (make-diffdrive-base-arch-constraint hinge-point-stamped))
+                 (make-avoid-joint-limits-constraint
+                  :joint-list (cut:var-value
+                               '?joints
+                               (car
+                                (prolog:prolog
+                                 `(and (rob-int:robot ?robot-name)
+                                       (rob-int:arm-joints ?robot-name ,arm ?joints))))))
                  (make-head-pointing-at-hand-constraint arm))
    :collisions (make-constraints-vector
-                (ecase open-or-close
-                  (:open (make-allow-hand-collision
-                          (list arm) (rob-int:get-environment-name) handle-link))
-                  (:close (make-allow-arm-collision
-                           (list arm) (rob-int:get-environment-name)))))))
+                (make-allow-hand-collision
+                 (list arm) (rob-int:get-environment-name) handle-link))))
+
+(defun make-environment-manipulation-diffdrive-pregoal (arm handle-link
+                                                        &optional hinge-point-stamped)
+  (declare (type keyword arm)
+           (type symbol handle-link)
+           (type (or null cl-transforms-stamped:point-stamped) hinge-point-stamped))
+  (make-giskard-goal
+   :constraints (list
+                 (let ((wrist-link
+                         (if (eq arm :left)
+                             cram-tf:*robot-left-wrist-frame*
+                             cram-tf:*robot-right-wrist-frame*)))
+                   (make-cartesian-constraint
+                    cram-tf:*odom-frame*
+                    wrist-link
+                    (cl-transforms-stamped:pose->pose-stamped
+                     wrist-link 0.0
+                     (cl-transforms:make-identity-pose))))
+                 (when (eq (rob-int:get-robot-name) :tiago-dual)
+                   (make-diffdrive-base-arch-constraint hinge-point-stamped :small-weight t))
+                 (make-avoid-joint-limits-constraint
+                  :joint-list (cut:var-value
+                               '?joints
+                               (car
+                                (prolog:prolog
+                                 `(and (rob-int:robot ?robot-name)
+                                       (rob-int:arm-joints
+                                        ?robot-name ,arm ?joints))))))
+                 (make-head-pointing-at-hand-constraint arm))
+   :collisions (make-constraints-vector
+                (make-allow-hand-collision
+                 (list arm) (rob-int:get-environment-name) handle-link))))
 
 (defun call-environment-manipulation-action (&key
                                                action-timeout
                                                open-or-close arm
                                                handle-link joint-angle
-                                               prefer-base)
+                                               prefer-base
+                                               joint-pose)
   (declare (type keyword open-or-close arm)
-           (type symbol handle-link)
+           ;;(type symbol handle-link)
            (type (or number null) joint-angle action-timeout)
-           (type boolean prefer-base))
+           (type boolean prefer-base)
+           (type (or cl-transforms:pose null) joint-pose))
 
-  (if (eq open-or-close :open)
-      (dotimes (i 2)
-        (call-action
-         :action-goal (make-environment-manipulation-goal
-                       open-or-close arm handle-link (/ joint-angle 2.0) prefer-base)
-         ;; This needs a fix: we open the joint 2x for the same joint state
-         ;; Instead do open half, update global env joint-state, open full.
-         :action-timeout action-timeout
-         :check-goal-function (lambda (result status)
-                                (declare (ignore result))
-                                (when (or (not status)
-                                          (member status '(:preempted :aborted :timeout)))
-                                  (make-instance
-                                      'common-fail:environment-manipulation-goal-not-reached
-                                    :description "Giskard action failed.")))))
+  (let ((joint-point-stamped
+          (when joint-pose
+            (cl-transforms-stamped:make-point-stamped
+             cram-tf:*fixed-frame*
+             0.0
+             (cl-transforms:origin joint-pose)))))
+
+    (when (eq (rob-int:get-robot-name) :tiago-dual)
       (call-action
-       :action-goal (make-environment-manipulation-goal
-                     open-or-close arm handle-link joint-angle prefer-base)
-       :action-timeout action-timeout
-       :check-goal-function (lambda (result status)
-                              (declare (ignore result))
-                              (when (or (not status)
-                                        (member status '(:preempted :aborted :timeout)))
-                                (make-instance
-                                    'common-fail:environment-manipulation-goal-not-reached
-                                  :description "Giskard action failed."))))))
+       :action-goal (make-environment-manipulation-diffdrive-pregoal
+                     arm handle-link joint-point-stamped)
+       :action-timeout action-timeout))
+
+    (call-action
+     :action-goal (make-environment-manipulation-goal
+                   open-or-close arm handle-link joint-angle prefer-base
+                   joint-point-stamped)
+     :action-timeout action-timeout
+     :check-goal-function (lambda (result status)
+                            (declare (ignore result))
+                            (when (or (not status)
+                                      (member status '(:preempted :aborted :timeout)))
+                              (make-instance
+                                  'common-fail:environment-manipulation-goal-not-reached
+                                :description "Giskard action failed.")))))
+  ;; (if (eq open-or-close :open)
+  ;;     (dotimes (i 2)
+  ;;       (call-action
+  ;;        :action-goal (make-environment-manipulation-goal
+  ;;                      open-or-close arm handle-link (/ joint-angle 2.0) prefer-base)
+  ;;        ;; This needs a fix: we open the joint 2x for the same joint state
+  ;;        ;; Instead do open half, update global env joint-state, open full.
+  ;;        :action-timeout action-timeout
+  ;;        :check-goal-function (lambda (result status)
+  ;;                               (declare (ignore result))
+  ;;                               (when (or (not status)
+  ;;                                         (member status '(:preempted :aborted :timeout)))
+  ;;                                 (make-instance
+  ;;                                     'common-fail:environment-manipulation-goal-not-reached
+  ;;                                   :description "Giskard action failed.")))))
+  ;;     (call-action
+  ;;      :action-goal (make-environment-manipulation-goal
+  ;;                    open-or-close arm handle-link joint-angle prefer-base)
+  ;;      :action-timeout action-timeout
+  ;;      :check-goal-function (lambda (result status)
+  ;;                             (declare (ignore result))
+  ;;                             (when (or (not status)
+  ;;                                       (member status '(:preempted :aborted :timeout)))
+  ;;                               (make-instance
+  ;;                                   'common-fail:environment-manipulation-goal-not-reached
+  ;;                                 :description "Giskard action failed.")))))
+  )

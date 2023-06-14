@@ -30,7 +30,7 @@
 
 (in-package :env-man)
 
-(defparameter *handle-retract-offset* 0.05 "in meters")
+(defparameter *handle-retract-offset* 0.15 "in meters")
 
 (defmethod man-int:get-action-trajectory :heuristics 20 ((action-type (eql :opening))
                                                          arm
@@ -93,6 +93,9 @@ The parameters are analog to the ones of `get-action-trajectory'."
          (object-name-T-tool-pregrasp-stamped
            (get-container-to-gripper-transform
             manipulated-link-name arm grasp object-environment :pregrasp))
+         (object-name-T-tool-2nd-pregrasp-stamped
+           (get-container-to-gripper-transform
+            manipulated-link-name arm grasp object-environment :2nd-pregrasp))
          (joint-axis
            (get-container-axis object-name object-environment)))
 
@@ -106,11 +109,13 @@ The parameters are analog to the ones of `get-action-trajectory'."
        (make-prismatic-trajectory base-T-object-name-stamped arm action-type
                                   object-name-T-tool-grasp-stamped
                                   object-name-T-tool-pregrasp-stamped
+                                  object-name-T-tool-2nd-pregrasp-stamped
                                   opening-distance joint-axis))
       (:container-revolute
        (make-revolute-trajectory base-T-object-name-stamped arm action-type
                                  object-name-T-tool-grasp-stamped
                                  object-name-T-tool-pregrasp-stamped
+                                 object-name-T-tool-2nd-pregrasp-stamped
                                  opening-distance joint-axis))
       (T (error "Unsupported container-type: ~a." object-type)))))
 
@@ -118,6 +123,7 @@ The parameters are analog to the ones of `get-action-trajectory'."
 (defun make-prismatic-trajectory (base-T-object-name-stamped arm action-type
                                   object-name-T-tool-grasp-stamped
                                   object-name-T-tool-pregrasp-stamped
+                                  object-name-T-tool-2nd-pregrasp-stamped
                                   opening-distance axis)
   "Return a list of `man-int::traj-segment's representing a trajectory to open a
 container with prismatic joints.
@@ -130,7 +136,7 @@ frame of the robot's end effector as the child (eg. `cram-tf:*robot-left-tool-fr
 `opening-distance' is the distance the object should be manipulated in m."
   (declare (type cl-transforms-stamped:transform-stamped
                  base-T-object-name-stamped object-name-T-tool-grasp-stamped
-                 object-name-T-tool-pregrasp-stamped)
+                 object-name-T-tool-pregrasp-stamped object-name-T-tool-2nd-pregrasp-stamped)
            (type keyword arm action-type)
            (type number opening-distance))
 
@@ -150,7 +156,7 @@ frame of the robot's end effector as the child (eg. `cram-tf:*robot-left-tool-fr
        ,action-type
        :retracting)
      (list
-      (list object-name-T-tool-pregrasp-stamped)
+      (list object-name-T-tool-pregrasp-stamped object-name-T-tool-2nd-pregrasp-stamped)
       (list object-name-T-tool-grasp-stamped)
       traj-poses
       (list (cram-tf:apply-transform
@@ -180,6 +186,7 @@ frame of the robot's end effector as the child (eg. `cram-tf:*robot-left-tool-fr
 (defun make-revolute-trajectory (base-T-object-name-stamped arm action-type
                                  object-name-T-tool-grasp-stamped
                                  object-name-T-tool-pregrasp-stamped
+                                 object-name-T-tool-2nd-pregrasp-stamped
                                  opening-angle
                                  axis)
   "Return a list of `man-int::traj-segment' representing a trajectory to open a
@@ -193,7 +200,7 @@ frame of the robot's end effector as the child (eg. `cram-tf:*robot-left-tool-fr
 `opening-distance' is the distance the object should be manipulated in rad."
   (declare (type cl-transforms-stamped:transform-stamped
                  base-T-object-name-stamped object-name-T-tool-grasp-stamped
-                 object-name-T-tool-pregrasp-stamped)
+                 object-name-T-tool-pregrasp-stamped object-name-T-tool-2nd-pregrasp-stamped)
            (type keyword arm action-type)
            (type number opening-angle))
   (let* ((traj-poses (get-revolute-traj-poses object-name-T-tool-grasp-stamped
@@ -211,7 +218,7 @@ frame of the robot's end effector as the child (eg. `cram-tf:*robot-left-tool-fr
        ,action-type
        :retracting)
      (list
-      (list object-name-T-tool-pregrasp-stamped)
+      (list object-name-T-tool-pregrasp-stamped object-name-T-tool-2nd-pregrasp-stamped)
       (list object-name-T-tool-grasp-stamped)
       traj-poses
       (list (cram-tf:apply-transform
@@ -310,10 +317,14 @@ If :pregrasp, object-name-T-tool-pregrasp is returned, otherwise object-name-T-t
             :handle handle-name-keyword arm grasp-pose-name))
          (handle-T-tool-stamped
            (if (eq pregrasp-or-grasp :pregrasp)
-               (car (man-int:get-object-type-to-gripper-pregrasp-transforms
+               (first (man-int:get-object-type-to-gripper-pregrasp-transforms
                      :handle handle-name-keyword arm grasp-pose-name nil
                      handle-T-tool-grasp-stamped))
-               handle-T-tool-grasp-stamped))
+               (if (eq pregrasp-or-grasp :2nd-pregrasp)
+                   (second (man-int:get-object-type-to-gripper-pregrasp-transforms
+                            :handle handle-name-keyword arm grasp-pose-name nil
+                            handle-T-tool-grasp-stamped))
+                   handle-T-tool-grasp-stamped)))
          (object-name-T-tool-stamped
            (cram-tf:multiply-transform-stampeds
             object-name tool-frame

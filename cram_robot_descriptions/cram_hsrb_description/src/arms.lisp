@@ -1,3 +1,4 @@
+
 ;;;
 ;;; Copyright (c) 2019,  Vanessa Hassouna <hassouna@uni-bremen.de>
 ;;;                      Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
@@ -32,11 +33,8 @@
 
 (defparameter *tcp-in-ee-pose*
   (cl-transforms:make-pose
-   (cl-transforms:make-3d-vector 0.0d0 0.0d0 0.23090001999999998d0)
-   (cl-transforms:make-quaternion 0.0d0
-                                  0.0d0
-                                  0.7071067811865475d0
-                                  0.7071067811865476d0)))
+   (cl-transforms:make-3d-vector 0 0 0.3091d0)
+   (cl-transforms:make-identity-rotation)))
 
 (defparameter *standard-to-hsrb-gripper-transform*
   (cl-transforms-stamped:make-identity-transform))
@@ -84,26 +82,56 @@
     (lisp-fun search "palm" ?link ?pos)
     (not (lisp-pred identity ?pos)))
 
-  (<- (gripper-joint :hsrb :left "hand_motor_joint"))
+  (<- (gripper-joint :hsrb :left "hand_l_proximal_joint"))
+  (<- (gripper-joint :hsrb :right "hand_r_proximal_joint"))
 
   (<- (gripper-meter-to-joint-multiplier :hsrb 1.0))
-  (<- (gripper-minimal-position :hsrb ?_ 0.0))
+
+  ;; hand proximal joint
+  (<- (gripper-minimal-position :hsrb "hand_l_proximal_joint" -0.81))
+  (<- (gripper-maximal-position :hsrb "hand_l_proximal_joint" 1.24))
+  (<- (gripper-convergence-delta :hsrb "hand_l_proximal_joint" 0.001))
+
+  ;; hand proximal spring joint
+  (<- (gripper-minimal-position :hsrb "hand_l_spring_proximal_joint" 0.65))
+  (<- (gripper-maximal-position :hsrb "hand_l_spring_proximal_joint" 0.75))
+  (<- (gripper-convergence-delta :hsrb "hand_l_spring_proximal_joint" 0.001))
+
+  ;; hand distal joint
+  (<- (gripper-minimal-position :hsrb "hand_l_distal_joint" -1.3))
+  (<- (gripper-maximal-position :hsrb "hand_l_distal_joint" 0.70))
+  (<- (gripper-convergence-delta :hsrb "hand_l_distal_joint" 0.001))
+
+  ;; hand mimic distal joint
+  (<- (gripper-minimal-position :hsrb "hand_l_mimic_distal_joint" -0.74))
+  (<- (gripper-maximal-position :hsrb "hand_l_mimic_distal_joint" 0.03))
+  (<- (gripper-convergence-delta :hsrb "hand_l_mimic_distal_joint" 0.001))
+
+  ;; hand mimic distal joint
+  (<- (gripper-minimal-position :hsrb "wrist_flex_joint" -1.5011))
+  (<- (gripper-maximal-position :hsrb "wrist_flex_joint" 1.03))
+  (<- (gripper-convergence-delta :hsrb "wrist_flex_joint" 0.001))
+
+  ;; default  
+  (<- (gripper-minimal-position :hsrb ?_ 0))
+  (<- (gripper-maximal-position :hsrb ?_ 1.24))
   (<- (gripper-convergence-delta :hsrb ?_ 0.001))
 
   (<- (standard<-particular-gripper-transform :hsrb ?transform)
     (symbol-value *standard-to-hsrb-gripper-transform* ?transform))
 
-  (<- (end-effector-link :hsrb :left "wrist_roll_link"))
+  (<- (end-effector-link :hsrb :left "hand_gripper_tool_frame"))
 
-  (<- (robot-tool-frame :hsrb :left "gripper_tool_frame"))
+  (<- (robot-tool-frame :hsrb :left "hand_gripper_tool_frame"))
+  (<- (robot-tool-frame :hsrb :right "hand_gripper_tool_frame"))
 
   (<- (tcp-in-ee-pose :hsrb ?pose)
     (symbol-value *tcp-in-ee-pose* ?pose))
 
   (<- (robot-joint-states :hsrb :arm :left :carry
                           (("arm_flex_joint" 0)
-                           ("arm_roll_joint" 1.5)
+                           ("arm_roll_joint" 2.0)
                            ("wrist_flex_joint" -1.85)
                            ("wrist_roll_joint" 0))))
   (<- (robot-joint-states :hsrb :arm :left :park ?joint-states)
-    (robot-joint-states :hsrb :arm :left :carry ?joint-states)))
+    (robot-joint-states :hsrb :arm :right :carry ?joint-states)))

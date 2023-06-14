@@ -54,7 +54,8 @@
                   ((:right-grasp-poses ?right-grasp-poses))
                   ((:left-lift-poses ?left-lift-poses))
                   ((:right-lift-poses ?right-lift-poses))
-                  ((:hold ?holding))
+		  ((:holding ?holding))
+                  park-arms
                 &allow-other-keys)
   (declare (type desig:object-designator ?object-designator)
            (type list ?arm)
@@ -67,8 +68,8 @@
            (ignore location-type))
   "Open gripper, reach traj, grasp traj, close gripper, issue grasping event, lift."
 
-  (cram-tf:visualize-marker (man-int:get-object-pose ?object-designator)
-                            :r-g-b-list '(1 1 0) :id 300)
+  ;; (cram-tf:visualize-marker (man-int:get-object-pose ?object-designator)
+  ;;                           :r-g-b-list '(1 1 0) :id 300)
 
   (unless robot-arm-is-also-a-neck
     (roslisp:ros-info (pick-place pick-up) "Looking")
@@ -83,13 +84,14 @@
                  (type looking)
                  (target (desig:a location
                                   (pose ?look-pose)))))))
-  (cpl:par
-    (roslisp:ros-info (pick-place pick-up) "Opening gripper and reaching")
+  (;cpl:par
+   cpl:seq
+   (roslisp:ros-info (pick-place pick-up) "Opening gripper and reaching")
     (let ((?goal `(cpoe:gripper-joint-at ,?arm ,?gripper-opening)))
       (exe:perform
        (desig:an action
                  (type setting-gripper)
-                 (gripper ?arm)
+                 (gripper :left)
                  (position ?gripper-opening)
                  (goal ?goal))))
     (cpl:with-failure-handling
@@ -159,22 +161,28 @@
                    (left-poses ?left-lift-poses)
                    (right-poses ?right-lift-poses)
                    (goal ?goal)))))
-    ;; (cpl:seq
-    ;;   (exe:perform
-    ;;    (desig:an action
-    ;;              (type monitoring-joint-state)
-    ;;              (gripper ?arm)))
-    ;;   (cpl:fail 'common-fail:gripper-closed-completely
-    ;;             :description "Object slipped"))
-     )
-  (roslisp:ros-info (pick-place place) "Parking")
-  (exe:perform
-   (desig:an action
-             (type parking-arms)
-             ;; TODO: this will not work with dual-arm grasping
-             ;; but as our ?arm is declared as a keyword,
-             ;; for now this code is the right code
-             (arms (?arm))))))
+
+    (cpl:seq
+      (exe:perform
+       (desig:an action
+                 (type monitoring-joint-state)
+                 (gripper ?arm)))
+      (cram-occasions-events:on-event
+       (make-instance 'cpoe:object-detached-robot
+         :arm ?arm
+         :object-name (desig:desig-prop-value ?object-designator :name)))
+      (cpl:fail 'common-fail:gripper-closed-completely
+                :description "Object slipped")))
+  (when park-arms
+    (roslisp:ros-info (pick-place place) "Parking")
+    (exe:perform
+     (desig:an action
+               (type parking-arms)
+               ;; TODO: this will not work with dual-arm grasping
+               ;; but as our ?arm is declared as a keyword,
+               ;; for now this code is the right code
+               (arms (?arm)))))))
+
 
 (defun place (&key
                 ((:object ?object-designator))
@@ -222,29 +230,30 @@
                  (target (desig:a location
                                   (pose ?look-pose)))))))
   (roslisp:ros-info (pick-place place) "Reaching")
-  (cpl:with-failure-handling
-      ((common-fail:manipulation-low-level-failure (e)
-         (roslisp:ros-warn (pp-plans pick-up)
-                           "Manipulation messed up: ~a~%Ignoring."
-                           e)
-         ;; (return)
-         ))
-    (let ((?goal `(cpoe:tool-frames-at ,?left-reach-poses ,?right-reach-poses)))
-      (exe:perform
-       (desig:an action
-                 (type reaching)
-                 (location ?target-location-designator)
-                 (left-poses ?left-reach-poses)
-                 (right-poses ?right-reach-poses)
-                 (goal ?goal)))))
+  (cpl:with-retry-counters ((reach-retries 1))
+    (cpl:with-failure-handling
+        ((common-fail:manipulation-low-level-failure (e)
+           (roslisp:ros-warn (pp-plans pick-up)
+                             "Manipulation messed up: ~a~%Ignoring."
+                             e)
+           (cpl:do-retry reach-retries
+             (cpl:retry))
+           (return)))
+      (let ((?goal `(cpoe:tool-frames-at ,?left-reach-poses ,?right-reach-poses)))
+        (exe:perform
+         (desig:an action
+                   (type reaching)
+                   (location ?target-location-designator)
+                   (left-poses ?left-reach-poses)
+                   (right-poses ?right-reach-poses)
+                   (goal ?goal))))))
   (roslisp:ros-info (pick-place place) "Putting")
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
          (roslisp:ros-warn (pp-plans pick-up)
                            "Manipulation messed up: ~a~%Ignoring."
                            e)
-         ;; (return)
-         ))
+         (return)))
     (let ((?goal `(cpoe:tool-frames-at ,?left-put-poses ,?right-put-poses)))
       (exe:perform
        (desig:an action
@@ -256,7 +265,7 @@
                  (right-poses ?right-put-poses)
                  (goal ?goal)))))
   (when ?placing-location-name
-    (roslisp:ros-info (boxy-plans connect) "Asserting assemblage connection in knowledge base")
+    (roslisp:ros-info (pp-plans put) "Asserting assemblage connection in knowledge base")
     (if other-object-is-a-robot
         (cram-occasions-events:on-event
          (make-instance 'cpoe:object-attached-robot
@@ -264,7 +273,8 @@
                   (desig:desig-prop-value ?other-object-designator :urdf-name))
            :not-loose t
            :object-name (desig:desig-prop-value ?object-designator :name)
-           :other-object-name (desig:desig-prop-value ?other-object-designator :name)
+           :other-object-name (or (desig:desig-prop-value ?other-object-designator :name)
+                                  (desig:desig-prop-value ?other-object-designator :part-of))
            :grasp ?placing-location-name))
         (cram-occasions-events:on-event
          (make-instance 'cpoe:object-attached-object

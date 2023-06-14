@@ -66,6 +66,11 @@ or in general at compile-time.")
 (defvar *robot-right-tool-frame* nil
   "Tool frame of the right arm. Initialized from CRAM robot desciption.")
 
+(defvar *robot-left-wrist-frame* nil
+  "Wrist frame of the left arm. Initialized from CRAM robot description.")
+(defvar *robot-right-wrist-frame* nil
+  "Wrist frame of the right arm. Initialized from CRAM robot desciption.")
+
 (defun init-tf ()
   (macrolet ((initialize-var (dynamic-var prolog-var)
                (let ((var-name (symbol-name dynamic-var)))
@@ -111,8 +116,8 @@ or in general at compile-time.")
              (cl-urdf:name
               (cl-urdf:parse-urdf
                (cut:replace-all ; our pr2 urdf has some garbage inside :(
-                (roslisp:get-param rob-int:*robot-description-parameter*)
-                "\\" "  ")))
+                                (roslisp:get-param rob-int:*robot-description-parameter*)
+                                "\\" "  ")))
              :keyword)))
       (rob-int:set-robot-name robot-name)
       (roslisp:ros-info (cram-tf init-tf) "Robot name is ~a." robot-name))
@@ -142,7 +147,15 @@ or in general at compile-time.")
     (with-vars-bound (?right-tool-frame)
         (lazy-car (prolog `(and (robot ?robot)
                                 (robot-tool-frame ?robot :right ?right-tool-frame))))
-      (initialize-var *robot-right-tool-frame* ?right-tool-frame))))
+      (initialize-var *robot-right-tool-frame* ?right-tool-frame))
+    (with-vars-bound (?left-wrist-frame)
+        (lazy-car (prolog `(and (robot ?robot)
+                                (end-effector-link ?robot :left ?left-wrist-frame))))
+      (initialize-var *robot-left-wrist-frame* ?left-wrist-frame))
+    (with-vars-bound (?right-wrist-frame)
+        (lazy-car (prolog `(and (robot ?robot)
+                                (end-effector-link ?robot :right ?right-wrist-frame))))
+      (initialize-var *robot-right-wrist-frame* ?right-wrist-frame))))
 
 (defun destroy-tf ()
   (setf *transformer* nil)
