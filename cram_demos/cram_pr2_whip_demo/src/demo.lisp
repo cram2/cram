@@ -195,7 +195,7 @@
 
                             ; (desig:an object (type big-bowl))))
                              (desig:an object (type saucepan))))
-          (?reso 4))
+          (?reso 6))
 
       ;; (exe:perform (desig:an action
       ;;                        (type ) - how to look up types again

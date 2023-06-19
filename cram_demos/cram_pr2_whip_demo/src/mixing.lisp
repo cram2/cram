@@ -30,7 +30,7 @@
     ((object-type (eql :saucepan))
      (arm (eql :left))
      (grasp (eql :top)))
-  '((0.093 0.093 0.04)(1 0 0 0)))
+  '((0.093 0.093 0.04)(1 0 0 0))) ;<- what
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
@@ -44,7 +44,7 @@
     ((object-type (eql :saucepan))
       (arm (eql :right))
      (grasp (eql :top)))
-  '((0.093 0.093 0.04)(1 0 0 0)))
+  '((0 0 0.04)(1 0 0 0)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -52,13 +52,13 @@
      ((object-type (eql :big-bowl))
       (arm (eql :right))
      (grasp (eql :top)))
-  '((0.02 -0.12 0.28)(1 0 0 0)))   
+  '((0.02 0.28 -0.12)(1 0 0 0)))   
 
 (defmethod get-object-type-robot-frame-mix-retract-transform
      ((object-type (eql :saucepan))
       (arm (eql :right))
-     (grasp (eql :top)))
-  '((0.093 0.093 0.04)(1 0 0 0)))
+      (grasp (eql :top)))
+  '((0 0 0.11)(1 0 0 0)))
 
 ;;the z should be  defined by:
 ;;object in hand where?
@@ -76,15 +76,19 @@
     ((object-type (eql :saucepan))
      (arm (eql :right))
      (grasp (eql :top)))
-    '((0 0.04 0.093)(1 0 0 0)))
+    '((0 0 0.093)(1 0 0 0)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;decided to use the z axis as radius measure (important for mix center point calculation)
+;decided y to be height og bowl and ground of bowl - need to calc with whisk dimensions to get robot gripper position in object tf before calc on higher level
 
-(defmethod get-object-type-robot-frame-mix-retract-transform
-     ((object-type (eql :saucepan))
-      (arm (eql :right))
-     (grasp (eql :top)))
-  '((0.093 0.093 0.04)(1 0 0 0)))
+(defmethod get-object-type-robot-frame-mix-rim-top-transform
+   ((object-type (eql :big-bowl)))
+  '((0.0 -0.09 0.11)(1 0 0 0))) ;0.11
+
+(defmethod get-object-type-robot-frame-mix-rim-top-transform
+   ((object-type (eql :saucepan)))
+  '((0 0.093 0.04)(1 0 0 0))) ;0.11
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -95,7 +99,7 @@
 
 (defmethod get-object-type-robot-frame-mix-rim-bottom-transform
    ((object-type (eql :saucepan)))
-  '((0.093 0.093 -0.04)(1 0 0 0)))
+  '((0.09 0.093 0.04)(1 0 0 0)))
 
 ;decided to use the z axis as radius measure (important for mix center point calculation)
 ;for top rim look at mix-approach-transform
@@ -117,12 +121,8 @@
   '((0.03 0.03 0.15)(1 0 0 0)))
                                         ; '((0.02 -0.12 0.06)(1 0 0 0)))
 
-;decided to use the z axis as radius measure (important for mix center point calculation)
-;decided y to be height og bowl and ground of bowl - need to calc with whisk dimensions to get robot gripper position in object tf before calc on higher level
 
-(defmethod get-object-type-robot-frame-mix-rim-top-transform
-   ((object-type (eql :big-bowl)))
-  '((0.0 -0.09 0.11)(1 0 0 0))) ;0.11
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod get-object-type-robot-frame-mix-tool-transform
     ((object-type (eql :whisk))

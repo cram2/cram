@@ -1701,12 +1701,12 @@
 (man-int:def-object-type-to-gripper-transforms '(:whisk)
     '(:left :right) :top
   :location-type :counter-top
-  :grasp-translation `(-0.05 0 -0.02)
+  :grasp-translation  `(-0.05 0 0) ;-0.05 0 -0.02)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets `(-0.05 0 0.2)
   :2nd-pregrasp-offsets `(-0.05 0 0.2)
   :lift-translation `(-0.05 0 0.2)
-  :2nd-lift-translation `(-0.05 0 0.2))
+  :2nd-lift-translation `(-0.05 0.015 0.2))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; big-bowl ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
