@@ -2,12 +2,11 @@
 <launch>
   <arg name="publish_environment" default="true" />
   <arg name="env_model_yaml" default="rw_lab_master_2023.yaml" /> <!--rw_suturocup or rw_lab_master_2022 -->
-  <arg name="upload_hsrb" default="true" /> <!-- Set true if robot has publishes faulty robot_description -->
-  <arg name="publish_joint_state" default="true" />
-  <arg name="publish_joint_state_map_to_robot" default="true" />
+  <arg name="upload_hsrb" default="false" /> <!-- Set true if robot has publishes faulty robot_description -->
+  <arg name="publish_joint_state" default="false" />
   <arg name="upload_map" default="true" />
   <arg name="run_snap_map" default="false" />
-  <arg name="use_rviz" default="true"/>
+  <arg name="use_rviz" default="false"/>
 
   
  
@@ -27,7 +26,26 @@
     <node name="map_server" pkg="map_server" type="map_server" args="$(find suturo_resources)/maps/hsr_lab_master_2023/hsr_lab_master_2023.yaml" />
   </group>  
   
-  
+  <!-- kitchen URDF 
+  <param name="kitchen_description"
+         command="$(find xacro)/xacro '$(find iai_kitchen)/urdf_obj/iai_kitchen_python.urdf.xacro'"/>
+  <node pkg="joint_state_publisher" type="joint_state_publisher"
+        name="kitchen_joint_state_publisher" output="screen">
+    <remap from="robot_description" to="kitchen_description"/>
+    <param name="rate" value="25"/>
+    <param name="use_gui" value="False"/>
+    <remap from="joint_states" to="kitchen/joint_states" />
+  </node>
+  <node pkg="tf" type="static_transform_publisher" name="kitchen_link_broadcaster"
+        args="0 0 0 0 0 0 /map /iai_kitchen/world 25">
+  </node>
+  <node pkg="robot_state_publisher" type="robot_state_publisher"
+    name="kitchen_state_publisher" output="screen">
+    <param name="tf_prefix" value="iai_kitchen"/>
+    <param name="publish_frequency" value="25"/>
+    <remap from="robot_description" to="kitchen_description" />
+    <remap from="joint_states" to="kitchen/joint_states" />
+  </node>-->
 
   <!-- HSRB URDF -->
   <group if="$(arg upload_hsrb)">
@@ -36,9 +54,9 @@
                     '$(find hsr_description)/robots/hsrb4s.urdf.xacro'"/>
   </group>
 
-<!-- publish_joint_state -->
-    <group if="$(arg publish_joint_state)">
-    <node pkg="joint_state_publisher" type="joint_state_publisher"
+  <group if="$(arg publish_joint_state)">
+    <node pkg="tf" type="static_transform_publisher" name="map_to_base_footprint_broadcaster" args="0 0 0.08 0 0 0 1 hand_palm_link hand_gripper_tool_frame 100"/>
+    <!--node pkg="joint_state_publisher" type="joint_state_publisher"
           name="robot_joint_state_publisher" output="screen">
       <param name="rate" value="25"/>
       <param name="use_gui" value="False"/>
@@ -46,16 +64,8 @@
     <node pkg="robot_state_publisher" type="robot_state_publisher"
           name="robot_state_publisher" output="screen">
       <param name="publish_frequency" value="25"/>
-    </node>
+    </node-->
   </group>
-   <group if="$(arg publish_joint_state_map_to_robot)">
-  	<node name="robot_to_map" pkg="tf2_ros" type="static_transform_publisher" 
-	      args="0.0 0.0 0.0 0.0 0.0 0.0 base_link map" />
-  </group>
-  
- 
-
-
   
   <group if="$(eval arg('use_rviz') == true)">
     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find suturo_resources)/rviz_configs/suturo.rviz" />
@@ -66,7 +76,7 @@
   <node pkg="tf2_ros" type="buffer_server" name="tf_server" output="screen" />
 
   <!-- IK solver --> 
-  <!-- <include file="$(find kdl_ik_service)/launch/kdl_ik.launch" /> -->
+  <include file="$(find kdl_ik_service)/launch/kdl_ik.launch" />
 
 
 </launch>

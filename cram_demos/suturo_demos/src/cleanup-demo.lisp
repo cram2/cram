@@ -1,4 +1,4 @@
-(in-package :demos)
+(in-package :su-demos)
 
 ;;@author Felix Krause, Tim Rienits
 (defun cleanup-demo ()
