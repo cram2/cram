@@ -1,0 +1,23 @@
+<package format="2">
+  <name>cram_hsr_sim_process_modules</name>
+  <version>0.7.0</version>
+  <description>
+     cram_hsr_process_modules
+  </description>
+  <author>Vanessa Hassouna</author>
+  <maintainer email="hassouna@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>cram_process_modules</depend>
+  <depend>cram_prolog</depend>
+  <depend>cram_designators</depend>
+  <depend>cram_tf</depend>
+  <depend>cram_common_failures</depend>
+  <depend>cram_common_designators</depend>
+  <depend>cram_language</depend>
+  <depend>cram_giskard</depend>
+  <depend>cram_joint_states</depend>
+  <depend>cram_urdf_projection</depend>
+</package>
