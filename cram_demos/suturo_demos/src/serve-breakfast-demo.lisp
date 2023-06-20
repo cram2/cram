@@ -39,18 +39,22 @@
 
 (defun serve-breakfast-demo()
   ;;(call-text-to-speech-action "Starting demo")
+
+  (with-knowledge-result ()
+        `("init_serve_breakfast")
+      (print "Serving Breakfast plan started."))
   
   (park-robot)
 
   ;; (call-text-to-speech-action "Positioning in front of shelf")
   ;; Calls knowledge to receive coordinates of the shelf pose, then relays that pose to navigation
   (with-knowledge-result (shelf table)
-      `(and ("has_urdf_name" object1 "shelf:shelf:shelf_base_center")
+      `(and ("has_urdf_name" object1 "open_shelf:shelf:shelf_base_center")
             ("object_rel_pose" object1 "perceive" shelf)
             ("has_urdf_name" object2 "left_table:table:table_front_edge_center")
-            ("object_rel_pose" object2 "perceive" table))
+            ("object_rel_pose" object2 "perceive" (list ("direction" "-y")) table))
     (move-hsr (make-pose-stamped-from-knowledge-result shelf))
-
+    (sleep 1)
   
   
 
@@ -72,7 +76,7 @@
     ;; (move-hsr (make-pose-stamped-from-knowledge-result shelf))
 
   ;; (park-robot)
-
+    
   (let* ((?source-object-desig
            (desig:all object
                       (type :breakfast)))
@@ -84,8 +88,9 @@
          (?found-cereal nil))
     (with-knowledge-result (nextobject)
         `("next_object" nextobject)
+      (print "next object:")
       (print nextobject)
-      (break)
+      ;; (break)
       (loop until (and (string= nextobject "I")
                        (eq ?found-cereal nil))
             do (let* ((?target-pose (get-target-pos nextobject)))
@@ -95,7 +100,7 @@
                      (setf nextobject result))
                  (print ?current-object)
                  (print nextobject)
-                 (break)
+                 ;; (break)
                    (progn
                      (move-hsr (make-pose-stamped-from-knowledge-result shelf))
                      (cond
@@ -105,7 +110,7 @@
                                    (string= ?current-object "I")
                                    (not (eq ?found-cereal nil)))
                           (print "Inside found-cereal to current-object")
-                          (break)
+                          ;; (break)
                           (setf ?current-object ?found-cereal)
                           (setf ?found-cereal nil))
                         (cond
@@ -125,12 +130,11 @@
                              ;; - lifting the object
                              ;; - retracting the arm to retrieve the object from, for example, a shelf
                              ;;(call-text-to-speech-action "Picking up the object Cereal-Box")
-                             (let ((?object-size
-                                     (cl-tf2::make-3d-vector 0.16 0.06 0.215))
+                             (let ((?object-size (get-target-size ?current-object))
                                    (?object-pose (make-pose-stamped-from-knowledge-result pose)))
                                (exe:perform (desig:an action
                                                       (type picking-up)
-                                                      (object-pose ?object-pose)
+                                                      (goal-pose ?object-pose)
                                                       (object-size ?object-size)
                                                       (collision-mode :allow-all)))))))
                        (park-robot)
@@ -144,27 +148,32 @@
                        ;; - placing the object
                        ;; - opening the gripper, thus releasing the object
                        (unless (search "CerealBox" ?current-object)
-                         (let ((?object-height 0.215d0))
+                         (let ((?object-height (cl-transforms:z (get-target-size ?current-object)))
+                               (?from-above (get-frontal-placing ?current-object))
+                               (?neatly (get-neatly-placing ?current-object)))
                            ;;(call-text-to-speech-action "Placing object Cereal-Box")
+                           ;; ?frontal-placing and ?neatly are currently the same for each object, thats why i just use the same function until after the milestone 
                            (exe:perform (desig:an action
                                                   (type :placing)
-                                                  (target-pose ?target-pose)
+                                                  (goal-pose ?target-pose)
                                                   (object-height ?object-height)
+                                                  (from-above ?from-above)
+                                                  (neatly ?neatly)
                                                   (collision-mode :allow-all)))
-                           (park-robot)))))))))
+                           (su-demos::with-knowledge-result ()
+                               `("object_pose" ,?current-object ,(reformat-stamped-pose-for-knowledge (get-object-pos ?current-object)))
+                           (park-robot))))))))))
 
     (print "stop")
-    (break)
-    (with-knowledge-result (bowlframe bowlpose milk)
-        `(and ("object_shape_workaround" ,?current-object bowlframe _ _ _)
-              ("object_pose" ,?current-object bowlpose))
-      (let ((?object-size
-              (cl-tf2::make-3d-vector 0.065 0.16 0.215))
-            (?bowl-size (cl-tf2::make-3d-vector 0.16 0.16 0.05))
-            (?cereal-target-pose (get-target-pos ?found-cereal))
-            (?milk-target-pose (get-target-pos milk))
-            (?bowl-frame bowlframe)
-            )
+    ;; (break)
+    (with-knowledge-result (bowlframe)
+        `(and ("has_type" bowlname ,(transform-key-to-string :bowl))
+              ("object_shape_workaround" bowlname bowlframe _ _ _))
+      (let ((?object-size (get-target-size ?current-object))
+            (?bowl-size (get-target-size bowlframe))
+            (?cereal-target-pose (get-target-pos ?current-object))
+            (?milk-target-pose (get-object-pos "Milk"))
+            (?bowl-frame bowlframe))
         (exe:perform (desig:an action
                              (type su-pouring)
                              (target-object ?bowl-frame)
@@ -177,33 +186,34 @@
         (let ((?object-height (cl-transforms:z ?object-size)))
           (exe:perform (desig:an action
                                  (type :placing)
-                                 (target-pose ?cereal-target-pose)
+                                 (goal-pose ?cereal-target-pose)
                                  (object-height ?object-height)
+                                 (neatly T)
                                  (collision-mode :allow-all))))
 
+        (park-robot)
           ;; Calls knowledge to receive coordinates of the dinner table pose, then relays that pose to navigation
         (move-hsr (make-pose-stamped-from-knowledge-result table))
 
           
-        (let ((?object-size
-                (cl-tf2::make-3d-vector 0.16 0.06 0.215)))
+        (let ((?object-size (get-target-size "Milk")))
           (exe:perform (desig:an action
                                  (type picking-up)
-                                 (object-pose milk-target-pose);; ?milk-pose)
+                                 (goal-pose ?milk-target-pose);; ?milk-pose)
                                  (object-size ?object-size)
-                                 (collision-mode :allow-all))))
-        (park-robot)
+                                 (collision-mode :allow-all)))
+          (park-robot)
         
-        ;;(call-text-to-speech-action "Moving to target location")
-        ;; Calls knowledge to receive coordinates of the dinner table pose, then relays that pose to navigation
-        (move-hsr (make-pose-stamped-from-knowledge-result table))
+          ;;(call-text-to-speech-action "Moving to target location")
+          ;; Calls knowledge to receive coordinates of the dinner table pose, then relays that pose to navigation
+          (move-hsr (make-pose-stamped-from-knowledge-result table))
         
-        (exe:perform (desig:an action
-                               (type su-pouring)
-                               (target-object ?bowl-frame)
-                               (object-size ?object-size)
-                               (target-size ?bowl-size)
-                               (collision-mode :allow-all)))
+          (exe:perform (desig:an action
+                                 (type su-pouring)
+                                 (target-object ?bowl-frame)
+                                 (object-size ?object-size)
+                                 (target-size ?bowl-size)
+                                 (collision-mode :allow-all)))
         
         (park-robot)
         (move-hsr (make-pose-stamped-from-knowledge-result table))
@@ -211,16 +221,22 @@
         (let ((?object-height (cl-transforms:z ?object-size)))
           (exe:perform (desig:an action
                                  (type :placing)
-                                 (target-pose ?milk-target-pose)
+                                 (goal-pose ?milk-target-pose)
                                  (object-height ?object-height)
-                                 (collision-mode :allow-all)))))))))
+                                 (neatly T)
+                                 (collision-mode :allow-all))))
+          (park-robot)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;; Hardcoded stuff for debugging ;;;;;;;;;;;;
 
 (defun park-robot ()
   "Default pose"
-  (call-take-pose-action 0 0 0 0 0 -1.5 -1.5 0))
+  (call-take-pose-action 0 0 0 0 0 -1.5 -1.5 0)
+  (exe:perform (desig:a motion
+                        (type gripper-motion)
+                        (:open-close :close)
+                        (effort 0.1))))
 
 (defun perc-robot ()
   "Default pose"
@@ -260,28 +276,68 @@
   (cond
       ((search "Cereal" obj-name)  (cl-tf2::make-pose-stamped
                                     "map" 0
-                                    (cl-tf2::make-3d-vector 1.5 -1.35 0.7)
+                                    (cl-tf2::make-3d-vector 2.0 -0.25 0.7)
                                     (cl-tf2::make-quaternion 0 0 0 1)))
 
       ((search "Milk" obj-name)  (cl-tf2::make-pose-stamped
                                     "map" 0
-                                    (cl-tf2::make-3d-vector 1.5 -1.25 0.7)
+                                    (cl-tf2::make-3d-vector 2.0  -0.1 0.7)
                                     (cl-tf2::make-quaternion 0 0 0 1)))
 
-      ((search "Spoon" obj-name)  (cl-tf2::make-pose-stamped
-                                    "map" 0
-                                    (cl-tf2::make-3d-vector 1.5 -1.1 0.7)
-                                    (cl-tf2::make-quaternion 0 0 0 1)))
+      ;; ((search "Spoon" obj-name)  (cl-tf2::make-pose-stamped
+      ;;                               "map" 0
+      ;;                               (cl-tf2::make-3d-vector 2.05 0.3 0.7)
+      ;;                               (cl-tf2::make-quaternion 0 0 0 1)))
 
       ((search "Bowl" obj-name)  (cl-tf2::make-pose-stamped
                                     "map" 0
-                                    (cl-tf2::make-3d-vector 1.5 -0.95 0.7)
+                                    (cl-tf2::make-3d-vector 2.0 0.15 0.7)
                                     (cl-tf2::make-quaternion 0 0 0 1)))))
+
+(defun get-object-pos (obj-name)
+  (cond
+      ((search "Cereal" obj-name)  (cl-tf2::make-pose-stamped
+                                    "map" 0
+                                    (cl-tf2::make-3d-vector 2.0 -0.25 0.81)
+                                    (cl-tf2::make-quaternion 0 0 0 1)))
+
+      ((search "Milk" obj-name)  (cl-tf2::make-pose-stamped
+                                    "map" 0
+                                    (cl-tf2::make-3d-vector 2.0 -0.1 0.8)
+                                    (cl-tf2::make-quaternion 0 0 0 1)))
+
+      ;; ((search "Spoon" obj-name)  (cl-tf2::make-pose-stamped
+      ;;                               "map" 0
+      ;;                               (cl-tf2::make-3d-vector 2.05 0.3 0.7)
+      ;;                               (cl-tf2::make-quaternion 0 0 0 1)))
+
+      ((search "Bowl" obj-name)  (cl-tf2::make-pose-stamped
+                                    "map" 0
+                                    (cl-tf2::make-3d-vector 2.0 0.15 0.75)
+                                    (cl-tf2::make-quaternion 0 0 0 1)))))
+
+
+(defun get-target-size (obj-name)
+  (cond
+      ((search "Cereal" obj-name) (cl-tf2::make-3d-vector 0.14 0.06 0.225))
+      ((search "Milk" obj-name) (cl-tf2::make-3d-vector 0.09 0.06 0.2))
+      ;; ((search "Spoon" obj-name) (cl-tf2::make-3d-vector 0.16 0.06 0.215))
+      ((search "Bowl" obj-name) (cl-tf2::make-3d-vector 0.16 0.16 0.05))))
       
        
-      
-  
-  
+(defun get-frontal-placing (obj-name)
+  (cond
+      ((search "Cereal" obj-name) nil)
+      ((search "Milk" obj-name) nil)
+      ;; ((search "Spoon" obj-name) (cl-tf2::make-3d-vector 0.16 0.06 0.215))
+      ((search "Bowl" obj-name) T)))
+
+(defun get-neatly-placing (obj-name)
+  (cond
+      ((search "Cereal" obj-name) T)
+      ((search "Milk" obj-name) T)
+      ;; ((search "Spoon" obj-name) (cl-tf2::make-3d-vector 0.16 0.06 0.215))
+      ((search "Bowl" obj-name) nil)))
 
 
 

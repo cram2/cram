@@ -78,8 +78,7 @@
   (setf prolog:*break-on-lisp-errors* t)
 
   (btr:clear-costmap-vis-object)
-  (btr:add-objects-to-mesh-list "cram_hsrb_pick_demo"))
-
+  ;(btr:add-objects-to-mesh-list "cram_hsrb_pick_demo"))
 
 
 (roslisp-utilities:register-ros-init-function init-projection)
