@@ -1,0 +1,10 @@
+<launch>
+
+  <!-- giskard with HSR parameters -->
+  <include file="$(find giskardpy)/launch/giskardpy_hsr_standalone.launch" />
+
+  <!-- occupancy map, kitchen, ik solver, no PR2 description -->
+  <include file="$(find cram_hsr_robocup_clean_up)/launch/sandbox.launch">
+    <arg name="upload" value="false"/>
+  </include>
+</launch>
