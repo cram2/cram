@@ -107,7 +107,7 @@
   (<- (gripper-maximal-position :hsrb "hand_l_mimic_distal_joint" 0.03))
   (<- (gripper-convergence-delta :hsrb "hand_l_mimic_distal_joint" 0.001))
 
-  ;; hand mimic distal joint
+  ;; wrist flex joint
   (<- (gripper-minimal-position :hsrb "wrist_flex_joint" -1.5011))
   (<- (gripper-maximal-position :hsrb "wrist_flex_joint" 1.03))
   (<- (gripper-convergence-delta :hsrb "wrist_flex_joint" 0.001))

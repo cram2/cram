@@ -14,7 +14,7 @@
                   ((:align-planes-right ?align-planes-right))
                   ((:precise-tracking ?precise-tracking))
                   ((:object-type ?object-type))
-                  ((:object-pose ?object-pose))
+                  ((:goal-pose ?goal-pose))
                   ((:object-size ?object-size))
                   ((:object-name ?object-name))
                 &allow-other-keys)
@@ -48,28 +48,25 @@
                    ((?pose
                      (cram-designators::pose cram-designators:data))) 
                    ?object-desig
-                 (setf ?object-pose ?pose)))
+                 (setf ?goal-pose ?pose)))
              (cpl:retry))))
       
-      (roslisp:with-fields 
-          ((?object-height (z)))
-          ?object-size
-        
+      (let ((?object-height (cl-transforms:z ?object-size)))
         (exe:perform (desig:a motion
-                        (type aligning-height)
-                        (collision-mode ?collision-mode)
-                        (collision-object-b ?collision-object-b)
-                        (collision-object-b-link ?collision-object-b-link)
-                        (collision-object-a ?collision-object-a)
-                        (allow-base ?move-base)
-                        (prefer-base ?prefer-base)
-                        (straight-line ?straight-line)
-                        (align-planes-left ?align-planes-left)
-                        (align-planes-right ?align-planes-right)
-                        (precise-tracking ?precise-tracking)
-                        (goal-pose ?object-pose)
-                        (object-height ?object-height)
-                        (object-name ?object-name)))
+                              (type aligning-height)
+                              (collision-mode ?collision-mode)
+                              (collision-object-b ?collision-object-b)
+                              (collision-object-b-link ?collision-object-b-link)
+                              (collision-object-a ?collision-object-a)
+                              (allow-base ?move-base)
+                              (prefer-base ?prefer-base)
+                              (straight-line ?straight-line)
+                              (align-planes-left ?align-planes-left)
+                              (align-planes-right ?align-planes-right)
+                              (precise-tracking ?precise-tracking)
+                              (goal-pose ?goal-pose)
+                              (object-height ?object-height)
+                              (object-name ?object-name)))
       
       (exe:perform (desig:a motion
                         (type gripper-motion)
@@ -79,7 +76,7 @@
         (exe:perform (desig:a motion
                               (type reaching)
                               (collision-mode ?collision-mode)
-                              (object-pose ?object-pose)
+                              (goal-pose ?goal-pose)
                               (object-size ?object-size)
                               (object-name ?object-name)))
         
@@ -135,24 +132,24 @@
 ;; @author Luca Krohm
 ;; @TODO failurehandling
 (defun place (&key
-                  ((:collision-mode ?collision-mode))
-                  ((:collision-object-b ?collision-object-b))
-                  ((:collision-object-b-link ?collision-object-b-link))
-                  ((:collision-object-a ?collision-object-a))
-                  ((:move-base ?move-base))
-                  ((:prefer-base ?prefer-base))
-                  ((:straight-line ?straight-line))
-                  ((:align-planes-left ?align-planes-left))
-                  ((:align-planes-right ?align-planes-right))
-                  ((:precise-tracking ?precise-tracking))
-                  ((:target-pose ?target-pose))
-                  ((:object-height ?object-height))
+                ((:collision-mode ?collision-mode))
+                ((:collision-object-b ?collision-object-b))
+                ((:collision-object-b-link ?collision-object-b-link))
+                ((:collision-object-a ?collision-object-a))
+                ((:move-base ?move-base))
+                ((:prefer-base ?prefer-base))
+                ((:straight-line ?straight-line))
+                ((:align-planes-left ?align-planes-left))
+                ((:align-planes-right ?align-planes-right))
+                ((:precise-tracking ?precise-tracking))
+                ((:goal-pose ?goal-pose))
+                ((:object-height ?object-height))
+                ((:from-above ?from-above))
+                ((:neatly ?neatly))
               &allow-other-keys)
   "Receives parameters from action-designator, and then executes the corresponding motions"
   (declare (type boolean ?move-base ?prefer-base ?straight-line ?precise-tracking
                  ?align-planes-left ?align-planes-right))
-
-  ;;von hier
 
   (exe:perform (desig:a motion
                         (type aligning-height)
@@ -166,8 +163,9 @@
                         (align-planes-left ?align-planes-left)
                         (align-planes-right ?align-planes-right)
                         (precise-tracking ?precise-tracking)
-                        (goal-pose ?target-pose)
-                        (object-height ?object-height)))
+                        (goal-pose ?goal-pose)
+                        (object-height ?object-height)
+                        (from-above ?from-above)))
 
   (exe:perform (desig:a motion
                         (type placing)
@@ -181,22 +179,24 @@
                         (align-planes-left ?align-planes-left)
                         (align-planes-right ?align-planes-right)
                         (precise-tracking ?precise-tracking)
-                        (target-pose ?target-pose)
-                        (object-height ?object-height)))
+                        (goal-pose ?goal-pose)
+                        (object-height ?object-height)
+                        (from-above ?from-above)))
 
-  ;; (exe:perform (desig:a motion
-  ;;                       (type placing-neatly)
-  ;;                       (collision-mode ?collision-mode)
-  ;;                       (collision-object-b ?collision-object-b)
-  ;;                       (collision-object-b-link ?collision-object-b-link)
-  ;;                       (collision-object-a ?collision-object-a)
-  ;;                       (allow-base ?move-base)
-  ;;                       (prefer-base ?prefer-base)
-  ;;                       (straight-line ?straight-line)
-  ;;                       (align-planes-left ?align-planes-left)
-  ;;                       (align-planes-right ?align-planes-right)
-  ;;                       (precise-tracking ?precise-tracking)
-  ;;                       (target-pose ?target-pose)))
+  (when ?neatly
+    (exe:perform (desig:a motion
+                          (type placing-neatly)
+                          (collision-mode ?collision-mode)
+                          (collision-object-b ?collision-object-b)
+                          (collision-object-b-link ?collision-object-b-link)
+                          (collision-object-a ?collision-object-a)
+                          (allow-base ?move-base)
+                          (prefer-base ?prefer-base)
+                          (straight-line ?straight-line)
+                          (align-planes-left ?align-planes-left)
+                          (align-planes-right ?align-planes-right)
+                          (precise-tracking ?precise-tracking)
+                          (goal-pose ?goal-pose))))
 
   (exe:perform (desig:a motion
                         (type gripper-motion)
@@ -319,10 +319,10 @@
          ;; (height of the bowl + pouring object) / 2
          ;; puts the target just above the upper edge of the bowl
          (?relative-pour-pose (cl-transforms:make-3d-vector
-                       (/ (+ (cl-transforms:x ?target-size)
-                             (cl-transforms:x ?object-size))
-                          -2)
                        0
+                       (/ (+ (cl-transforms:y ?target-size)
+                             (cl-transforms:y ?object-size))
+                          2)
                        (/ (+ (cl-transforms:z ?target-size)
                              (cl-transforms:z ?object-size))
                           2)))
@@ -356,7 +356,7 @@
     (exe:perform (desig:a motion
                           (type reaching)
                           (collision-mode ?collision-mode)
-                          (object-pose ?pour-pose)
+                          (goal-pose ?pour-pose)
                           (object-size ?object-size)
                           (object-name ?target-name)))
 

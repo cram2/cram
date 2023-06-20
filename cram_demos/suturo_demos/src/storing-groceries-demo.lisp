@@ -29,16 +29,18 @@
     (park-robot)
 
    
-  ;;Move to the shelf to a perceive pose.
-    (with-knowledge-result (result)
-      `(and ("has_urdf_name" object ,shelf)
-            ("object_rel_pose" object "perceive" result))
-      (move-hsr (make-pose-stamped-from-knowledge-result result)))
 
-  (cond ((equal skip-open-shelf NIL)  
+
+    (cond ((equal skip-open-shelf NIL)
+
+           ;;Move to the shelf to a perceive pose.
+           (with-knowledge-result (result)
+               `(and ("has_urdf_name" object ,shelf)
+                     ("object_rel_pose" object "perceive" result))
+             (move-hsr (make-pose-stamped-from-knowledge-result result)))
          
          (print "Performing sequence, door will be opened.")
-         ;;Open the shelf
+         ;;Open the shelf.
          (let ((?handle-link handle-link)
                (?joint-angle joint-angle)
                (?collision-mode collision-mode))
@@ -49,24 +51,22 @@
                                   (joint-angle ?joint-angle)
                                   (tip-link t)
                                   (collision-mode ?collision-mode))))
-         (park-robot))
-        ((equal skip-open-shelf T) 
-         (print "Skipping sequence, shelf door wont be opened.")))
+           (park-robot))
+          ((equal skip-open-shelf T) 
+           (print "Skipping sequence, shelf door wont be opened.")))
     
    
   (cond ((equal skip-shelf-perception NIL)
          ;;Perceive the contents of the shelf.
-         ;;Returns all possible objects.
+         ;;Saves all possible objects.
          ;;Objects are then created in Knowledge.
 
          
          ;;Move to the shelf.
          (with-knowledge-result (result)
-             `(and ("has_urdf_name" object ,shelf)
+             `(and ("has_urdf_name" object shelf)
                    ("object_rel_pose" object "perceive" result))
            (move-hsr (make-pose-stamped-from-knowledge-result result)))
-
-         (perc-robot)
          
          (let* ((?source-object-desig-shelf all-designator)
                 (?object-desig-list-shelf
@@ -89,7 +89,7 @@
               ("object_rel_pose" object "perceive" result))
       (move-hsr (make-pose-stamped-from-knowledge-result result)))
 
-    (perc-robot)
+    ;;(perc-robot)
 
     ;;Perceive the objects on the table. Put all objects into a list. 
     (let* ((?source-object-desig all-designator)
@@ -97,31 +97,10 @@
              (exe:perform (desig:all action
                                      (type detecting)
                                      (object ?source-object-desig)))))
-    
-
-
-    ;;Creates all objects in Knowledge
-    ;;Unnecessary for now.
-    
-    ;; (loop for x in ?list-of-objects
-    ;;       do
-    ;;          (let* ((?current-object x)
-    ;;                 (?current-pose (extract-pose ?current-object))
-    ;;                 (?current-size nil) ;;Size unused for now
-    ;;                 )
-
-    ;;            ;; (su-demos::with-knowledge-result (frame shape pose)
-    ;;            ;;     `(and ("object_shape_workaround" ,object-name frame shape _ _)
-    ;;            ;;           ("object_pose" ,object-name pose))
-                 
-    ;;          (with-knowledge-result (result)
-    ;;              `(and ("create_object" result ,(transform-key-to-string (extract-type ?current-object)) ,?current-pose
-    ;;                                     (list ;(shape (box 0.1 0.2 0.3))
-    ;;                                      ))) result)))
-    
         
 
-;;=======================================MAIN=LOOP====================================================
+;;=======================================MAIN=LOOP========================================================================
+      (let* ((?place-poses (get-hardcoded-place-poses)))
   
         ;;Perform this loop max-objects amount of times.
         (dotimes (n max-objects)
@@ -131,17 +110,17 @@
           ;;TODO - Place pose can be extracted from Knowledge.
           ;;TODO - Its best if all properties of the current Designator are extracted here.
           ;;TODO - Extract: Object size, object height, place pose.
-          ;;TODO - Next Object might not work like this, Otherwise random order + extract object name.
-          (let*  ((?collision-mode collision-mode)
+          ;;TODO - Next Object might not work like this, otherwise random order + extract object name.
+          
+            (let*  ((?collision-mode collision-mode)
                   ;;HARDCODED
                   (?object-size (cl-tf2::make-3d-vector 0.06 0.145 0.215));;(extract-size ?current-object))
-                  (?object-height 0.22)
-                  ;;DYNAMIC POSES
+                  (?object-height 0.23)
+                  ;;DYNAMIC Elements
                   (?next-object (get-next-object-storing-groceries))
                   (?next-pick-up-pose (get-pick-up-pose ?next-object))
-                  (?next-place-pose (get-place-pose-in-shelf ?next-object))
+                  ;;(?next-place-pose (get-place-pose-in-shelf ?next-object))
                   ;;HARDCODED/OLD PLACE POSES
-                  (?place-poses (get-hardcoded-place-poses))
                   (?place-pose (pop ?place-poses))
                   (?current-object (pop ?list-of-objects))
                   (?current-object-pose (extract-pose ?current-object)))
@@ -166,28 +145,23 @@
             ;;Places the object currently held.
             (exe:perform (desig:an action
                                    (type :placing)
-                                   (target-pose ?next-place-pose)
+                                   (target-pose ?place-pose)
                                    (object-height ?object-height)
+                                   (frontal-placing T)
+                                   (neatly T)
                                    (collision-mode ?collision-mode)))
-
-            ;;Update object position in Knowledge.
-            (with-knowledge-result ()
-                `(and "object_pose" ,?next-object ,?next-place-pose))
-
 
             
             (park-robot)
 
-            ;;Move to the table to a perceive pose.
-            ;;(move-to-table T table)
-            
+            ;;Move to the table to a perceive pose.         
             (with-knowledge-result (result)
                 `(and ("has_urdf_name" object ,table)
                       ("object_rel_pose" object "perceive" result))
               (move-hsr (make-pose-stamped-from-knowledge-result result)))
             (print "Loop finished."))))
 
-        (print "Demo finished.")))
+        (print "Demo finished."))))
 
 ;;@author Felix Krause
 (defun extract-pose (object)
@@ -245,29 +219,33 @@
 (defun get-pick-up-pose (object)
   (with-knowledge-result (result)
       `("object_pose" ,object result)
-    result))
+    (make-pose-stamped-from-knowledge-result result)))
 
 
 ;;@author Felix Krause
 (defun get-hardcoded-place-poses ()
-  (list (cl-tf:make-pose-stamped "map" 0.0  (cl-tf:make-3d-vector 0.15 1.73 0.725) (cl-tf:make-quaternion 0 0 0 1)) (cl-tf:make-pose-stamped "map" 0.0  (cl-tf:make-3d-vector 0.15 1.73 0.47) (cl-tf:make-quaternion 0 0 0 1)) (cl-tf:make-pose-stamped "map" 0.0  (cl-tf:make-3d-vector 0.15 1.73 0.11) (cl-tf:make-quaternion 0 0 0 1))))
+  (list (cl-tf:make-pose-stamped "map" 0.0  (cl-tf:make-3d-vector 2.15 2.55 0.72) (cl-tf:make-quaternion 0 0 0 1))
+          (cl-tf:make-pose-stamped "map" 0.0  (cl-tf:make-3d-vector 1.95 2.55 0.72) (cl-tf:make-quaternion 0 0 0 1))
+    (cl-tf:make-pose-stamped "map" 0.0  (cl-tf:make-3d-vector 1.95 2.55 0.48) (cl-tf:make-quaternion 0 0 0 1))
+    (cl-tf:make-pose-stamped "map" 0.0  (cl-tf:make-3d-vector 2.1 2.55 0.48) (cl-tf:make-quaternion 0 0 0 1))
+    (cl-tf:make-pose-stamped "map" 0.0  (cl-tf:make-3d-vector 1.9 2.55 0.48) (cl-tf:make-quaternion 0 0 0 1))))
 
 ;;@author Felix Krause
 (defun test-place ()
 
-  
-
-  
   (park-robot)
+  
   (let* ((?collision-mode :allow-all)
          (?object-height 0.2)
-         (?place-pose (third (get-hardcoded-place-poses))))
+         (?place-pose (first (get-hardcoded-place-poses))))
+    (print ?place-pose)
   
     
     (exe:perform (desig:an action
                            (type :placing)
                            (target-pose ?place-pose)
                            (object-height ?object-height)
+                           (frontal-placing T)
                            (collision-mode ?collision-mode)))))
 
 
