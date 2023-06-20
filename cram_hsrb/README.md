@@ -1,6 +1,9 @@
 
 # Using the HSR in Bullet World (Cram) Tutorial
 
+## suturo_real_hsr_pm needs a rename and a cleanup
+
+
 
 
 ## Robot-URDF

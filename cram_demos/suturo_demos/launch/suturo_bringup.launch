@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="publish_environment" default="true" />
+  <arg name="env_model_yaml" default="rw_lab_master_2023.yaml" /> <!--rw_suturocup or rw_lab_master_2022 -->
+  <arg name="upload_hsrb" default="true" /> <!-- Set true if robot has publishes faulty robot_description -->
+  <arg name="publish_joint_state" default="true" />
+  <arg name="publish_joint_state_map_to_robot" default="true" />
+  <arg name="upload_map" default="true" />
+  <arg name="run_snap_map" default="false" />
+  <arg name="use_rviz" default="true"/>
+
+  
+ 
+   <!-- URDF OF THE ENVIORNMENT -->
+  <group if="$(eval arg('publish_environment') == true)">
+    <!-- Knowledge needs this param to know where the urdf should be loaded from. -->
+    <param name="/suturo_room_viz/urdf_param" value="iai_kitchen"/>
+    <include file="$(find suturo_resources)/urdf/launch/urdf.launch" pass_all_args="true" >
+      <arg name="world_urdf_yaml" value="$(arg env_model_yaml)"/>
+    </include>
+  </group>
+
+  <!-- occupancy map -->
+ <!--Either /maps/hsr_lab_master_2022/map3-door-open-cleaned.yaml -->
+ <!-- or /maps/suturobocup-2023/SuturoApartLab-cleaned.yaml -->
+  <group if="$(eval arg('upload_map') == true)">
+    <node name="map_server" pkg="map_server" type="map_server" args="$(find suturo_resources)/maps/hsr_lab_master_2023/hsr_lab_master_2023.yaml" />
+  </group>  
+  
+  
+
+  <!-- HSRB URDF -->
+  <group if="$(arg upload_hsrb)">
+    <param name="robot_description"
+           command="$(find xacro)/xacro
+                    '$(find hsr_description)/robots/hsrb4s.urdf.xacro'"/>
+  </group>
+
+<!-- publish_joint_state -->
+    <group if="$(arg publish_joint_state)">
+    <node pkg="joint_state_publisher" type="joint_state_publisher"
+          name="robot_joint_state_publisher" output="screen">
+      <param name="rate" value="25"/>
+      <param name="use_gui" value="False"/>
+    </node>
+    <node pkg="robot_state_publisher" type="robot_state_publisher"
+          name="robot_state_publisher" output="screen">
+      <param name="publish_frequency" value="25"/>
+    </node>
+  </group>
+   <group if="$(arg publish_joint_state_map_to_robot)">
+  	<node name="robot_to_map" pkg="tf2_ros" type="static_transform_publisher" 
+	      args="0.0 0.0 0.0 0.0 0.0 0.0 base_link map" />
+  </group>
+  
+ 
+
+
+  
+  <group if="$(eval arg('use_rviz') == true)">
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find suturo_resources)/rviz_configs/suturo.rviz" />
+  </group>
+ 
+
+  <!-- TF buffer server -->
+  <node pkg="tf2_ros" type="buffer_server" name="tf_server" output="screen" />
+
+  <!-- IK solver --> 
+  <!-- <include file="$(find kdl_ik_service)/launch/kdl_ik.launch" /> -->
+
+
+</launch>
