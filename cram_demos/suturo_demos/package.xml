@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>suturo_demos</name>
+  <version>0.0.0</version>
+  <description>The suturo_demos package</description>
+
+  <maintainer email="tolliges@uni-bremen.de">Torge Olliges</maintainer>
+
+  <license>TODO</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roslisp</build_depend>
+  <build_depend>cl_tf2</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_export_depend>roslisp</build_export_depend>
+  <build_export_depend>std_msgs</build_export_depend>
+  <exec_depend>roslisp</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+
+    <buildtool_depend>catkin</buildtool_depend>
+<depend>roslisp_utilities</depend>
+  <depend>cl_transforms</depend>
+  <depend>cl_transforms_stamped</depend>
+  <depend>cl_tf</depend>
+  <depend>cram_tf</depend>
+  <depend>cram_language</depend>
+  <depend>cram_executive</depend>
+  <depend>cram_designators</depend>
+  <depend>cram_prolog</depend>
+  <depend>cram_projection</depend>
+  <depend>cram_occasions_events</depend>
+  <depend>cram_common_failures</depend>
+  <depend>cram_physics_utils</depend>
+  <depend>cl_bullet</depend>
+  <depend>cram_bullet_reasoning</depend>
+  <depend>cram_bullet_reasoning_belief_state</depend>
+  <depend>cram_bullet_reasoning_utilities</depend>
+  <depend>cram_btr_visibility_costmap</depend>
+  <depend>cram_btr_spatial_relations_costmap</depend>
+  <depend>cram_urdf_projection</depend>
+  <depend>cram_urdf_projection_reasoning</depend>
+  <!-- <depend>cram_semantic_map_costmap</depend> -->
+  <depend>cram_robot_pose_gaussian_costmap</depend>
+  <depend>cram_occupancy_grid_costmap</depend>
+  <depend>cram_location_costmap</depend>
+  <depend>cram_mobile_pick_place_plans</depend>
+  <depend>cram_object_knowledge</depend>
+  <depend>cram_cloud_logger</depend>
+  <depend>cram_fetch_deliver_plans</depend>
+  <depend>cram_urdf_environment_manipulation</depend>
+
+  <depend>cram_pr2_description</depend>
+  <depend>cram_boxy_description</depend>
+  <depend>cram_donbot_description</depend>
+  <depend>cram_hsrb_description</depend>
+  <exec_depend>tmc_msgs</exec_depend>
+
+
+  <export>
+
+  </export>
+</package>
