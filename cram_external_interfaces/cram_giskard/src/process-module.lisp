@@ -47,11 +47,6 @@
         :align-planes-left (eighth rest-args)
         :align-planes-right (ninth rest-args)
         :precise-tracking (nth 10 rest-args); that's eleventh element
-        :box-pose (nth 11 rest-args)
-        ;; :grasp-type (nth 12 rest-args)
-        ;; :box-size (nth 12 rest-args)
-        :knob-pose (nth 12 rest-args)
-        :open-drawer (nth 13 rest-args)
         )) 
       (cram-common-designators:move-joints
        (giskard:call-arm-joint-action
@@ -90,7 +85,7 @@
       (cram-common-designators:move-torso
        (giskard:call-torso-action
         :goal-joint-state argument-1))
-      (cram-common-designators:move-gripper-joint
+      (cram-common-designators:move-gripper-joint ;; check if used in suturo bc im unsure...i dont think it is though
        (giskard:call-gripper-action
         :action-type-or-position argument-1
         :arm (first rest-args)
@@ -113,10 +108,10 @@
         :align-planes-left (eighth rest-args)
         :align-planes-right (ninth rest-args)
         :precise-tracking (nth 10 rest-args); that's eleventh element
-        :object-pose (nth 11 rest-args)
+        :goal-pose (nth 11 rest-args)
         :object-size (nth 12 rest-args)
         :object-name (nth 13 rest-args)
-        :frontal-grasping (nth 14 rest-args)
+        :from-above (nth 14 rest-args)
         :action-type 'reach
         ))
       (cram-common-designators:lift
@@ -133,8 +128,7 @@
         :align-planes-left (eighth rest-args)
         :align-planes-right (ninth rest-args)
         :precise-tracking (nth 10 rest-args); that's eleventh element
-        :object-pose (nth 11 rest-args)
-        ;; :size (nth 11 rest-args)
+        :goal-pose (nth 11 rest-args)
         :action-type 'lift
         ))
       (cram-common-designators:retract
@@ -152,7 +146,6 @@
         :align-planes-right (ninth rest-args)
         :precise-tracking (nth 10 rest-args); that's eleventh element
         :tip-link (nth 11 rest-args)
-        ;; :size (nth 11 rest-args)
         :action-type 'retract
         ))
       (cram-common-designators:align-height
@@ -172,6 +165,7 @@
         :goal-pose (nth 11 rest-args)
         :object-height (nth 12 rest-args)
         :object-name (nth 13 rest-args)
+        :from-above (nth 14 rest-args)
         :action-type 'align-height
         ))
       (cram-common-designators:place
@@ -188,9 +182,9 @@
         :align-planes-left (eighth rest-args)
         :align-planes-right (ninth rest-args)
         :precise-tracking (nth 10 rest-args); that's eleventh element
-        :target-pose (nth 11 rest-args)
+        :goal-pose (nth 11 rest-args)
         :object-height (nth 12 rest-args)
-        :frontal-placing (nth 13 rest-args)
+        :from-above (nth 13 rest-args)
         :action-type 'place
         ))
       (cram-common-designators:place-neatly
@@ -207,8 +201,8 @@
         :align-planes-left (eighth rest-args)
         :align-planes-right (ninth rest-args)
         :precise-tracking (nth 10 rest-args); that's eleventh element
-        :target-pose (nth 11 rest-args)
-        :frontal-placing (nth 12 rest-args)
+        :goal-pose (nth 11 rest-args)
+        :from-above (nth 12 rest-args)
         :action-type 'place-neatly
         ))
       (cram-common-designators:tilt
@@ -224,24 +218,6 @@
         :object-name (eighth rest-args)
         :action-type 'tilt
         ))
-      ;; (cram-common-designators:reach
-      ;;  (giskard:call-reach-action
-      ;;   :object-pose argument-1
-      ;;   :size (first rest-args)
-      ;;   ))
-      ;; (cram-common-designators:lift
-      ;;  (giskard:call-lift-action
-      ;;   :move-base argument-1
-      ;;   ))
-      ;; (cram-common-designators:place
-      ;;  (giskard:call-place-action
-      ;;   :move-base argument-1
-      ;;   ))
-      ;; (cram-common-designators:pick-up
-      ;;  (giskard:call-place-action
-      ;;   :object-pose argument-1
-      ;;   :size (first rest-args)
-      ;;   ))
       )))
 
 
