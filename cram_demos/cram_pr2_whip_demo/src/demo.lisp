@@ -130,7 +130,7 @@
 ;;       )))
 
 ;;#############################whisp testing##############      
-(defun testwhisk()
+(defun testwhisk-pan()
   (initialize)
 	(urdf-proj:with-simulated-robot
 	
@@ -174,7 +174,8 @@
                                     (arm (:right)) 
                                     (grasp :top)))
    
-      (start-mix ?object-desig-source)
+       ; (start-mix ?object-desig-source)
+      (start-eclipse ?object-desig-source)
       )))
 
 (defun start-mix (?object-desig-source)
@@ -218,6 +219,56 @@
                              (source ?object-desig-source)
                              )))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun testwhisk-bigbowl()
+  (initialize)
+	(urdf-proj:with-simulated-robot
+	
+	(move-pr2)
+	(spawn-whisk)
+        (spawn-bigbowl)
+        
+    (let* (
+         ;utensil: fork,spoon,whisky or sth - for now spawn a fork
+        (?object-utensil nil)
+        (?pose-utensil nil)
+        (?pose-container nil)
+        (?object-container nil)
+        (?object-desig-source (desig:an object (type :whisk)))
+        )
+                
+                ;getting utensil pose and saving it                        
+      (setf ?pose-utensil (cl-tf:pose->pose-stamped
+                             cram-tf:*fixed-frame*
+                             0 
+                             (btr:object-pose 'whisk-1)))
+            (cram-executive:perform
+           (desig:an action
+                     (type looking)
+                     (target (desig:a location (pose ?pose-utensil)))))  
+     
+ ;;           ;CAN SEE THE FORK?
+       (setf ?object-utensil (urdf-proj::detect (desig:an object (type whisk))))
+                                    
+      
+      
+ ;; ))) 
+
+                                     
+;;        ;;;; Picking-up the utensil object 
+;; ;grabbing utensil
+            (exe:perform (desig:an action
+                                   (type picking-up)
+                                   (object ?object-utensil)
+                                    (arm (:right)) 
+                                    (grasp :top)))
+   
+     ; (start-mix-bbowl ?object-desig-source)
+     ; (start-eclipse ?object-desig-source)
+      (start-orbit ?object-desig-source)
+      )))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun testaxis()
   (testdesig)
   	(move-pr2)
@@ -293,34 +344,13 @@
 	(spawn-whisk)
 )
 
-;; (defun try-looking(?location-utensil)
-;; (cpl:with-retry-counters ((looking-retry 3))
-;;       (cpl:with-failure-handling
-;;           ((common-fail:low-level-failure
-;;                (e)
-;;              (declare (ignore e))
-;;              (cpl:do-retry looking-retry
-;;                (roslisp:ros-warn (whip-demo looking-fail)
-;;                                  "~%Failed to look at given position~%")
-;;                (cpl:retry))
-;;              (roslisp:ros-warn (whip-demo looking-fail)
-;;                                "~%No more retries~%")))
-;;         (dotimes (n 3)
-;;           (cram-executive:perform
-;;            (desig:an action
-;;                      (type looking)
-;;                      (target (desig:a location (pose ?location-utensil)))))))))
-
-
-;;##
-
-(defun start-eclipse()
-  (urdf-proj::with-simulated-robot
-    (btr-utils::park-robot)
+(defun start-mix-bbowl (?object-desig-source)
+    
   (let ((?pose-container (cl-tf:pose->pose-stamped
 			  cram-tf:*fixed-frame*
 			  0 
-			  (btr:object-pose 'big-bowl-1))))
+			  (btr:object-pose 'big-bowl-1)))
+			  )
     
     (cram-executive:perform
      (desig:an action
@@ -328,31 +358,38 @@
 	       (target (desig:a location (pose ?pose-container)))))
     
     (let ((?object-container(urdf-proj::detect
-      		     (desig:an object (type big-bowl))))
-          (?reso 10))
+
+                            (desig:an object (type big-bowl))))
+          (?reso 6))
 
       ;; (exe:perform (desig:an action
       ;;                        (type ) - how to look up types again
       ;;                        (arm (:left))
       ;;                        (object ?object-container)
       ;;                        (grasp :left-top)))
+(btr::add-vis-axis-object 'big-bowl-1) 
+ 
       
       (exe:perform (desig:an action
                              (type whisking)
-			     (context :mix-eclipse)
+			      (context :mix)
+                             (reso ?reso)
+
+                             ;; (sides ?reso)
                              (arm (:right))
                              (reso ?reso)
                              (object ?object-container)
                              (grasp :top)
-                             ))))))
+                             (source ?object-desig-source)
+                             )))))
 
-(defun start-orbit()
- (urdf-proj::with-simulated-robot
-    (btr-utils::park-robot)
+(defun start-eclipse (?object-desig-source)
+    
   (let ((?pose-container (cl-tf:pose->pose-stamped
 			  cram-tf:*fixed-frame*
 			  0 
-			  (btr:object-pose 'big-bowl-1))))
+			  (btr:object-pose 'big-bowl-1)))
+			  )
     
     (cram-executive:perform
      (desig:an action
@@ -360,25 +397,70 @@
 	       (target (desig:a location (pose ?pose-container)))))
     
     (let ((?object-container(urdf-proj::detect
-      		     (desig:an object (type big-bowl))))
-          (?reso 12))
+
+                            (desig:an object (type big-bowl))))
+          (?reso 6))
 
       ;; (exe:perform (desig:an action
       ;;                        (type ) - how to look up types again
       ;;                        (arm (:left))
       ;;                        (object ?object-container)
       ;;                        (grasp :left-top)))
+(btr::add-vis-axis-object 'big-bowl-1) 
+ 
       
       (exe:perform (desig:an action
                              (type whisking)
-			     (context :mix-orbit)
+			      (context :mix-eclipse)
+                             (reso ?reso)
+
+                             ;; (sides ?reso)
                              (arm (:right))
                              (reso ?reso)
                              (object ?object-container)
                              (grasp :top)
-                             ))))))
+                             (source ?object-desig-source)
+                             )))))
 
+(defun start-orbit (?object-desig-source)
 
+    
+  (let ((?pose-container (cl-tf:pose->pose-stamped
+			  cram-tf:*fixed-frame*
+			  0 
+			  (btr:object-pose 'big-bowl-1)))
+			  )
+    
+    (cram-executive:perform
+     (desig:an action
+	       (type looking)
+	       (target (desig:a location (pose ?pose-container)))))
+    
+    (let ((?object-container(urdf-proj::detect
+
+                            (desig:an object (type big-bowl))))
+          (?reso 6))
+
+      ;; (exe:perform (desig:an action
+      ;;                        (type ) - how to look up types again
+      ;;                        (arm (:left))
+      ;;                        (object ?object-container)
+      ;;                        (grasp :left-top)))
+(btr::add-vis-axis-object 'big-bowl-1) 
+ 
+      
+      (exe:perform (desig:an action
+                             (type whisking)
+			      (context :mix-orbit)
+                             (reso ?reso)
+
+                             ;; (sides ?reso)
+                             (arm (:right))
+                             (reso ?reso)
+                             (object ?object-container)
+                             (grasp :top)
+                             (source ?object-desig-source)
+                             )))))
 
 (defun initialize ()
   (sb-ext:gc :full t)

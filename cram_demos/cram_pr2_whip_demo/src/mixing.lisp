@@ -12,6 +12,7 @@
      (grasp (eql :top)))
    '((0 -0.12  0.161)(1 0 0 0)))
 
+
 (defmethod get-object-type-robot-frame-mix-grip-approach-transform
     ((object-type (eql :saucepan))
      (arm (eql :left))
@@ -24,63 +25,51 @@
     ((object-type (eql :big-bowl))
      (arm (eql :left))
      (grasp (eql :top)))
-   '((0.02 -0.12  0.2)(1 0 0 0)))
+   '((0 -0.04  0.6)(1 0 0 0))) ;0.02 radius, -0.12 depth, 0.06 height
 
 (defmethod get-object-type-robot-frame-mix-grip-retract-transform
     ((object-type (eql :saucepan))
      (arm (eql :left))
      (grasp (eql :top)))
-  '((0.093 0.093 0.04)(1 0 0 0))) ;<- what
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-(defmethod get-object-type-robot-frame-mix-approach-transform
-    ((object-type (eql :big-bowl))
-      (arm (eql :right))
-     (grasp (eql :top)))
-  '((0.02 -0.12 0.161)(1 0 0 0)))
-
-(defmethod get-object-type-robot-frame-mix-approach-transform
-    ((object-type (eql :saucepan))
-      (arm (eql :right))
-     (grasp (eql :top)))
-  '((0 0 0.04)(1 0 0 0)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defmethod get-object-type-robot-frame-mix-retract-transform
-     ((object-type (eql :big-bowl))
-      (arm (eql :right))
-     (grasp (eql :top)))
-  '((0.02 0.28 -0.12)(1 0 0 0)))   
-
-(defmethod get-object-type-robot-frame-mix-retract-transform
-     ((object-type (eql :saucepan))
-      (arm (eql :right))
-      (grasp (eql :top)))
-  '((0 0 0.11)(1 0 0 0)))
-
-;;the z should be  defined by:
-;;object in hand where?
-;;how long is object from where gripper is
-;;y is height
-
-;should be defined in household later--cos 12 is too close to rim
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
+  '((0.093 0.093 0.04)(1 0 0 0)))
 
 (defmethod get-object-type-robot-frame-mix-grip-retract-transform
     ((object-type (eql :saucepan))
      (arm (eql :right))
      (grasp (eql :top)))
     '((0 0 0.093)(1 0 0 0)))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;approach pose in bto
+
+(defmethod get-object-type-robot-frame-mix-approach-transform
+    ((object-type (eql :big-bowl))
+      (arm (eql :right))
+     (grasp (eql :top)))
+  '((0 0 0)(1 0 0 0)));0.02 -0.12 0.161)(1 0 0 0)))
+
+(defmethod get-object-type-robot-frame-mix-approach-transform
+    ((object-type (eql :saucepan))
+      (arm (eql :right))
+     (grasp (eql :top)))
+  '((0 0 0)(1 0 0 0)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;retract pose in bto
+
+(defmethod get-object-type-robot-frame-mix-retract-transform
+     ((object-type (eql :big-bowl))
+      (arm (eql :right))
+     (grasp (eql :top)))
+  '((0 0 0.06)(1 0 0 0)))   
+
+(defmethod get-object-type-robot-frame-mix-retract-transform
+     ((object-type (eql :saucepan))
+      (arm (eql :right))
+      (grasp (eql :top)))
+  '((0 0 0.04)(1 0 0 0)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;decided to use the z axis as radius measure (important for mix center point calculation)
-;decided y to be height og bowl and ground of bowl - need to calc with whisk dimensions to get robot gripper position in object tf before calc on higher level
+;in object coordiantes mix information for upper circle
 
 (defmethod get-object-type-robot-frame-mix-rim-top-transform
    ((object-type (eql :big-bowl)))
@@ -91,38 +80,26 @@
   '((0 0.093 0.04)(1 0 0 0))) ;0.11
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;in object coordinates mix information for lower circle
 
 (defmethod get-object-type-robot-frame-mix-rim-bottom-transform
    ((object-type (eql :big-bowl)))
-   '((0.0 -0.12 0.06)(1 0 0 0)))
+   '((0.0 0.06 -0.06)(1 0 0 0))) ;16 cm radius 6 cm below origin
 
 
 (defmethod get-object-type-robot-frame-mix-rim-bottom-transform
    ((object-type (eql :saucepan)))
-  '((0.09 0.093 0.04)(1 0 0 0)))
+  '((0.09 0.093 -0.04)(1 0 0 0)))
 
 ;decided to use the z axis as radius measure (important for mix center point calculation)
 ;for top rim look at mix-approach-transform
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod get-object-type-robot-frame-mix-rim-grip-deep-approach-transform
-    ((object-type (eql :big-bowl))
-        (arm (eql :right))
-     (grasp (eql :top)))
-  '((0.0 -0.12 0.15)(1 0 0 0)))
-
 ;;height depending on tool...center to bottom measurment
 ;;-bowl bottom can be looked up in rim-bottom-transform ^
 ;decided y is height/lenght of object from center grip
-
-(defmethod get-object-type-robot-frame-mix-rim-tool-grip-bottom-transform
-    ((object-type (eql :whisk)))
-  '((0.03 0.03 0.15)(1 0 0 0)))
                                         ; '((0.02 -0.12 0.06)(1 0 0 0)))
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod get-object-type-robot-frame-mix-tool-transform
     ((object-type (eql :whisk))

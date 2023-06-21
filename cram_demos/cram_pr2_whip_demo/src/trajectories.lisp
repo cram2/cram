@@ -45,12 +45,12 @@
                                                          &key
                                                          context
                                                          reso
-                                                         tool-object-type  
+                                                           tool-object-type
                                                            )
                                                          
   (print "entered mixing")
   (print tool-object-type)
-  (print objects-acted-on)
+  (print (car objects-acted-on))
  ; (print tool-object-type);whisk
  ; (print objects-acted-on);suacpena
   ;;TODO DONT CHANGE THIS SAME +++++++++++
@@ -83,30 +83,18 @@
          ;; orientation of the object it is omitted here.
          (oTg-std
            (cram-tf:copy-transform-stamped
-            (man-int:get-object-type-to-gripper-transform
-             tool-object-type object-name arm grasp) ;whisk missing right object name
+            (man-int:get-object-type-to-gripper-transform tool-object-type object-name arm grasp) ;whisk missing right object name
+            :translation (cl-transforms:make-3d-vector 0 0 0.05) ;cos all calculations of height  is made in btb alrdy
+            ;TODO TINA if that works for all containers- read that info out and tweak it 
             :rotation (cl-tf:make-identity-rotation)))
 
-	 ;; (other-arm (cond ((equal arm :left) :right)(t :left)))
-	 ;; (grip-container-pose
-	 ;;   (cl-tf:copy-pose-stamped 
-         ;;    (man-int:calculate-gripper-pose-in-base
-         ;;      (cram-tf:apply-transform
-         ;;       (cram-tf:copy-transform-stamped 
-         ;;        bTb-offset
-         ;;        :rotation (cl-tf:make-identity-rotation))
-         ;;       bTo)
-         ;;      other-arm oTg-std)
-         ;;    :orientation 
-         ;;    (cl-tf:rotation bTb-offset)))
-         
          (approach-pose
            (cl-tf:copy-pose-stamped 
             (man-int:calculate-gripper-pose-in-base
               (cram-tf:apply-transform
                (cram-tf:copy-transform-stamped 
-                bTb-offset
-                :rotation (cl-tf:make-identity-rotation))
+               bTb-offset
+               :rotation (cl-tf:make-identity-rotation))
                bTo)
               arm oTg-std)
             :orientation 
@@ -389,20 +377,22 @@
 			    :y-offset (* rim (sin (* x angle))))
     ))) 
 
-(defun rec-spiral-poses(object-type pose reso tool-object-type)
+(defun rec-spiral-poses(object-type pose reso tool-object-type &rest isHigh)
   (let
    ( (k 0.4) ;0.3 <-'spiralness'
      (defaultreso 12)
-     (rim (calc-radius object-type tool-object-type T))
+     (rim 0)
      ;for spiral only top rim needed.
      (angle 0)  
      (x 1)
      )
-    
+
+    (if (not isHigh)
+        (setf rim (calc-radius object-type tool-object-type))
+        (setf rim (calc-radius object-type tool-object-type T))
+        )
     ;; (setf rim (-(nth 1 (car (get-object-type-robot-frame-mix-rim-bottom-transform object-type)))
     ;;             (nth 1 (car (get-object-type-robot-frame-mix-tool-transform tool-object-type)))))
-    (print "TESTETETSTESTEST")
-    (print rim)
                                         ; adjustment cos of get-object...-rim-bottom changes of structure (nth 2 (car (get-object-type-robot-frame-mix-rim-bottom-transform object-type))))
  (setf angle (/(* 2  pi) defaultreso))
     (loop while (<= x defaultreso)
@@ -411,17 +401,21 @@
 				   :y-offset (*(* (/ rim defaultreso) (exp (* k(* x  angle))) (sin (* x  angle)))))
 	  )))
 
-(defun reverse-spiral-poses(object-type pose reso tool-object-type)
+(defun reverse-spiral-poses(object-type pose reso tool-object-type &rest isHigh)
   (let
    ( (k 0.4) ;0.3 <-'spiralness'
      (defaultreso 12)
-     (rim (calc-radius object-type tool-object-type T))
+     (rim 0)
      ;for spiral only top rim needed.
      (angle 0)  
      (x 0)
      (start-pose nil)
      )
     
+        (if (not isHigh)
+        (setf rim (calc-radius object-type tool-object-type))
+        (setf rim (calc-radius object-type tool-object-type T))
+        )
     ;; (setf rim ;(get-object-type-robot-frame-mix-rim-bottom-transform object-type))
     ;;       (-(nth 1 (car (get-object-type-robot-frame-mix-rim-bottom-transform object-type)))
     ;;       (nth 1 (car (get-object-type-robot-frame-mix-tool-transform tool-object-type)))))
