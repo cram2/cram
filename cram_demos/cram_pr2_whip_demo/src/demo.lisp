@@ -94,72 +94,42 @@
                                    )))                     
     
 
-;;###########################testing bowl graps poses###########
-;; (defun testbowl()      
-;; 	(urdf-proj:with-simulated-robot
-	
-;; 	(move-pr2)
-;; 	(spawn-bigbowl)
-        
-        
-;;     (let* (
-;;         ;container
-;;         (?object-container nil)
-;;         (?pose-container nil))
-                                             
-;;           ;getting bowl pose and saving it                        
-;;       (setf ?pose-container (cl-tf:pose->pose-stamped
-;;                              cram-tf:*fixed-frame*
-;;                              0 
-;;                              (btr:object-pose 'big-bowl-1)))
-                                         
-;;      (try-looking ?pose-container)    
-     
-     
-     
-;;       (setf ?object-utensil (urdf-proj::detect (desig:an object (type big-bowl))))            
-                                     
-;;            (btr::add-vis-axis-object 'big-bowl-1)                                
-                                     
-;;             (exe:perform (desig:an action
-;;                                    (type holding)
-;;                                    (object ?object-utensil)
-;;                                    (arm :left) 
-;;                                    (grasp :left-hold)))
-                                     
-;;       )))
-
 ;;#############################whisp testing##############      
-(defun testwhisk-pan()
+(defun test-tool-container ()
   (initialize)
 	(urdf-proj:with-simulated-robot
 	
-	(move-pr2)
-	(spawn-whisk)
-       ; (spawn-bigbowl)
-        (spawn-saucepan)
+          (move-pr2)
+          (spawn-ladle)
+         ; (spawn-fork)
+	;(spawn-whisk)
+
+                                        
+        (spawn-bigbowl)
+       ; (spawn-saucepan)
+       ;(spawn-rbowl)
         
-    (let* (
+    (let (
          ;utensil: fork,spoon,whisky or sth - for now spawn a fork
         (?object-utensil nil)
         (?pose-utensil nil)
         (?pose-container nil)
         (?object-container nil)
-        (?object-desig-source (desig:an object (type :whisk)))
+        (?object-desig-source (desig:an object (type :ladle))) ; :ladle))); :whisk)))
         )
                 
                 ;getting utensil pose and saving it                        
       (setf ?pose-utensil (cl-tf:pose->pose-stamped
                              cram-tf:*fixed-frame*
                              0 
-                             (btr:object-pose 'whisk-1)))
+                             (btr:object-pose 'tool-1)))
             (cram-executive:perform
            (desig:an action
                      (type looking)
                      (target (desig:a location (pose ?pose-utensil)))))  
      
  ;;           ;CAN SEE THE FORK?
-       (setf ?object-utensil (urdf-proj::detect (desig:an object (type whisk))))
+       (setf ?object-utensil (urdf-proj::detect (desig:an object (type :ladle))))
                                     
       
       
@@ -174,35 +144,24 @@
                                     (arm (:right)) 
                                     (grasp :top)))
    
-       ; (start-mix ?object-desig-source)
-      (start-eclipse ?object-desig-source)
+        (start-mix ?object-desig-source)
+      ;(start-eclipse ?object-desig-source)
       )))
 
 (defun start-mix (?object-desig-source)
     
-  (let ((?pose-container (cl-tf:pose->pose-stamped
+  (let* ((?pose-container (cl-tf:pose->pose-stamped
 			  cram-tf:*fixed-frame*
 			  0 
-			 ; (btr:object-pose 'big-bowl-1)))
-			  (btr:object-pose 'saucepan-1)))
-			  )
-    
-    (cram-executive:perform
-     (desig:an action
-	       (type looking)
-	       (target (desig:a location (pose ?pose-container)))))
-    
-    (let ((?object-container(urdf-proj::detect
+			  (btr:object-pose 'container-1)))
+			  
+          (?object-container(urdf-proj::detect
 
-                            ; (desig:an object (type big-bowl))))
-                             (desig:an object (type saucepan))))
+                             (desig:an object (type big-bowl))))
+                            ; (desig:an object (type saucepan))))
+                           ; (desig:an object (type bowl-round))))
           (?reso 6))
 
-      ;; (exe:perform (desig:an action
-      ;;                        (type ) - how to look up types again
-      ;;                        (arm (:left))
-      ;;                        (object ?object-container)
-      ;;                        (grasp :left-top)))
 ;(btr::add-vis-axis-object 'saucepan-1) 
  
       
@@ -217,10 +176,10 @@
                              (object ?object-container)
                              (grasp :top)
                              (source ?object-desig-source)
-                             )))))
+                             ))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defun testwhisk-bigbowl()
+(defun test-mix-types ()
   (initialize)
 	(urdf-proj:with-simulated-robot
 	
@@ -241,7 +200,7 @@
       (setf ?pose-utensil (cl-tf:pose->pose-stamped
                              cram-tf:*fixed-frame*
                              0 
-                             (btr:object-pose 'whisk-1)))
+                             (btr:object-pose 'tool-1)))
             (cram-executive:perform
            (desig:an action
                      (type looking)
@@ -263,10 +222,12 @@
                                     (arm (:right)) 
                                     (grasp :top)))
    
-     ; (start-mix-bbowl ?object-desig-source)
+      (start-mix ?object-desig-source)
      ; (start-eclipse ?object-desig-source)
-      (start-orbit ?object-desig-source)
+     ;(start-orbit ?object-desig-source)
       )))
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun testaxis()
@@ -275,7 +236,7 @@
 	(spawn-whisk)
         (spawn-bigbowl)
   (spawn-saucepan)
-  (btr::add-vis-axis-object 'saucepan-1) 
+  (btr::add-vis-axis-object 'container-1 ) 
   )
 
 (defun testdesig()
@@ -292,52 +253,64 @@
       (btr-utils::move-robot '((-0.3 0.9 0) (0 0 1 0))))
                                   
 (defun spawn-fork()
-      (btr-utils:spawn-object 'fork-1 :fork
+      (btr-utils:spawn-object 'tool-1 :fork
                               :pose (cl-transforms:make-pose
                                      (cl-tf:make-3d-vector -0.85 1 0.95)
                                      (cl-tf:make-identity-rotation))))
 
 (defun spawn-spoon()
-      (btr-utils:spawn-object 'spoon-1 :spoon
+      (btr-utils:spawn-object 'tool-1 :spoon
                               :pose (cl-transforms:make-pose
                                      (cl-tf:make-3d-vector -0.85 1 0.95)
                                      (cl-tf:make-identity-rotation))))
                                      
 (defun spawn-whisk()
-      (btr-utils:spawn-object 'whisk-1 :whisk
+      (btr-utils:spawn-object 'tool-1 :whisk
                               :pose (cl-transforms:make-pose
                                      (cl-tf:make-3d-vector -0.85 1 0.89)
                                      (cl-tf:make-identity-rotation))))
                                      
-(defun spawn-bowl()
-      (btr-utils:spawn-object 'bowl-1 :bowl
+(defun spawn-ladle()
+      (btr-utils:spawn-object 'tool-1 :ladle
                               :pose (cl-transforms:make-pose
-                                     (cl-tf:make-3d-vector -0.85 0.6 0.95)
+                                     (cl-tf:make-3d-vector -0.85 1 0.92)
                                      (cl-tf:make-identity-rotation))))
-                                     
+
+(defun spawn-tspoon()
+      (btr-utils:spawn-object 'tool-1 :tea-spoon
+                              :pose (cl-transforms:make-pose
+                                     (cl-tf:make-3d-vector -0.85 1 0.92)
+                                     (cl-tf:make-identity-rotation))))
+
 (defun spawn-bigbowl()
-      (btr-utils:spawn-object 'big-bowl-1 :big-bowl
+      (btr-utils:spawn-object 'container-1  :big-bowl
                               :pose (cl-transforms:make-pose
                                      (cl-tf:make-3d-vector -0.85 0.55 0.93)
                                      (cl-tf:make-identity-rotation))))
 
 (defun spawn-saucepan()
-      (btr-utils:spawn-object 'saucepan-1 :saucepan
+      (btr-utils:spawn-object 'container-1  :saucepan
                               :pose (cl-transforms:make-pose
                                      (cl-tf:make-3d-vector -0.85 0.65 0.9)
                                      (cl-tf:make-identity-rotation))))
+                                                                        
+(defun spawn-rbowl()
+      (btr-utils:spawn-object 'container-1 :bowl-round
+                              :pose (cl-transforms:make-pose
+                                     (cl-tf:make-3d-vector -0.85 0.6 0.9)
+                                     (cl-tf:make-identity-rotation)))) 
                                      
-(defun spawn-cup()
-      (btr-utils:spawn-object 'cup-1 :cup
+(defun spawn-wglas()
+      (btr-utils:spawn-object 'container-1 :wine-glas
                               :pose (cl-transforms:make-pose
                                      (cl-tf:make-3d-vector -0.85 0.6 0.95)
-                                     (cl-tf:make-identity-rotation))))                                     
+                                     (cl-tf:make-identity-rotation)))) 
 
   ;;###############################################################################
   ;;                                    atomic tasks
   ;;###############################################################################
 
-(defun setup-whisk-and-bowl()
+(defun setup-whisk-and-bowl ()
 
 	(move-pr2)
 	(spawn-bigbowl)
@@ -608,17 +581,3 @@
                              ))))
 
 
-(defun fluffy ()
-  (demo::initialize)
-   (btr-utils:spawn-object 'green-dot
-                              :pancake-maker
-                              :color '(0 1 0 0.5)
-                              :pose '((-0.95 0.9 0.9) (0 0 0 1)))
-  (btr-utils:spawn-object 'spatula-1 :spatula
-			  :pose '((-0.757560920715332d0
-				   2.2969093322753906d0
-				   0.9060400644938151d0)
-				  (0.00949473213404417d0
-				   0.00448471587151289d0
-				   0.9999244213104248d0
-				   -0.00640013488009572d0))))

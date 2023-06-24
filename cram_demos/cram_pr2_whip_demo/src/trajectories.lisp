@@ -71,7 +71,7 @@
          ;; object and how objects should be rotated so the tool is correctly inserted.
          (bTb-offset
            (get-object-type-robot-frame-mix-approach-transform-destructuring
-            object-type arm grasp tool-object-type))
+            object-type object-name tool-object-type))
          
      ;function plus stuff matrix of container rim to tool lenght from grip to end
 
@@ -81,12 +81,27 @@
             object-type arm grasp tool-object-type))
          ;; Since the grippers orientation should not depend on the
          ;; orientation of the object it is omitted here.
+         ;; (oTg-std
+         ;;   (cram-tf:translate-transform-stamped
+         ;;    (cram-tf:copy-transform-stamped
+         ;;    (man-int:get-object-type-to-gripper-transform tool-object-type object-name arm grasp) ;whisk missing right object name
+         ;;    :translation (cl-transforms:make-3d-vector 0 0 0)
+         ;;                                ;(cl-transforms: z value copy of everything is zero copy-3d-vector
+         ;;    ;TODO TINA if that works for all containers- read that info out and tweak it 
+         ;;    :rotation (cl-tf:make-identity-rotation)):x-offset 0 :y-offset 0))
+
          (oTg-std
-           (cram-tf:copy-transform-stamped
-            (man-int:get-object-type-to-gripper-transform tool-object-type object-name arm grasp) ;whisk missing right object name
-            :translation (cl-transforms:make-3d-vector 0 0 0.05) ;cos all calculations of height  is made in btb alrdy
-            ;TODO TINA if that works for all containers- read that info out and tweak it 
-            :rotation (cl-tf:make-identity-rotation)))
+            (cram-tf:copy-transform-stamped
+            (man-int:get-object-type-to-gripper-transform tool-object-type object-name arm grasp)
+   :translation
+   (let ((transform-translation (cl-transforms:translation  (man-int:get-object-type-to-gripper-transform tool-object-type object-name arm grasp) )))
+     (cl-transforms:copy-3d-vector
+      transform-translation
+      :x 0
+      :y 0
+      :z (let ((z-transform-translation (cl-transforms:z transform-translation))) 
+           (if (plusp z-transform-translation)
+              z-transform-translation (* z-transform-translation -1)))))))
 
          (approach-pose
            (cl-tf:copy-pose-stamped 
@@ -272,13 +287,19 @@
     (man-int::call-with-specific-type #'get-object-type-robot-frame-mix-approach-transform
                              object-type arm grasp)))
 
-(defun get-object-type-robot-frame-mix-approach-transform-destructuring (object-type arm grasp tool-object-type)
-  (let* ((container (get-object-type-robot-frame-mix-approach-transform object-type arm grasp))
-        (tool (get-object-type-robot-frame-mix-tool-transform tool-object-type))
+(defun get-object-type-robot-frame-mix-approach-transform-destructuring (object-type object-name tool-object-type)
+  (let* ((container (get-object-type-robot-frame-mix-rim-bottom-transform object-type))
+         (tool (get-object-type-robot-frame-mix-tool-transform tool-object-type))
         (height 0)
-        (newpose '()))
-    (setf height (mapcar #'+ (cddar container) (cddar tool)))
-    (setf newpose (cons (append (list (caar container)) (list (cadar container)) height) (last container)))
+         (newpose '()))
+
+    ;height - öffnunf und bottom radius need to be bigger than tool
+    (if (or (>= (or (caddar tool)(cadar tool)) (cadar container)))
+        (error "tool is to wide to fit into container")
+        )
+    
+    (setf height (+ (caddar container)(caar tool)))
+    (setf newpose (cons (append (list 0 0 height)) (last container)))
     
     (destructuring-bind
      ((x y z) (ax ay az aw))
@@ -294,12 +315,15 @@
        (cl-transforms:make-quaternion ax ay az aw)))))))
 
 (defun get-object-type-robot-frame-mix-retract-transform-destructuring (object-type arm grasp tool-object-type)
-  (let* ((container (get-object-type-robot-frame-mix-retract-transform object-type arm grasp))
+  (let* ((container (get-object-type-robot-frame-mix-rim-top-transform object-type))
         (tool (get-object-type-robot-frame-mix-tool-transform tool-object-type))
         (height 0)
-        (newpose '()))
-    (setf height (mapcar #'+ (cddar container) (cddar tool)))
-    (setf newpose (cons (append (list (caar container)) (list (cadar container)) height) (last container)))
+         (newpose '()))
+
+    (setf height (+ (caar container)(caar tool)))
+    (setf newpose (cons (append (list 0 0 height)) (last container)))    
+    ;; (setf height (mapcar #'+ (cddar container) (cddar tool)))
+    ;; (setf newpose (cons (append (list (caar container)) (list (cadar container)) height) (last container)))
     
     (destructuring-bind
      ((x y z) (ax ay az aw))

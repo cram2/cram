@@ -59,11 +59,14 @@
   (<- (man-int:object-type-direct-subtype :cutlery :fork))
   (<- (man-int:object-type-direct-subtype :cutlery :spoon))
 
- (<- (man-int:object-type-direct-subtype :kitchen-item :saucepan))
+ (<- (man-int:object-type-direct-subtype :household-item :saucepan))
  (<- (man-int:object-type-direct-subtype :household-item :big-bowl))
  (<- (man-int:object-type-direct-subtype :cutlery :whisk))
+  (<- (man-int:object-type-direct-subtype :cutlery :ladle))
+    (<- (man-int:object-type-direct-subtype :cutlery :tea-spoon))
 
-  (<- (man-int:object-type-direct-subtype :bowl :bowl-round))
+  (<- (man-int:object-type-direct-subtype :household-item :wine-glas))
+  (<- (man-int:object-type-direct-subtype :household-item :bowl-round))
 
   (<- (man-int:object-type-direct-subtype :cereal :breakfast-cereal))
 
@@ -1690,6 +1693,23 @@
 
 (defmethod man-int:get-arms-for-object-type :heuristics 20 ((object-type (eql :tray)))
   '(:left :right))
+  
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;ladle;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *ladle-grasp-z-offset* 0.015 ;; -0.015
+   "in meters") ; because TCP is not at the edge
+(defparameter *ladle-pregrasp-z-offset* 0.20 "in meters")
+
+;; TOP grasp
+(man-int:def-object-type-to-gripper-transforms '(:ladle)
+    '(:left :right) :top
+  :location-type :counter-top
+  :grasp-translation  `(-0.05 0 -0.04)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets `(-0.05 0 0.2)
+  :2nd-pregrasp-offsets `(-0.05 0 0.2)
+  :lift-translation `(-0.05 0 0.2)
+  :2nd-lift-translation `(-0.05 0.015 0.2))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; whisk ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
