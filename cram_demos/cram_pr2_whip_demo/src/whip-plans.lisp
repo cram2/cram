@@ -30,16 +30,17 @@
 (in-package :demo)
 
 (defun my-plan-function (&key
-             &allow-other-keys)
-  (print "My action designator is executable"))
+            &allow-other-keys)
+ (print "My action designator is executable"))
 
 
 (def-fact-group my-actions (desig:action-grounding)
-  (<- (desig:action-grounding ?action-designator (my-plan-function ?resolved-action-designator))
-    (spec:property ?action-designator (:type :my-action-designator))
+  (<-
+      (desig:action-grounding ?action-designator (my-plan-function ?resolved-action-designator))
+   (spec:property ?action-designator (:type :my-action-designator))
 
-    (desig:designator :action ((:type :my-action-designator))
-                      ?resolved-action-designator)))
+   (desig:designator :action ((:type :my-action-designator))
+                     ?resolved-action-designator)))
 
 (defun whisk (&key
 	       ((:object ?object-designator))
@@ -51,11 +52,8 @@
                 ((:reso ?reso))
                 ((:source ?source-designator))
                 ((:source-type ?source-type))
-	       ;;((:effort ?effort))
-	       ;;((:gripper-opening ?gripper-opening))
-	      ; ((:left-grip-container-poses ?left-grip-container-poses))
-	      ; ((:right-grip-container-poses ?right-grip-container-poses))
-	       ((:left-approach-poses ?left-approach-poses))
+ 
+               ((:left-approach-poses ?left-approach-poses))
 	       ((:right-approach-poses ?right-approach-poses))
 	       ((:left-start-mix-poses ?left-start-mix-poses))
 	       ((:right-start-mix-poses ?right-start-mix-poses))
@@ -68,24 +66,7 @@
              &allow-other-keys)
 
   ;;just some prints cause who does not like them
-  (format t "My action designator is executable; ~%
-             flipping: object-type ~a object-name ~a arm: ~a grasp: ~a ~%"
-	  ?object-type ?object-name ?arms ?grasp)
-
-(format t "my tool is: ~a" ?source-designator)
-
-;  (roslisp:ros-info (cut-pour pour) "Approaching")
-
-  ;grip bowl
-    ;; (exe:perform
-    ;;  (desig:an action
-    ;;            (type approaching)
-    ;;            (left-poses ?left-grip-container-poses)
-    ;;            (right-poses ?right-grip-container-poses)
-    ;;            ;;(desig:when ?collision-mode
-    ;; 	       ;;(collision-mode ?collision-mode))))
-    ;; 	       ))
-    ;; (cpl:sleep 2)
+  (format t "My action designator is executable; ~%")
   
   ;tool to center of container
     (exe:perform
@@ -148,9 +129,8 @@
     	       (collision-mode :allow-all)))
   (cpl:sleep 2)
 
-    (format t "my poses left: ~a ~%
-             my poses right: ~a ~%" ?left-retract-poses
-	     ?right-retract-poses)
+  
+   ;retract
     (exe:perform
      (desig:an action
                (type approaching)

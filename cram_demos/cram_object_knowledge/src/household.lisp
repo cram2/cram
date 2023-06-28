@@ -1103,7 +1103,7 @@
 
 (defparameter *bowl-round-grasp-x-offset* 0.065 "in meters")
 (defparameter *bowl-round-grasp-z-offset* 0.02 "in meters")
-(defparameter *bowl-round-lift-z-offset* 0.04 "in meters")
+(defparameter *bowl-round-lift-z-offset* 0.00 "in meters") ;0.04
 
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms :bowl-round '(:left :right) :top
@@ -1694,108 +1694,6 @@
 (defmethod man-int:get-arms-for-object-type :heuristics 20 ((object-type (eql :tray)))
   '(:left :right))
   
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;ladle;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defparameter *ladle-grasp-z-offset* 0.015 ;; -0.015
-   "in meters") ; because TCP is not at the edge
-(defparameter *ladle-pregrasp-z-offset* 0.20 "in meters")
-
-;; TOP grasp
-(man-int:def-object-type-to-gripper-transforms '(:ladle)
-    '(:left :right) :top
-  :location-type :counter-top
-  :grasp-translation  `(-0.05 0 -0.04)
-  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
-  :pregrasp-offsets `(-0.05 0 0.2)
-  :2nd-pregrasp-offsets `(-0.05 0 0.2)
-  :lift-translation `(-0.05 0 0.2)
-  :2nd-lift-translation `(-0.05 0.015 0.2))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; whisk ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defparameter *whisk-grasp-z-offset* 0.015 ;; -0.015
-   "in meters") ; because TCP is not at the edge
-(defparameter *whisk-pregrasp-z-offset* 0.20 "in meters")
-
-;; TOP grasp
-(man-int:def-object-type-to-gripper-transforms '(:whisk)
-    '(:left :right) :top
-  :location-type :counter-top
-  :grasp-translation  `(-0.05 0 0) ;-0.05 0 -0.02)
-  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
-  :pregrasp-offsets `(-0.05 0 0.2)
-  :2nd-pregrasp-offsets `(-0.05 0 0.2)
-  :lift-translation `(-0.05 0 0.2)
-  :2nd-lift-translation `(-0.05 0.015 0.2))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; big-bowl ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defparameter *big-bowl-grasp-xy-offset* 0.12 "in meters")
-(defparameter *big-bowl-pregrasp-z-offset* 0.30 "in meters")
-(defparameter *big-bowl-grasp-z-offset* 0.06 "in meters")
-
-;side-grasps
-(man-int:def-object-type-to-gripper-transforms '(:big-bowl) '(:left :right) :top
-  :grasp-translation `(0.0 ,(- *big-bowl-grasp-xy-offset*) 0.0d0 ,*big-bowl-grasp-z-offset*)
-  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
-  :pregrasp-offsets `(0.0 0.0 ,*big-bowl-pregrasp-z-offset*)
-  :2nd-pregrasp-offsets `(*big-bowl-grasp-xy-offset*, 0.0 ,*big-bowl-pregrasp-z-offset*)
-  :lift-translation `(0.0 0.0 ,*big-bowl-pregrasp-z-offset*)
-  :2nd-lift-translation `(0.0 0.0 ,*big-bowl-pregrasp-z-offset*))
-  
-  (man-int:def-object-type-to-gripper-transforms '(:big-bowl)
-    '(:left :right) :right-top
-  :grasp-translation `(0.0,*big-bowl-grasp-xy-offset* ,*big-bowl-grasp-z-offset*)
-  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
-    :pregrasp-offsets `(0.0 0.0 ,*big-bowl-pregrasp-z-offset*)
-  :2nd-pregrasp-offsets `(0.0 0.0 ,*big-bowl-pregrasp-z-offset*)
-  :lift-translation `(0.0 0.0 ,*big-bowl-pregrasp-z-offset*)
-  :2nd-lift-translation `(0.0 0.0 ,*big-bowl-pregrasp-z-offset*))
-
-;; right-TOP grasp
-(man-int:def-object-type-to-gripper-transforms '(:big-bowl)
-    '(:left :right) :left-top
-  :grasp-translation `(0.0,(- *big-bowl-grasp-xy-offset*) 0.0d0 ,*big-bowl-grasp-z-offset*)
-  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
-    :pregrasp-offsets `(0.0 0.0 ,*big-bowl-pregrasp-z-offset*)
-  :2nd-pregrasp-offsets `(0.0, *big-bowl-grasp-xy-offset* ,*big-bowl-pregrasp-z-offset*)
-  :lift-translation `(0.0 0.0 ,*big-bowl-pregrasp-z-offset*)
-  :2nd-lift-translation `(0.0 0.0 ,*big-bowl-pregrasp-z-offset*))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;saucepan;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defparameter *saucepan-grasp-x-offset* 0.153 "in meters")
-(defparameter *saucepan-pregrasp-z-offset* 0.30 "in meters")
-(defparameter *saucepan-grasp-z-offset* 0.01 "in meters")
-
-;side-grasps
-(man-int:def-object-type-to-gripper-transforms '(:saucepan) '(:left :right) :top
-  :grasp-translation `(0.0 ,(- *saucepan-grasp-x-offset*) 0.0d0 ,*saucepan-grasp-z-offset*)
-  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
-  :pregrasp-offsets `(0.0 0.0 ,*saucepan-pregrasp-z-offset*)
-  :2nd-pregrasp-offsets `(*saucepan-grasp-x-offset*, 0.0 ,*saucepan-pregrasp-z-offset*)
-  :lift-translation `(0.0 0.0 ,*saucepan-pregrasp-z-offset*)
-  :2nd-lift-translation `(0.0 0.0 ,*saucepan-pregrasp-z-offset*))
-  
-  (man-int:def-object-type-to-gripper-transforms '(:saucepan)
-    '(:left :right) :right
-  :grasp-translation `(0.0,*saucepan-grasp-x-offset* ,*saucepan-grasp-z-offset*)
-  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
-    :pregrasp-offsets `(0.0 0.0 ,*saucepan-pregrasp-z-offset*)
-  :2nd-pregrasp-offsets `(0.0 0.0 ,*saucepan-pregrasp-z-offset*)
-  :lift-translation `(0.0 0.0 ,*saucepan-pregrasp-z-offset*)
-  :2nd-lift-translation `(0.0 0.0 ,*saucepan-pregrasp-z-offset*))
-
-;; right-TOP grasp
-(man-int:def-object-type-to-gripper-transforms '(:saucepan)
-    '(:left :right) :left
-  :grasp-translation `(0.0,(- *saucepan-grasp-x-offset*) 0.0d0 ,*saucepan-grasp-z-offset*)
-  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
-    :pregrasp-offsets `(0.0 0.0 ,*saucepan-pregrasp-z-offset*)
-  :2nd-pregrasp-offsets `(0.0, *saucepan-grasp-x-offset* ,*saucepan-pregrasp-z-offset*)
-  :lift-translation `(0.0 0.0 ,*saucepan-pregrasp-z-offset*)
-  :2nd-lift-translation `(0.0 0.0 ,*saucepan-pregrasp-z-offset*))
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; pancake-maker ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *pancake-maker-diameter* 0.26 "in meters")

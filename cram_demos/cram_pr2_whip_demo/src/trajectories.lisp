@@ -32,11 +32,6 @@
 
 (in-package :cram-manipulation-interfaces)
 
-
-;;get pouring trajectory workes like picking-up it will get the 
-;;object-type-to-gripper-tilt-approch-transform und makes a traj-segment out of it
-;;here we have only the approach pose, followed by that is the titing pose (above)
-;;TODO: change name and put into designator the correct key
 (defmethod man-int:get-action-trajectory :heuristics 20 ((action-type (eql :mixing))
                                                          arm
                                                          grasp
@@ -45,14 +40,10 @@
                                                          &key
                                                          context
                                                          reso
-                                                           tool-object-type
+                                                         tool-object-type
                                                            )
                                                          
   (print "entered mixing")
-  (print tool-object-type)
-  (print (car objects-acted-on))
- ; (print tool-object-type);whisk
- ; (print objects-acted-on);suacpena
   ;;TODO DONT CHANGE THIS SAME +++++++++++
   (let* ((object
            (car objects-acted-on))
@@ -103,6 +94,8 @@
            (if (plusp z-transform-translation)
               z-transform-translation (* z-transform-translation -1)))))))
 
+         (container-arm (if (eql arm :right) :left :right))
+
          (approach-pose
            (cl-tf:copy-pose-stamped 
             (man-int:calculate-gripper-pose-in-base
@@ -116,9 +109,9 @@
             (cl-tf:rotation bTb-offset)))
          ;top+ bottom, append
          (mix-poses (adjust-circle-poses-context approach-pose reso context object-type tool-object-type))
-					;(mix-poses  (circle-poses approach-pose))
+			        
 	(start-mix-poses (rec-spiral-poses object-type approach-pose reso tool-object-type))
-                                        ; (spiral-poses approach-pose))
+        
          ;spiral inwards
          (end-mix-poses (reverse-spiral-poses object-type approach-pose reso tool-object-type))
          ;retract
@@ -133,33 +126,6 @@
               arm oTg-std)
             :orientation 
             (cl-tf:rotation bTb-liftoffset)))
-	 ;;TODO: here come all your new poses calculated from the approach pose
-	 ;;wrote new functions that changes height and stuff but as metioned in the
-	 ;;comments below its hardcoded should be aabb box stuff calculating
-	 
-         ;; ;;approach-pose was not a list yet
-         ;; (flip-tilt-poses
-         ;;   (get-flip-tilt-poses grasp (list approach-pose)
-	 ;; 			(cram-math:degrees->radians 15)
-	 ;; 			-0.085))
-	 
-         ;; ;;flip-tilt-poses is a list already
-	 ;; ;;the 0.15 value should depent on the object acted on.. but for now its k
-	 ;; (push-foward-poses
-	 ;;   (get-flip-tilt-poses grasp
-	 ;; 			(get-push-foward-poses grasp flip-tilt-poses 0.12)
-	 ;; 			(cram-math:degrees->radians 6.5) -0.03))
-
-	 ;; (lift-pancake-poses
-	 ;;   (get-flip-tilt-poses grasp push-foward-poses
-	 ;; 			(cram-math:degrees->radians 0) 0.1))
-
-	 ;; (flip-pancake-poses
-	 ;;   (get-flip-tilt-poses :left
-         ;;                        (get-push-foward-poses :left 
-	 ;; 			lift-pancake-poses 0.05)
-	 ;; 			(cram-math:degrees->radians -90) 0.2))
-
 	   
 	 )
     (mapcar (lambda (label poses-in-base)
@@ -179,15 +145,15 @@
                            (cl-tf:ensure-pose-stamped
                             (cram-tf:apply-transform mTb bTg-std))))
                        poses-in-base)))
-            '(;:grip-container
+            '(
 	      :approach
 	      :start-mix
 	      :mid-mix
               :end-mix
               :retract
 	      )
-	    `(;(,grip-container-pose)
-	      (,approach-pose)
+	    `(
+              (,approach-pose)
 	      ,start-mix-poses
 	      ,mix-poses
               ,end-mix-poses
@@ -199,24 +165,6 @@
 ;; =========  is in household defined normaly- mixing.lisp file call ==========
 
 ;; =========  is in trajectory defined normaly ==========
-(defgeneric get-object-type-robot-frame-mix-rim-grip-deep-approach-transform (object-type arm grasp)
-  (:documentation "Returns a transform stamped")
-  (:method (object-type arm grasp)
-    (man-int::call-with-specific-type #'get-object-type-robot-frame-mix-rim-grip-deep-approach-transform
-                             object-type arm grasp)))
-
-(defmethod get-object-type-robot-frame-mix-rim-grip-deep-approach-transform  (object-type arm grasp)
-  (destructuring-bind
-      ((x y z) (ax ay az aw))
-      (call-next-method)
-    (cl-tf:transform->transform-stamped
-     cram-tf:*robot-base-frame*
-     cram-tf:*robot-base-frame*
-     0.0
-     (cl-tf:pose->transform
-      (cl-transforms:make-pose
-       (cl-transforms:make-3d-vector x y z)
-       (cl-transforms:make-quaternion ax ay az aw))))))
 
 ;; (defgeneric get-object-type-robot-frame-mix-tool-grip-bottom-transform (object-type arm grasp)
 ;;   (:documentation "Returns a transform stamped")
@@ -261,6 +209,8 @@
   (:method (object-type arm grasp)
     (man-int::call-with-specific-type #'get-object-type-robot-frame-mix-retract-transform
                              object-type arm grasp)))
+
+
 
 (defgeneric get-object-type-robot-frame-mix-grip-approach-transform (object-type arm grasp)
   (:documentation "Returns a transform stamped")
@@ -337,6 +287,7 @@
       (cl-transforms:make-pose
        (cl-transforms:make-3d-vector x y z)
        (cl-transforms:make-quaternion ax ay az aw)))))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;gets upstairs, drawing functions below
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -527,7 +478,6 @@
 ;(print "translating spiral poses to otb")
 
     ))))
-
 
 ;; (defun get-circle-poses(reso)
 ;;   (print "whisking circle calculated")

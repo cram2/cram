@@ -35,63 +35,42 @@
   ;;###############################################################################
 
 ;me writting stuff
-(defun example()      
-(urdf-proj:with-simulated-robot
-	 
-	(setup-whisk-and-bowl)
+(defun test-container()
+  (initialize)
+	(urdf-proj:with-simulated-robot
+	
+          (move-pr2)
+        ;  (spawn-whisk)
+       ; (spawn-wglas)                            
+        (spawn-rbowl)
+       ; (spawn-saucepan)
+       ;(spawn-rbowl)
         
-        
-    (let* (
+    (let (
          ;utensil: fork,spoon,whisky or sth - for now spawn a fork
         (?object-utensil nil)
         (?pose-utensil nil)
-        ;container
-        (?object-container nil)
-        (?pose-container nil))
-                                             
-          ;getting bowl pose and saving it                        
-      (setf ?pose-container (cl-tf:pose->pose-stamped
-                             cram-tf:*fixed-frame*
-                             0 
-                             (btr:object-pose 'big-bowl-1)))
-                             
+        (?object-desig-source (desig:an object (type :bowl-round)))
+        )
+                
                 ;getting utensil pose and saving it                        
       (setf ?pose-utensil (cl-tf:pose->pose-stamped
                              cram-tf:*fixed-frame*
                              0 
-                             (btr:object-pose 'whisk-1)))
-      
-      ;show axis- for testing
-      ;(btr::add-vis-axis-object 'whisk-1) 
-                                         
-     (try-looking ?pose-utensil)    
+                             (btr:object-pose 'container-1)))
+            (cram-executive:perform
+           (desig:an action
+                     (type looking)
+                     (target (desig:a location (pose ?pose-utensil)))))  
      
-           ; TODO make it adaptible per util
-      (setf ?object-utensil (urdf-proj::detect (desig:an object (type whisk))))            
-                                     
-                                     
-       ;;;; Picking-up the utensil object
- 
-;grabbing utensil
+ ;;           ;CAN SEE THE FORK?
+       (setf ?object-utensil (urdf-proj::detect (desig:an object (type :bowl-round))))
+
             (exe:perform (desig:an action
                                    (type picking-up)
                                    (object ?object-utensil)
-                                   (arm :right) 
-                                   (grasp :top)))
-                                   
-        ;detect and perceive big bowl
-        (try-looking ?pose-container)
-        (setf ?object-container (urdf-proj::detect (desig:an object (type big-bowl))))  
-         
-         ;;holding bowl
-;grabbing bowl
-            (exe:perform (desig:an action
-                                   (type holding)
-                                   (object ?object-container)
-                                   (arm :left) 
-                                   (grasp :left-hold)))
-
-                                   )))                     
+                                    (arm (:left)) 
+                                    (grasp :handle-right))) )))                  
     
 
 ;;#############################whisp testing##############      

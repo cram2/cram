@@ -40,7 +40,36 @@
     '((0 0 0.093)(1 0 0 0)))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; don't care for above as long as no grip implemented
-    
+
+(defmethod get-object-type-robot-frame-mix-grip-container-transform
+   ( (object-type (eql :big-bowl))
+  (container-arm (eql :left))
+     (grasp (eql :left-side)))
+  (print "yes- this was used.")
+      '((0 0 0.093)(1 0 0 0)))
+
+(defmethod get-object-type-robot-frame-mix-grip-container-transform
+   ( (object-type (eql :big-bowl))
+  (container-arm (eql :right))
+(grasp (eql :right-side)))
+      '((0 0 0.093)(1 0 0 0)))
+
+;; (defmethod get-object-type-robot-frame-mix-grip-container-transform
+;;     (object-type
+;;       tool-object-type
+;;       container-arm)
+;;       '((0 0 0.093)(1 0 0 0)))
+;; (defmethod get-object-type-robot-frame-mix-grip-container-transform
+;;     (object-type
+;;       tool-object-type
+;;       container-arm)
+;;       '((0 0 0.093)(1 0 0 0)))
+;; (defmethod get-object-type-robot-frame-mix-grip-container-transform
+;;     (object-type
+;;       tool-object-type
+;;       container-arm)
+;;       '((0 0 0.093)(1 0 0 0)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;approach pose in bto
 
@@ -168,3 +197,139 @@
     ((object-type (eql :tea-spoon))
      )
   '((0.085 0.02 0.01)(1 0 0 0)))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                                        ;snatched back from household
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; big-bowl ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *big-bowl-grasp-xy-offset* 0.12 "in meters")
+(defparameter *big-bowl-pregrasp-z-offset* 0.20 "in meters")
+(defparameter *big-bowl-grasp-z-offset* 0.05);0.12 "in meters") ;height
+(defparameter *big-bowl-grasp-thickness* 0.01 "in meter")
+;big brain move- toate the axis to fit with whisk and co
+;;lifing is zero movment
+
+;side-grasps
+  
+  (man-int:def-object-type-to-gripper-transforms '(:big-bowl)
+    '(:left :right) :right-top
+  :grasp-translation `(0.0,*big-bowl-grasp-xy-offset* ,*big-bowl-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+    :pregrasp-offsets `(0.0 0.0 ,*big-bowl-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,*big-bowl-pregrasp-z-offset*)
+  :lift-translation `(0.0 0.0 ,0.0)
+  :2nd-lift-translation `(0.0 0.0 ,0.0))
+
+;; right-TOP grasp
+(man-int:def-object-type-to-gripper-transforms '(:big-bowl)
+    '(:left :right) :left-top
+  :grasp-translation `(0,-0.12, *big-bowl-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,*big-bowl-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 0.0 , *big-bowl-pregrasp-z-offset*)
+  :lift-translation `(0.0 0.0 0.0)
+  :2nd-lift-translation `(0.0 ,0.0, 0.0))
+  
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; whisk ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *whisk-grasp-y-offset* 0.015 ;; -0.015
+   "in meters") ; because TCP is not at the edge
+(defparameter *whisk-pregrasp-z-offset* 0.20 "in meters")
+
+;; TOP grasp
+(man-int:def-object-type-to-gripper-transforms '(:whisk)
+    '(:left :right) :top
+  :location-type :counter-top
+  :grasp-translation  `(-0.05 0 0) ;-0.05 0 -0.02)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets `(-0.05 0 0.2)
+  :2nd-pregrasp-offsets `(-0.05 0 ,*whisk-pregrasp-z-offset*)
+  :lift-translation `(-0.05 0, *whisk-pregrasp-z-offset*)
+  :2nd-lift-translation `(-0.05, *whisk-grasp-y-offset* , *whisk-pregrasp-z-offset*))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;ladle;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *ladle-grasp-y-offset* 0.015 ;; -0.015
+   "in meters") ; because TCP is not at the edge
+(defparameter *ladle-pregrasp-z-offset* 0.20 "in meters")
+
+;; TOP grasp
+(man-int:def-object-type-to-gripper-transforms '(:ladle)
+    '(:left :right) :top
+  :location-type :counter-top
+  :grasp-translation  `(-0.05 0 -0.04)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets `(-0.05 0, *ladle-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(-0.05 0, *ladle-pregrasp-z-offset*)
+  :lift-translation `(-0.05 0, *ladle-pregrasp-z-offset*)
+  :2nd-lift-translation `(-0.05, *ladle-grasp-y-offset*, *ladle-pregrasp-z-offset*))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;saucepan;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defparameter *saucepan-grasp-x-offset* -0.2 "in meters")
+(defparameter *saucepan-pregrasp-z-offset* 0.30 "in meters")
+(defparameter *saucepan-grasp-z-offset* 0.022 "in meters")
+
+;side-grasps
+(man-int:def-object-type-to-gripper-transforms '(:saucepan) '(:left :right) :handle-left
+  :grasp-translation `(-0.2,0.0 ,*saucepan-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*y-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,*saucepan-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0, 0.0 ,*saucepan-pregrasp-z-offset*)
+  :lift-translation `(0.0 0.0 ,0.0)
+  :2nd-lift-translation `(0.0 0.0 ,0.0))
+
+(man-int:def-object-type-to-gripper-transforms '(:saucepan) '(:left :right) :handle-right
+  :grasp-translation `(-0.2,0.0 ,*saucepan-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-y-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,*saucepan-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0, 0.0 ,*saucepan-pregrasp-z-offset*)
+  :lift-translation `(0.0 0.0 ,0.0)
+  :2nd-lift-translation `(0.0 0.0 ,0.0))
+
+(man-int:def-object-type-to-gripper-transforms '(:saucepan) '(:left :right) :handle-top
+  :grasp-translation `(-0.2,0.0 ,*saucepan-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,*saucepan-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0, 0.0 ,*saucepan-pregrasp-z-offset*)
+  :lift-translation `(0.0 0.0 ,0.0)
+  :2nd-lift-translation `(0.0 0.0 ,0.0))
+
+(man-int:def-object-type-to-gripper-transforms '(:saucepan) '(:left :right) :handle-bottom
+  :grasp-translation `(-0.2,0.0 ,*saucepan-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-z-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,*saucepan-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0, 0.0 ,*saucepan-pregrasp-z-offset*)
+  :lift-translation `(0.0 0.0 ,0.0)
+  :2nd-lift-translation `(0.0 0.0 ,0.0))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;; wine-glas ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *wine-glas-pregrasp-x-offset* 0.01 "in meters") ;counts for the stem
+(defparameter *wine-glas-grasp-z-offset* -0.05 "in meters") ;counts for the stem
+(defparameter *wine-glas-lift-z-offset* 0.03 "in meters")
+;thickness of glas is 1 cm ish
+
+;; TOP grasp
+(man-int:def-object-type-to-gripper-transforms :wine-glas '(:left :right) :stem-left
+  :grasp-translation `(0.0 0.0 ,*wine-glas-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-y-across-z-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,*wine-glas-lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,*wine-glas-lift-z-offset*)
+  :lift-translation `(0.0 0.0 ,0.0)
+  :2nd-lift-translation `( 0.01 0.0 ,0.0))
+
+(man-int:def-object-type-to-gripper-transforms :wine-glas '(:left :right) :stem-right
+  :grasp-translation `(0.0 0.0 ,*wine-glas-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*y-across-z-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,*wine-glas-lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,*wine-glas-lift-z-offset*)
+  :lift-translation `(0.0 0.0 ,0.0)
+  :2nd-lift-translation `( 0.01 0.0 ,0.0))
+
+(man-int:def-object-type-to-gripper-transforms :wine-glas '(:left :right) :stem-front
+  :grasp-translation `(0.0 0.0 ,*wine-glas-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,*wine-glas-lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,*wine-glas-lift-z-offset*)
+  :lift-translation `(0.0 0.0 ,0.0)
+  :2nd-lift-translation `( 0.01 0.0 ,0.0))
