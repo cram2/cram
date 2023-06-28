@@ -224,6 +224,10 @@
     (once (or (and (spec:property ?current-object-designator (:location ?object-location))
                    (man-int:location-always-reachable ?object-location))
               (object-is-a-robot ?current-object-designator))))
+  ;; Also if it's an object held in hand
+  (<- (location-always-reachable ?object-designator)
+    (bound ?object-designator)
+    (cpoe:object-in-hand ?object-designator))
 
   (<- (location-certain ?some-location-designator)
     (desig:loc-desig? ?some-location-designator)

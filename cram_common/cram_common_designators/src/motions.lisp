@@ -101,7 +101,8 @@
                                               ?collision-object-a
                                               ?move-base ?prefer-base
                                               ?align-planes-left
-                                              ?align-planes-right))
+                                              ?align-planes-right
+                                              ?fixed-torso))
     (property ?designator (:type :moving-tcp))
     (once (or (property ?designator (:left-pose ?left-pose))
               (equal ?left-pose nil)))
@@ -123,7 +124,9 @@
     (once (or (desig:desig-prop ?designator (:align-planes-left ?align-planes-left))
               (equal ?align-planes-left nil)))
     (once (or (desig:desig-prop ?designator (:align-planes-right ?align-planes-right))
-              (equal ?align-planes-right nil))))
+              (equal ?align-planes-right nil)))
+    (once (or (desig:desig-prop ?designator (:fixed-torso ?fixed-torso))
+              (equal ?fixed-torso nil))))
 
   (<- (motion-grounding ?designator (?push-or-pull ?arm ?poses
                                                    ?joint-angle
@@ -134,7 +137,8 @@
                                                    ?move-base ?prefer-base
                                                    ?align-planes-left
                                                    ?align-planes-right
-                                                   ?joint-pose))
+                                                   ?joint-pose
+                                                   ?fixed-torso))
     (or (and (property ?designator (:type :pushing))
              (equal ?push-or-pull move-arm-push))
         (and (property ?designator (:type :pulling))
@@ -161,7 +165,9 @@
     (once (or (desig:desig-prop ?designator (:align-planes-left ?align-planes-left))
               (equal ?align-planes-left nil)))
     (once (or (desig:desig-prop ?designator (:align-planes-right ?align-planes-right))
-              (equal ?align-planes-right nil))))
+              (equal ?align-planes-right nil)))
+    (once (or (desig:desig-prop ?designator (:fixed-torso ?fixed-torso))
+              (equal ?fixed-torso nil))))
 
   (<- (motion-grounding ?designator (move-joints ?left-config ?right-config
                                                  ?collision-mode
