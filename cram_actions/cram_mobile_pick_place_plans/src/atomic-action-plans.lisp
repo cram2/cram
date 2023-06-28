@@ -92,6 +92,7 @@
                                 ((:prefer-base ?prefer-base))
                                 ((:align-planes-left ?align-planes-left))
                                 ((:align-planes-right ?align-planes-right))
+                                ((:fixed-torso ?fixed-torso))
                               &allow-other-keys)
   (declare (type (or list cl-transforms-stamped:pose-stamped) left-poses right-poses)
            (type (or null keyword) ?collision-mode)
@@ -140,7 +141,9 @@ while ignoring failures; and execute the last pose with propagating the failures
                         (desig:when ?align-planes-left
                           (align-planes-left ?align-planes-left))
                         (desig:when ?align-planes-right
-                          (align-planes-right ?align-planes-right))))
+                          (align-planes-right ?align-planes-right))
+                        (desig:when ?fixed-torso
+                          (fixed-torso ?fixed-torso))))
 
               (cram-occasions-events:on-event
                (make-instance 'cram-plan-occasions-events:robot-state-changed))))
@@ -178,7 +181,9 @@ while ignoring failures; and execute the last pose with propagating the failures
                 (desig:when ?align-planes-left
                   (align-planes-left ?align-planes-left))
                 (desig:when ?align-planes-right
-                  (align-planes-right ?align-planes-right))))
+                  (align-planes-right ?align-planes-right))
+                (desig:when ?fixed-torso
+                  (fixed-torso ?fixed-torso))))
 
       (cram-occasions-events:on-event
        (make-instance 'cram-plan-occasions-events:robot-state-changed)))))
@@ -196,6 +201,7 @@ while ignoring failures; and execute the last pose with propagating the failures
                                  ((:prefer-base ?prefer-base))
                                  ((:align-planes-left ?align-planes-left))
                                  ((:align-planes-right ?align-planes-right))
+                                 ((:fixed-torso ?fixed-torso))
                                &allow-other-keys)
   (declare (type keyword ?type ?arm)
            (type list ?poses)
@@ -233,7 +239,9 @@ With a continuous motion planner one could have fluent arch trajectories etc.
                  (desig:when ?align-planes-left
                    (align-planes-left ?align-planes-left))
                  (desig:when ?align-planes-right
-                   (align-planes-right ?align-planes-right))))
+                   (align-planes-right ?align-planes-right))
+                 (desig:when ?fixed-torso
+                   (fixed-torso ?fixed-torso))))
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 

@@ -67,19 +67,31 @@
     ;; infer if we should move the base at all or not
     ;; we shouldn't move the base if we're getting something of our own back
     ;; or if we're putting something on our own back
-    (-> (and (or (spec:property ?action-designator (:type :reaching))
-                 (spec:property ?action-designator (:type :grasping))
-                 (spec:property ?action-designator (:type :putting)))
-             (or (spec:property ?action-designator (:location ?location-designator))
-                 (and (spec:property ?action-designator
-                                     (:object ?some-object-designator))
-                      (desig:current-designator ?some-object-designator
-                                                ?object-designator)
-                      (spec:property ?object-designator
-                                     (:location ?location-designator))))
-             (man-int:location-always-reachable ?location-designator))
+    (-> (or (spec:property ?action-designator (:type :putting))
+            (and (or (spec:property ?action-designator (:type :reaching))
+                     (spec:property ?action-designator (:type :grasping)))
+                 (or (spec:property ?action-designator (:location ?location-designator))
+                     (and (spec:property ?action-designator
+                                         (:object ?some-object-designator))
+                          (desig:current-designator ?some-object-designator
+                                                    ?object-designator)
+                          (spec:property ?object-designator
+                                         (:location ?location-designator))))
+                 (man-int:location-always-reachable ?location-designator)))
         (equal ?move-base nil)
         (equal ?move-base t)))
+
+  (<- (infer-fixed-torso ?action-designator ?fixed-torso)
+    ;; when putting something at a location that is always reachable,
+    ;; like on our own back don't move the torso.
+    (-> (and (or (spec:property ?action-designator (:type :putting))
+                 (spec:property ?action-designator (:type :reaching)))
+             (or (and (spec:property ?action-designator (:location ?location-designator))
+                      (man-int:location-always-reachable ?location-designator))
+                 (and (spec:property ?action-designator (:supporting-object ?supporting-object))
+                      (man-int:location-always-reachable ?supporting-object))))
+        (equal ?fixed-torso T)
+        (equal ?fixed-torso NIL)))
 
   (<- (infer-align-planes ?action-designator ?align-planes-left ?align-planes-right)
     ;; infer if we should keep the object in hand upright
@@ -93,10 +105,11 @@
 
   (<- (infer-motion-flags ?action-designator
                           ?prefer-base ?move-base
-                          ?align-planes-left ?align-planes-right)
+                          ?align-planes-left ?align-planes-right ?fixed-torso)
     (infer-prefer-base ?action-designator ?prefer-base)
     (infer-move-base ?action-designator ?move-base)
-    (infer-align-planes ?action-designator ?align-planes-left ?align-planes-right))
+    (infer-align-planes ?action-designator ?align-planes-left ?align-planes-right)
+    (infer-fixed-torso ?action-designator ?fixed-torso))
 
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
                                                   ?resolved-action-designator))
@@ -115,14 +128,15 @@
     (once (or (spec:property ?action-designator (:collision-mode ?collision))
               (equal ?collision :allow-all)))
     (infer-motion-flags ?action-designator
-                        ?_ ?move-base ?align-planes-left ?align-planes-right)
+                        ?_ ?move-base ?align-planes-left ?align-planes-right ?fixed-torso)
     (desig:designator :action ((:type ?action-type)
                                (:left-poses ?left-poses)
                                (:right-poses ?right-poses)
                                (:collision-mode ?collision)
                                (:move-base ?move-base)
                                (:align-planes-left ?align-planes-left)
-                               (:align-planes-right ?align-planes-right))
+                               (:align-planes-right ?align-planes-right)
+                               (:fixed-torso ?fixed-torso))
                       ?resolved-action-designator))
 
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
@@ -136,14 +150,15 @@
     (once (or (spec:property ?action-designator (:collision-mode ?collision))
               (equal ?collision :allow-hand)))
     (infer-motion-flags ?action-designator
-                        ?_ ?move-base ?align-planes-left ?align-planes-right)
+                        ?_ ?move-base ?align-planes-left ?align-planes-right ?fixed-torso)
     (desig:designator :action ((:type ?action-type)
                                (:left-poses ?left-poses)
                                (:right-poses ?right-poses)
                                (:collision-mode ?collision)
                                (:move-base ?move-base)
                                (:align-planes-left ?align-planes-left)
-                               (:align-planes-right ?align-planes-right))
+                               (:align-planes-right ?align-planes-right)
+                               (:fixed-torso ?fixed-torso))
                       ?resolved-action-designator))
 
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
@@ -158,7 +173,8 @@
               (equal ?right-poses nil)))
     (infer-motion-flags ?action-designator
                         ?prefer-base ?move-base
-                        ?align-planes-left ?align-planes-right)
+                        ?align-planes-left ?align-planes-right
+                        ?fixed-torso)
     ;; infer collision-object-b and collision-object-b-link
     (-> (cpoe:object-in-hand ?object-designator ?_ ?_ ?_)
         (and (rob-int:robot ?robot)
@@ -176,7 +192,8 @@
                                (:prefer-base ?prefer-base)
                                (:move-base ?move-base)
                                (:align-planes-left ?align-planes-left)
-                               (:align-planes-right ?align-planes-right))
+                               (:align-planes-right ?align-planes-right)
+                               (:fixed-torso ?fixed-torso))
                       ?resolved-action-designator))
 
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
@@ -197,7 +214,7 @@
     (once (or (spec:property ?action-designator (:right-poses ?right-poses))
               (equal ?right-poses nil)))
     (infer-motion-flags ?action-designator
-                        ?_ ?move-base ?align-planes-left ?align-planes-right)
+                        ?_ ?move-base ?align-planes-left ?align-planes-right ?fixed-torso)
     ;; putting should actually allow hand and attached if grasping allows hand
     (desig:designator :action ((:type :putting)
                                (:left-poses ?left-poses)
@@ -209,7 +226,8 @@
                                (:collision-object-a ?object-name)
                                (:move-base ?move-base)
                                (:align-planes-left ?align-planes-left)
-                               (:align-planes-right ?align-planes-right))
+                               (:align-planes-right ?align-planes-right)
+                               (:fixed-torso ?fixed-torso))
                       ?resolved-action-designator))
 
   (<- (desig:action-grounding ?action-designator (manipulate-environment
@@ -233,7 +251,8 @@
     ;; infer the missing parameters
     (infer-motion-flags ?action-designator
                         ?prefer-base ?move-base
-                        ?align-planes-left ?align-planes-right)
+                        ?align-planes-left ?align-planes-right
+                        ?fixed-torso)
     (desig:designator :action ((:type ?action-type)
                                (:arm ?arm)
                                (:poses ?poses)
@@ -245,7 +264,8 @@
                                (:move-base ?move-base)
                                (:door-joint-pose ?door-joint-pose)
                                (:align-planes-left ?align-planes-left)
-                               (:align-planes-right ?align-planes-right))
+                               (:align-planes-right ?align-planes-right)
+                               (:fixed-torso ?fixed-torso))
                       ?resolved-action-designator))
 
   (<- (desig:action-grounding ?action-designator (move-arms-into-configuration
