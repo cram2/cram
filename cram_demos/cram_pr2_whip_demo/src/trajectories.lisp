@@ -90,12 +90,22 @@
       transform-translation
       :x 0
       :y 0
-      :z (let ((z-transform-translation (cl-transforms:z transform-translation))) 
-           (if (plusp z-transform-translation)
-              z-transform-translation (* z-transform-translation -1)))))))
+      :z (let ((x-transform-translation (cl-transforms:x transform-translation))) 
+           (if (plusp x-transform-translation)
+              x-transform-translation (* x-transform-translation -1)))))))
 
          (container-arm (if (eql arm :right) :left :right))
 
+         ;; (toolcenter-pose
+         ;;   (cl-tf:copy-pose-stamped 
+         ;;      (cram-tf:apply-transform
+         ;;       (cram-tf:copy-transform-stamped 
+         ;;       bTb-offset
+         ;;       :rotation (cl-tf:make-identity-rotation))
+         ;;       bTo)
+         ;;    :orientation 
+         ;;    (cl-tf:rotation bTb-offset)))
+         
          (approach-pose
            (cl-tf:copy-pose-stamped 
             (man-int:calculate-gripper-pose-in-base
@@ -108,7 +118,8 @@
             :orientation 
             (cl-tf:rotation bTb-offset)))
          ;top+ bottom, append
-         (mix-poses (adjust-circle-poses-context approach-pose reso context object-type tool-object-type))
+        ; (mix-poses (adjust-circle-poses-context approach-pose reso context object-type tool-object-type))
+         (mix-poses (adjust-circle-poses-context approach-pose  reso context object-type tool-object-type))
 			        
 	(start-mix-poses (rec-spiral-poses object-type approach-pose reso tool-object-type))
         
@@ -128,6 +139,12 @@
             (cl-tf:rotation bTb-liftoffset)))
 	   
 	 )
+    (print "comparing again")
+    (print oTg-std)
+    (print bTb-offset)
+    (print approach-pose)
+    (print "hard coded name change:")
+    ;; (print (man-int:get-object-type-to-gripper-transform tool-object-type "container-1" arm grasp))
     (mapcar (lambda (label poses-in-base)
               (man-int:make-traj-segment
                :label label
@@ -247,7 +264,6 @@
     (if (or (>= (or (caddar tool)(cadar tool)) (cadar container)))
         (error "tool is to wide to fit into container")
         )
-    
     (setf height (+ (caddar container)(caar tool)))
     (setf newpose (cons (append (list 0 0 height)) (last container)))
     
@@ -320,7 +336,6 @@
 ;;Toolhalvingtoggle is T when radius size halving is needed or nil if no radius sizing halving is needed.
 (defun adjust-circle-poses(pose reso newerate container-object-type tool-object-type &rest toolhalvingtoggle)
 
- ; for bowl 0.06 should be the result
   (let* (
 	(erate 1);== circle;  stirring == (erate 0.03) elipsiness
 	(angle 0)

@@ -79,9 +79,9 @@
 	(urdf-proj:with-simulated-robot
 	
           (move-pr2)
-          (spawn-ladle)
+          ;(spawn-ladle)
          ; (spawn-fork)
-	;(spawn-whisk)
+	(spawn-whisk)
 
                                         
         (spawn-bigbowl)
@@ -94,7 +94,7 @@
         (?pose-utensil nil)
         (?pose-container nil)
         (?object-container nil)
-        (?object-desig-source (desig:an object (type :ladle))) ; :ladle))); :whisk)))
+        (?object-desig-source (desig:an object (type :whisk))) ; :ladle))); :whisk)))
         )
                 
                 ;getting utensil pose and saving it                        
@@ -108,7 +108,7 @@
                      (target (desig:a location (pose ?pose-utensil)))))  
      
  ;;           ;CAN SEE THE FORK?
-       (setf ?object-utensil (urdf-proj::detect (desig:an object (type :ladle))))
+       (setf ?object-utensil (urdf-proj::detect (desig:an object (type :whisk))))
                                     
       
       

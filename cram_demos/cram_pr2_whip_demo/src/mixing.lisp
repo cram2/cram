@@ -149,7 +149,7 @@
 
 (defmethod get-object-type-robot-frame-mix-rim-bottom-transform
    ((object-type (eql :big-bowl)))
-   '((0.06 0.06 -0.045)(1 0 0 0))) ;16 cm diameter 6 cm below origin
+   '((0.055 0.06 -0.045)(1 0 0 0))) ;16 cm diameter 6 cm below origin
 
 
 (defmethod get-object-type-robot-frame-mix-rim-bottom-transform
