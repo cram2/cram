@@ -55,7 +55,8 @@
     ;; find the grasp type
     (-> (spec:property ?action-designator (:grasp ?grasp))
         (true)
-        (-> (spec:property ?action-designator (:grasps ?grasps))
+        (-> (and (spec:property ?action-designator (:grasps ?grasps))
+                 (lisp-pred identity ?grasps))
             (member ?grasp ?grasps)
             (and (lisp-fun man-int:get-action-grasps :handle ?arm nil ?grasps)
                  (member ?grasp ?grasps))))
