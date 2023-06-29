@@ -43,176 +43,208 @@
   (btr:clear-costmap-vis-object))
 
 
-(defun eurobin-demo (&key (step 0))
-  ;;urdf-proj:with-simulated-robot
-  (setf proj-reasoning::*projection-checks-enabled* nil)
-  (setf btr:*visibility-threshold* 0.7)
+(defun eurobin-demo (&optional (initialize T) (step 0))
+  (urdf-proj:with-simulated-robot
+
+    (setf proj-reasoning::*projection-checks-enabled* nil)
+    (setf btr:*visibility-threshold* 0.7)
 
   ;;; ---
   ;;; Step 0: Init apartment, reset joints, desigs and objects
-  (when (<= step 0)
-    (initialize-eurobin)
-    (park-robot (cl-transforms-stamped:make-pose-stamped
-                 cram-tf:*fixed-frame*
-                 0.0
-                 (cl-transforms:make-3d-vector 9.7d0 3.0d0 0.0d0)
-                 (cl-transforms:make-quaternion 0 0 1 0))))
+    (when (and (<= step 0) initialize)
+      (initialize-eurobin)
+      (park-robot (cl-transforms-stamped:make-pose-stamped
+                   cram-tf:*fixed-frame*
+                   0.0
+                   (cl-transforms:make-3d-vector 9.7d0 3.0d0 0.0d0)
+                   (cl-transforms:make-quaternion 0 0 1 0))))
 
-
-  (let* (;; Initialize desigs for objects and locations
-         (?accessing-window-base-pose
-           (cl-transforms-stamped:make-pose-stamped
-            "map" (roslisp:ros-time)
-            (cl-tf:make-3d-vector 9.7d0 4.3d0 0.0d0)
-            (cl-tf:euler->quaternion :az (* pi 0.75))))
-         (?accessing-window-base-pose-2
-           (cl-transforms-stamped:make-pose-stamped
-            "map" (roslisp:ros-time)
-            (cl-tf:make-3d-vector 9.5d0 4.3d0 0.0d0)
-            (cl-tf:euler->quaternion :az (* pi 0.25))))
-         (?picking-up-package-base-pose
-           (cl-transforms-stamped:make-pose-stamped
-            "map" (roslisp:ros-time)
-            (cl-tf:make-3d-vector 9.5d0 4.6d0 0.0d0)
-            (cl-tf:euler->quaternion :az (* pi 0.5))))
-         (?placing-package-base-pose
-           (cl-transforms-stamped:make-pose-stamped
-            "map" (roslisp:ros-time)
-            (cl-tf:make-3d-vector 15.4d0 2.0d0 0.0d0)
-            (cl-tf:euler->quaternion :az (* pi 0.0))))
-         (?box-delivery-pose
-           (cl-transforms-stamped:make-pose-stamped
-            "map" (roslisp:ros-time)
-            (cl-tf:make-3d-vector 16.05d0 1.87d0 0.56d0)
-            (cl-tf:euler->quaternion :az (* pi 0.0))))
-         (?item-delivery-base-pose
-           (cl-transforms-stamped:make-pose-stamped
-            "map" (roslisp:ros-time)
-            (cl-tf:make-3d-vector 15.5d0 3.0d0 0.0d0)
-            (cl-tf:euler->quaternion :az (* pi 0.0))))
-         (?item-delivery-pose
-           (cl-transforms-stamped:make-pose-stamped
-            "map" (roslisp:ros-time)
-            (cl-tf:make-3d-vector 16.2d0 3.0d0 0.48d0)
-            (cl-tf:euler->quaternion :az (* pi 0.0)))))
+    (let* (;; Initialize desigs for objects and locations
+           (?accessing-window-base-pose
+             (cl-transforms-stamped:make-pose-stamped
+              "map" (roslisp:ros-time)
+              (cl-tf:make-3d-vector 9.7d0 4.3d0 0.0d0)
+              (cl-tf:euler->quaternion :az (* pi 0.75))))
+           (?accessing-window-base-pose-2
+             (cl-transforms-stamped:make-pose-stamped
+              "map" (roslisp:ros-time)
+              (cl-tf:make-3d-vector 9.5d0 4.3d0 0.0d0)
+              (cl-tf:euler->quaternion :az (* pi 0.25))))
+           (?picking-up-package-base-pose
+             (cl-transforms-stamped:make-pose-stamped
+              "map" (roslisp:ros-time)
+              (cl-tf:make-3d-vector 9.5d0 4.6d0 0.0d0)
+              (cl-tf:euler->quaternion :az (* pi 0.5))))
+           (?placing-package-base-pose
+             (cl-transforms-stamped:make-pose-stamped
+              "map" (roslisp:ros-time)
+              (cl-tf:make-3d-vector 15.4d0 2.0d0 0.0d0)
+              (cl-tf:euler->quaternion :az (* pi 0.0))))
+           (?box-delivery-pose
+             (cl-transforms-stamped:make-pose-stamped
+              "map" (roslisp:ros-time)
+              (cl-tf:make-3d-vector 16.05d0 1.87d0 0.56d0)
+              (cl-tf:euler->quaternion :az (* pi 0.0))))
+           (?item-delivery-base-pose
+             (cl-transforms-stamped:make-pose-stamped
+              "map" (roslisp:ros-time)
+              (cl-tf:make-3d-vector 15.5d0 3.0d0 0.0d0)
+              (cl-tf:euler->quaternion :az (* pi 0.0))))
+           (?item-delivery-pose
+             (cl-transforms-stamped:make-pose-stamped
+              "map" (roslisp:ros-time)
+              (cl-tf:make-3d-vector 16.2d0 3.0d0 0.48d0)
+              (cl-tf:euler->quaternion :az (* pi 0.0)))))
 
     ;;; ---
     ;;; Go and open the door
-    (when (<= step 1)
-      (exe:perform
-       (desig:an action
-                 (type going)
-                 (target (desig:a location
-                                  (pose ?accessing-window-base-pose)))))
+      (when (<= step 1)
+        (exe:perform
+         (desig:an action
+                   (type going)
+                   (target (desig:a location
+                                    (pose ?accessing-window-base-pose)))))
 
-      (exe:perform
-          (desig:an action
-                    (type opening)
-                    (arm right)
-                    (distance 1.5)
-                    (grasps (left-side))
-                    (object (desig:an object
-                                      (type cupboard)
-                                      (urdf-name window4-right)
-                                      (part-of apartment)))))
-      ;; (exe:perform
-      ;;  (desig:an action
-      ;;            (type going)
-      ;;            (target (desig:a location
-      ;;                             (pose ?accessing-window-base-pose-2)))))
-      ;; (exe:perform
-      ;;     (desig:an action
-      ;;               (type opening)
-      ;;               (arm left)
-      ;;               (distance 1.5)
-      ;;               (grasps (front))
-      ;;               (object (desig:an object
-      ;;                                 (type cupboard)
-      ;;                                 (urdf-name window4-right)
-      ;;                                 (part-of apartment)))))
-      )
+        (exe:perform
+         (desig:an action
+                   (type opening)
+                   (arm right)
+                   (distance 0.7)
+                   (grasps (back))
+                   (object (desig:an object
+                                     (type cupboard)
+                                     (urdf-name window4-right)
+                                     (part-of apartment)))))
+        (exe:perform
+         (desig:an action
+                   (type going)
+                   (target (desig:a location
+                                    (pose ?accessing-window-base-pose-2)))))
+        (exe:perform
+            (desig:an action
+                      (type opening)
+                      (arm left)
+                      (distance 1.5)
+                      (grasps (front))
+                      (object (desig:an object
+                                        (type cupboard)
+                                        (urdf-name window4-right)
+                                        (part-of apartment))))))
 
-    (unless (btr:object btr:*current-bullet-world* :package-stand)
-      (btr:add-object btr:*current-bullet-world*
-                      :cylinder
-                      :package-stand
-                      '((9.95 5.40 0.35)(0 0 0 1))
-                      :size '(0.3 0.3 0.7)
-                      :mass 1.0))
-    (btr-utils:spawn-object :open-box :open-box :pose '((9.95 5.40 0.8) (0 0 0 1)))
+      (unless (btr:object btr:*current-bullet-world* :package-stand)
+        (btr:add-object btr:*current-bullet-world*
+                        :cylinder
+                        :package-stand
+                        '((9.95 5.40 0.35)(0 0 0 1))
+                        :size '(0.3 0.3 0.7)
+                        :mass 1.0))
+      (btr-utils:spawn-object :open-box :open-box :pose '((9.95 5.40 0.8) (0 0 0 1)))
 
     ;;; ---
     ;;; Take the package and carry it to the table
-    (when (<= step 2)
-      ;; go to open door
-      (exe:perform
-       (desig:an action
-                 (type going)
-                 (target (desig:a location
-                                  (pose ?picking-up-package-base-pose)))))
-      ;; look at package
-      (let ((?door-poi
-               (cl-tf:make-pose-stamped
-                "base_footprint" 0.0
-                (cl-tf:make-3d-vector 1.0 -0.5 0.5)
-                (cl-tf:make-identity-rotation))))
-        (exe:perform
-         (desig:an action (type looking)
-                   (target (desig:a location
-                                    (pose ?door-poi))))))
-      ;; perceive package
-      (let ((?package-desig (exe:perform
-                             (desig:an action
-                                       (type detecting)
-                                       (object (desig:an object
-                                                         (type open-box)))))))
-        ;; pick-up the package
+      (when (<= step 2)
+        ;; go to open door
         (exe:perform
          (desig:an action
-                   (type picking-up)
-                   (object ?package-desig)
-                   (park-arms nil))))
+                   (type going)
+                   (target (desig:a location
+                                    (pose ?picking-up-package-base-pose)))))
+        ;; look at package
+        (let ((?door-poi
+                (cl-tf:make-pose-stamped
+                 "base_footprint" 0.0
+                 (cl-tf:make-3d-vector 1.0 -0.5 0.5)
+                 (cl-tf:make-identity-rotation))))
+          (exe:perform
+           (desig:an action (type looking)
+                     (target (desig:a location
+                                      (pose ?door-poi))))))
+        ;; perceive package
+        (let ((?package-desig (exe:perform
+                               (desig:an action
+                                         (type detecting)
+                                         (object (desig:an object
+                                                           (type open-box)))))))
+          ;; pick-up the package
+          (exe:perform
+           (desig:an action
+                     (type picking-up)
+                     (object ?package-desig)
+                     (park-arms nil))))
 
-      ;; going to placing location
-      (exe:perform
-       (desig:an action
-                 (type going)
-                 (target (desig:a location
-                                  (pose ?placing-package-base-pose)))))
+        ;; going to placing location
+        (exe:perform
+         (desig:an action
+                   (type going)
+                   (target (desig:a location
+                                    (pose ?placing-package-base-pose)))))
 
-      ;; place box
-      (exe:perform
-       (desig:an action
-                 (type placing)
-                 (target (desig:a location
-                                  (pose ?box-delivery-pose))))))
+        ;; place box
+        (exe:perform
+         (desig:an action
+                   (type placing)
+                   (target (desig:a location
+                                    (pose ?box-delivery-pose))))))
 
     ;;; ---
     ;;; Pick items out of the package and place
-    (when (<= step 3)
-      (btr-utils:spawn-object :jeroen-cup :jeroen-cup :pose '((16.05d0 1.87d0 0.56d0)(0 0 0 1)))
+      (when (<= step 3)
+        (btr-utils:spawn-object :jeroen-cup :jeroen-cup :pose '((16.05d0 1.87d0 0.56d0)(0 0 0 1)))
 
-      (let ((?package-desig (exe:perform
-                             (desig:an action
-                                       (type detecting)
-                                       (object (desig:an object
-                                                         (type jeroen-cup)))))))
-        ;; pick-up the package
+        (let ((?cup-desig (exe:perform
+                               (desig:an action
+                                         (type detecting)
+                                         (object (desig:an object
+                                                           (type jeroen-cup)))))))
+          ;; pick-up the package
+          (exe:perform
+           (desig:an action
+                     (type picking-up)
+                     (object ?cup-desig)
+                     (right-grasp top))))
+
         (exe:perform
          (desig:an action
-                   (type picking-up)
-                   (object ?package-desig)
-                   (grasp top))))
+                   (type going)
+                   (target (desig:a location
+                                    (pose ?item-delivery-base-pose)))))
 
-      (exe:perform
-       (desig:an action
-                 (type going)
-                 (target (desig:a location
-                                  (pose ?item-delivery-base-pose)))))
+        (exe:perform
+         (desig:an action
+                   (type placing)
+                   (target (desig:a location
+                                    (pose ?item-delivery-pose)))
+                   (right-grasp top)))
 
-      (exe:perform
-       (desig:an action
-                 (type placing)
-                 (target (desig:a location
-                                  (pose ?item-delivery-pose)))))))
-  (finalize))
+        (exe:perform
+         (desig:an action
+                   (type positioning-arm)
+                   (left-configuration park)
+                   (right-configuration park)))))
+    (finalize)))
+
+
+#+get-object-in-hand
+(cut:var-value '?obj
+               (cut:lazy-car
+                (prolog `(and (man-int:object-in-arms (:right) ?obj)))))
+
+
+
+#+show-door-trajectory
+(let ((door-traj
+        (urdf-proj:with-simulated-robot
+          (man-int:get-action-trajectory :opening :left :door-angled NIL
+                                         (list (desig:AN OBJECT
+                                                         (TYPE CUPBOARD)
+                                                         (URDF-NAME window4-right)
+                                                         (PART-OF APARTMENT)))
+                                         :opening-distance 1.5))))
+  (mapcan (lambda (pose)
+            (btr:add-vis-axis-object pose)
+            (sleep 0.5))
+          (append
+           (man-int:get-traj-poses-by-label door-traj :reaching)
+           (man-int:get-traj-poses-by-label door-traj :grasping)
+           (man-int:get-traj-poses-by-label door-traj :opening)
+           (man-int:get-traj-poses-by-label door-traj :retracting))))
