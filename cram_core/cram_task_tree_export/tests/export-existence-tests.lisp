@@ -42,7 +42,7 @@
 (defun node-tree->formatted-tree (node &optional (depth 2))
   "`depth' can be set to -1 to generate the whole tree."
   (when node
-    (list (tt-export::format-node (tt-export::node->designator node))
+    (list (tt-export::format-node node)
           (unless (= depth 0)
             (mapcar (alexandria:rcurry #'node-tree->formatted-tree (- depth 1))
                     (tt-export::node-children node))))))
