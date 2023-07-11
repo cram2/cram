@@ -186,7 +186,7 @@ i.e. the object is lying flatly on the horizontal surface."
                           (cram-tf:angle-around-map-z (cl-transforms:orientation
                                                        (btr:pose object))))
                         (object-position
-                          (cl-transforms:origin (btr:pose object)))
+                          (cl-bullet:bounding-box-center (cl-bullet:aabb object)))
                         (center-x
                           (cl-transforms:x object-position))
                         (center-y
