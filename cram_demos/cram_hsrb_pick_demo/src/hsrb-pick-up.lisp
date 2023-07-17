@@ -162,8 +162,8 @@ to grasp the object, if that fails the next position in list will be tried"
           ;; perform a action type picking-up with given grasp and object
           (exe:perform (desig:an action
                                  (type picking-up)
-                                 (arm :left)
-                                 (grasp ?grasp)
+                                 ;(arm :left)
+                                 ;(grasp ?grasp)
                                  (object ?object-desig))))))))
 
 

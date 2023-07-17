@@ -600,7 +600,7 @@ with the object, calculates similar angle around Y axis and applies the rotation
                 :description "There was no object to grip"))))
 
 (defun gripper-action (action-type arm &optional maximum-effort)
-  (if (and arm (listp arm))
+  (if (listp arm)
       (cpl:par
         (one-gripper-action action-type (first arm) maximum-effort)
         (one-gripper-action action-type (second arm) maximum-effort))
