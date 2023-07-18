@@ -149,7 +149,7 @@
 
   (<- (%property ?designator (?number-key ?value))
     (lisp-pred typep ?designator desig:action-designator)
-    (member ?number-key (:position :effort :distance :duration :reso))
+    (member ?number-key (:position :effort :distance :duration :reso :rounds))
     (property-member (?number-key ?value) ?designator)
     (assert-type ?value number "ACTION SPEC:PROPERTY"))
 

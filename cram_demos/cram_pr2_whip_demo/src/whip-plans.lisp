@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2022, Tina Van <van@uni-bremen.de>
+;;; Copyright (c) 2023, Tina Van <van@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -29,26 +29,14 @@
 
 (in-package :demo)
 
-(defun my-plan-function (&key
-            &allow-other-keys)
- (print "My action designator is executable"))
-
-
-(def-fact-group my-actions (desig:action-grounding)
-  (<-
-      (desig:action-grounding ?action-designator (my-plan-function ?resolved-action-designator))
-   (spec:property ?action-designator (:type :my-action-designator))
-
-   (desig:designator :action ((:type :my-action-designator))
-                     ?resolved-action-designator)))
-
-(defun whisk (&key
+(defun intermix (&key
 	       ((:object ?object-designator))
 	       ((:object-type ?object-type))
 	       ((:object-name ?object-name))
 	       ((:arms ?arms))
 	       ((:grasp ?grasp))
-	       ((:context ?context))
+                ((:context ?context))
+                ((:rounds ?rounds))
                 ((:reso ?reso))
                 ((:source ?source-designator))
                 ((:source-type ?source-type))
@@ -65,17 +53,14 @@
 	       ((:right-retract-poses ?right-retract-poses))
              &allow-other-keys)
 
-  ;;just some prints cause who does not like them
-  (format t "My action designator is executable; ~%")
-  
+  (format t "mixing action designator is executable; ~%")
+
   ;tool to center of container
     (exe:perform
      (desig:an action
                (type approaching)
                (left-poses ?left-approach-poses)
                (right-poses ?right-approach-poses)
-               ;;(desig:when ?collision-mode
-	       ;;(collision-mode ?collision-mode))))
 	       ))
     (cpl:sleep 2)
 
@@ -88,44 +73,21 @@
                (right-poses ?right-start-mix-poses)
                ;;(desig:when ?collision-mode
   	       (collision-mode :allow-all)))
-    (cpl:sleep 2)
+  (cpl:sleep 2)
   
- (if  (eq ?context :mix)
-    (exe:perform
+       (exe:perform
      (desig:an action
                (type blending)
                (left-poses ?left-mid-mix-poses)
                (right-poses ?right-mid-mix-poses)
-               ;;(desig:when ?collision-mode
-    	       (collision-mode :allow-all))))
+    	       (collision-mode :allow-all)))
   (cpl:sleep 2)
 
-    (if  (eq ?context :mix-eclipse)
-    (exe:perform
-     (desig:an action
-               (type blending)
-               (left-poses ?left-mid-mix-poses)
-               (right-poses ?right-mid-mix-poses)
-               ;;(desig:when ?collision-mode
-    	       (collision-mode :allow-all))))
-  (cpl:sleep 2)
-
-    (if  (eq ?context :mix-orbit)
-    (exe:perform
-     (desig:an action
-               (type blending)
-               (left-poses ?left-mid-mix-poses)
-               (right-poses ?right-mid-mix-poses)
-               ;;(desig:when ?collision-mode
-    	       (collision-mode :allow-all))))
- (cpl:sleep 2)
-  
     (exe:perform
      (desig:an action
                (type blending)
                (left-poses ?left-end-mix-poses)
                (right-poses ?right-end-mix-poses)
-               ;;(desig:when ?collision-mode
     	       (collision-mode :allow-all)))
   (cpl:sleep 2)
 
@@ -136,8 +98,7 @@
                (type approaching)
                (left-poses ?left-retract-poses)
                (right-poses ?right-retract-poses)
-               ;;(desig:when ?collision-mode
-    	       (collision-mode :allow-all)))
+    	      ))
   (cpl:sleep 2)
 
   )

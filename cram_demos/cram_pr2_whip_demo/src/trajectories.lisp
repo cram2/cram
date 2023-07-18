@@ -1,8 +1,5 @@
 ;;;
-;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
-;;;                     Christopher Pollok <cpollok@cs.uni-bremen.de>
-;;;                     Vanessa Hassouna <hassouna@uni-bremen.de>
-;;;                     Thomas Lipps <tlipps@uni-bremen.de>
+;;; Copyright (c) 2023, Tina Van <van@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -39,12 +36,12 @@
                                                          objects-acted-on
                                                          &key
                                                          context
-                                                         reso
+                                                           reso
+                                                           rounds
                                                          tool-object-type
                                                            )
                                                          
   (print "entered mixing")
-  ;;TODO DONT CHANGE THIS SAME +++++++++++
   (let* ((object
            (car objects-acted-on))
          (object-name
@@ -57,9 +54,7 @@
 
          ;; The first part of the btb-offset transform encodes the
          ;; translation difference between the gripper and the
-         ;; object. gripper to goal approach position - this depends on object type height and tool object height whihc needs to calced. This
-         ;; depends mostly on the defined coordinate frame of the
-         ;; object and how objects should be rotated so the tool is correctly inserted.
+         ;; object. gripper to goal approach position - this depends on object type height and tool object height whihc needs to calced. This depends mostly on the defined coordinate frame of the object and how objects should be rotated so the tool is correctly inserted.
          (bTb-offset
            (get-object-type-robot-frame-mix-approach-transform-destructuring
             object-type object-name tool-object-type))
@@ -72,14 +67,6 @@
             object-type arm grasp tool-object-type))
          ;; Since the grippers orientation should not depend on the
          ;; orientation of the object it is omitted here.
-         ;; (oTg-std
-         ;;   (cram-tf:translate-transform-stamped
-         ;;    (cram-tf:copy-transform-stamped
-         ;;    (man-int:get-object-type-to-gripper-transform tool-object-type object-name arm grasp) ;whisk missing right object name
-         ;;    :translation (cl-transforms:make-3d-vector 0 0 0)
-         ;;                                ;(cl-transforms: z value copy of everything is zero copy-3d-vector
-         ;;    ;TODO TINA if that works for all containers- read that info out and tweak it 
-         ;;    :rotation (cl-tf:make-identity-rotation)):x-offset 0 :y-offset 0))
 
          (oTg-std
             (cram-tf:copy-transform-stamped
@@ -88,24 +75,11 @@
    (let ((transform-translation (cl-transforms:translation  (man-int:get-object-type-to-gripper-transform tool-object-type object-name arm grasp) )))
      (cl-transforms:copy-3d-vector
       transform-translation
-      :x 0
-      :y 0
       :z (let ((x-transform-translation (cl-transforms:x transform-translation))) 
            (if (plusp x-transform-translation)
               x-transform-translation (* x-transform-translation -1)))))))
 
          (container-arm (if (eql arm :right) :left :right))
-
-         ;; (toolcenter-pose
-         ;;   (cl-tf:copy-pose-stamped 
-         ;;      (cram-tf:apply-transform
-         ;;       (cram-tf:copy-transform-stamped 
-         ;;       bTb-offset
-         ;;       :rotation (cl-tf:make-identity-rotation))
-         ;;       bTo)
-         ;;    :orientation 
-         ;;    (cl-tf:rotation bTb-offset)))
-         
          (approach-pose
            (cl-tf:copy-pose-stamped 
             (man-int:calculate-gripper-pose-in-base
@@ -117,9 +91,9 @@
               arm oTg-std)
             :orientation 
             (cl-tf:rotation bTb-offset)))
-         ;top+ bottom, append
-        ; (mix-poses (adjust-circle-poses-context approach-pose reso context object-type tool-object-type))
-         (mix-poses (adjust-circle-poses-context approach-pose  reso context object-type tool-object-type))
+         
+         (mix-poses (rounds-amount rounds
+                                   (adjust-circle-poses-context approach-pose reso context object-type tool-object-type)))
 			        
 	(start-mix-poses (rec-spiral-poses object-type approach-pose reso tool-object-type))
         
@@ -139,12 +113,8 @@
             (cl-tf:rotation bTb-liftoffset)))
 	   
 	 )
-    (print "comparing again")
-    (print oTg-std)
-    (print bTb-offset)
-    (print approach-pose)
-    (print "hard coded name change:")
-    ;; (print (man-int:get-object-type-to-gripper-transform tool-object-type "container-1" arm grasp))
+    (print "heyoooo it's mid mix again")
+    (print mix-poses)
     (mapcar (lambda (label poses-in-base)
               (man-int:make-traj-segment
                :label label
@@ -176,31 +146,6 @@
               ,end-mix-poses
               (,retract-pose)
 	      ))))	     
-
-
-
-;; =========  is in household defined normaly- mixing.lisp file call ==========
-
-;; =========  is in trajectory defined normaly ==========
-
-;; (defgeneric get-object-type-robot-frame-mix-tool-grip-bottom-transform (object-type arm grasp)
-;;   (:documentation "Returns a transform stamped")
-;;   (:method (object-type arm grasp)
-;;     (man-int::call-with-specific-type #'get-object-type-robot-frame-mix-tool-grip-bottom-transform
-;;                              object-type arm grasp)))
-
-;; (defmethod get-object-type-robot-frame-mix-tool-grip-bottom-transform (object-type arm grasp)
-;;   (destructuring-bind
-;;       ((x y z) (ax ay az aw))
-;;       (call-next-method)
-;;     (cl-tf:transform->transform-stamped
-;;      cram-tf:*robot-base-frame*
-;;      cram-tf:*robot-base-frame*
-;;      0.0
-;;      (cl-tf:pose->transform
-;;       (cl-transforms:make-pose
-;;        (cl-transforms:make-3d-vector x y z)
-;;        (cl-transforms:make-quaternion ax ay az aw))))))
    
 (defgeneric get-object-type-robot-frame-mix-grip-retract-transform (object-type arm grasp)
   (:documentation "Returns a transform stamped")
@@ -260,7 +205,7 @@
         (height 0)
          (newpose '()))
 
-    ;height - öffnunf und bottom radius need to be bigger than tool
+    ;height - opening and bottom radius need to be wider than tool
     (if (or (>= (or (caddar tool)(cadar tool)) (cadar container)))
         (error "tool is to wide to fit into container")
         )
@@ -270,7 +215,6 @@
     (destructuring-bind
      ((x y z) (ax ay az aw))
          newpose
-   ; (call-next-method)
     (cl-tf:transform->transform-stamped
      cram-tf:*robot-base-frame*
      cram-tf:*robot-base-frame*
@@ -288,13 +232,10 @@
 
     (setf height (+ (caar container)(caar tool)))
     (setf newpose (cons (append (list 0 0 height)) (last container)))    
-    ;; (setf height (mapcar #'+ (cddar container) (cddar tool)))
-    ;; (setf newpose (cons (append (list (caar container)) (list (cadar container)) height) (last container)))
     
     (destructuring-bind
      ((x y z) (ax ay az aw))
          newpose
-   ; (call-next-method)
     (cl-tf:transform->transform-stamped
      cram-tf:*robot-base-frame*
      cram-tf:*robot-base-frame*
@@ -309,14 +250,13 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun adjust-circle-poses-context (pose reso context object-type tool-object-type)
-  (if (eq context :mix)
+  (if (eq context :mix-circle)
       (adjust-circle-poses pose reso 1 object-type tool-object-type
                            )
       (if (eq context :mix-eclipse)
            (adjust-circle-poses pose reso 0.03 object-type tool-object-type
                                )
-           (if (eq
-                context :mix-orbit)
+           (if (eq context :mix-orbit)
              (orbital-poses pose reso object-type tool-object-type
                              )))
       ))
@@ -345,21 +285,13 @@
 	)
 
     (setf erate newerate)
-    (if (not (not toolhalvingtoggle));null
-        ;; (setf rim (- containerrim toolrim))
+    (if (not (not toolhalvingtoggle))
         (setf rim (/ rim 2)))
-    ;;brain: (container center till rim)  - (tool width) = rim
 
-    ;; (if (eq context :mix-orbit)
-    ;;    (orbital-poses pose reso)
-    ;;     )
      (if (>= reso 2) (setf defaultreso reso))
      (setf angle (/(* 2  pi) defaultreso))
-                                        ;reso))
-    ;(and (setf angle (/(* 2 pi) ?reso)) (setf defaultreso ?reso))
- ;   )
-    
- ;defaultreso is this case is jsut the holder for whatever ?reso was decided on or real default reso- look above
+
+ ;defaultreso is the holder for whatever ?reso was decided on or real default reso- look above
         (loop while (<= x defaultreso)
               do (setf x   (+ x  1))
             
@@ -372,7 +304,6 @@
    ( (k 0.4) ;0.3 <-'spiralness'
      (defaultreso 12)
      (rim 0)
-     ;for spiral only top rim needed.
      (angle 0)  
      (x 1)
      )
@@ -381,9 +312,6 @@
         (setf rim (calc-radius object-type tool-object-type))
         (setf rim (calc-radius object-type tool-object-type T))
         )
-    ;; (setf rim (-(nth 1 (car (get-object-type-robot-frame-mix-rim-bottom-transform object-type)))
-    ;;             (nth 1 (car (get-object-type-robot-frame-mix-tool-transform tool-object-type)))))
-                                        ; adjustment cos of get-object...-rim-bottom changes of structure (nth 2 (car (get-object-type-robot-frame-mix-rim-bottom-transform object-type))))
  (setf angle (/(* 2  pi) defaultreso))
     (loop while (<= x defaultreso)
 	  do (setf x   (+ x  1))
@@ -406,115 +334,70 @@
         (setf rim (calc-radius object-type tool-object-type))
         (setf rim (calc-radius object-type tool-object-type T))
         )
-    ;; (setf rim ;(get-object-type-robot-frame-mix-rim-bottom-transform object-type))
-    ;;       (-(nth 1 (car (get-object-type-robot-frame-mix-rim-bottom-transform object-type)))
-    ;;       (nth 1 (car (get-object-type-robot-frame-mix-tool-transform tool-object-type)))))
    
     (setf angle (/(* 2  pi) defaultreso))
     (setf x defaultreso)
     (loop while (>= x 0)
 	  do (setf x (- x 1))
 	     collect(change-v pose :x-offset (*(* (/ rim defaultreso) (exp (* k (* x  angle))) (cos (* x  angle))))
-				   :y-offset (*(* (/ rim defaultreso) (exp (* k(* x   angle))) (sin (* x   angle)))))
-	  ))
-  )
+				   :y-offset (*(* (/ rim defaultreso) (exp (* k(* x   angle))) (sin (* x   angle))))))))
 
- ;orbital cos my dream gave me inspiration..
-(defun orbital-poses(pose reso object-type tool-object-type)
-   (let ((containerrim 0); <- currently - big-bowl hard gecoded, gotta adjust top and bottom rim
+;fixed 9 for smaller circle reso as details not needed
+;additional command to adjust-circle-poses 1 for circle form; 2 for halved tool-object-width circle size
+(defun orbital-poses(pose reso container-object-type tool-object-type)
+   (let ((containerrim 0)
 	(erate 1);<- circle;  stirring == (erate 0.03)
 	(angle 0)
 	(x 1)
         (defaultreso 12)
-       ; (smallercircle 0.04) ;radius 3 cm circle for now
-         (currentpose-smaller-radius-pose) ;ever changing small circle center
+         (currentpose-smaller-radius-pose) ;ever changing small circle center poses
          (smallcircleposes '());list of one small circle at a time
          (orbitalposes '())
          )
-;containerrim  = container radius - tool width
-     (setf containerrim (- (nth 2 (car (get-object-type-robot-frame-mix-rim-bottom-transform object-type)))
-                           (nth 2 (car (get-object-type-robot-frame-mix-tool-transform tool-object-type)))))
-     
+
+      (setf containerrim (calc-radius container-object-type tool-object-type))
+
    (if (>= reso 2) (setf defaultreso reso))
-     (setf angle (/(* 2  pi) defaultreso));reso))
+     (setf angle (/(* 2  pi) defaultreso))
  ;defaultreso is this case is jsut the holder for whatever ?reso was decided on or real default reso- look above
 (loop while (<= x defaultreso)
       do (setf x   (+ x  1))
          (setf currentpose-smaller-radius-pose (cl-tf:copy-pose-stamped (change-v pose :x-offset (* erate (* containerrim (cos (* x angle))))
                                                                                        :y-offset (* containerrim (sin (* x angle))))))
-         ;fixed 9 for reso of the smaller circle detail  and 1 for circle form; 2 for halved tool-object-width circle size
-        (setf smallcircleposes (adjust-circle-poses currentpose-smaller-radius-pose 9 1 object-type tool-object-type 2))
-             ; or better: do (decf row)
-        ;; (cons smallcircleposes (change-v pose :x-offset (* erate (* containerrim (cos (* x angle))))
-         ;;                          :y-offset (* containerrim (sin (* x angle)))))
-        ; (collect currentpose-smaller-radius)
-        append smallcircleposes)
-                                        ;calc origin pose to current pose distance
-                  ;(adjust-circle-poses currentpose-smaller-radius 9 1)
-                                        ;x-offset below
-      ))
-                  
-                  
+        (setf smallcircleposes (adjust-circle-poses currentpose-smaller-radius-pose 9 1 container-object-type tool-object-type 2))
+        append smallcircleposes)))
 
-                                        ;full small circle
-                  
-       ;going for fixed reso 9 cos small circle doesn't need to be super clean(?) 
-                 ; (adjust-circle-poses (setf currentpose-smaller-radius (change-v pose :x-offset (* erate (* smallercircle (cos (* x angle))))
-                  ;                                                                     :y-offset (* smallercircle  (sin (* x angle)))))
-                   ;                   9 1))
-		  
-      
- ; cl-transforms:copy-3d-vector
-; for small circle: (adjust-circle-poses pose reso :mix-circle/:mix)
-  
-
-(defun get-start-mix-poses(reso pose);grasp start-mix-poses &optional) - for pose z axis is needed to be in object coordinationsys
+(defun get-start-mix-poses(reso pose)
 (print "spiral calculation")  
-  ;; iteration through psi
-  (let
+  (let*
     ((positions (list pose))
-    (part (/ 360 12)) 
-     (angle (/(* 2 pi)(/ 360 12))) ; 12 is replacment for reso for now
+    (part (/ 360 reso)) 
+     (angle (/(* 2 pi) part))
      (currentpose pose)
 	      )
 
   (loop for x from 1 to part
-	; resolution of circle; angle from 0 to (*2 pi) ;phi in radians
 	do
 	   (cons positions
 
 		 (change-v currentpose :x-offset (* (exp (* part angle))(cos (* part angle)))
                                        :y-offset (* (exp (* part angle)) (sin (* part angle)))
 		 ) 
-	;	'((* (exp (* part angle))(cos (* part angle)))    ;x = r(angle) cos angle -> r(angle)= euler^angle
-	;	(* (exp (* part angle) (sin (* part angle))))	 ;y= r(angle) sin angle
-	;	0)
-    
-;(print "translating spiral poses to otb")
+                 ))))
 
-    ))))
 
-;; (defun get-circle-poses(reso)
-;;   (print "whisking circle calculated")
-;;     (let
-;;     ((positions get-object-type-robot-frame-mix-approach-transform)
-;;     (part (/ 360 reso)) ;make sure it's int
-;;      (angle (/(* 2 pi)(/ 360 reso)))
-;;      (currentpose get-object-type-robot-frame-mix-approach-transform)
-;;      )
-      
-;;   (loop for x from 1 to part
-;; 	; resolution of circle; angle from 0 to (*2 pi) ;phi in radians
-;; 	do
-;; 	   (* (cos (* angle part)) (currentpose )); = x
-;; 	   (* (sin (* angle part)) r) ; =y
-;; 	   (cons positions
-		 
-;; 	;	(change-v (currentpose :x-offset () :y-offset ())) ;<- ==r
-;; ;r = get 
-;; 					;pi 2*r ; (x-h)² +(y-v)² = r² while h,v center(h = horizontal, v = vertical) of circle and r radius
-;;   ;x= r * cos +x; y= r*sin +y 
-;;   ))))
+;repetition of the mid-mix motion
+(defun rounds-amount (round one-pose)
+  (let ((rounds round)
+        (pose one-pose))
+
+        (if (not round)
+        (setf rounds 7)
+        (setf rounds round)
+        )
+    (loop for x from 1 to rounds
+          append pose)
+    ))
 
 (defun change-v (pose &key (x-offset 0.0) (y-offset 0.0) (z-offset 0.0))
   (print "change-v")

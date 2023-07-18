@@ -79,9 +79,9 @@
 	(urdf-proj:with-simulated-robot
 	
           (move-pr2)
-          ;(spawn-ladle)
+          (spawn-ladle)
          ; (spawn-fork)
-	(spawn-whisk)
+	;(spawn-whisk)
 
                                         
         (spawn-bigbowl)
@@ -94,7 +94,7 @@
         (?pose-utensil nil)
         (?pose-container nil)
         (?object-container nil)
-        (?object-desig-source (desig:an object (type :whisk))) ; :ladle))); :whisk)))
+        (?object-desig-source (desig:an object (type :ladle))) ; :ladle)));
         )
                 
                 ;getting utensil pose and saving it                        
@@ -108,7 +108,7 @@
                      (target (desig:a location (pose ?pose-utensil)))))  
      
  ;;           ;CAN SEE THE FORK?
-       (setf ?object-utensil (urdf-proj::detect (desig:an object (type :whisk))))
+       (setf ?object-utensil (urdf-proj::detect (desig:an object (type :ladle))))
                                     
       
       
@@ -145,11 +145,11 @@
  
       
       (exe:perform (desig:an action
-                             (type whisking)
-			      (context :mix)
+                             (type intermixing)
+			      (context :mix-orbit)
                              (reso ?reso)
 
-                             ;; (sides ?reso)
+                             (rounds 2)
                              (arm (:right))
                              (reso ?reso)
                              (object ?object-container)
@@ -314,20 +314,12 @@
                             (desig:an object (type big-bowl))))
           (?reso 6))
 
-      ;; (exe:perform (desig:an action
-      ;;                        (type ) - how to look up types again
-      ;;                        (arm (:left))
-      ;;                        (object ?object-container)
-      ;;                        (grasp :left-top)))
 (btr::add-vis-axis-object 'big-bowl-1) 
  
-      
       (exe:perform (desig:an action
                              (type whisking)
-			      (context :mix)
+			      (context :mix-circle)
                              (reso ?reso)
-
-                             ;; (sides ?reso)
                              (arm (:right))
                              (reso ?reso)
                              (object ?object-container)
@@ -365,8 +357,6 @@
                              (type whisking)
 			      (context :mix-eclipse)
                              (reso ?reso)
-
-                             ;; (sides ?reso)
                              (arm (:right))
                              (reso ?reso)
                              (object ?object-container)
@@ -393,20 +383,12 @@
                             (desig:an object (type big-bowl))))
           (?reso 6))
 
-      ;; (exe:perform (desig:an action
-      ;;                        (type ) - how to look up types again
-      ;;                        (arm (:left))
-      ;;                        (object ?object-container)
-      ;;                        (grasp :left-top)))
 (btr::add-vis-axis-object 'big-bowl-1) 
- 
       
       (exe:perform (desig:an action
                              (type whisking)
 			      (context :mix-orbit)
                              (reso ?reso)
-
-                             ;; (sides ?reso)
                              (arm (:right))
                              (reso ?reso)
                              (object ?object-container)
@@ -505,58 +487,4 @@
     (exe:perform (desig:a motion
                           (type looking)
                           (pose ?ptu-goal)))))
-
-(defun pick-object (&optional (?object-type :breakfast-cereal) (?arm :right) (?location :sink))
-  (go-to-sink-or-island ?location)
-  (let* ((?object-desig
-           (desig:an object (type ?object-type)))
-         (?perceived-object-desig
-           (exe:perform (desig:an action
-                                  (type detecting)
-                                  (object ?object-desig)))))
-    (dotimes (i 3)
-      (exe:perform (desig:an action
-                             (type looking)
-                             (object ?perceived-object-desig))))
-      (exe:perform (desig:an action
-                             (type picking-up)
-                             (arm (?arm))
-			     (grasp :front)
-                             (object ?perceived-object-desig)))))
-
-(defun detect-object (&optional (?object-type :breakfast-cereal) (?arm :right) (?location :sink))
-  (go-to-sink-or-island ?location)
-  (let* ((?object-desig
-           (desig:an object (type ?object-type)))
-         (?perceived-object-desig
-           (exe:perform (desig:an action
-                                  (type detecting)
-                                  (object ?object-desig)))))
-    ?perceived-object-desig))
-
-(defun flip-on-object (&optional (?object-type :pancake-maker)
-			 (?arm :right)
-			 (?grasp :front)
-			 (?location :island-left))
-  (go-to-sink-or-island ?location)
-  (let* ((?object-desig
-           (desig:an object (type ?object-type)))
-         (?perceived-object-desig
-           (exe:perform (desig:an action
-                                  (type detecting)
-                                  (object ?object-desig)))))
-    (dotimes (i 3)
-      (exe:perform (desig:an action
-                             (type looking)
-                             (object ?perceived-object-desig))))
-
-    ;;TODO this is how i call the  desig you need to change nothing here but
-    ;;spawn your bowl and call the right function in prolog.lisp
-      (exe:perform (desig:an action
-                             (type flipping)
-                             (arm (?arm))
-                             (object ?perceived-object-desig)
-                             (grasp ?grasp)
-                             ))))
-
 
