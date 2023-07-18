@@ -492,7 +492,7 @@ of the object should _not_ be updated. `grasp' is the type of grasp orientation.
   (:documentation "Removes all attachments form the list of attached objects of `object'."))
 
 (defmethod attach-object ((object-to-attach-to-name symbol) (object-name symbol)
-                          &key attachment-type loose link grasp)
+                          &key attachment-type loose skip-removing-loose link grasp)
   "Attaches object named `object-name' to another object named `object-to-attach-to-name'."
   (multiple-value-bind (obj obj-found)
       (btr:object *current-bullet-world* object-name)
@@ -502,10 +502,11 @@ of the object should _not_ be updated. `grasp' is the type of grasp orientation.
         (attach-object other-obj obj
                        ;; merged keywords from items.lisp and robot-model.lisp
                        :attachment-type attachment-type :loose loose
-                       :link link :grasp grasp)))))
+                       :skip-removing-loose skip-removing-loose :link link
+                       :grasp grasp)))))
 
 (defmethod attach-object ((object-to-attach-to-names list) (object-name symbol)
-                          &key attachment-type loose link grasp)
+                          &key attachment-type loose skip-removing-loose link grasp)
   "Attaches object named `object-name' to other objects,
 the names of which are in `object-to-attach-names'."
   (multiple-value-bind (obj obj-found)
@@ -517,7 +518,8 @@ the names of which are in `object-to-attach-names'."
                               object-to-attach-to-names))
        obj
        :attachment-type attachment-type :loose loose
-       :link link :grasp grasp))))
+       :skip-removing-loose skip-removing-loose :link link
+       :grasp grasp))))
 
 (defmethod detach-object ((object-to-detach-from-name symbol) (object-name symbol) &key)
   "Detaches object named `object-name' from another object named `object-to-detach-from-name'."
@@ -578,3 +580,11 @@ recursive function."
                  (remove-loose-attachment-for attached-object)))
       (if (equal (car (last already-visited)) (name object))
           (setf already-visited '())))))
+
+
+(defun get-objects-for-type (object-type)
+  (remove-if-not #'identity
+                 (mapcar (lambda (obj) (when (typep obj 'btr:item)
+                                         (when (eql (first (btr:item-types obj)) object-type)
+                                           obj)))
+                         (btr:objects btr:*current-bullet-world*))))
