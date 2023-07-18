@@ -262,13 +262,12 @@
       ))
 
 ;;TOPrim = T Bottomrim = nil ; which means that default will always take bottomrim
-(defun calc-radius(container-object-type tool-object-type &rest topOrBottom)
+(defun calc-radius(container-object-type tool-object-type &rest)
   (let* ((container 0)
          (tool 0)
          )
-    (if (not topOrBottom)
+    
      (setf container (nth 1 (car (get-object-type-robot-frame-mix-rim-bottom-transform container-object-type))))   
-    (setf container (nth 1 (car (get-object-type-robot-frame-mix-rim-top-transform container-object-type)))))
     (setf tool (nth 1 (car (get-object-type-robot-frame-mix-tool-transform tool-object-type))))
     (- container tool)     ;returns a rim number
     ))
@@ -299,7 +298,7 @@
 			    :y-offset (* rim (sin (* x angle))))
     ))) 
 
-(defun rec-spiral-poses(object-type pose reso tool-object-type &rest isHigh)
+(defun rec-spiral-poses(object-type pose reso tool-object-type &rest)
   (let
    ( (k 0.4) ;0.3 <-'spiralness'
      (defaultreso 12)
@@ -308,10 +307,8 @@
      (x 1)
      )
 
-    (if (not isHigh)
         (setf rim (calc-radius object-type tool-object-type))
-        (setf rim (calc-radius object-type tool-object-type T))
-        )
+
  (setf angle (/(* 2  pi) defaultreso))
     (loop while (<= x defaultreso)
 	  do (setf x   (+ x  1))
@@ -319,7 +316,7 @@
 				   :y-offset (*(* (/ rim defaultreso) (exp (* k(* x  angle))) (sin (* x  angle)))))
 	  )))
 
-(defun reverse-spiral-poses(object-type pose reso tool-object-type &rest isHigh)
+(defun reverse-spiral-poses(object-type pose reso tool-object-type &rest)
   (let
    ( (k 0.4) ;0.3 <-'spiralness'
      (defaultreso 12)
@@ -330,10 +327,7 @@
      (start-pose nil)
      )
     
-        (if (not isHigh)
-        (setf rim (calc-radius object-type tool-object-type))
-        (setf rim (calc-radius object-type tool-object-type T))
-        )
+     (setf rim (calc-radius object-type tool-object-type))
    
     (setf angle (/(* 2  pi) defaultreso))
     (setf x defaultreso)
@@ -342,7 +336,7 @@
 	     collect(change-v pose :x-offset (*(* (/ rim defaultreso) (exp (* k (* x  angle))) (cos (* x  angle))))
 				   :y-offset (*(* (/ rim defaultreso) (exp (* k(* x   angle))) (sin (* x   angle))))))))
 
-;fixed 9 for smaller circle reso as details not needed
+;fixed reso value 9 for smaller circle as details not needed
 ;additional command to adjust-circle-poses 1 for circle form; 2 for halved tool-object-width circle size
 (defun orbital-poses(pose reso container-object-type tool-object-type)
    (let ((containerrim 0)
@@ -382,8 +376,7 @@
 
 		 (change-v currentpose :x-offset (* (exp (* part angle))(cos (* part angle)))
                                        :y-offset (* (exp (* part angle)) (sin (* part angle)))
-		 ) 
-                 ))))
+		 )))))
 
 
 ;repetition of the mid-mix motion
@@ -392,7 +385,7 @@
         (pose one-pose))
 
         (if (not round)
-        (setf rounds 7)
+        (setf rounds 1)
         (setf rounds round)
         )
     (loop for x from 1 to rounds
