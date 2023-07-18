@@ -207,7 +207,7 @@
 
     ;height - opening and bottom radius need to be wider than tool
     (if (or (>= (or (caddar tool)(cadar tool)) (cadar container)))
-        (error "tool is to wide to fit into container")
+        (error "tool is too wide to fit into container")
         )
     (setf height (+ (caddar container)(caar tool)))
     (setf newpose (cons (append (list 0 0 height)) (last container)))
