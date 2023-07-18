@@ -1,11 +1,5 @@
 (in-package :cram-manipulation-interfaces)
 
-;currently in trajectories.lisp
-;(defmethod man-int:get-object-type-robot-frame-whisk-approach-transform
-;    ((object-type (eql :big-bowl))
-;     arm)
-                                        ;  '((0.0 0.0 0.3)(0 0.707 0 0.707)))
-
 (defmethod get-object-type-robot-frame-mix-grip-approach-transform
     ((object-type (eql :big-bowl))
      (arm (eql :left))
@@ -18,7 +12,7 @@
      (arm (eql :left))
      (grasp (eql :top)))
    '((0.153 0.025 0.093)(1 0 0 0)))
-;0.153 cos radius + lenght to handle middle <- tina todo pls look at numbers x yz axis again
+;0.153 cos radius + lenght to handle middle 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod get-object-type-robot-frame-mix-grip-retract-transform
@@ -54,22 +48,6 @@
 (grasp (eql :right-side)))
       '((0 0 0.093)(1 0 0 0)))
 
-;; (defmethod get-object-type-robot-frame-mix-grip-container-transform
-;;     (object-type
-;;       tool-object-type
-;;       container-arm)
-;;       '((0 0 0.093)(1 0 0 0)))
-;; (defmethod get-object-type-robot-frame-mix-grip-container-transform
-;;     (object-type
-;;       tool-object-type
-;;       container-arm)
-;;       '((0 0 0.093)(1 0 0 0)))
-;; (defmethod get-object-type-robot-frame-mix-grip-container-transform
-;;     (object-type
-;;       tool-object-type
-;;       container-arm)
-;;       '((0 0 0.093)(1 0 0 0)))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;approach pose in bto
 
@@ -97,32 +75,6 @@
      (grasp (eql :top)))
   '((0 0 0)(1 0 0 0)))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;retract pose in bto z= depth
-
-;; (defmethod get-object-type-robot-frame-mix-retract-transform
-;;      ((object-type (eql :big-bowl))
-;;       (arm (eql :right))
-;;      (grasp (eql :top)))
-;;   '((0 0 0.06)(1 0 0 0)))   
-
-;; (defmethod get-object-type-robot-frame-mix-retract-transform
-;;      ((object-type (eql :saucepan))
-;;       (arm (eql :right))
-;;       (grasp (eql :top)))
-;;   '((0 0 0.04)(1 0 0 0)))
-  
-;; (defmethod get-object-type-robot-frame-mix-retract-transform
-;;      ((object-type (eql :bowl-round))
-;;       (arm (eql :right))
-;;       (grasp (eql :top)))
-;;   '((0 0 0.025)(1 0 0 0)))
-
-;; (defmethod get-object-type-robot-frame-mix-retract-transform
-;;      ((object-type (eql :wine-glas))
-;;       (arm (eql :right))
-;;       (grasp (eql :top)))
-;;   '((0 0 0.09)(1 0 0 0)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;in object coordiantes mix information for upper circle
@@ -165,17 +117,12 @@
   '((0.03 0.01 0.005)(1 0 0 0)))
 
 ;decided to use the z axis as radius measure (important for mix center point calculation)
-
-;(topheight, radius, bottomheight )(rotation) - think of the thickness!
-; origin height radius will be calc with pythagoras
-
-;for top rim look at mix-approach-transform
+;(topheight, radius, bottomheight )(rotation) - think of the thickness
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; utensils
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;-bowl bottom can be looked up in rim-bottom-transform 
-
 ;(lenght from origin to tip of the tool going into the container, width, depth)(rotation)
 
 (defmethod get-object-type-robot-frame-mix-tool-transform
@@ -197,8 +144,6 @@
     ((object-type (eql :tea-spoon))
      )
   '((0.085 0.02 0.01)(1 0 0 0)))
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                                        ;snatched back from household
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; big-bowl ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -206,7 +151,6 @@
 (defparameter *big-bowl-pregrasp-z-offset* 0.20 "in meters")
 (defparameter *big-bowl-grasp-z-offset* 0.05);0.12 "in meters") ;height
 (defparameter *big-bowl-grasp-thickness* 0.01 "in meter")
-;big brain move- toate the axis to fit with whisk and co
 ;;lifing is zero movment
 
 ;side-grasps
