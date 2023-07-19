@@ -20,7 +20,7 @@
     (-> (spec:property ?action-designator (:rounds ?rounds))
         (true)
        (and  (equal ?rounds nil)
-       (format "no (mix-)rounds specified- default 7 will be used")))
+       (format "no (mix-)rounds specified- default 1 will be used")))
 
     (spec:property ?action-designator (:source ?source-designator))
     (desig:current-designator ?source-designator ?current-source-desig)
