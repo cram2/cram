@@ -262,7 +262,7 @@
       ))
 
 ;;TOPrim = T Bottomrim = nil ; which means that default will always take bottomrim
-(defun calc-radius(container-object-type tool-object-type &rest)
+(defun calc-radius(container-object-type tool-object-type)
   (let* ((container 0)
          (tool 0)
          )
@@ -298,7 +298,7 @@
                                   :y-offset (* rim (sin (* x angle))))
           ))) 
 
-(defun rec-spiral-poses(object-type pose reso tool-object-type &rest)
+(defun rec-spiral-poses(object-type pose reso tool-object-type)
   (let
       ( (k 0.4) ;0.3 <-'spiralness'
         (defaultreso 12)
@@ -316,7 +316,7 @@
                                 :y-offset (*(* (/ rim defaultreso) (exp (* k(* x  angle))) (sin (* x  angle)))))
 	  )))
 
-(defun reverse-spiral-poses(object-type pose reso tool-object-type &rest)
+(defun reverse-spiral-poses(object-type pose reso tool-object-type)
   (let 
       ( (k 0.4) ;0.3 <-'spiralness'
         (defaultreso 12)
