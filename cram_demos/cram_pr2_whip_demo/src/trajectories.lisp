@@ -356,8 +356,7 @@
                                         ;defaultreso is this case is jsut the holder for whatever ?reso was decided on or real default reso- look above
     (loop while (<= x defaultreso)
           do (setf x   (+ x  1))
-             (setf currentpose-smaller-radius-pose (cl-tf:copy-pose-stamped (change-v pose :x-offset (* erate (* containerrim (cos (* x angle))))
-                                                                                           :y-offset (* containerrim (sin (* x angle))))))
+             (setf currentpose-smaller-radius-pose (cl-tf:copy-pose-stamped (change-v pose :x-offset (* erate (* containerrim (cos (* x angle)))) :y-offset (* containerrim (sin (* x angle))))))
              (setf smallcircleposes (adjust-circle-poses currentpose-smaller-radius-pose 9 1 container-object-type tool-object-type 2))
           append smallcircleposes)))
 

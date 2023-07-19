@@ -71,7 +71,6 @@
                (type blending)
                (left-poses ?left-start-mix-poses)
                (right-poses ?right-start-mix-poses)
-               ;;(desig:when ?collision-mode
   	       (collision-mode :allow-all)))
   (cpl:sleep 2)
   
