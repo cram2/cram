@@ -39,14 +39,14 @@
 	(urdf-proj:with-simulated-robot
 	
           (move-pr2)
-          (spawn-whisk)
-        ;(spawn-fork)
-       ; (spawn-ladle)
+         (spawn-whisk)
+       ; (spawn-fork)
+      ;(spawn-ladle)
                                                
-        (spawn-bigbowl)
-       ;(spawn-saucepan)
+       ; (spawn-bigbowl)
+      ; (spawn-saucepan)
       ; (spawn-rbowl)
-      ; (spawn-wglas)
+      (spawn-wglas)
         
     (let (
         (?object-utensil nil)
@@ -56,7 +56,7 @@
         (?object-desig-source (desig:an object (type :whisk)))
         )
                 
-                ;getting utensil pose and saving it                        
+      ;getting utensil pose and saving it                        
       (setf ?pose-utensil (cl-tf:pose->pose-stamped
                              cram-tf:*fixed-frame*
                              0 
@@ -89,19 +89,30 @@
 			  
           (?object-container(urdf-proj::detect
 
-                             (desig:an object (type big-bowl))));bowl-round))));wine-glas))));
-          (?reso 12))
-     
+                             (desig:an object (type wine-glas))))
+)
+
+                (exe:perform (desig:an action
+                                   (type picking-up)
+                                   (object ?object-container)
+                                    (arm (:left)) 
+                                    (grasp :stem-left)))
+
+    (setf ?object-container(urdf-proj::detect
+
+                       (desig:an object (type wine-glas))))
+    
       (exe:perform (desig:an action
                              (type intermixing)
-			      (context :mix-circle) 
-                             (reso ?reso)
-                             (rounds 1)
+        		     (context :mix-circle) 
+                             (reso 6)
+                             (rounds 3)
                              (arm (:right))
                              (object ?object-container)
                              (grasp :top)
                              (source ?object-desig-source)
-                             ))))
+                             ))
+    ))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun testaxis()
   (testdesig)
@@ -147,13 +158,13 @@
       (btr-utils:spawn-object 'container-1  :big-bowl
                               :pose (cl-transforms:make-pose
                                      (cl-tf:make-3d-vector -0.85 0.55 0.93)
-                                     (cl-tf:make-identity-rotation))))
+                                    (cl-transforms:make-quaternion 0 0 1 0))))
 
 (defun spawn-saucepan()
       (btr-utils:spawn-object 'container-1  :saucepan
                               :pose (cl-transforms:make-pose
-                                     (cl-tf:make-3d-vector -0.85 0.65 0.9)
-                                     (cl-tf:make-identity-rotation))))
+                                     (cl-tf:make-3d-vector -0.8 0.65 0.9); for swapped positions y=1.2
+                                     (cl-transforms:make-quaternion 0 0 1 0))))
                                                                         
 (defun spawn-rbowl()
       (btr-utils:spawn-object 'container-1 :bowl-round
@@ -177,106 +188,6 @@
 	(spawn-bigbowl)
 	(spawn-whisk)
 )
-
-(defun start-mix-bbowl (?object-desig-source)
-    
-  (let ((?pose-container (cl-tf:pose->pose-stamped
-			  cram-tf:*fixed-frame*
-			  0 
-			  (btr:object-pose 'big-bowl-1)))
-			  )
-    
-    (cram-executive:perform
-     (desig:an action
-	       (type looking)
-	       (target (desig:a location (pose ?pose-container)))))
-    
-    (let ((?object-container(urdf-proj::detect
-
-                            (desig:an object (type big-bowl))))
-          (?reso 6))
-
-(btr::add-vis-axis-object 'big-bowl-1) 
- 
-      (exe:perform (desig:an action
-                             (type whisking)
-			      (context :mix-orbit)
-                             (reso ?reso)
-                             (arm (:right))
-                             (reso ?reso)
-                             (object ?object-container)
-                             (grasp :top)
-                             (source ?object-desig-source)
-                             )))))
-
-(defun start-eclipse (?object-desig-source)
-    
-  (let ((?pose-container (cl-tf:pose->pose-stamped
-			  cram-tf:*fixed-frame*
-			  0 
-			  (btr:object-pose 'big-bowl-1)))
-			  )
-    
-    (cram-executive:perform
-     (desig:an action
-	       (type looking)
-	       (target (desig:a location (pose ?pose-container)))))
-    
-    (let ((?object-container(urdf-proj::detect
-
-                            (desig:an object (type big-bowl))))
-          (?reso 6))
-
-      ;; (exe:perform (desig:an action
-      ;;                        (type ) - how to look up types again
-      ;;                        (arm (:left))
-      ;;                        (object ?object-container)
-      ;;                        (grasp :left-top)))
-(btr::add-vis-axis-object 'big-bowl-1) 
- 
-      
-      (exe:perform (desig:an action
-                             (type whisking)
-			      (context :mix-eclipse)
-                             (reso ?reso)
-                             (arm (:right))
-                             (reso ?reso)
-                             (object ?object-container)
-                             (grasp :top)
-                             (source ?object-desig-source)
-                             )))))
-
-(defun start-orbit (?object-desig-source)
-
-    
-  (let ((?pose-container (cl-tf:pose->pose-stamped
-			  cram-tf:*fixed-frame*
-			  0 
-			  (btr:object-pose 'big-bowl-1)))
-			  )
-    
-    (cram-executive:perform
-     (desig:an action
-	       (type looking)
-	       (target (desig:a location (pose ?pose-container)))))
-    
-    (let ((?object-container(urdf-proj::detect
-
-                            (desig:an object (type big-bowl))))
-          (?reso 6))
-
-(btr::add-vis-axis-object 'big-bowl-1) 
-      
-      (exe:perform (desig:an action
-                             (type whisking)
-			      (context :mix-orbit)
-                             (reso ?reso)
-                             (arm (:right))
-                             (reso ?reso)
-                             (object ?object-container)
-                             (grasp :top)
-                             (source ?object-desig-source)
-                             )))))
 
 (defun initialize ()
   (sb-ext:gc :full t)

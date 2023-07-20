@@ -14,12 +14,12 @@
 
       (-> (spec:property ?action-designator (:reso ?reso))
           (true)
-          (and (equal ?reso nil)
+          (and (equal ?reso 1)
                (format "no (circle-)reso specified- default 12 will be used")))
 
       (-> (spec:property ?action-designator (:rounds ?rounds))
           (true)
-          (and  (equal ?rounds nil)
+          (and  (equal ?rounds 1)
                 (format "no (mix-)rounds specified- default 1 will be used")))
 
       (spec:property ?action-designator (:source ?source-designator))

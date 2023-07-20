@@ -79,7 +79,7 @@
 
 (defmethod get-object-type-robot-frame-mix-rim-bottom-transform
     ((object-type (eql :bowl-round)))
-  '((0.57 0.04 -0.023)(1 0 0 0)))
+  '((0.04 0.04 -0.023)(1 0 0 0)))
 
 (defmethod get-object-type-robot-frame-mix-rim-bottom-transform
     ((object-type (eql :wine-glas)))
@@ -224,7 +224,7 @@
     '(:left :right) :stem-left
   :grasp-translation `(0.0 0.0 ,*wine-glas-grasp-z-offset*)
   :grasp-rot-matrix man-int:*-y-across-z-grasp-rotation*
-  :pregrasp-offsets `(0.0 0.0 ,*wine-glas-lift-z-offset*)
+  :pregrasp-offsets `(-0.1 0.0 ,*wine-glas-lift-z-offset*)
   :2nd-pregrasp-offsets `(0.0 0.0 ,*wine-glas-lift-z-offset*)
   :lift-translation `(0.0 0.0 ,0.0)
   :2nd-lift-translation `( 0.01 0.0 ,0.0))
@@ -233,7 +233,7 @@
     '(:left :right) :stem-right
   :grasp-translation `(0.0 0.0 ,*wine-glas-grasp-z-offset*)
   :grasp-rot-matrix man-int:*y-across-z-grasp-rotation*
-  :pregrasp-offsets `(0.0 0.0 ,*wine-glas-lift-z-offset*)
+  :pregrasp-offsets `(0.1 0.0 ,*wine-glas-lift-z-offset*)
   :2nd-pregrasp-offsets `(0.0 0.0 ,*wine-glas-lift-z-offset*)
   :lift-translation `(0.0 0.0 ,0.0)
   :2nd-lift-translation `( 0.01 0.0 ,0.0))

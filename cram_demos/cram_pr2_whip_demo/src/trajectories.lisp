@@ -79,7 +79,9 @@
                           (cl-transforms:x transform-translation))) 
                     (if (plusp x-transform-translation)
                            x-transform-translation (* x-transform-translation -1)
-                           ))))))
+                           ))
+               :x  (cl-transforms:y transform-translation)
+               :y (cl-transforms:x transform-translation)))))
 
          (container-arm (if (eql arm :right) :left :right))
          (approach-pose
