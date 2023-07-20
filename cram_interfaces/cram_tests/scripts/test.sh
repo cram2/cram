@@ -48,18 +48,23 @@ EOF
 # create lisp script and run tests for every system under test
 for system in "${systems_under_test[@]}"; do
     echo "-------- System $system under test --------"
+
     create_test_script $system $report_file
     let starttime=$(date +%s)
     # if the tests get stuck, e.g. on a memory fault, terminate them after 3 minutes to continue
     timeout 3m /usr/bin/sbcl --dynamic-space-size 8192 --noinform --disable-debugger --load $tmp_test_script --quit
-    if [ $? -eq 124 ]
+	error_code=$(echo $?)
+
+    if [ $error_code -eq 124 ]
     then
-        echo "Tests for system $system timed out after 3 minutes. Terminating."
+        echo "Tests for system $system timed out after 3 minutes. Terminating." >> $report_file
+    elif [ $error_code -eq 1 ]
+    then
+        echo "Tests for system $system exits with error." >> $report_file
     else
-        echo "Finished in $(expr $(date +%s) - $starttime) seconds."
+        echo "Finished successfully in $(expr $(date +%s) - $starttime) seconds."
     fi
 done
 
 # print the test report
 cat $report_file
-
