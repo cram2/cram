@@ -32,142 +32,23 @@
 
   ;;###############################################################################
   ;;                     mix/whip (for now STATIC) plan
-  ;;###############################################################################
-
-;me writting stuff
-(defun test-container()
+  ;;##############################################################################
+;;#############################whisp testing########################      
+(defun test-tool-container()
   (initialize)
 	(urdf-proj:with-simulated-robot
 	
           (move-pr2)
-        ;  (spawn-whisk)
-       ; (spawn-wglas)                            
-        (spawn-rbowl)
-       ; (spawn-saucepan)
-       ;(spawn-rbowl)
+          (spawn-whisk)
+        ;(spawn-fork)
+       ; (spawn-ladle)
+                                               
+        (spawn-bigbowl)
+       ;(spawn-saucepan)
+      ; (spawn-rbowl)
+      ; (spawn-wglas)
         
     (let (
-         ;utensil: fork,spoon,whisky or sth - for now spawn a fork
-        (?object-utensil nil)
-        (?pose-utensil nil)
-        (?object-desig-source (desig:an object (type :bowl-round)))
-        )
-                
-                ;getting utensil pose and saving it                        
-      (setf ?pose-utensil (cl-tf:pose->pose-stamped
-                             cram-tf:*fixed-frame*
-                             0 
-                             (btr:object-pose 'container-1)))
-            (cram-executive:perform
-           (desig:an action
-                     (type looking)
-                     (target (desig:a location (pose ?pose-utensil)))))  
-     
- ;;           ;CAN SEE THE FORK?
-       (setf ?object-utensil (urdf-proj::detect (desig:an object (type :bowl-round))))
-
-            (exe:perform (desig:an action
-                                   (type picking-up)
-                                   (object ?object-utensil)
-                                    (arm (:left)) 
-                                    (grasp :handle-right))) )))                  
-    
-
-;;#############################whisp testing##############      
-(defun test-tool-container ()
-  (initialize)
-	(urdf-proj:with-simulated-robot
-	
-          (move-pr2)
-          (spawn-ladle)
-         ; (spawn-fork)
-	;(spawn-whisk)
-
-                                        
-        (spawn-bigbowl)
-       ; (spawn-saucepan)
-       ;(spawn-rbowl)
-        
-    (let (
-         ;utensil: fork,spoon,whisky or sth - for now spawn a fork
-        (?object-utensil nil)
-        (?pose-utensil nil)
-        (?pose-container nil)
-        (?object-container nil)
-        (?object-desig-source (desig:an object (type :ladle))) ; :ladle)));
-        )
-                
-                ;getting utensil pose and saving it                        
-      (setf ?pose-utensil (cl-tf:pose->pose-stamped
-                             cram-tf:*fixed-frame*
-                             0 
-                             (btr:object-pose 'tool-1)))
-            (cram-executive:perform
-           (desig:an action
-                     (type looking)
-                     (target (desig:a location (pose ?pose-utensil)))))  
-     
- ;;           ;CAN SEE THE FORK?
-       (setf ?object-utensil (urdf-proj::detect (desig:an object (type :ladle))))
-                                    
-      
-      
- ;; ))) 
-
-                                     
-;;        ;;;; Picking-up the utensil object 
-;; ;grabbing utensil
-            (exe:perform (desig:an action
-                                   (type picking-up)
-                                   (object ?object-utensil)
-                                    (arm (:right)) 
-                                    (grasp :top)))
-   
-        (start-mix ?object-desig-source)
-      ;(start-eclipse ?object-desig-source)
-      )))
-
-(defun start-mix (?object-desig-source)
-    
-  (let* ((?pose-container (cl-tf:pose->pose-stamped
-			  cram-tf:*fixed-frame*
-			  0 
-			  (btr:object-pose 'container-1)))
-			  
-          (?object-container(urdf-proj::detect
-
-                             (desig:an object (type big-bowl))))
-                            ; (desig:an object (type saucepan))))
-                           ; (desig:an object (type bowl-round))))
-          (?reso 6))
-
-;(btr::add-vis-axis-object 'saucepan-1) 
- 
-      
-      (exe:perform (desig:an action
-                             (type intermixing)
-			      (context :mix-orbit)
-                             (reso ?reso)
-
-                             (rounds 2)
-                             (arm (:right))
-                             (reso ?reso)
-                             (object ?object-container)
-                             (grasp :top)
-                             (source ?object-desig-source)
-                             ))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defun test-mix-types ()
-  (initialize)
-	(urdf-proj:with-simulated-robot
-	
-	(move-pr2)
-	(spawn-whisk)
-        (spawn-bigbowl)
-        
-    (let* (
-         ;utensil: fork,spoon,whisky or sth - for now spawn a fork
         (?object-utensil nil)
         (?pose-utensil nil)
         (?pose-container nil)
@@ -185,15 +66,10 @@
                      (type looking)
                      (target (desig:a location (pose ?pose-utensil)))))  
      
- ;;           ;CAN SEE THE FORK?
-       (setf ?object-utensil (urdf-proj::detect (desig:an object (type whisk))))
-                                    
-      
-      
- ;; ))) 
-
-                                     
-;;        ;;;; Picking-up the utensil object 
+       (setf ?object-utensil (urdf-proj::detect 
+       (desig:an object (type :whisk))))
+                                                                         
+;;;; Picking-up the utensil object 
 ;; ;grabbing utensil
             (exe:perform (desig:an action
                                    (type picking-up)
@@ -201,13 +77,31 @@
                                     (arm (:right)) 
                                     (grasp :top)))
    
-      (start-mix ?object-desig-source)
-     ; (start-eclipse ?object-desig-source)
-     ;(start-orbit ?object-desig-source)
+        (start-mix ?object-desig-source)
       )))
 
+(defun start-mix (?object-desig-source)
+    
+  (let* ((?pose-container (cl-tf:pose->pose-stamped
+			  cram-tf:*fixed-frame*
+			  0 
+			  (btr:object-pose 'container-1)))
+			  
+          (?object-container(urdf-proj::detect
 
-
+                             (desig:an object (type big-bowl))));bowl-round))));wine-glas))));
+          (?reso 12))
+     
+      (exe:perform (desig:an action
+                             (type intermixing)
+			      (context :mix-circle) 
+                             (reso ?reso)
+                             (rounds 1)
+                             (arm (:right))
+                             (object ?object-container)
+                             (grasp :top)
+                             (source ?object-desig-source)
+                             ))))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun testaxis()
   (testdesig)
@@ -236,12 +130,6 @@
                               :pose (cl-transforms:make-pose
                                      (cl-tf:make-3d-vector -0.85 1 0.95)
                                      (cl-tf:make-identity-rotation))))
-
-(defun spawn-spoon()
-      (btr-utils:spawn-object 'tool-1 :spoon
-                              :pose (cl-transforms:make-pose
-                                     (cl-tf:make-3d-vector -0.85 1 0.95)
-                                     (cl-tf:make-identity-rotation))))
                                      
 (defun spawn-whisk()
       (btr-utils:spawn-object 'tool-1 :whisk
@@ -251,12 +139,6 @@
                                      
 (defun spawn-ladle()
       (btr-utils:spawn-object 'tool-1 :ladle
-                              :pose (cl-transforms:make-pose
-                                     (cl-tf:make-3d-vector -0.85 1 0.92)
-                                     (cl-tf:make-identity-rotation))))
-
-(defun spawn-tspoon()
-      (btr-utils:spawn-object 'tool-1 :tea-spoon
                               :pose (cl-transforms:make-pose
                                      (cl-tf:make-3d-vector -0.85 1 0.92)
                                      (cl-tf:make-identity-rotation))))
@@ -276,7 +158,7 @@
 (defun spawn-rbowl()
       (btr-utils:spawn-object 'container-1 :bowl-round
                               :pose (cl-transforms:make-pose
-                                     (cl-tf:make-3d-vector -0.85 0.6 0.9)
+                                     (cl-tf:make-3d-vector -0.9 0.8 0.9)
                                      (cl-tf:make-identity-rotation)))) 
                                      
 (defun spawn-wglas()
@@ -318,7 +200,7 @@
  
       (exe:perform (desig:an action
                              (type whisking)
-			      (context :mix-circle)
+			      (context :mix-orbit)
                              (reso ?reso)
                              (arm (:right))
                              (reso ?reso)
@@ -441,11 +323,7 @@
   (btr:clear-costmap-vis-object))
 
 
-
-
-
-
-;; ======================== NEW STUFF van van ======================
+;; ======================== placments======================
 
 (defparameter *sink-nav-goal*
   (cl-transforms-stamped:make-pose-stamped

@@ -97,7 +97,7 @@
                (type approaching)
                (left-poses ?left-retract-poses)
                (right-poses ?right-retract-poses)
-    	      ))
+               (collision-mode :allow-all)))
   (cpl:sleep 2)
 
   )

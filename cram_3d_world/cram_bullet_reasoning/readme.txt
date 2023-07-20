@@ -5,9 +5,6 @@ in /resources 3D assets licensed under the CC BY 4.0
 used as big-bowl; Basic Bowl by Blender3D 
 (https://sketchfab.com/3d-models/basic-bowl-d6af7797763d41d3a89af10d726e2256)
 
-used as teaspoon; Spoon by SidWeston 
-(https://sketchfab.com/3d-models/spoon-e1745c4aa7c046a2b5193d2d23be0192)
-
 used as wineglas; Simple Glass Cup by Blender3D 
 (https://sketchfab.com/3d-models/simple-glass-cup-a9d4e134a68c4dc4a2a375bd1b227f6b)
 

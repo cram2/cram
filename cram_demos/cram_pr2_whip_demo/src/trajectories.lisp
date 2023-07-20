@@ -72,12 +72,14 @@
            (cram-tf:copy-transform-stamped
             (man-int:get-object-type-to-gripper-transform tool-object-type object-name arm grasp)
             :translation
-            (let ((transform-translation (cl-transforms:translation  (man-int:get-object-type-to-gripper-transform tool-object-type object-name arm grasp) )))
+            (let* ((transform-translation (cl-transforms:translation  (man-int:get-object-type-to-gripper-transform tool-object-type object-name arm grasp) )))
               (cl-transforms:copy-3d-vector
                transform-translation
-               :z (let ((x-transform-translation (cl-transforms:x transform-translation))) 
+               :z (let ((x-transform-translation
+                          (cl-transforms:x transform-translation))) 
                     (if (plusp x-transform-translation)
-                        x-transform-translation (* x-transform-translation -1)))))))
+                           x-transform-translation (* x-transform-translation -1)
+                           ))))))
 
          (container-arm (if (eql arm :right) :left :right))
          (approach-pose
@@ -113,8 +115,6 @@
             (cl-tf:rotation bTb-liftoffset)))
          
 	 )
-    (print "heyoooo it's mid mix again")
-    (print mix-poses)
     (mapcar (lambda (label poses-in-base)
               (man-int:make-traj-segment
                :label label
@@ -193,11 +193,11 @@
        (cl-transforms:make-3d-vector x y z)
        (cl-transforms:make-quaternion ax ay az aw))))))
 
-(defgeneric get-object-type-robot-frame-mix-approach-transform (object-type arm grasp)
+(defgeneric get-object-type-robot-frame-mix-approach-transform (object-type)
   (:documentation "Returns a transform stamped")
-  (:method (object-type arm grasp)
+  (:method (object-type)
     (man-int::call-with-specific-type #'get-object-type-robot-frame-mix-approach-transform
-                                      object-type arm grasp)))
+                                      object-type)))
 
 (defun get-object-type-robot-frame-mix-approach-transform-destructuring (object-type object-name tool-object-type)
   (let* ((container (get-object-type-robot-frame-mix-rim-bottom-transform object-type))
@@ -225,14 +225,13 @@
          (cl-transforms:make-quaternion ax ay az aw)))))))
 
 (defun get-object-type-robot-frame-mix-retract-transform-destructuring (object-type arm grasp tool-object-type)
-  (let* ((container (get-object-type-robot-frame-mix-rim-top-transform object-type))
+  (let* ((container (get-object-type-robot-frame-mix-rim-bottom-transform object-type))
          (tool (get-object-type-robot-frame-mix-tool-transform tool-object-type))
          (height 0)
          (newpose '()))
 
     (setf height (+ (caar container)(caar tool)))
     (setf newpose (cons (append (list 0 0 height)) (last container)))    
-    
     (destructuring-bind
         ((x y z) (ax ay az aw))
         newpose
@@ -264,12 +263,16 @@
 ;;TOPrim = T Bottomrim = nil ; which means that default will always take bottomrim
 (defun calc-radius(container-object-type tool-object-type)
   (let* ((container 0)
-         (tool 0)
+         (toolw 0)
+         (toold 0)
          )
     
     (setf container (nth 1 (car (get-object-type-robot-frame-mix-rim-bottom-transform container-object-type))))   
-    (setf tool (nth 1 (car (get-object-type-robot-frame-mix-tool-transform tool-object-type))))
-    (- container tool)     ;returns a rim number
+    (setf toolw (nth 1 (car (get-object-type-robot-frame-mix-tool-transform tool-object-type))))
+    (setf toold (nth 2 (car (get-object-type-robot-frame-mix-tool-transform tool-object-type))))
+    (if (> toolw toold)
+        (- container toolw)
+        (- container toold));returns a rim number
     ))
 
 ;;Toolhalvingtoggle is T when radius size halving is needed or nil if no radius sizing halving is needed.
@@ -308,7 +311,6 @@
         )
 
     (setf rim (calc-radius object-type tool-object-type))
-
     (setf angle (/(* 2  pi) defaultreso))
     (loop while (<= x defaultreso)
 	  do (setf x   (+ x  1))
@@ -356,7 +358,7 @@
                                         ;defaultreso is this case is jsut the holder for whatever ?reso was decided on or real default reso- look above
     (loop while (<= x defaultreso)
           do (setf x   (+ x  1))
-             (setf currentpose-smaller-radius-pose (cl-tf:copy-pose-stamped (change-v pose :x-offset (* erate (* containerrim (cos (* x angle)))) :y-offset (* containerrim (sin (* x angle))))))
+             (setf currentpose-smaller-radius-pose (cl-tf:copy-pose-stamped (change-v pose :x-offset (* erate (* (/ containerrim 2) (cos (* x angle)))) :y-offset (* (/ containerrim 2) (sin (* x angle))))))
              (setf smallcircleposes (adjust-circle-poses currentpose-smaller-radius-pose 9 1 container-object-type tool-object-type 2))
           append smallcircleposes)))
 
