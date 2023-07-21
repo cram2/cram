@@ -78,8 +78,8 @@
                :z (let ((x-transform-translation
                           (cl-transforms:x transform-translation))) 
                     (if (plusp x-transform-translation)
-                           x-transform-translation (* x-transform-translation -1)
-                           ))
+                        x-transform-translation (* x-transform-translation -1)
+                        ))
                :x  (cl-transforms:y transform-translation)
                :y (cl-transforms:x transform-translation)))))
 
@@ -207,7 +207,7 @@
          (height 0)
          (newpose '()))
 
-                                        ;height - opening and bottom radius need to be wider than tool
+      ;height - opening and bottom radius need to be wider than tool
     (if (or (>= (or (caddar tool)(cadar tool)) (cadar container)))
         (error "tool is too wide to fit into container")
         )
@@ -252,30 +252,24 @@
 
 (defun adjust-circle-poses-context (pose reso context object-type tool-object-type)
   (if (eq context :mix-circle)
-      (adjust-circle-poses pose reso 1 object-type tool-object-type
-                           )
+      (adjust-circle-poses pose reso 1 object-type tool-object-type)
       (if (eq context :mix-eclipse)
-          (adjust-circle-poses pose reso 0.03 object-type tool-object-type
-                               )
+          (adjust-circle-poses pose reso 0.03 object-type tool-object-type)
           (if (eq context :mix-orbit)
-              (orbital-poses pose reso object-type tool-object-type
-                             )))
-      ))
+              (orbital-poses pose reso object-type tool-object-type )))))
 
 ;;TOPrim = T Bottomrim = nil ; which means that default will always take bottomrim
 (defun calc-radius(container-object-type tool-object-type)
   (let* ((container 0)
          (toolw 0)
-         (toold 0)
-         )
+         (toold 0))
     
     (setf container (nth 1 (car (get-object-type-robot-frame-mix-rim-bottom-transform container-object-type))))   
     (setf toolw (nth 1 (car (get-object-type-robot-frame-mix-tool-transform tool-object-type))))
     (setf toold (nth 2 (car (get-object-type-robot-frame-mix-tool-transform tool-object-type))))
     (if (> toolw toold)
         (- container toolw)
-        (- container toold));returns a rim number
-    ))
+        (- container toold))))
 
 ;;Toolhalvingtoggle is T when radius size halving is needed or nil if no radius sizing halving is needed.
 (defun adjust-circle-poses(pose reso newerate container-object-type tool-object-type &rest toolhalvingtoggle)
@@ -285,8 +279,7 @@
          (angle 0)
          (x 1)
          (defaultreso 12)
-         (rim (calc-radius container-object-type tool-object-type))
-         )
+         (rim (calc-radius container-object-type tool-object-type)) )
 
     (setf erate newerate)
     (if (not (not toolhalvingtoggle))
@@ -300,8 +293,7 @@
           do (setf x   (+ x  1))
              
           collect  (change-v pose :x-offset (* erate (* rim (cos (* x angle))))
-                                  :y-offset (* rim (sin (* x angle))))
-          ))) 
+                                  :y-offset (* rim (sin (* x angle))))))) 
 
 (defun rec-spiral-poses(object-type pose reso tool-object-type)
   (let
@@ -316,9 +308,10 @@
     (setf angle (/(* 2  pi) defaultreso))
     (loop while (<= x defaultreso)
 	  do (setf x   (+ x  1))
-          collect(change-v pose :x-offset (*(* (/ rim defaultreso) (exp (* k (* x angle))) (cos (* x angle))))
-                                :y-offset (*(* (/ rim defaultreso) (exp (* k(* x  angle))) (sin (* x  angle)))))
-	  )))
+          collect(change-v pose :x-offset (*(* (/ rim defaultreso)
+                                               (exp (* k (* x angle))) (cos (* x angle))))
+                                :y-offset (*(* (/ rim defaultreso)
+                                               (exp (* k(* x  angle))) (sin (* x  angle))))))))
 
 (defun reverse-spiral-poses(object-type pose reso tool-object-type)
   (let 
@@ -328,8 +321,7 @@
                                         ;for spiral only top rim needed.
         (angle 0)  
         (x 0)
-        (start-pose nil)
-        )
+        (start-pose nil) )
     
     (setf rim (calc-radius object-type tool-object-type))
     
@@ -337,8 +329,10 @@
     (setf x defaultreso)
     (loop while (>= x 0)
 	  do (setf x (- x 1))
-          collect(change-v pose :x-offset (*(* (/ rim defaultreso) (exp (* k (* x  angle))) (cos (* x  angle))))
-                                :y-offset (*(* (/ rim defaultreso) (exp (* k(* x   angle))) (sin (* x   angle))))))))
+          collect(change-v pose :x-offset (*(* (/ rim defaultreso)
+                                               (exp (* k (* x  angle))) (cos (* x  angle))))
+                                :y-offset (*(* (/ rim defaultreso)
+                                               (exp (* k(* x   angle))) (sin (* x   angle))))))))
 
                                         ;fixed reso value 9 for smaller circle as details not needed
                                         ;additional command to adjust-circle-poses 1 for circle form; 2 for halved tool-object-width circle size
@@ -350,8 +344,7 @@
         (defaultreso 12)
         (currentpose-smaller-radius-pose) ;ever changing small circle center poses
         (smallcircleposes '());list of one small circle at a time
-        (orbitalposes '())
-        )
+        (orbitalposes '()))
 
     (setf containerrim (calc-radius container-object-type tool-object-type))
 
@@ -360,7 +353,9 @@
                                         ;defaultreso is this case is jsut the holder for whatever ?reso was decided on or real default reso- look above
     (loop while (<= x defaultreso)
           do (setf x   (+ x  1))
-             (setf currentpose-smaller-radius-pose (cl-tf:copy-pose-stamped (change-v pose :x-offset (* erate (* (/ containerrim 2) (cos (* x angle)))) :y-offset (* (/ containerrim 2) (sin (* x angle))))))
+             (setf currentpose-smaller-radius-pose (cl-tf:copy-pose-stamped
+                                                    (change-v pose :x-offset (* erate (* (/ containerrim 2) (cos (* x angle))))
+                                                                   :y-offset (* (/ containerrim 2) (sin (* x angle))))))
              (setf smallcircleposes (adjust-circle-poses currentpose-smaller-radius-pose 9 1 container-object-type tool-object-type 2))
           append smallcircleposes)))
 
@@ -370,8 +365,7 @@
       ((positions (list pose))
        (part (/ 360 reso)) 
        (angle (/(* 2 pi) part))
-       (currentpose pose)
-       )
+       (currentpose pose))
 
     (loop for x from 1 to part
           do
@@ -392,8 +386,7 @@
         (setf rounds round)
         )
     (loop for x from 1 to rounds
-          append pose)
-    ))
+          append pose)))
 
 (defun change-v (pose &key (x-offset 0.0) (y-offset 0.0) (z-offset 0.0))
   (print "change-v")

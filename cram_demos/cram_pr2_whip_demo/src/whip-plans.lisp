@@ -55,49 +55,48 @@
 
   (format t "mixing action designator is executable; ~%")
 
-  ;tool to center of container
-    (exe:perform
-     (desig:an action
-               (type approaching)
-               (left-poses ?left-approach-poses)
-               (right-poses ?right-approach-poses)
-	       ))
-    (cpl:sleep 2)
+                                        ;tool to center of container
+  (exe:perform
+   (desig:an action
+             (type approaching)
+             (left-poses ?left-approach-poses)
+             (right-poses ?right-approach-poses)))
+  (cpl:sleep 2)
 
-   ;mix
- 
-    (exe:perform
-     (desig:an action
-               (type blending)
-               (left-poses ?left-start-mix-poses)
-               (right-poses ?right-start-mix-poses)
-  	       (collision-mode :allow-all)))
+                                        ;mix
+  
+  (exe:perform
+   (desig:an action
+             (type blending)
+             (left-poses ?left-start-mix-poses)
+             (right-poses ?right-start-mix-poses)
+             (collision-mode :allow-all)))
   (cpl:sleep 2)
   
-       (exe:perform
-     (desig:an action
-               (type blending)
-               (left-poses ?left-mid-mix-poses)
-               (right-poses ?right-mid-mix-poses)
-    	       (collision-mode :allow-all)))
+  (exe:perform
+   (desig:an action
+             (type blending)
+             (left-poses ?left-mid-mix-poses)
+             (right-poses ?right-mid-mix-poses)
+             (collision-mode :allow-all)))
   (cpl:sleep 2)
 
-    (exe:perform
-     (desig:an action
-               (type blending)
-               (left-poses ?left-end-mix-poses)
-               (right-poses ?right-end-mix-poses)
-    	       (collision-mode :allow-all)))
+  (exe:perform
+   (desig:an action
+             (type blending)
+             (left-poses ?left-end-mix-poses)
+             (right-poses ?right-end-mix-poses)
+             (collision-mode :allow-all)))
   (cpl:sleep 2)
 
   
-   ;retract
-    (exe:perform
-     (desig:an action
-               (type approaching)
-               (left-poses ?left-retract-poses)
-               (right-poses ?right-retract-poses)
-               (collision-mode :allow-all)))
+                                        ;retract
+  (exe:perform
+   (desig:an action
+             (type approaching)
+             (left-poses ?left-retract-poses)
+             (right-poses ?right-retract-poses)
+             (collision-mode :allow-all)))
   (cpl:sleep 2)
 
   )
