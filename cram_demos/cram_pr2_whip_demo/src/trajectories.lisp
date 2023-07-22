@@ -80,8 +80,16 @@
                     (if (plusp x-transform-translation)
                         x-transform-translation (* x-transform-translation -1)
                         ))
-               :x  (cl-transforms:y transform-translation)
-               :y (cl-transforms:x transform-translation)))))
+               :x (let ((z-transform-translation
+                          (cl-transforms:x transform-translation))) 
+                    (if (plusp z-transform-translation)
+                        z-transform-translation (* z-transform-translation -1)
+                        ))
+               :y (let ((y-transform-translation
+                          (cl-transforms:y transform-translation))) 
+                    (if (plusp y-transform-translation)
+                        y-transform-translation (* y-transform-translation -1)
+                        ))))))
 
          (container-arm (if (eql arm :right) :left :right))
          (approach-pose
@@ -149,24 +157,6 @@
               (,retract-pose)
 	      ))))	     
 
-(defgeneric get-object-type-robot-frame-mix-grip-retract-transform (object-type arm grasp)
-  (:documentation "Returns a transform stamped")
-  (:method (object-type arm grasp)
-    (man-int::call-with-specific-type #'get-object-type-robot-frame-mix-grip-retract-transform
-                                      object-type arm grasp)))
-
-(defmethod get-object-type-robot-frame-mix-grip-retract-transform :around (object-type arm grasp)
-  (destructuring-bind
-      ((x y z) (ax ay az aw))
-      (call-next-method)
-    (cl-tf:transform->transform-stamped
-     cram-tf:*robot-base-frame*
-     cram-tf:*robot-base-frame*
-     0.0
-     (cl-tf:pose->transform
-      (cl-transforms:make-pose
-       (cl-transforms:make-3d-vector x y z)
-       (cl-transforms:make-quaternion ax ay az aw))))))
 
 (defgeneric get-object-type-robot-frame-mix-retract-transform (object-type arm grasp)
   (:documentation "Returns a transform stamped")

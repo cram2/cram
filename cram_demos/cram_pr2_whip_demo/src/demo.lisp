@@ -39,22 +39,22 @@
 	(urdf-proj:with-simulated-robot
 	
           (move-pr2)
-         (spawn-whisk)
-       ; (spawn-fork)
-      ;(spawn-ladle)
+        ; (spawn-whisk)
+     ;  (spawn-fork)
+      (spawn-ladle)
                                                
-       ; (spawn-bigbowl)
-      ; (spawn-saucepan)
+        (spawn-bigbowl)
+     ; (spawn-saucepan)
       ; (spawn-rbowl)
-      (spawn-wglas)
+     ;(spawn-wglas)
         
     (let (
         (?object-utensil nil)
         (?pose-utensil nil)
         (?pose-container nil)
         (?object-container nil)
-        (?object-desig-source (desig:an object (type :whisk)))
-        )
+        (?object-desig-source (desig:an object (type :ladle))
+        ))
                 
       ;getting utensil pose and saving it                        
       (setf ?pose-utensil (cl-tf:pose->pose-stamped
@@ -67,7 +67,7 @@
                      (target (desig:a location (pose ?pose-utensil)))))  
      
        (setf ?object-utensil (urdf-proj::detect 
-       (desig:an object (type :whisk))))
+       (desig:an object (type :ladle))))
                                                                          
 ;;;; Picking-up the utensil object 
 ;; ;grabbing utensil
@@ -89,24 +89,24 @@
 			  
           (?object-container(urdf-proj::detect
 
-                             (desig:an object (type wine-glas))))
+                             (desig:an object (type big-bowl))))
 )
 
-                (exe:perform (desig:an action
-                                   (type picking-up)
-                                   (object ?object-container)
-                                    (arm (:left)) 
-                                    (grasp :stem-left)))
+    ;;             (exe:perform (desig:an action
+    ;;                                (type picking-up)
+    ;;                                (object ?object-container)
+    ;;                                 (arm (:left)) 
+    ;;                                 (grasp :stem-left)))
 
-    (setf ?object-container(urdf-proj::detect
+    ;; (setf ?object-container(urdf-proj::detect
 
-                       (desig:an object (type wine-glas))))
+    ;;                    (desig:an object (type wine-glas))))
     
       (exe:perform (desig:an action
                              (type intermixing)
         		     (context :mix-circle) 
-                             (reso 6)
-                             (rounds 3)
+                             (reso 12)
+                             (rounds 1)
                              (arm (:right))
                              (object ?object-container)
                              (grasp :top)

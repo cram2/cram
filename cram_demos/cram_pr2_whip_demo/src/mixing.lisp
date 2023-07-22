@@ -29,53 +29,6 @@
 
 (in-package :cram-manipulation-interfaces)
 
-(defmethod get-object-type-robot-frame-mix-grip-approach-transform
-    ((object-type (eql :big-bowl))
-     (arm (eql :left))
-     (grasp (eql :top)))
-  '((0 -0.12  0.161)(1 0 0 0)))
-
-
-(defmethod get-object-type-robot-frame-mix-grip-approach-transform
-    ((object-type (eql :saucepan))
-     (arm (eql :left))
-     (grasp (eql :top)))
-  '((0.153 0.025 0.093)(1 0 0 0)))
-                                        ;0.153 cos radius + lenght to handle middle 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defmethod get-object-type-robot-frame-mix-grip-retract-transform
-    ((object-type (eql :big-bowl))
-     (arm (eql :left))
-     (grasp (eql :top)))
-  '((0 -0.04  0.6)(1 0 0 0))) ;0.02 radius, -0.12 depth, 0.06 height
-
-(defmethod get-object-type-robot-frame-mix-grip-retract-transform
-    ((object-type (eql :saucepan))
-     (arm (eql :left))
-     (grasp (eql :top)))
-  '((0.093 0.093 0.04)(1 0 0 0)))
-
-(defmethod get-object-type-robot-frame-mix-grip-retract-transform
-    ((object-type (eql :saucepan))
-     (arm (eql :right))
-     (grasp (eql :top)))
-  '((0 0 0.093)(1 0 0 0)))
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
- ; don't care for above as long as no grip implemented
-
-(defmethod get-object-type-robot-frame-mix-grip-container-transform
-    ( (object-type (eql :big-bowl))
-      (container-arm (eql :left))
-      (grasp (eql :left-side)))
-  '((0 0 0.093)(1 0 0 0)))
-
-(defmethod get-object-type-robot-frame-mix-grip-container-transform
-    ( (object-type (eql :big-bowl))
-      (container-arm (eql :right))
-      (grasp (eql :right-side)))
-  '((0 0 0.093)(1 0 0 0)))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
          ;approach pose in bto
 
@@ -108,7 +61,7 @@
 
 (defmethod get-object-type-robot-frame-mix-rim-bottom-transform
     ((object-type (eql :bowl-round)))
-  '((0.04 0.04 -0.023)(1 0 0 0)))
+  '((0.04 0.04 -0.02)(1 0 0 0)))
 
 (defmethod get-object-type-robot-frame-mix-rim-bottom-transform
     ((object-type (eql :wine-glas)))
@@ -248,7 +201,15 @@
 (defparameter *wine-glas-lift-z-offset* 0.03 "in meters")
                                         ;thickness of glas is 1 cm ish
 
-;; TOP grasp
+;; (man-int:def-object-type-to-gripper-transforms :wine-glas
+;;     '(:left :right) :stem-front
+;;   :grasp-translation `(0.0 0.0 ,*wine-glas-grasp-z-offset*)
+;;   :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
+;;   :pregrasp-offsets `(0.0 0.0 ,*wine-glas-lift-z-offset*)
+;;   :2nd-pregrasp-offsets `(0.0 0.0 ,*wine-glas-lift-z-offset*)
+;;   :lift-translation `(0.0 0.0 ,0.0)
+;;   :2nd-lift-translation `( 0.01 0.0 ,0.0))
+;;TOP grasp
 (man-int:def-object-type-to-gripper-transforms :wine-glas
     '(:left :right) :stem-left
   :grasp-translation `(0.0 0.0 ,*wine-glas-grasp-z-offset*)
@@ -258,20 +219,13 @@
   :lift-translation `(0.0 0.0 ,0.0)
   :2nd-lift-translation `( 0.01 0.0 ,0.0))
 
-(man-int:def-object-type-to-gripper-transforms :wine-glas
-    '(:left :right) :stem-right
-  :grasp-translation `(0.0 0.0 ,*wine-glas-grasp-z-offset*)
-  :grasp-rot-matrix man-int:*y-across-z-grasp-rotation*
-  :pregrasp-offsets `(0.1 0.0 ,*wine-glas-lift-z-offset*)
-  :2nd-pregrasp-offsets `(0.0 0.0 ,*wine-glas-lift-z-offset*)
-  :lift-translation `(0.0 0.0 ,0.0)
-  :2nd-lift-translation `( 0.01 0.0 ,0.0))
+;; (man-int:def-object-type-to-gripper-transforms :wine-glas
+;;     '(:left :right) :stem-right
+;;   :grasp-translation `(0.0 0.0 ,*wine-glas-grasp-z-offset*)
+;;   :grasp-rot-matrix man-int:*y-across-z-grasp-rotation*
+;;   :pregrasp-offsets `(0.1 0.0 ,*wine-glas-lift-z-offset*)
+;;   :2nd-pregrasp-offsets `(0.0 0.0 ,*wine-glas-lift-z-offset*)
+;;   :lift-translation `(0.0 0.0 ,0.0)
+;;   :2nd-lift-translation `( 0.01 0.0 ,0.0))
 
-(man-int:def-object-type-to-gripper-transforms :wine-glas
-    '(:left :right) :stem-front
-  :grasp-translation `(0.0 0.0 ,*wine-glas-grasp-z-offset*)
-  :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
-  :pregrasp-offsets `(0.0 0.0 ,*wine-glas-lift-z-offset*)
-  :2nd-pregrasp-offsets `(0.0 0.0 ,*wine-glas-lift-z-offset*)
-  :lift-translation `(0.0 0.0 ,0.0)
-  :2nd-lift-translation `( 0.01 0.0 ,0.0))
+
