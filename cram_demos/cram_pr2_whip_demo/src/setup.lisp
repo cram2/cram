@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2017, Vanessa Hassouna <hassouna@cs.uni-bremen.de>
+;;; Copyright (c) 2023, Tina Van <van@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -29,8 +29,6 @@
 
 (in-package :demo)
 
-;; roslaunch cram_pr2_pick_place_demo sandbox.launch
-
 
 (defun init-projection ()
   (def-fact-group costmap-metadata (costmap:costmap-size
@@ -43,11 +41,6 @@
     (<- (costmap:costmap-resolution 0.04))
     (<- (costmap:orientation-samples 2))
     (<- (costmap:orientation-sample-step 0.3)))
-
-  ;;(setf cram-bullet-reasoning-belief-state:*robot-parameter* "robot_description")
-  ;;(setf cram-bullet-reasoning-belief-state:*kitchen-parameter* "kitchen_description")
-
-  ;; (sem-map:get-semantic-map)
 
   (cram-occasions-events:clear-belief)
 
