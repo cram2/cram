@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2022, Tina Van <van@uni-bremen.de>
+;;; Copyright (c) 2023, Tina Van <van@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without

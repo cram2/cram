@@ -379,7 +379,6 @@
           append pose)))
 
 (defun change-v (pose &key (x-offset 0.0) (y-offset 0.0) (z-offset 0.0))
-  (print "change-v")
   (cram-tf::copy-pose-stamped
    pose 
    :origin

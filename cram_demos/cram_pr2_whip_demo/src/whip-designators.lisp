@@ -32,7 +32,7 @@
 (def-fact-group mix-variation-actions (desig:action-grounding)
   (<- (desig:action-grounding ?action-designator (intermix ?resolved-action-designator))
       (spec:property ?action-designator (:type :intermixing))
-      ;;TODO: THIS STAYS THE SAME DONT CHANGE !!!! ++++++++++++++++++++++++++++++++
+      
       ;; ==============   extract info from ?action-designator   ==============
       (spec:property ?action-designator (:object ?object-designator))
       (desig:current-designator ?object-designator ?current-object-desig)
@@ -74,13 +74,10 @@
                (lisp-fun man-int:get-action-grasps ?object-type ?arm ?object-transform ?grasps)
                (member ?grasp ?grasps)))
       
-      ;;TODO: THIS STAYS THE SAME DONT CHANGE TILL HERE !!!! ++++++++++++
-
-      
       ;; ==============  calculate trajectory with given grasp  ==============
       (equal ?object (?current-object-desig))
       (-> (member :left ?arm)
-          ;;TODO change name here nad start with one pose only
+
           (and
            (lisp-fun man-int:get-action-trajectory :mixing
                      :left ?grasp T ?object :context ?context :reso ?reso :tool-object-type ?source-type :container-arm :right :rounds ?rounds

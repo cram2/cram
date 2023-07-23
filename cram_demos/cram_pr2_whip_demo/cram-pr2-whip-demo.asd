@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2023, Tina Van <van@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,6 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
 (defsystem cram-pr2-whip-demo
-  :author "gaya"
   :license "BSD"
 
   :depends-on (roslisp-utilities ; for ros-init-function
@@ -79,9 +78,6 @@
      (:file "demo" :depends-on ("package"))
       (:file "whip-designators" :depends-on ("package" "whip-plans"))
       (:file "whip-plans" :depends-on ("package"))
-      (:file "trajectories" :depends-on ("package")) ;"demo")) 
-      ;mixing split of trajectory for readability 
+      (:file "trajectories" :depends-on ("package"))
       (:file "mixing" :depends-on ("package"))
-      ;household file dependencies
-      ;(:file "prolog" :depends-on ("package"))
      ))))
