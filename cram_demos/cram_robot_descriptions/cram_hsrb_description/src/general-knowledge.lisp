@@ -60,10 +60,11 @@
   (<- (robot-neck-joints :hsrb "head_pan_joint" "head_tilt_joint"))
 
   ;; TODO: this needs to be corrected for this robot:
+  ;; update: this does not need do be +1 anymore -> new urdf i guess (vanessa 2023)
   (<- (robot-neck-pan-joint-forward-facing-axis-sign :hsrb
-                                                     cl-transforms:x +1))
+                                                     cl-transforms:x -1))
   (<- (robot-neck-tilt-joint-forward-facing-axis-sign :hsrb
-                                                      cl-transforms:x +1))
+                                                      cl-transforms:x -1))
 
   (<- (robot-joint-states :hsrb :neck ?_ :forward ((?pan_joint 0.0) (?tilt_joint 0.0)))
     (robot-neck-joints :hsrb ?pan_joint ?tilt_joint))
@@ -83,10 +84,11 @@
                                            costmap:orientation-samples
                                            costmap:orientation-sample-step
                                            costmap:visibility-costmap-size)
-  (<- (costmap:costmap-padding :hsrb 0.2))
-  (<- (costmap:costmap-manipulation-padding :hsrb 0.3))
-  (<- (costmap:costmap-in-reach-distance :hsrb 0.5))
-  (<- (costmap:costmap-reach-minimal-distance :hsrb 0.2))
-  (<- (costmap:orientation-samples :hsrb 3))
+ 
+  (<- (costmap:costmap-padding :hsrb 0.3))
+  (<- (costmap:costmap-manipulation-padding :hsrb 0.33))
+  (<- (costmap:costmap-in-reach-distance :hsrb 0.8))
+  (<- (costmap:costmap-reach-minimal-distance :hsrb 0.1))
+  (<- (costmap:orientation-samples :hsrb 1))
   (<- (costmap:orientation-sample-step :hsrb 0.3))
   (<- (costmap:visibility-costmap-size :hsrb 2)))
