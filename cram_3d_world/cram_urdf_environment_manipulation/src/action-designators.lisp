@@ -55,8 +55,11 @@
     ;; find the grasp type
     (-> (spec:property ?action-designator (:grasp ?grasp))
         (true)
-        (and (lisp-fun man-int:get-action-grasps :handle ?arm nil ?grasps)
-             (member ?grasp ?grasps)))
+        (-> (and (spec:property ?action-designator (:grasps ?grasps))
+                 (lisp-pred identity ?grasps))
+            (member ?grasp ?grasps)
+            (and (lisp-fun man-int:get-action-grasps :handle ?arm nil ?grasps)
+                 (member ?grasp ?grasps))))
     ;; find the joint
     (lisp-fun get-environment-link ?container-name ?btr-environment ?container-link)
     (lisp-fun get-connecting-joint ?container-link ?connecting-joint)
@@ -95,6 +98,12 @@
     (-> (equal ?action-type :opening)
         (lisp-fun + ?current-state ?clipped-distance ?absolute-distance)
         (lisp-fun - ?current-state ?clipped-distance ?absolute-distance))
+
+    ;; pose of child of joint
+    (lisp-fun cl-urdf:child ?connecting-joint ?door-link)
+    (lisp-fun cl-urdf:name ?door-link ?door-link-name)
+    (lisp-fun btr:link-pose ?environment-object ?door-link-name ?door-joint-pose)
+
 
     ;; infer missing information like ?gripper-opening, opening trajectory
     (lisp-fun man-int:get-action-gripper-opening ?container-type
@@ -173,6 +182,7 @@
                                (:left-retract-poses ?left-retract-poses)
                                (:right-retract-poses ?right-retract-poses)
                                (:joint-name ?joint-name)
+                               (:door-joint-pose ?door-joint-pose)
                                (:link-name ?handle-link)
                                (:environment-name ?environment-name)
                                (:environment-object ?environment-object)

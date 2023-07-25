@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.0.2)
 project(cram_sim_log_generator)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
