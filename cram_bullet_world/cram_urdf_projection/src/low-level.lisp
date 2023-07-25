@@ -1008,7 +1008,7 @@ collision by moving its torso and base"
                                torso-joint-name
                                torso-joint-lower-limit torso-joint-upper-limit
                                validation-function
-                               move-base)
+                               move-base fixed-torso)
   (when ee-pose
     (let ((current-torso-angle
             (btr:joint-state (btr:get-robot-object) torso-joint-name))
@@ -1017,7 +1017,9 @@ collision by moving its torso and base"
              (btr:get-robot-object)
              :joint-names joint-names))
           (disable-base-resampling
-            (not move-base)))
+            (not move-base))
+          (disable-torso-resampling
+            fixed-torso))
       (multiple-value-bind (ik-solution-msg joint-values)
           (ik:find-ik-for
               (ee-pose
@@ -1042,7 +1044,7 @@ collision by moving its torso and base"
                      (- torso-joint-upper-limit current-torso-angle)
                      (- torso-joint-lower-limit current-torso-angle)
                      *torso-resampling-step*
-                     :disable-resampling disable-base-resampling)))))
+                     :disable-resampling disable-torso-resampling)))))
         (unless ik-solution-msg
           (cpl:fail 'common-fail:manipulation-low-level-failure
                     :description
@@ -1072,10 +1074,11 @@ collision by moving its torso and base"
                             collision-object-b
                             collision-object-b-link
                             collision-object-a
-                            (move-base t))
+                            (move-base t)
+                            (fixed-torso nil))
   (declare (type (or cl-transforms-stamped:pose-stamped null)
                  left-tcp-pose right-tcp-pose)
-           (type boolean move-base))
+           (type boolean move-base fixed-torso))
   (declare (ignore collision-object-b collision-object-b-link collision-object-a))
 
   (cram-tf:visualize-marker (list left-tcp-pose right-tcp-pose) :r-g-b-list '(1 0 1))
@@ -1127,7 +1130,7 @@ collision by moving its torso and base"
              ?torso-link ?left-ee-frame ?left-arm-joints
              ?torso-joint ?lower-limit ?upper-limit
              validation-function
-             move-base))
+             move-base fixed-torso))
         (multiple-value-bind (right-ik right-torso-angle right-base-pose)
             (let ((ik::*ik-service-name*
                     (if (eql ?robot :pr2)
@@ -1139,7 +1142,7 @@ collision by moving its torso and base"
                ?torso-link ?right-ee-frame ?right-arm-joints
                ?torso-joint ?lower-limit ?upper-limit
                validation-function
-               move-base))
+               move-base fixed-torso))
           ;; set the torso to inferred position
           (cond
             ((and left-torso-angle right-torso-angle)
@@ -1177,10 +1180,11 @@ collision by moving its torso and base"
                    collision-object-b
                    collision-object-b-link
                    collision-object-a
-                   (move-base t))
+                   (move-base t)
+                   (fixed-torso nil))
   (declare (type (or cl-transforms-stamped:pose-stamped list null)
                  left-poses right-poses)
-           (type boolean move-base))
+           (type boolean move-base fixed-torso))
 
   (multiple-value-bind (left-poses right-poses)
       (cut:equalize-two-list-lengths left-poses right-poses)
@@ -1196,7 +1200,7 @@ collision by moving its torso and base"
               (move-tcp-one-pose left-pose right-pose
                                  collision-mode collision-object-b
                                  collision-object-b-link collision-object-a
-                                 move-base)))
+                                 move-base fixed-torso)))
           (butlast left-poses)
           (butlast right-poses))
 
@@ -1210,7 +1214,7 @@ collision by moving its torso and base"
         (move-tcp-one-pose left-pose right-pose
                            collision-mode collision-object-b
                            collision-object-b-link collision-object-a
-                           move-base)))))
+                           move-base fixed-torso)))))
 
 
 #+save-for-next-time

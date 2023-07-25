@@ -165,15 +165,17 @@ the `btr-environment' (of type cl-urdf:link)."
   (find-handle-under-link
    (get-environment-link container-name btr-environment)))
 
-(defun find-handle-under-link (link)
-  "Return the link object of the handle under the given `link' object."
+(defun find-handle-under-link (link &optional (link-name-part "handle"))
+  "Return the link object of the handle under the given `link' object.
+If the handle link has children, check if there is a link for the center."
   (declare (type (or null cl-urdf:link) link))
-  (the (or null cl-urdf:link)
-       (if (search "handle" (cl-urdf:name link))
-           link
-           (reduce (lambda (&optional x y) (or x y))
-                   (mapcar 'find-handle-under-link
-                           (mapcar 'cl-urdf:child (cl-urdf:to-joints link)))))))
+  (if (search link-name-part (cl-urdf:name link))
+      (if (not (cl-urdf:to-joints link))
+          link
+          (or (find-handle-under-link link "center") link))
+      (reduce (lambda (&optional x y) (or x y))
+              (mapcar 'find-handle-under-link
+                      (mapcar 'cl-urdf:child (cl-urdf:to-joints link))))))
 
 (defun get-joint-position (joint btr-environment)
   "Return the value of the `joint' in the `btr-environment'."

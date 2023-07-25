@@ -84,7 +84,8 @@
       (cram-common-designators:move-tcp
        (move-tcp arg-1 (first arg-2)
                  (second arg-2) (third arg-2) (fourth arg-2) (fifth arg-2)
-                 (sixth arg-2)))
+                 (sixth arg-2)
+                 (tenth arg-2)))
       (cram-common-designators::move-joints
        (move-joints-avoiding-collision arg-1 (first arg-2) (second arg-2)))
       ((or cram-common-designators:move-arm-pull
@@ -94,7 +95,8 @@
                  (when (eq arg-1 :right)
                    (first arg-2))
                  (third arg-2) (fourth arg-2) (fifth arg-2) (sixth arg-2)
-                 (seventh arg-2))))))
+                 (seventh arg-2)
+                 (nth 10 arg-2))))))
 
 ;;;;;;;;;;;;;;;;; NOOP ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
