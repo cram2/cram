@@ -78,3 +78,4 @@ If changes are made to the code and a **PullRequest** results from it, please ch
 * 31/07-11:10 moved robots into external
 * 31/07-12:44 rebrand cram_external_interfaces to cram_integration
 * 31/07-13:41 put actions into cram_actions
+* 31/07-13:50 put robot_description into cram_integration
