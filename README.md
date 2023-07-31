@@ -75,3 +75,5 @@ If changes are made to the code and a **PullRequest** results from it, please ch
 * 31/07-09:30 moved stuff to external interface
 * 31/07-10:30 added robots to cram_robots
 * 31/07-10:50 fixed tiago in cram_robots
+* 31/07-11:10 moved robots into external
+
