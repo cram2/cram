@@ -80,3 +80,4 @@ If changes are made to the code and a **PullRequest** results from it, please ch
 * 31/07-13:41 put actions into cram_actions
 * 31/07-13:50 put robot_description into cram_integration
 * 31/07-14:18 mv *costmaps to cram_locations
+* 31/07-14:30 rebrand cram_common to cram_interface
