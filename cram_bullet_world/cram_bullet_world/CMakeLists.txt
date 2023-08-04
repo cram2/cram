@@ -1,4 +1,4 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(cram_3d_world)
+project(cram_bullet_world)
 find_package(catkin REQUIRED)
 catkin_metapackage()

@@ -1,7 +1,7 @@
 <package>
   <name>cram_3d_world</name>
   <version>0.7.0</version>
-  <description>cram_3d_world</description>
+  <description>cram_bullet_world</description>
   <author>Lorenz Moesenlechner</author>
   <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
   <license>BSD</license>
