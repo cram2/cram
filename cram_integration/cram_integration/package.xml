@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package>
-  <name>cram_external_interfaces</name>
+  <name>cram_integration</name>
   <version>0.7.0</version>
   <description>The cram_external_interfaces metapackage</description>
 
