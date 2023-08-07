@@ -82,5 +82,5 @@ If changes are made to the code and a **PullRequest** results from it, please ch
 * 31/07-14:18 mv *costmaps to cram_locations
 * 31/07-14:30 rebrand cram_common to cram_interface
 * 31/07-13:34 rebrand cram_3d_world to cram_bullet_world
-* 08/07-2:13 moved files from external_interfaces
-
+* 07/08-2:13 moved files from external_interfaces
+* 07/08-2:43 moved files to bullet world
