@@ -1,6 +1,8 @@
 ![Screenshot](https://raw.githubusercontent.com/cram2/cram/master/graphics/CramLogoSmall.png)
 =============
 
+### If you want to use CRAM on the real robot or with Unreal Engine/Giskard you will need cram_integration repository as well.
+
 ### What is CRAM
 
 CRAM is a toolbox for designing, implementing and deploying software on autonomous robots. The framework provides various tools and libraries for aiding in robot software development as well as geometric reasoning and fast simulation mechanisms to develop cognition-enabled control programs that achieve high lev- els of robot autonomy. CRAM also provides tools for introspection that enable the robots to reason about their past executions and improve by autonomously optimizing their plans.
