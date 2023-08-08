@@ -84,10 +84,12 @@
                  (target (desig:a location (pose ?pose))))))))
 
 (defun start-logging ()
-  (ccl::start-episode))
+  ;;(ccl::start-episode)
+  )
 
 (defun stop-logging ()
-  (ccl::stop-episode))
+  ;;(ccl::stop-episode)
+  )
 
 (defun initialize ()
   (sb-ext:gc :full t)
