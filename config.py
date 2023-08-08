@@ -173,7 +173,7 @@ def check_package_names():
     for pkg_name, dirpath in pkg_paths.items():
         dirname = os.path.basename(dirpath)
         if pkg_name != dirname:
-            print "WARNING: Package name and name of containing directory differ: Package '{}' in directory '{}'!".format(pkg_name, dirname)
+            print ("WARNING: Package name and name of containing directory differ: Package '{}' in directory '{}'!".format(pkg_name, dirname))
 
 def check_for_high_level_packages(pkgs):
     """Check if the given packages are existent in the repository."""
