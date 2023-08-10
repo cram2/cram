@@ -73,12 +73,4 @@
      ;; high-level plans such as DRIVE-AND-PICK-UP, PERCEIVE, etc.
      (:file "high-level-plans" :depends-on ("package"
                                             "atomic-action-designators"
-                                            "pick-place-designators"))
-
-     ;; pouring plans
-     (:file "pour-plans" :depends-on ("package"
-                                      "atomic-action-designators"
-                                      ;; for parking-arms
-                                      "pick-place-designators"))
-     (:file "pour-designators" :depends-on ("package"
-                                            "pour-plans"))))))
+                                            "pick-place-designators"))))))
