@@ -1,88 +1,98 @@
-![Screenshot](https://raw.githubusercontent.com/cram2/cram/master/graphics/CramLogoSmall.png)
-=============
+# CRAM Integration Guide
 
-### If you want to use CRAM on the real robot or with Unreal Engine/Giskard you will need cram_integration repository as well.
+![CRAM Logo](https://raw.githubusercontent.com/cram2/cram/master/graphics/CramLogoSmall.png)
 
-### What is CRAM
+## Introduction
+**CRAM** is a versatile toolbox tailored for the design, implementation, and deployment of software on autonomous robots. The framework offers:
 
-CRAM is a toolbox for designing, implementing and deploying software on autonomous robots. The framework provides various tools and libraries for aiding in robot software development as well as geometric reasoning and fast simulation mechanisms to develop cognition-enabled control programs that achieve high lev- els of robot autonomy. CRAM also provides tools for introspection that enable the robots to reason about their past executions and improve by autonomously optimizing their plans.
+- Tools and libraries to streamline robot software development.
+- Geometric reasoning and rapid simulation capabilities for crafting cognition-enabled control programs, heightening robot autonomy.
+- Introspective tools, allowing robots to reflect on past actions, facilitating autonomous plan optimization.
 
-The core packages of CRAM are implemented in Common Lisp (with a little bit of C/C++) with support to the ROS middleware infrastructure.
+The foundational packages of CRAM are crafted in Common Lisp (supplemented with C/C++), and are fully integrated with the ROS middleware infrastructure.
 
-----
-### Version
-The branch is currently tested on **20.04**. It is under constant change due the development. If you notice a bug, please report it in an issue.
+## Important Note
+To utilize CRAM with a real robot or in tandem with Unreal Engine/Giskard, the `cram_integration` repository is essential.
 
-### Prerequisite
+## Version Information
+The current branch is tested with **20.04**. As it's continually evolving due to ongoing development, any discovered bugs are encouraged to be reported as an issue.
 
-[ROS installation](http://wiki.ros.org/noetic/Installation) and an [SSH key set up](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/about-ssh)  for your github account.
+## Prerequisites
 
-### Workspace Installation
-* `sudo apt install ros-noetic-roslisp-repl`
-* `sudo apt-get install python3-rosinstall python3-wstool`
-* `cd ~/workspace/src`
-* `wstool init`
-* `wstool merge https://raw.githubusercontent.com/cram2/cram/devel/cram-20.04.rosinstall`
-* `wstool update`
-* `cd ~/workspace/`
-* `rosdep update`
-* `rosdep install --ignore-src --from-paths src/ -r`
-* `catkin_make`
+- Complete the [ROS installation](http://wiki.ros.org/noetic/Installation).
+- Set up an [SSH key](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/about-ssh) for your GitHub account.
 
+## Workspace Setup
 
-For ROS noetic and the current packages, one thing needs to be fixed. The package octomap contains a dependency to a ROS2 package, which can be ignored. Open the package.xml of octomap.
+1. Install required ROS packages:
+   ```bash
+   sudo apt install ros-noetic-roslisp-repl
+   sudo apt-get install python3-rosinstall python3-wstool
+   ```
 
-* `roscd octomap`
-* `sudo nano package.xml`
-Now remove the following line within:
+2. Navigate to your workspace's `src` directory and initialize it:
+   ```bash
+   cd ~/workspace/src
+   wstool init
+   ```
 
-* `<exec_depend condition="$ROS_VERSION == 2">ament_cmake</exec_depend>`
+3. Merge and update the workspace:
+   ```bash
+   wstool merge https://raw.githubusercontent.com/cram2/cram/devel/cram-20.04.rosinstall
+   wstool update
+   ```
 
-----
-### Testing & Continuous Integration
-If changes are made to the code and a **PullRequest** results from it, please check the following things:
-* The automatic CI, has to build *CRAM* succesfully.
-* Is the milestone-demo still running correctly?
-* Are the test still running? 
-   * New Terminal: roslaunch cram_integration_tests pr2.launch 
-   * `(swank:operate-on-system-for-emacs "cram-integration-tests-pr2" (quote load-op))`
-   * `(roslisp-utilities:startup-ros)`
-   * `(in-package cram-integration-tests`
-   * `(lisp-unit:run-tests)`
-   * The result should look like this: [Test-Summary-IMG](https://github.com/cram2/cram/blob/noetic/graphics/test-summary.png)
+4. Return to the workspace root, update ROS dependencies, and build the workspace:
+   ```bash
+   cd ~/workspace/
+   rosdep update
+   rosdep install --ignore-src --from-paths src/ -r
+   catkin_make
+   ```
 
-----
-### Current State of Demos:
-* PR2
-  * Unit-test: all-test [Working] 
-  * Milestone: setting-demo [Working]
-  * Milestone: cleaning-demo [Working]
- 
-----
+5. For ROS Noetic users, a dependency adjustment is needed for the octomap package:
+   ```bash
+   roscd octomap
+   sudo nano package.xml
+   ```
+   Once inside the XML, omit the line:
+   ```xml
+   <exec_depend condition="$ROS_VERSION == 2">ament_cmake</exec_depend>
+   ```
 
-### Directory
-* **cram_3d_world** Bullet physics engine-based and OpenGl offscreen rendering-based reasoning mechanisms.
-* **cram_3rdparty** 3rd party Lisp liabraries wrapped into ROS packages.
-* **cram_boxy** Hardware interface for using Boxy robot in CRAM and lightweight simulation.
-* **cram_common** Common libraries building on top of CRAM core. Including costmap and implementations.
-* **cram_core** Tools and Interfaces for writing Cognition-Enabled Reactive Concurrent Plans.
-* **cram_json_prolog** ROS JSON Prolog client implementation in Lisp: sending Prolog queries in JSON format over ROS. 
-* **cram_knowrob** Libraries for using knowrob in Lisp.
-* **cram_pr2** CRAM packages related to the PR2, e.g. process modules, costmaps and lightweight simulation of PR2 robot. Also, fetch and deliver plans for PR2 robot.
-* **cram_roboserlock** Interface for communicating with RoboSherlock from CRAM.
-* **cram_tutorials** Tutorials for: [cram-turtorials](http://cram-system.org/tutorials).
+## Testing & Continuous Integration
 
+When proposing changes via a **Pull Request**:
 
-### Changes
-* 31/07-09:30 moved stuff to external interface
-* 31/07-10:30 added robots to cram_robots
-* 31/07-10:50 fixed tiago in cram_robots
-* 31/07-11:10 moved robots into external
-* 31/07-12:44 rebrand cram_external_interfaces to cram_integration
-* 31/07-13:41 put actions into cram_actions
-* 31/07-13:50 put robot_description into cram_integration
-* 31/07-14:18 mv *costmaps to cram_locations
-* 31/07-14:30 rebrand cram_common to cram_interface
-* 31/07-13:34 rebrand cram_3d_world to cram_bullet_world
-* 07/08-2:13 moved files from external_interfaces
-* 07/08-2:43 moved files to bullet world
+- Ensure the CI successfully compiles CRAM.
+- Ascertain the milestone-demo's functionality.
+- Confirm the operational status of tests:
+   ```bash
+   roslaunch cram_integration_tests pr2.launch 
+   ```
+   In a subsequent terminal:
+   ```lisp
+   (swank:operate-on-system-for-emacs "cram-integration-tests-pr2" (quote load-op))
+   (roslisp-utilities:startup-ros)
+   (in-package cram-integration-tests)
+   (lisp-unit:run-tests)
+   ```
+   The outcome should resemble [this reference image](https://github.com/cram2/cram/blob/noetic/graphics/test-summary.png).
+
+## Documentation
+For more detailed information, we've also initiated a wiki on GitHub. Explore it [here](https://github.com/cram2/cram/wiki).
+
+## Change Log: Major Restructure Details
+
+- 31/07-09:30: Transferred components to external interface.
+- 31/07-10:30: Introduced robots to `cram_robots`.
+- 31/07-10:50: Resolved issues with Tiago in cram_robots.
+- 31/07-11:10: Transitioned robots into the external section.
+- 31/07-12:44: Renamed cram_external_interfaces to cram_integration.
+- 31/07-13:41: Integrated actions into cram_actions.
+- 31/07-13:50: Incorporated robot_description into cram_integration.
+- 31/07-14:18: Relocated *costmaps to cram_locations.
+- 31/07-14:30: Renamed cram_common to cram_interface.
+- 31/07-13:34: Transitioned cram_3d_world to cram_bullet_world.
+- 07/08-2:13: Shifted files out of external_interfaces.
+- 07/08-2:43: Relocated files to bullet world.
