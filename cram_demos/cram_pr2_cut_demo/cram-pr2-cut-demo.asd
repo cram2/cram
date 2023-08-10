@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2023, Vanessa Hassouna <hassouna@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,8 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-pr2-cut-pour-demo
-  :author "gaya"
+(defsystem cram-pr2-cut-demo
+  :author "Vanessa Hassouna"
   :license "BSD"
 
   :depends-on (roslisp-utilities ; for ros-init-function
@@ -50,7 +50,7 @@
                cram-mobile-pick-place-plans
                cram-object-knowledge
 
-               cram-cloud-logger
+               ;cram-cloud-logger
 
                cram-physics-utils     ; for reading "package://" paths
                cl-bullet ; for handling BOUNDING-BOX datastructures
@@ -70,16 +70,13 @@
                cram-pr2-description
                cram-fetch-deliver-plans
                cram-urdf-environment-manipulation
-               cram-mobile-cut-pour-plans)
+               cram-cut-plans)
 
   :components
   ((:module "src"
     :components
     ((:file "package")
      (:file "setup" :depends-on ("package"))
-     (:file "costmaps" :depends-on ("package"))
-     (:file "projection-demo" :depends-on ("package" "costmaps"))
-     (:file "demo" :depends-on ("package" "projection-demo" "costmaps"))
-     (:file "data-generation-script" :depends-on ("package" "projection-demo" "costmaps"))
-     (:file "data-generation-plan" :depends-on ("package" "demo"))
-     (:file "evaluation-plan" :depends-on ("package" "demo"))))))
+     (:file "projection-demo" :depends-on ("package" ))
+     (:file "demo" :depends-on ("package" "projection-demo" ))
+   ))))

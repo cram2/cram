@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2022, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Vanessa Hassouna <hassouna@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,27 +27,14 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cram-common-designators)
+(in-package :cl-user)
 
-(cpm:def-process-module wait-pm (motion-designator)
-  (destructuring-bind (command duration)
-      (desig:reference motion-designator)
-    (ecase command
-      (common-desig:wait
-       (sleep duration)))))
-
-;;; Example:
-;; (cram-process-modules:with-process-modules-running
-;;     (common-desig:wait-pm)
-;;   (cpl:top-level
-;;     (cpm:pm-execute-matching
-;;      (desig:a motion (type waiting) (duration 5)))))
-
-
-(def-fact-group wait-matching-pms (cpm:matching-process-module
-                                   cpm:available-process-module)
-
-  (<- (cpm:matching-process-module ?motion-designator wait-pm)
-    (desig:desig-prop ?motion-designator (:type :waiting)))
-
-  (<- (cpm:available-process-module wait-pm)))
+(defpackage cram-cut-plans
+  (:nicknames #:c-plans)
+  (:use #:common-lisp #:cram-prolog)
+  (:export
+   ;; atomic-action-plans
+   ;; #:drive-to-reach-pose #:drive-towards-object-plan #:drive-and-pick-up-plan
+   ;; #:perceive-and-drive-and-pick-up-plan
+   ;; #:pick-and-place-plan
+   ))

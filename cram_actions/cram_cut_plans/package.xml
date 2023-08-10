@@ -1,8 +1,8 @@
 <package format="2">
-  <name>cram_mobile_cut_pour_plans</name>
+  <name>cram_cut_plans</name>
   <version>0.7.0</version>
   <description>
-     cram_mobile_cut_pour_plans
+     cram_cut_plans
   </description>
   <author>Vanessa Hassouna</author>
   <maintainer email="hassouna@uni-bremen.de">Vanessa Hassouna</maintainer>
