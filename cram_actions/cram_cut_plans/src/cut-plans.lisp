@@ -27,73 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cp-plans)
-
-;; NOTE: unfortunately, cpl:def-cram-function doesn't use the specified lambda list.
-;; Because of that declare type statements do not work on variables from the lambda list,
-;; and the auto completion of arguments is useless as well.
-;; As we would really like to have declare statements, our plans are simple defuns.
-;; If in the future one would want to use def-cram-function for plan transformations,
-;; one can always def-cram-function that calls a normal function.
-(defun pour (&key
-               ((:object ?object-designator))
-               ((:object-name  ?object-name))
-               ((:object-type ?object-type))
-               ((:arms ?arms))
-               ((:grasp ?grasp))
-               ((:left-approach-poses ?left-approach-poses))
-               ((:right-approach-poses ?right-approach-poses))
-               ((:left-tilt-poses ?left-tilt-poses))
-               ((:right-tilt-poses ?right-tilt-poses))
-               ((:collision-mode ?collision-mode))
-             &allow-other-keys)
-  "Object already in hand, approach 2nd object, tilt 100degree, tilt back"
-  
-  (roslisp:ros-info (cut-pour pour) "Approaching")
-  (cpl:with-failure-handling
-      ((common-fail:manipulation-low-level-failure (e)
-         (roslisp:ros-warn (cut-and-pour-plans pour)
-                           "Manipulation messed up: ~a~%Ignoring."
-                           e)
-         ;; (return)
-         ))
-    (exe:perform
-     (desig:an action
-               (type approaching)
-               (left-poses ?left-approach-poses)
-               (right-poses ?right-approach-poses)
-               (desig:when ?collision-mode
-                 (collision-mode ?collision-mode))))
-    (cpl:sleep 2)
-    
-    (roslisp:ros-info (cut-pour pour) "Tilting")
-    (cpl:with-failure-handling
-        ((common-fail:manipulation-low-level-failure (e)
-           (roslisp:ros-warn (cut-and-pour-plans pour)
-                             "Manipulation messed up: ~a~%Ignoring."
-                             e)))
-      (exe:perform
-       (desig:an action
-                 (type tilting)
-                 (left-poses ?left-tilt-poses)
-                 (right-poses ?right-tilt-poses)
-                 (desig:when ?collision-mode
-                   (collision-mode ?collision-mode)))))
-
-    (cpl:sleep 2)
-    
-    (cpl:with-failure-handling
-        ((common-fail:manipulation-low-level-failure (e)
-           (roslisp:ros-warn (cut-and-pour-plans pour)
-                             "Manipulation messed up: ~a~%Ignoring."
-                             e)))
-      (exe:perform
-       (desig:an action
-                 (type approaching)
-                 (left-poses ?left-approach-poses)
-                 (right-poses ?right-approach-poses)
-                 (desig:when ?collision-mode
-                   (collision-mode ?collision-mode)))))))
+(in-package :c-plans)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                      SLICE                                   ;;;

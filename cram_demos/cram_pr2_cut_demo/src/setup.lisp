@@ -57,7 +57,7 @@
 
 (roslisp-utilities:register-ros-init-function init-projection)
 
-(defun add-objects-to-mesh-list (&optional (ros-package "cram_bullet_world_tutorial"))
+(defun add-objects-to-mesh-list (&optional (ros-package "cram_pr2_cut_demo"))
   (mapcar (lambda (object-filename-and-object-extension)
             (declare (type list object-filename-and-object-extension))
             (destructuring-bind (object-filename object-extension)

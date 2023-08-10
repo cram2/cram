@@ -27,84 +27,9 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cp-plans)
+(in-package :c-plans)
 
-(def-fact-group cut-and-pour-plans (desig:action-grounding)
-
-  ;;###############################################################################
-  ;;                                    POURING
-  ;;###############################################################################
-    
-
-   (<- (desig:action-grounding ?action-designator (pour ?resolved-action-designator))
-    (spec:property ?action-designator (:type :pouring))
-    ;; extract info from ?action-designator
-    (spec:property ?action-designator (:object ?object-designator))
-    (desig:current-designator ?object-designator ?current-object-desig)
-    (spec:property ?current-object-desig (:type ?object-type))
-    (spec:property ?current-object-desig (:name ?object-name))
-     (-> (spec:property ?action-designator (:arms ?arms))
-        (true)
-        (and (man-int:robot-free-hand ?_ ?arm)
-             (equal ?arms (?arm))))
-     (lisp-fun man-int:get-object-transform ?current-object-desig ?object-transform)
-   
-    ;; infer missing information like ?grasp type, gripping ?maximum-effort, manipulation poses
-    (lisp-fun man-int:calculate-object-faces ?object-transform (?facing-robot-face ?bottom-face))
-    (-> (man-int:object-rotationally-symmetric ?object-type)
-        (equal ?rotationally-symmetric t)
-        (equal ?rotationally-symmetric nil))
-    (-> (spec:property ?action-designator (:grasp ?grasp))
-        (true)
-        (and (member ?arm ?arms)
-             (lisp-fun man-int:get-action-grasps ?object-type ?arm ?object-transform ?grasps)
-             (member ?grasp ?grasps)))
-    (lisp-fun man-int:get-action-gripping-effort ?object-type ?effort)
-    (lisp-fun man-int:get-action-gripper-opening ?object-type ?gripper-opening)
-
-    ;; calculate trajectory
-    (equal ?objects (?current-object-desig))
-    (-> (member :left ?arms)
-        (and (lisp-fun man-int:get-action-trajectory :pouring :left ?grasp T ?objects 
-                       ?left-pouring-pose)
-             (lisp-fun man-int:get-traj-poses-by-label ?left-pouring-pose :approach
-                       ?left-approach-poses)
-             (lisp-fun man-int:get-traj-poses-by-label ?left-pouring-pose :tilting
-                       ?left-tilt-poses))
-             
-        (and (equal ?left-approach-poses NIL)
-             (equal ?left-tilt-poses NIL)))
-
-     (-> (member :right ?arms)
-        (and (lisp-fun man-int:get-action-trajectory :pouring :right ?grasp T ?objects 
-                       ?right-pouring-pose)
-             (lisp-fun man-int:get-traj-poses-by-label ?right-pouring-pose :approach
-                       ?right-approach-poses)
-             (lisp-fun man-int:get-traj-poses-by-label ?right-pouring-pose :tilting
-                       ?right-tilt-poses))
-             
-        (and (equal ?right-approach-poses NIL)
-             (equal ?right-tilt-poses NIL)))
-
-     (-> (desig:desig-prop ?action-designator (:collision-mode ?collision-mode))
-        (true)
-        (equal ?collision-mode nil))
-
-     ;; put together resulting action designator
-    (desig:designator :action ((:type :pouring)
-                               (:object ?current-object-desig)
-                               (:object-type ?object-type)
-                               (:object-name  ?object-name)
-                               (:arms ?arms)
-                               (:grasp ?grasp)
-                               (:left-approach-poses ?left-approach-poses)
-                               (:right-approach-poses ?right-approach-poses)
-                               (:left-tilt-poses ?left-tilt-poses)
-                               (:right-tilt-poses ?right-tilt-poses)
-                               (:collision-mode ?collision-mode))
-                      ?resolved-action-designator))
-    
-
+(def-fact-group cut-plans (desig:action-grounding)
   ;;###############################################################################
   ;;                                    SLICING
   ;;###############################################################################
