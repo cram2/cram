@@ -1,4 +1,4 @@
-# CRAM Integration Guide
+# CRAM 
 
 ![CRAM Logo](https://raw.githubusercontent.com/cram2/cram/master/graphics/CramLogoSmall.png)
 
