@@ -64,9 +64,12 @@
  (<- (man-int:object-type-direct-subtype :cutlery :whisk))
   (<- (man-int:object-type-direct-subtype :cutlery :ladle))
     (<- (man-int:object-type-direct-subtype :cutlery :tea-spoon))
+  (<- (man-int:object-type-direct-subtype :plate :ikea-small-plate))
+  (<- (man-int:object-type-direct-subtype :plate :ikea-big-plate))
 
   (<- (man-int:object-type-direct-subtype :household-item :wine-glas))
   (<- (man-int:object-type-direct-subtype :household-item :bowl-round))
+  (<- (man-int:object-type-direct-subtype :bowl :bowl-round))
 
   (<- (man-int:object-type-direct-subtype :cereal :breakfast-cereal))
 

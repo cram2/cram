@@ -65,6 +65,7 @@
   (<- (%scenario-object-color :breakfast-cereal (0.5 0.5 0.21)))
   (<- (%scenario-object-color :milk (0.12 0.22 0.42)))
   (<- (%scenario-object-color :visualization-box (1.0 0.0 0.0 0.5)))
+  (<- (%scenario-object-color :sponge   (0 1 1 1)))
   (<- (%scenario-object-color :whisk   (0 1 1 1)))
   (<- (%scenario-object-color :ladle   (0 1 1 1)))
   (<- (%scenario-object-color :tea-spoon   (0 1 1 1)))
