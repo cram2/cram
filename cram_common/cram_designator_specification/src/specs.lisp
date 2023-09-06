@@ -29,7 +29,7 @@
 
 (in-package :cram-designator-specification)
 
-;; (defgeneric get-designator-property (designator key)
+;; (Defgeneric get-designator-property (designator key)
 ;;   (:method (desig key)
 ;;     (declare (ignore key))
 ;;     (unless (typep desig 'desig:designator)
@@ -143,13 +143,13 @@
   (<- (%property ?designator (?object-key ?object))
     (lisp-pred typep ?designator desig:action-designator)
     (member ?object-key (:object :on-object :with-object :supporting-object
-                         :container-object))
+                         :container-object :source))
     (property-member (?object-key ?object) ?designator)
     (assert-type ?object desig:object-designator "ACTION SPEC:PROPERTY"))
 
   (<- (%property ?designator (?number-key ?value))
     (lisp-pred typep ?designator desig:action-designator)
-    (member ?number-key (:position :effort :distance :duration))
+    (member ?number-key (:position :effort :distance :duration :reso :rounds))
     (property-member (?number-key ?value) ?designator)
     (assert-type ?value number "ACTION SPEC:PROPERTY"))
 
@@ -227,9 +227,12 @@
 
 (def-fact-group object-designator-specs (%property)
 
-  (<- (%property ?designator (:type ?type))
-    (lisp-pred typep ?designator desig:object-designator)
-    (property-member (:type ?type) ?designator)
+ (<- (%property ?designator (?keyword-key ?type))
+  ;(<- (%property ?designator (:type ?type))
+   (lisp-pred typep ?designator desig:object-designator)
+    (member ?keyword-key (:type :tool))
+    ;(property-member (:type ?type) ?designator)
+    (property-member (?keyword-key ?type) ?designator)
     (assert-type ?type keyword "OBJECT SPEC:PROPERTY"))
 
   (<- (%property ?designator (?keyword-key ?name))
