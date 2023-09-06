@@ -78,6 +78,8 @@
   (<- (%scenario-object-color :kuehne-essig-essenz (0.06 0.39 0.26 0.3)))
   (<- (%scenario-object-color :domestos-allzweckreiniger (0.06 0.24 0.48)))
   (<- (%scenario-object-color :shoe (0.34 0.32 0.18)))
+  (<- (%scenario-object-color :jeroen-cup (0.19 0.35 0.7)))
+
 
 
   ;; Object type shapes
@@ -93,6 +95,7 @@
   (<- (non-mesh-object :sugar-box))
   (<- (non-mesh-object :cereal-box))
   (<- (non-mesh-object :visualization-box))
+  (<- (non-mesh-object :colored-box))
 
   ;; Extra attributes for objects to pass to the spawn function (e.g. :mesh pot)
   (<- (scenario-object-extra-attributes ?_ ?object-type ?attributes)
@@ -100,6 +103,7 @@
     (equal ?attributes (:mesh ?object-type)))
 
   (<- (scenario-object-extra-attributes ?_ :pancake-maker (:size (0.15 0.15 0.035))))
+  (<- (scenario-object-extra-attributes ?_ :colored-box (:size (0.2 0.4 0.01))))
   (<- (scenario-object-extra-attributes ?_ :orange (:radius 0.04)))
   (<- (scenario-object-extra-attributes ?_ :apple (:radius 0.0425)))
   (<- (scenario-object-extra-attributes ?_ :cereal-box (:size (0.029 0.0965 0.1385))))

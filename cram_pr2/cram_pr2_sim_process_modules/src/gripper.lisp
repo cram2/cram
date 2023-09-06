@@ -1,6 +1,5 @@
 ;;;
 ;;; Copyright (c) 2022, Arthur Niedzwiecki <aniedz@cs.uni-bremen.de>
-;;;
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -11,10 +10,10 @@
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
-;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors
-;;;       may be used to endorse or promote products derived from this software
-;;;       without specific prior written permission.
+;;;     * Neither the name of the Institute for Artificial Intelligence/
+;;;       Universitaet Bremen nor the names of its contributors may be used to
+;;;       endorse or promote products derived from this software without
+;;;       specific prior written permission.
 ;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -28,28 +27,28 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :tt-export)
+(in-package :pr2-sim-pms)
 
-(defun get-task-tree (&optional (tree-name :top-level))
-  "Returns the task-tree object."
-  (gethash tree-name cpl-impl::*top-level-task-trees*))
+(defun grip (which-gripper action-type &key max-effort)
+  T)
 
-(defun node-children (node)
-  "Returns all children of the given node, only including successful executions"
-  (remove-if-not #'node-valid
-                 (mapcar 'cdr (cpl-impl:task-tree-node-children node))))
+(cpm:def-process-module empty-gripper-pm (motion-designator)
+  (destructuring-bind (command action-type which-gripper &optional max-effort)
+      (desig:reference motion-designator)
+    (ecase command
+      (cram-common-designators:move-gripper-joint
+       (grip which-gripper action-type :max-effort max-effort)))))
 
-(defun node-valid (node)
-  "Checks if given node execution :SUCCEEDED.
-Moves step-by-step down through slots 'task', 'status' and 'value'"
-  (let ((slinky (cpl-impl:task-tree-node-code node)))
-    (and (setf slinky (slot-value slinky 'task))
-         (setf slinky (slot-value slinky 'status))
-         (setf slinky (slot-value slinky 'value))
-         (eq slinky :SUCCEEDED))))
+(prolog:def-fact-group empty-gripper-pm (cpm:matching-process-module
+                                         cpm:available-process-module)
 
-(defun node->designator (node)
-  "Provides a node's designator, if it has any."
-  (when (cpl-impl:task-tree-node-code node)
-    (car (slot-value (cpl-impl:task-tree-node-code node) 'parameters))))
+  (prolog:<- (cpm:matching-process-module ?motion-designator empty-gripper-pm)
+    (or (desig:desig-prop ?motion-designator (:type :gripping))
+        (desig:desig-prop ?motion-designator (:type :moving-gripper-joint))
+        (desig:desig-prop ?motion-designator (:type :opening-gripper))
+        (desig:desig-prop ?motion-designator (:type :closing-gripper))))
 
+  (prolog:<- (cpm:available-process-module ?pm)
+    (prolog:bound ?pm)
+    (prolog:once (prolog:member ?pm (empty-gripper-pm)))
+    (prolog:not (cpm:projection-running ?_))))

@@ -33,9 +33,17 @@
 (defparameter *export-file-path* "/tmp/task_tree_export.dot")
 
 (defmethod cl-dot:object-node ((node task-tree-node))
-  (let ((node-label (format nil "~a" (format-node (node->designator node)))))
+  (let ((node-label (format-node node))
+        (fill-color (case (node-status node)
+                      (:SUCCEEDED "#ffffff")
+                      (:FAILED "#ff9999")
+                      (:EVAPORATED "#cccccc")
+                      (otherwise "#e6e6e6"))))
     (make-instance 'cl-dot:node
       :attributes `(:label (:left ,node-label) ; text-align left
+                    :style :filled
+                    :color :black
+                    :fillcolor ,fill-color
                     :shape :box))))
 
 (defmethod cl-dot:object-points-to ((node task-tree-node))
@@ -43,7 +51,7 @@
 
 (defun export-task-tree (&key
                            (data (get-task-tree))
-                           (path *export-file-path*)
+                           (path (format nil "/tmp/task_tree_export-~d.dot" (sb-posix:time)))
                            dry-run)
   "Exports the task-tree to a dot file.
 data - a task-tree-node
@@ -59,7 +67,7 @@ dry-run - don't generate dot file, just the graph object "
                           :if-does-not-exist :create)))
         (cl-dot:print-graph graph :stream stream)
         (close stream))
-      (format T "File exported to ~a.~%~a~%~a~%~a" *export-file-path*
+      (format T "File exported to~%~a~%~a~%~a~%~a" path
               "Install graphviz to convert from .dot file:"
               "dot -Tpdf <dot-in> -o <pdf-out>"
               "dot -Tsvg <dot-in> -o <svg-out>"))

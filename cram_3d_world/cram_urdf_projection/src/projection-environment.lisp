@@ -29,7 +29,7 @@
 (in-package :urdf-proj)
 
 (defvar *last-timeline* nil)
-
+(setf cram-tf:*tf-broadcasting-topic* "tf_projection")
 ;; (defmethod desig:resolve-designator :around (designator (role (eql 'projection-role)))
 ;;   (cram-projection:with-partially-ordered-clock-disabled *projection-clock*
 ;;     (call-next-method)))
@@ -44,7 +44,11 @@
    ;; For that first change tf2_ros/TransformListener to accept custom topic names
    (cram-tf:*broadcaster*
     (cram-tf:make-tf-broadcaster
+<<<<<<< HEAD
      "tf"
+=======
+     cram-tf:*tf-broadcasting-topic*
+>>>>>>> bachelor-prs
      cram-tf:*tf-broadcasting-interval*))
    ;; (*current-bullet-world* (cl-bullet:copy-world btr:*current-bullet-world*))
    (cram-bullet-reasoning:*current-timeline*

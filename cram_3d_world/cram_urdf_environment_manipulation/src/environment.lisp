@@ -39,39 +39,36 @@
 (defun get-container-pose-and-transform (name btr-environment)
   "Return a list of the pose-stamped and transform-stamped of the object named
 `name' in the environment `btr-environment'.
-The frame-id will be cram-tf:*robot-base-frame* and the child-frame-id will be the `name'."
+The frame-id will be cram-tf:*robot-base-frame* and the child-frame-id will be the `name'.
+That is, returns (base-P-name-stamped base-T-name-stamped)."
   (declare (type (or string symbol) name)
            (type keyword btr-environment))
   (when (symbolp name)
-    (setf name
-          (roslisp-utilities:rosify-underscores-lisp-name name)))
-  (let* ((urdf-pose (get-urdf-link-pose name btr-environment))
-         (pose (cram-tf:ensure-pose-in-frame
-                (cl-transforms-stamped:pose->pose-stamped
-                 cram-tf:*fixed-frame*
-                 0.0
-                 urdf-pose)
-                cram-tf:*robot-base-frame*
-                :use-zero-time t))
-         (transform (cram-tf:pose-stamped->transform-stamped pose name)))
+    (setf name (roslisp-utilities:rosify-underscores-lisp-name name)))
+  (let* ((map-P-name (get-urdf-link-pose name btr-environment))
+         (map-P-base (btr:pose (btr:get-robot-object)))
+         (map-T-base (cl-transforms:pose->transform map-P-base))
+         (base-T-map (cl-transforms:transform-inv map-T-base))
+         (base-P-name (cl-transforms:transform base-T-map map-P-name))
+         (base-P-name-stamped (cl-transforms-stamped:pose->pose-stamped
+                                cram-tf:*robot-base-frame*
+                                0.0
+                                base-P-name))
+         (base-T-name-stamped (cram-tf:pose-stamped->transform-stamped
+                               base-P-name-stamped name)))
     (list
-     (the cl-transforms-stamped:pose-stamped pose)
-     (the cl-transforms-stamped:transform-stamped transform))))
+     (the cl-transforms-stamped:pose-stamped base-P-name-stamped)
+     (the cl-transforms-stamped:transform-stamped base-T-name-stamped))))
 
 (defun get-urdf-link-pose (name btr-environment)
-  "Return the pose of the object with `name' in `btr-environment'."
+  "Return the pose in map of the object named `name'
+in the object named `btr-environment', i.e., mapPname."
   (declare (type (or string symbol) name)
            (type keyword btr-environment))
   (when (symbolp name)
     (setf name
           (roslisp-utilities:rosify-underscores-lisp-name name)))
-  (btr:pose
-   (btr:rigid-body
-    (btr:object btr:*current-bullet-world*
-                btr-environment)
-    (btr::make-rigid-body-name
-     (string-upcase btr-environment)
-     name))))
+  (btr:link-pose (btr:object btr:*current-bullet-world* btr-environment) name))
 
 (defun get-urdf-link-aabb (name btr-environment)
   "Return the axis-aligned bounding box of the object with `name' in `environment'."
@@ -95,7 +92,7 @@ the bounding box is retrieved and finally the joint is reset."
   (declare (type (or string symbol) name)
            (type keyword btr-environment))
   (let* ((joint (get-connecting-joint
-                          (get-container-link name btr-environment)))
+                          (get-environment-link name btr-environment)))
          (original-state (get-joint-position
                           joint
                           btr-environment)))
@@ -118,7 +115,7 @@ limit."
   (declare (type (or string symbol) name)
            (type keyword btr-environment))
   (let* ((joint (get-connecting-joint
-                 (get-container-link name btr-environment)))
+                 (get-environment-link name btr-environment)))
          (limits (cl-urdf:limits joint))
          (middle (+ (cl-urdf:lower limits) (/ (cl-urdf:upper limits) 2))))
     (list
@@ -126,15 +123,15 @@ limit."
      (get-aabb-at-joint-state name btr-environment middle)
      (get-aabb-at-joint-state name btr-environment (cl-urdf:upper limits)))))
 
-(defun get-container-link (container-name btr-environment)
-  "Return the link of the container with `container-name' in the `btr-environment'."
-  (declare (type (or string symbol) container-name)
+(defun get-environment-link (link-name btr-environment)
+  "Return the link with name `link-name' in the urdf object named `btr-environment'."
+  (declare (type (or string symbol) link-name)
            (type keyword btr-environment))
-  (when (symbolp container-name)
-    (setf container-name
-          (roslisp-utilities:rosify-underscores-lisp-name container-name)))
+  (when (symbolp link-name)
+    (setf link-name
+          (roslisp-utilities:rosify-underscores-lisp-name link-name)))
   (the cl-urdf:link
-       (gethash container-name
+       (gethash link-name
                 (cl-urdf:links
                  (btr:urdf
                   (btr:object btr:*current-bullet-world*
@@ -146,7 +143,7 @@ limit."
            (type keyword btr-environment))
   (find-container-joint-type-under-joint
    (cl-urdf:from-joint
-    (get-container-link container-name
+    (get-environment-link container-name
                         btr-environment))))
 
 (defun find-container-joint-type-under-joint (joint)
@@ -166,7 +163,7 @@ the `btr-environment' (of type cl-urdf:link)."
     (setf container-name
           (roslisp-utilities:rosify-underscores-lisp-name container-name)))
   (find-handle-under-link
-   (get-container-link container-name btr-environment)))
+   (get-environment-link container-name btr-environment)))
 
 (defun find-handle-under-link (link)
   "Return the link object of the handle under the given `link' object."
@@ -240,7 +237,7 @@ values, the new pose of the link and the joint object that was changed.
            (type boolean relative))
   (when (not (floatp joint-position))
     (setf joint-position (float joint-position)))
-  (let ((link (get-container-link link-name btr-environment)))
+  (let ((link (get-environment-link link-name btr-environment)))
     (when (typep link 'cl-urdf:link)
       (let ((joint (get-connecting-joint link)))
         (when joint
@@ -299,7 +296,7 @@ values, the new pose of the link and the joint object that was changed.
            (type boolean relative))
   (when (not (floatp joint-position))
     (setf joint-position (float joint-position)))
-  (let ((link (get-container-link link-name btr-environment)))
+  (let ((link (get-environment-link link-name btr-environment)))
     (when (typep link 'cl-urdf:link)
       (let ((joint (get-connecting-joint link)))
         (when joint
@@ -318,7 +315,9 @@ values, the new pose of the link and the joint object that was changed.
                     (cl-urdf:name joint))
                    joint-position)
              (let ((manipulated-joint-pose
-                     (get-urdf-link-pose link-name :iai-kitchen)))
+                     (get-urdf-link-pose
+                      link-name
+                      btr-environment)))
                (setf (btr:joint-state
                       (btr:object btr:*current-bullet-world*
                                   btr-environment)
@@ -326,41 +325,6 @@ values, the new pose of the link and the joint object that was changed.
                      original-joint-position)
                manipulated-joint-pose))
            joint))))))
-
-(defun get-handle-axis (container-designator)
-  "Return either a vector with (1 0 0) for horizontal handles or (0 0 1) for
-vertical handles on the container described by `container-designator'.
-Prismatic containers are assumed to have horizontal handles while revolute containers are assumed
-to have vertical ones. There are exceptions to this of course. For now those are hard-coded into
-this function."
-  (declare (type desig:object-designator container-designator))
-  ;; Check for exceptions based on name.
-  (let ((name-exception
-          (alexandria:switch ((roslisp-utilities:rosify-underscores-lisp-name
-                               (desig:desig-prop-value
-                                container-designator :urdf-name))
-                              :test 'equal)
-            ("oven_area_area_left_drawer_main"
-             (cl-transforms:make-3d-vector 0 0 1))
-            ("oven_area_area_right_drawer_main"
-             (cl-transforms:make-3d-vector 0 0 1))
-            ("sink_area_dish_washer_main"
-             (cl-transforms:make-3d-vector 1 0 0)))))
-    (if name-exception
-        name-exception
-        ;; Use prolog to find out which supertype fits.
-        (alexandria:switch
-            ((desig:desig-prop-value container-designator :type)
-             :test (lambda (type super)
-                     (prolog:prolog `(man-int:object-type-subtype ,super ,type))))
-          (:container-prismatic (cl-transforms:make-3d-vector 1 0 0))
-          (:container-revolute (cl-transforms:make-3d-vector 0 0 1))
-          (T (progn
-               (roslisp:ros-warn (environment-manipulation get-handle-axis)
-                                 "Could not get a handle-axis for ~a
-Using a default (1 0 0)."
-                                         container-designator)
-               (cl-transforms:make-3d-vector 1 0 0)))))))
 
 (defun get-positive-joint-state (joint btr-environment)
   (declare (type cl-urdf:joint joint)
@@ -373,7 +337,7 @@ Using a default (1 0 0)."
 
 (defun get-connecting-joint-state-secure (container-name btr-environment)
   (let* ((joint (get-connecting-joint
-                 (get-container-link container-name
+                 (get-environment-link container-name
                                      btr-environment)))
          (type (find-container-joint-type-under-joint joint))
          (state (btr:joint-state
@@ -407,7 +371,7 @@ Using a default (1 0 0)."
            (type number distance)
            (type keyword action-type))
   (let ((joint (get-connecting-joint
-                (get-container-link container-name
+                (get-environment-link container-name
                                     btr-environment))))
     (let ((upper-limit (cl-urdf:upper (cl-urdf:limits joint)))
           (lower-limit (cl-urdf:lower (cl-urdf:limits joint)))

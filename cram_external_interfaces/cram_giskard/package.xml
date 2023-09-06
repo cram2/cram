@@ -10,6 +10,7 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
+  <depend>alexandria</depend>
   <depend>roslisp</depend>
   <depend>roslisp_utilities</depend>
   <depend>cl_transforms</depend>

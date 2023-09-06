@@ -49,8 +49,10 @@
   (<- (man-int:object-type-direct-subtype :kitchen-item :bowl))
   (<- (man-int:object-type-direct-subtype :kitchen-item :pot))
   (<- (man-int:object-type-direct-subtype :kitchen-item :spatula))
+  (<- (man-int:object-type-direct-subtype :household-item :sponge))
 
   (<- (man-int:object-type-direct-subtype :food :bread))
+
   (<- (man-int:object-type-direct-subtype :food :weisswurst))
   
 
@@ -74,6 +76,7 @@
   (<- (man-int:object-type-direct-subtype :cereal :breakfast-cereal))
 
   (<- (man-int:object-type-direct-subtype :cup :mug))
+  (<- (man-int:object-type-direct-subtype :cup :jeroen-cup))
 
   (<- (man-int:object-type-direct-subtype :clothing-item :shoe)))
 
@@ -107,6 +110,12 @@
     ((object-type (eql :plate)))
   0.02)
 (defmethod man-int:get-action-gripper-opening :heuristics 20
+    ((object-type (eql :ikea-small-plate)))
+  0.03)
+(defmethod man-int:get-action-gripper-opening :heuristics 20
+    ((object-type (eql :ikea-big-plate)))
+  0.03)
+(defmethod man-int:get-action-gripper-opening :heuristics 20
     ((object-type (eql :tray)))
   0.02)
 
@@ -139,6 +148,10 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defmethod man-int:get-arms-for-object-type :heuristics 20 ((object-type (eql :tray)))
+  '(:left :right))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (def-fact-group pnp-object-knowledge (man-int:object-rotationally-symmetric
                                       man-int:orientation-matters)
 
@@ -147,12 +160,14 @@
                                  )))
 
   (<- (orientation-matters ?object-type)
-    (member ?object-type (:knife :fork :whisk :spoon :cutlery :spatula :weisswurst :bread :big-knife))))
+    (member ?object-type (:knife :fork :spoon :cutlery :spatula :weisswurst
+			  :bread :big-knife))))
 
-(def-fact-group attachment-knowledge (man-int:unidirectional-attachment)
 
+(def-fact-group popcorn-attachment-knowledge (man-int:unidirectional-attachment)
   (<- (man-int:unidirectional-attachment ?attachment-type)
     (member ?attachment-type (:popcorn-pot-lid-attachment))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; CUTLERY ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -256,7 +271,7 @@
   :lift-translation *lift-offset*
   :2nd-lift-translation *lift-offset*)
 
-(man-int:def-object-type-to-gripper-transforms '(:tray) :right :right-side
+(man-int:def-object-type-to-gripper-transforms '(:plate :tray) :right :right-side
   :grasp-translation `(0.0 ,(- *plate-grasp-y-offset*) ,*plate-grasp-z-offset*)
   :grasp-rot-matrix
   `((0 -1 0)
@@ -267,17 +282,126 @@
   :lift-translation *lift-offset*
   :2nd-lift-translation *lift-offset*)
 
-(man-int:def-object-type-to-gripper-transforms :plate :right :right-side
-  :grasp-translation `(0.0 ,(- *plate-grasp-y-offset*) ,*plate-grasp-z-offset*)
-  :grasp-rot-matrix
-  `((0             -1 0)
-    (,(- (sin *plate-grasp-roll-offset*)) 0  ,(cos *plate-grasp-roll-offset*))
-    (,(- (cos *plate-grasp-roll-offset*)) 0  ,(- (sin *plate-grasp-roll-offset*))))
-  :pregrasp-offsets `(0.0 ,(- *plate-pregrasp-y-offset*) ,*lift-z-offset*)
-  :2nd-pregrasp-offsets `(0.0 ,(- *plate-pregrasp-y-offset*) ,*plate-2nd-pregrasp-z-offset*)
-  :lift-translation *lift-offset*
-  :2nd-lift-translation *lift-offset*)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; IKEA-SMALL-PLATE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *ikea-small-plate-diameter* 0.2 "in meters")
+(defparameter *ikea-small-plate-edge* 0.04 "in meters")
+(defparameter *ikea-small-plate-grasp-xy-offset*
+  (- (/ *ikea-small-plate-diameter* 2) 0.02) "in meters")
+(defparameter *ikea-small-plate-grasp-z-offset* 0.0 "in meters")
+(defparameter *ikea-small-plate-pregrasp-xy-offset* 0.15 "in meters")
+(defparameter *ikea-small-plate-pregrasp-z-offset*
+  (* (tan (/ pi 6))
+     (+ *ikea-small-plate-pregrasp-xy-offset* *ikea-small-plate-edge*))
+  "in meters")
+(defparameter *ikea-small-plate-2nd-pregrasp-xy-offset* 0.05 "in meters")
+(defparameter *ikea-small-plate-2nd-pregrasp-z-offset*
+  (* (tan (/ pi 6))
+     (+ *ikea-small-plate-2nd-pregrasp-xy-offset* *ikea-small-plate-edge*))
+  "in meters")
+(defparameter *ikea-small-plate-z-offsets* '(0 0 0.10) "in meters")
+(defparameter *ikea-small-plate-2nd-z-offsets* '(0 0 0.20) "in meters")
+
+(man-int:def-object-type-to-gripper-transforms :ikea-small-plate '(:left :right) :left-side
+  :grasp-translation `(0.0 ,*ikea-small-plate-grasp-xy-offset* ,*ikea-small-plate-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*y-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 ,*ikea-small-plate-pregrasp-xy-offset* 0.0)
+  :2nd-pregrasp-offsets `(0.0 ,*ikea-small-plate-2nd-pregrasp-xy-offset* 0.0)
+  :lift-translation *ikea-small-plate-z-offsets*
+  :2nd-lift-translation *ikea-small-plate-2nd-z-offsets*)
+
+(man-int:def-object-type-to-gripper-transforms :ikea-small-plate '(:left :right) :right-side
+  :grasp-translation `(0.0 ,(- *ikea-small-plate-grasp-xy-offset*) ,*ikea-small-plate-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-y-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 ,(- *ikea-small-plate-pregrasp-xy-offset*) 0.0)
+  :2nd-pregrasp-offsets `(0.0 ,(- *ikea-small-plate-2nd-pregrasp-xy-offset*) 0.0)
+  :lift-translation *ikea-small-plate-z-offsets*
+  :2nd-lift-translation *ikea-small-plate-2nd-z-offsets*)
+
+(man-int:def-object-type-to-gripper-transforms :ikea-small-plate '(:left :right) :front
+  :grasp-translation `(,*ikea-small-plate-grasp-xy-offset* 0.0 ,*ikea-small-plate-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-y-30-deg-grasp-rotation*
+  :pregrasp-offsets `(,*ikea-small-plate-pregrasp-xy-offset*
+                      0.0
+                      ,*ikea-small-plate-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(,*ikea-small-plate-2nd-pregrasp-xy-offset*
+                          0.0
+                          ,*ikea-small-plate-2nd-pregrasp-z-offset*)
+  :lift-translation *ikea-small-plate-z-offsets*
+  :2nd-lift-translation *ikea-small-plate-2nd-z-offsets*)
+
+(man-int:def-object-type-to-gripper-transforms :ikea-small-plate '(:left :right) :back
+  :grasp-translation `(,(- *ikea-small-plate-grasp-xy-offset*) 0.0 ,*ikea-small-plate-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-x-across-y-grasp-rotation*
+  :pregrasp-offsets `(,(- *ikea-small-plate-pregrasp-xy-offset*) 0.0 0.0)
+  :2nd-pregrasp-offsets `(,(- *ikea-small-plate-2nd-pregrasp-xy-offset*) 0.0 0.0)
+  :lift-translation *ikea-small-plate-z-offsets*
+  :2nd-lift-translation *ikea-small-plate-2nd-z-offsets*)
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; IKEA-BIG-PLATE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *ikea-big-plate-diameter* 0.263 "in meters")
+(defparameter *ikea-big-plate-edge* 0.05 "in meters")
+(defparameter *ikea-big-plate-grasp-xy-offset*
+  (- (/ *ikea-big-plate-diameter* 2) 0.02) "in meters")
+(defparameter *ikea-big-plate-grasp-z-offset* 0.0 "in meters")
+(defparameter *ikea-big-plate-pregrasp-xy-offset* 0.15 "in meters")
+(defparameter *ikea-big-plate-pregrasp-z-offset*
+  (* (tan (/ pi 7.5))
+     (+ *ikea-big-plate-pregrasp-xy-offset* *ikea-big-plate-edge*))
+  "in meters")
+(defparameter *ikea-big-plate-2nd-pregrasp-xy-offset* 0.05 "in meters")
+(defparameter *ikea-big-plate-2nd-pregrasp-z-offset*
+  (* (/ 2 5)
+     (+ *ikea-big-plate-2nd-pregrasp-xy-offset* *ikea-big-plate-edge*))
+  "in meters")
+(defparameter *ikea-big-plate-z-offsets* '(0 0 0.10) "in meters")
+(defparameter *ikea-big-plate-2nd-z-offsets* '(0 0 0.20) "in meters")
+
+(man-int:def-object-type-to-gripper-transforms :ikea-big-plate '(:left :right) :front
+  :grasp-translation `(,*ikea-big-plate-grasp-xy-offset*
+                       0.0
+                       ,*ikea-big-plate-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-y-24-deg-grasp-rotation*
+  :pregrasp-offsets `(,*ikea-big-plate-pregrasp-xy-offset*
+                      0.0
+                      ,*ikea-big-plate-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(,*ikea-big-plate-2nd-pregrasp-xy-offset*
+                          0.0
+                          ,*ikea-big-plate-2nd-pregrasp-z-offset*)
+  :lift-translation *ikea-big-plate-z-offsets*
+  :2nd-lift-translation *ikea-big-plate-2nd-z-offsets*)
+
+(man-int:def-object-type-to-gripper-transforms :ikea-big-plate '(:left :right) :left-side
+  :grasp-translation `(0.0
+                       ,*ikea-big-plate-grasp-xy-offset*
+                       ,*ikea-big-plate-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-y-24-deg-grasp-rotation*
+  :pregrasp-offsets `(0.0
+                      ,*ikea-big-plate-pregrasp-xy-offset*
+                      ,*ikea-big-plate-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0
+                          ,*ikea-big-plate-2nd-pregrasp-xy-offset*
+                          ,*ikea-big-plate-pregrasp-z-offset*)
+  :lift-translation *ikea-big-plate-z-offsets*
+  :2nd-lift-translation *ikea-big-plate-2nd-z-offsets*)
+
+(man-int:def-object-type-to-gripper-transforms :ikea-big-plate '(:left :right) :right-side
+  :grasp-translation `(0.0
+                       ,(- *ikea-big-plate-grasp-xy-offset*)
+                       ,*ikea-big-plate-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-y-24-deg-grasp-rotation*
+  :pregrasp-offsets `(0.0
+                      ,(- *ikea-big-plate-pregrasp-xy-offset*)
+                      ,*ikea-big-plate-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0
+                          ,(- *ikea-big-plate-2nd-pregrasp-xy-offset*)
+                          ,*ikea-big-plate-2nd-pregrasp-z-offset*)
+  :lift-translation *ikea-big-plate-z-offsets*
+  :2nd-lift-translation *ikea-big-plate-2nd-z-offsets*)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; POT ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -301,6 +425,19 @@
   :2nd-pregrasp-offsets `(0.0 ,(- *plate-pregrasp-y-offset*) 0.0)
   :lift-translation *lift-offset*
   :2nd-lift-translation *lift-offset*)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; SPONGE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(man-int:def-object-type-to-gripper-transforms '(:household-item :sponge)
+    '(:left :right) :top
+  :grasp-translation `(0.0 0.0 ,*cutlery-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,*cutlery-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,*cutlery-pregrasp-z-offset*)
+  :lift-translation `(0.0 0.0 ,*cutlery-pregrasp-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*cutlery-pregrasp-z-offset*))
 
 
 
@@ -416,6 +553,80 @@
   :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
   :pregrasp-offsets `(,*cup-pregrasp-xy-offset* 0.0 ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(,*cup-pregrasp-xy-offset* 0.0 0.0)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;; jeroen-cup ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *jeroen-cup-grasp-xy-offset* 0.02 "in meters")
+(defparameter *jeroen-cup-grasp-z-offset* 0.0 "in meters")
+(defparameter *jeroen-cup-pregrasp-xy-offset* 0.15 "in meters")
+(defparameter *jeroen-cup-pregrasp-z-offset* 0.0 "in meters")
+(defparameter *jeroen-cup-top-grasp-x-offset* 0.0"in meters")
+(defparameter *jeroen-cup-top-grasp-z-offset* 0.03 "in meters")
+(defparameter *jeroen-cup-bottom-pregrasp-z-offset* 0.01 "in meters")
+(defparameter *jeroen-cup-bottom-lift-z-offset* 0.01 "in meters")
+
+;; TOP grasp
+(man-int:def-object-type-to-gripper-transforms :jeroen-cup '(:left :right) :top
+  :grasp-translation `(,(- *jeroen-cup-top-grasp-x-offset*) 0.0d0 ,*jeroen-cup-top-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+(man-int:def-object-type-to-gripper-transforms :jeroen-cup '(:left :right) :top2
+  :grasp-translation `(0.0d0 ,(- *jeroen-cup-top-grasp-x-offset*) ,*jeroen-cup-top-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+;; BOTTOM grasp
+(man-int:def-object-type-to-gripper-transforms :jeroen-cup '(:left :right) :bottom
+  :grasp-translation `(0.0d0 0.0d0 ,(- *jeroen-cup-grasp-z-offset*))
+  :grasp-rot-matrix man-int:*-z-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,(- *jeroen-cup-bottom-pregrasp-z-offset*))
+  :2nd-pregrasp-offsets `(0.0 0 ,(- *jeroen-cup-bottom-pregrasp-z-offset*))
+  :lift-translation `(0 0 ,*jeroen-cup-bottom-lift-z-offset*)
+  :2nd-lift-translation `(0 0 ,*jeroen-cup-bottom-lift-z-offset*))
+
+;; SIDE grasp
+(man-int:def-object-type-to-gripper-transforms :jeroen-cup '(:left :right) :left-side
+  :grasp-translation `(0.0d0 ,(- *jeroen-cup-grasp-xy-offset*) ,*jeroen-cup-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*y-across-z-flipped-grasp-rotation*
+  :pregrasp-offsets `(0.0 ,*jeroen-cup-pregrasp-xy-offset* ,*jeroen-cup-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 ,*jeroen-cup-pregrasp-xy-offset* 0.0)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+(man-int:def-object-type-to-gripper-transforms :jeroen-cup '(:left :right) :right-side
+  :grasp-translation `(0.0d0 ,*jeroen-cup-grasp-xy-offset* ,*jeroen-cup-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-y-across-z-flipped-grasp-rotation*
+  :pregrasp-offsets `(0.0 ,(- *jeroen-cup-pregrasp-xy-offset*) ,*jeroen-cup-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 ,(- *jeroen-cup-pregrasp-xy-offset*) 0.0)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+;; BACK grasp
+(man-int:def-object-type-to-gripper-transforms :jeroen-cup '(:left :right) :back
+  :grasp-translation `(,*jeroen-cup-grasp-xy-offset* 0.0d0 ,*jeroen-cup-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation-2*
+  :pregrasp-offsets `(,(- *jeroen-cup-pregrasp-xy-offset*) 0.0 ,*jeroen-cup-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(,(- *jeroen-cup-pregrasp-xy-offset*) 0.0 0.0)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+;; FRONT grasp
+(man-int:def-object-type-to-gripper-transforms :jeroen-cup '(:left :right) :front
+  :grasp-translation `(,(- *jeroen-cup-grasp-xy-offset*) 0.0d0 ,*jeroen-cup-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
+  :pregrasp-offsets `(,*jeroen-cup-pregrasp-xy-offset* 0.0 ,*jeroen-cup-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(,*jeroen-cup-pregrasp-xy-offset* 0.0 0.0)
   :lift-translation *lift-offset*
   :2nd-lift-translation *lift-offset*)
 
@@ -1693,27 +1904,15 @@
   :attachment-translation `(0.04 0.0 0.03)
   :attachment-rot-matrix man-int:*identity-matrix*)
 
+;;;;;;;;;;;;;;;;;; Predefined poses for apartment kitchen ;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod man-int:get-arms-for-object-type :heuristics 20 ((object-type (eql :tray)))
-  '(:left :right))
-  
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; pancake-maker ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(man-int:def-object-type-in-other-object-transform :jeroen-cup :drawer
+  :jeroen-cup-in-dishwasher-1
+  :attachment-translation `(-0.2 0.15 0.13)
+  :attachment-rot-matrix man-int:*rotation-around-x-180-matrix*)
 
-(defparameter *pancake-maker-diameter* 0.26 "in meters")
-(defparameter *pancake-maker-grasp-y-offset* (- (/ *pancake-maker-diameter* 2) 0.015) "in meters")
-(defparameter *pancake-maker-grasp-z-offset* 0.015 "in meters")
-(defparameter *pancake-maker-grasp-roll-offset* (/ pi 6))
-(defparameter *pancake-maker-pregrasp-y-offset* 0.2 "in meters")
-(defparameter *pancake-maker-2nd-pregrasp-z-offset* 0.03 "in meters") ; grippers can't go into table
+(man-int:def-object-type-in-other-object-transform :jeroen-cup :drawer
+  :jeroen-cup-in-dishwasher-2
+  :attachment-translation `(-0.2 0.15 0.13)
+  :attachment-rot-matrix man-int:*rotation-around-y-180-matrix*)
 
-;; SIDE grasp
-(man-int:def-object-type-to-gripper-transforms '(:pancake-maker) '(:left :right) :front
-  :grasp-translation `(0.0 ,*pancake-maker-grasp-y-offset* ,*pancake-maker-grasp-z-offset*)
-  :grasp-rot-matrix
-  `((0             1 0)
-    (,(sin *pancake-maker-grasp-roll-offset*)     0 ,(- (cos *pancake-maker-grasp-roll-offset*)))
-    (,(- (cos *pancake-maker-grasp-roll-offset*)) 0 ,(- (sin *pancake-maker-grasp-roll-offset*))))
-  :pregrasp-offsets `(0.0 ,*pancake-maker-pregrasp-y-offset* ,*lift-z-offset*)
-  :2nd-pregrasp-offsets `(0.0 ,*pancake-maker-pregrasp-y-offset* ,*pancake-maker-2nd-pregrasp-z-offset*)
-  :lift-translation *lift-offset*
-  :2nd-lift-translation *lift-offset*)
