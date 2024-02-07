@@ -39,6 +39,24 @@
     (setf (gethash "MILK" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#Milk'")
     (setf (gethash "SPOON" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#Spoon'")
     (setf (gethash "BREAKFAST-CEREAL" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#Cereal'")
+    ;; for popcorn demo
+    (setf (gethash "IKEA-BOWL" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#IkeaBowl'")
+    (setf (gethash "IKEA-BOWL-WW" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#IkeaBowlWw'")
+    (setf (gethash "IKEA-PLATE" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#IkeaPlate'")
+    (setf (gethash "SALT" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#Salt'")
+    (setf (gethash "POPCORN-POT" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#PopcornPot'")
+    (setf (gethash "POPCORN-POT-LID" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#PopcornPotLid'")
+    ;;individuals
+    (setf (gethash "IKEA-BOWL-1" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#IkeaBowl1'")
+    (setf (gethash "IKEA-BOWL-WW-1" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#IkeaBowlWw1'")
+    (setf (gethash "IKEA-PLATE-1" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#IkeaPlate1'")
+    (setf (gethash "SALT-1" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#Salt1'")
+    (setf (gethash "POPCORN-POT-1" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#PopcornPot1'")
+    (setf (gethash "POPCORN-POT-LID-1" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#PopcornPotLid1'")
+    ;;super hacky fix
+    (setf (gethash "IAI-KITCHEN" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#IAI-KitchenPart'")
+    (setf (gethash "IAI-POPCORN-TABLE-DRAWER-RIGHT-MAIN" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#IAIPopcornTableDrawerRightMain'")
+    (setf (gethash "IAI-POPCORN-TABLE-DRAWER-LEFT-MAIN" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#IAIPopcornTableDrawerLeftMain'")
     lookup-table))
 
 
@@ -49,6 +67,20 @@
     (setf (gethash "MILK" lookup-table) "'package://kitchen_object_meshes/milk.dae'")
     (setf (gethash "SPOON" lookup-table) "'package://kitchen_object_meshes/spoon.dae'")
     (setf (gethash "BREAKFAST-CEREAL" lookup-table) "'package://kitchen_object_meshes/cereal.dae'")
+    ;; for popcorn demo
+    (setf (gethash "IKEA-BOWL" lookup-table) "'package://cram_pr2_popcorn_demo/resource/ikea_bowl.dae'")
+    (setf (gethash "IKEA-BOWL-WW" lookup-table) "'package://cram_pr2_popcorn_demo/resource/ikea_bowl_ww.dae'")
+    (setf (gethash "IKEA-PLATE" lookup-table) "'package://cram_pr2_popcorn_demo/resource/ikea_plate.dae'")
+    (setf (gethash "SALT" lookup-table) "'package://cram_pr2_popcorn_demo/resource/salt.dae'")
+    (setf (gethash "POPCORN-POT" lookup-table) "'package://cram_pr2_popcorn_demo/resource/popcorn_pot.dae'")
+    (setf (gethash "POPCORN-POT-LID" lookup-table) "'package://cram_pr2_popcorn_demo/resource/popcorn_pot_lid.dae'")
+    ;;individuals
+    (setf (gethash "IKEA-BOWL-1" lookup-table) "'package://cram_pr2_popcorn_demo/resource/ikea_bowl.dae'")
+    (setf (gethash "IKEA-BOWL-WW-1" lookup-table) "'package://cram_pr2_popcorn_demo/resource/ikea_bowl_ww.dae'")
+    (setf (gethash "IKEA-PLATE-1" lookup-table) "'package://cram_pr2_popcorn_demo/resource/ikea_plate.dae'")
+    (setf (gethash "SALT-1" lookup-table) "'package://cram_pr2_popcorn_demo/resource/salt.dae'")
+    (setf (gethash "POPCORN-POT-1" lookup-table) "'package://cram_pr2_popcorn_demo/resource/popcorn_pot.dae'")
+    (setf (gethash "POPCORN-POT-LID-1" lookup-table) "'package://cram_pr2_popcorn_demo/resource/popcorn_pot_lid.dae'")
     lookup-table))
 
 
@@ -59,11 +91,37 @@
     (setf (gethash "MILK" lookup-table) "[0.0,0.0,0.0,1.0]")
     (setf (gethash "SPOON" lookup-table) "[-1.0,0.0,0.0,1.0]")
     (setf (gethash "BREAKFAST-CEREAL" lookup-table) "[0.0,0.0,0.0,1.0]")
+    ;; for popcorn demo
+    (setf (gethash "IKEA-BOWL" lookup-table) "[0.0,0.0,0.0,1.0]")
+    (setf (gethash "IKEA-BOWL-WW" lookup-table) "[0.0,0.0,0.0,1.0]")
+    (setf (gethash "IKEA-PLATE" lookup-table) "[0.0,0.0,0.0,1.0]")
+    (setf (gethash "SALT" lookup-table) "[0.0,0.0,0.0,1.0]")
+    (setf (gethash "POPCORN-POT" lookup-table) "[0.0,0.0,0.0,1.0]")
+    (setf (gethash "POPCORN-POT-LID" lookup-table) "[0.0,0.0,0.0,1.0]")
+    ;;individuals
+    (setf (gethash "IKEA-BOWL-1" lookup-table) "[0.0,0.0,0.0,1.0]")
+    (setf (gethash "IKEA-BOWL-WW-1" lookup-table) "[0.0,0.0,0.0,1.0]")
+    (setf (gethash "IKEA-PLATE-1" lookup-table) "[0.0,0.0,0.0,1.0]")
+    (setf (gethash "SALT-1" lookup-table) "[0.0,0.0,0.0,1.0]")
+    (setf (gethash "POPCORN-POT-1" lookup-table) "[0.0,0.0,0.0,1.0]")
+    (setf (gethash "POPCORN-POT-LID-1" lookup-table) "[0.0,0.0,0.0,1.0]")   
     lookup-table))
+
+;;another hack
+(defun get-detected-objects-table()
+  (let ((det-obj (make-hash-table :test 'equal)))
+    (setf (gethash "IKEA-BOWL" det-obj) "IKEA-BOWL-1")
+    (setf (gethash "IKEA-BOWL-WW" det-obj) "IKEA-BOWL-WW-1")
+    (setf (gethash "IKEA-PLATE" det-obj) "IKEA-PLATE-1")
+    (setf (gethash "SALT" det-obj) "SALT-1")
+    (setf (gethash "POPCORN-POT" det-obj) "POPCORN-POT-1")
+    (setf (gethash "POPCORN-POT-LID" det-obj) "POPCORN-POT-LID-1")
+    det-obj))
+    
 
 (cpl:define-task-variable *action-parents* '())
 (defparameter *action-siblings* (make-hash-table))
-(defparameter *detected-objects* (make-hash-table :test 'equal))
+(defparameter *detected-objects* (get-detected-objects-table)) ;;(make-hash-table :test 'equal))
 (defparameter *episode-name* nil)
 (defparameter *is-logging-enabled* nil)
 (defparameter *retry-numbers* 0)
@@ -77,6 +135,13 @@
 
 (defun get-ease-object-id-of-detected-object-by-name (object-name)
   (gethash object-name *detected-objects*))
+
+;;match CRAM to EASE Obj
+(defun get-ease-object-id-of-cram-object-by-name (object-name)
+  (format t "Object-name: ~a~%" object-name)
+  (let* ((owl-name (gethash object-name *ease-object-lookup-table*)))
+    owl-name))
+
 (defun get-parent-uri()
   (if (is-action-parent)
       *episode-name*
@@ -101,11 +166,15 @@
       "'http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#DesignedArtifact'"))
 
 (defun handle-detected-object (detected-object)
-  (let* ((object-name (get-designator-property-value-str detected-object :NAME))
-        (detected-object-type (get-designator-property-value-str detected-object :TYPE))
+  (format t " handle detected object: ~a~%" detected-object)
+  (format t "object: ~%~a~%" (desig:desig-prop-values detected-object :object))
+  (let* ((object (car (desig:desig-prop-values detected-object :object)))
+        (object-name (get-designator-property-value-str object :NAME))
+        (detected-object-type (get-designator-property-value-str object :TYPE))
         (object-type
           (convert-to-ease-object-type-url detected-object-type)))
     (print detected-object-type)
+    (print "loggin object")
     (if (gethash object-name *detected-objects*)
         (print "Object exists")
         (let ((object-id (send-belief-perceived-at object-type
@@ -118,11 +187,14 @@
           (when (string-equal object-type "'http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#DesignedArtifact'")
             (send-comment object-id (concatenate 'string "Unknown Object: "(write-to-string detected-object-type))))))))
 
-
+;++++++++++++MAIN WRITER+++++++++++++++++++++++++++++++++++
 (defmethod exe:generic-perform :around ((designator desig:action-designator))
   (if *is-logging-enabled*
       (let ((action-id (log-perform-call designator))
             (cram-action-name (get-designator-property-value-str designator :TYPE)))
+        ;;; publish designator data to topic
+        ;(publisher (string-downcase (desig-to-string designator)))
+        ;;; end publish designator data to topic 
         (cpl:with-failure-handling
             ((cpl:plan-failure (e)
                (set-event-status-to-failed action-id)
@@ -143,8 +215,10 @@
               (log-action-designator-parameters-for-logged-action-designator action-designator-parameters action-id)
               (when (string-equal cram-action-name "grasping")
                 (print action-designator-parameters))
-              (when (string-equal cram-action-name "detecting")
-                (handle-detected-object perform-result))
+              (when (string-equal cram-action-name "picking-up")
+                (handle-detected-object designator))
+              ;; (when (and (string-equal cram-action-name "looking") action-desig) ;;make sure it's an action not a motion
+              ;;   (handle-detected-object perform-result))
               (print "HERE 3")
               (set-event-status-to-succeeded action-id)
               (print "HERE 4")
@@ -156,6 +230,14 @@
                (setf *retry-numbers* (+ 1 *retry-numbers*))
                (print "plan failure")))
          (call-next-method))))
+
+;;+++++ write motions ++++++
+;; (defmethod exe:generic-perform :around ((designator desig:motion-designator))
+;;   (if *is-logging-enabled*
+;;         ;;; publish designator data to topic
+;;       (publisher (string-downcase (desig-to-string designator)))
+;;       (call-next-method)))
+
 
 (defun equate (designator-id referenced-designator-id)
   (send-rdf-query (convert-to-prolog-str designator-id)
@@ -236,7 +318,7 @@
 (defun log-cram-prev-action (current-id previous-id current-knowrob-name)
   ;;(if (is-motion current-knowrob-name)
   (if nil
-      (send-cram-previous-motion (convert-to-prolog-str current-id) (convert-to-prolog-str previous-id))
+      (send-cram-previous-motion (convert-to-prolog-str current-id) (convert-to-prolog-str previous-id)) 
       (send-cram-previous-action (convert-to-prolog-str current-id) (convert-to-prolog-str previous-id))))
 
 (defun log-cram-next-action (current-id next-id current-knowrob-name)
@@ -244,3 +326,23 @@
   (if nil
       (send-cram-next-motion (convert-to-prolog-str current-id) (convert-to-prolog-str next-id))
       (send-cram-next-action (convert-to-prolog-str current-id) (convert-to-prolog-str next-id))))
+
+
+
+;;; debugging queries
+(defun all-nil-triples()
+  (json-prolog:prolog-simple "findall([S, P, O], (triple(S, P, O), (S='NIL'; O='NIL';P='NIL')), Triples)."))
+
+(defun all-events-without-task()
+  (json-prolog:prolog-simple "findall(Evt,(is_event(Evt), not(executes_task(Evt,_))), List), list_to_set(List, Partici)."))
+
+(defun all-used-role-types()
+  (json-prolog:prolog-simple "findall(RoleType, (has_role(_, Role), has_type(Role, RoleType)), RlT), list_to_set(RlT, Roles)."))
+
+(defun roles-mapped-to-tasks()
+  (json-prolog:prolog-simple "findall((Tsk, Roles), (executes_task(Evt, Tsk), findall(Role, (has_participant(Evt, Parti), kb_call(during([triple(RoleIndi, dul:classifies,Parti)], Evt)), has_type(RoleIndi, Role)), RoleList), list_to_set(RoleList, Roles)), TskRL)."))
+
+(defun remember(name)
+  (json-prolog:prolog-simple
+   (concatenate 'string "remember('/home/alina/Desktop/knowrob_memory/" name "').")))
+

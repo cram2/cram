@@ -60,7 +60,13 @@
        ("pushing" "Pushing")
        ("pulling" "Pulling")
        ("perceiving" "Perceiving")
-       ("accessing" "Accessing"))))
+       ("accessing" "Accessing")
+
+       ("moving-arm-joints" "MovingArmJoints") ;TODO maybe smth else?
+       ("positioning-arm" "PositioningArm") ;park-arms
+       ("opening-gripper" "OpeningGripper")
+       ("moving-arms" "MovingArms")
+       ("moving-tcp" "MovingTCP"))))
     (ccl::add-definition-to-mapper definition action-name-mapper)
     action-name-mapper))
 
@@ -71,6 +77,9 @@
 
 (defun get-knowrob-action-name (cram-action-name designator)
   (let* ((lower-cram-action-name (string-downcase cram-action-name))
-         (knowrob-action-name (get-definition-from-mapper lower-cram-action-name *action-name-mapper*)))
+         (knowrob-action-name (get-definition-from-mapper
+                               lower-cram-action-name *action-name-mapper*)))
     (when (not knowrob-action-name) (setf knowrob-action-name "PhysicalTask"))
+    (format t "***KNOWROB ACTION NAME: ~a~%" knowrob-action-name)
+    ;(break)
     knowrob-action-name))

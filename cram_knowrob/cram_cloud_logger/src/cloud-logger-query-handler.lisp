@@ -39,14 +39,18 @@
 (defparameter *agent-owl* "'package://knowrob/owl/robots/PR2.owl'")
 (defparameter *agent-owl-individual-name* "'http://knowrob.org/kb/PR2.owl#PR2_0'")
 (defparameter *agent-urdf* "'package://knowrob/urdf/pr2.urdf'")
+(defparameter *neem-interface-path* "")
 
 (defun get-parent-folder-path()
   (namestring (physics-utils:parse-uri "package://cram_cloud_logger/src")))
 
 (defun send-load-neem-generation-interface ()
-  (let ((path-to-interface-file
-          (concatenate 'string "'" (get-parent-folder-path) "/neem-interface.pl'")))
-    (ccl::send-query-1-without-result "ensure_loaded" path-to-interface-file)))
+  (if (string= *neem-interface-path* "")
+      (let ((path-to-interface-file
+             (concatenate 'string "'" (get-parent-folder-path) "/neem-interface.pl'")))
+        (ccl::send-query-1-without-result "ensure_loaded" path-to-interface-file))
+      (ccl::send-query-1-without-result "ensure_loaded" *neem-interface-path*)
+    ))
 
 (defun init-logging ()
   (send-load-neem-generation-interface))
@@ -162,7 +166,10 @@
 (defun get-url-from-send-query-1 (url-parameter query-name &rest query-parameters)
   (let* ((query (create-query query-name query-parameters))
          (query-result (send-query-1 query)))
-    (when (eq query-result nil) (break))
+    (when (eq query-result nil)
+      ;(break) TODO remove?
+      (print "query result was nil. ignoring")
+      )
     (ccl::get-url-variable-result-as-str-from-json-prolog-result url-parameter query-result)))
 
 (defun send-comment (action-inst comment)
@@ -170,40 +177,48 @@
 
 (defun send-container-object-action-parameter (action-inst action-type object-designator)
   (declare (ignore action-type))
-  (let ((owl-name (get-designator-property-value-str object-designator :OWL-NAME)))
+  (format t "IN CONTAINER OBJ with obj-desig: ~a~%" object-designator)
+
+  (let* ((owl-name (get-designator-property-value-str object-designator :URDF-NAME))
+        (soma-name (get-ease-object-id-of-cram-object-by-name owl-name))); was OWL-name
     (when owl-name
       (send-query-1-without-result "add_participant_with_role"
                                    action-inst
-                                   (concatenate 'string "'" owl-name "'")
+                                   soma-name
                                    "'http://www.ease-crc.org/ont/SOMA.owl#AlteredObject'"))))
 
 (defun send-object-action-parameter (action-inst action-type object-designator)
   (when object-designator
    (let* ((role (gethash action-type *object-parameter-role-lookup-table*))
           (object-name (get-designator-property-value-str object-designator :NAME))
-          (object-ease-id (get-ease-object-id-of-detected-object-by-name object-name)))
+          (object-ease-id (get-ease-object-id-of-detected-object-by-name object-name))
+          (soma-name (get-ease-object-id-of-cram-object-by-name object-name)))
      (roslisp:ros-info (ccl send-object-action-parameter)
                        "object-name:~%~a" object-name)
      (when (not object-ease-id)
-       (let ((owl-name (get-designator-property-value-str object-designator :OWL-NAME)))
+       (let ((owl-name (get-designator-property-value-str object-designator :OWL-NAME))) ;;was OWL-NAME
          (when owl-name
            (roslisp:ros-info (ccl send-object-action-parameter)
                              "owl-name:~%~a" owl-name)
-           (send-query-1-without-result "add_participant_with_role"
+           (progn
+             (format t "+++ OBJ-NAME +++: ~a" soma-name)     
+                  (send-query-1-without-result "add_participant_with_role"
                                         action-inst
-                                        (concatenate 'string "'" owl-name "'")
-                                        "'http://www.ease-crc.org/ont/SOMA.owl#AlteredObject'"))))
+                                        soma-name ;;owl-name
+                                        "'http://www.ease-crc.org/ont/SOMA.owl#AlteredObject'")
+                  (format t "+++ PARTICIPANT+++: ~a" object-name)))))
+     
      (when object-ease-id
        (roslisp:ros-info (ccl send-object-action-parameter)
                          "object-ease-id:~%~a" object-ease-id)
        (if (and (not role) object-ease-id)
            (send-query-1-without-result "add_participant_with_role"
                                         action-inst
-                                        object-ease-id
+                                        soma-name ;; was object-ease-id
                                         "'http://www.ease-crc.org/ont/SOMA.owl#Item'")
            (send-query-1-without-result "add_participant_with_role"
                                         action-inst
-                                        object-ease-id
+                                        soma-name;; was object-ease-id
                                         (concatenate 'string
                                                      "'http://www.ease-crc.org/ont/SOMA.owl#"
                                                      role "'")))))))
@@ -214,6 +229,11 @@
       (send-query-1-without-result "add_participant_with_role"
                                    action-inst
                                    object-ease-id
+                                   "'http://www.ease-crc.org/ont/SOMA.owl#AffectedObject'"))
+    (when (not object-ease-id)
+      (send-query-1-without-result "add_participant_with_role"
+                                   action-inst
+                                   (get-ease-object-id-of-cram-object-by-name object-name)
                                    "'http://www.ease-crc.org/ont/SOMA.owl#AffectedObject'"))))
 
 (defun send-grasp-action-parameter (action-inst action-type grasp)
