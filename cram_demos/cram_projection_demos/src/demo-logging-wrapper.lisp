@@ -16,6 +16,11 @@
   (setf ccl::*agent-owl-individual-name* "'http://knowrob.org/kb/PR2.owl#PR2_0'")
   (setf ccl::*agent-urdf* "'package://knowrob/urdf/pr2.urdf'")
 
+  ;(setf ccl::*episode-name* "Bullet Pouring")
+  ;; startup ROS
+  (roslisp-utilities:startup-ros)
+  ;;change origin of robot. otherwise robot might get stuck in the wall...
+  (btr-utils:move-robot '((1.5 1.5 0)(0 0 0 1)))
   )
 
 (defun pouring-neem ()
