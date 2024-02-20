@@ -32,24 +32,47 @@
 
 (define-all-action-designator-parameter-logging-functions)
 
-(defun log-action-designator-parameters-for-logged-action-designator
-    (action-designator-parameters action-designator-logging-id)
-  (mapcar (lambda (action-designator-parameter)
-            (let ((parameter-name (first action-designator-parameter))
-                  (parameter-value (second action-designator-parameter)))
-              (let* ((logging-function (get-logging-function-for-action-designator-parameter parameter-name))
-                     (action-type (get-knowrob-action-name (get-property-value-str action-designator-parameters :TYPE) ""))
-                     (logging-args (list action-designator-logging-id action-type parameter-value)))
-                (execute-logging-function-with-arguments
-                 action-designator-logging-id action-type parameter-name logging-function logging-args))))
-          action-designator-parameters))
+(defun log-action-designator-parameters-for-logged-action-designator (action-designator-parameters
+                                                                      action-designator-logging-id)
+  (format t "action-desig-parameters: ~a~%" action-designator-parameters)
+  ;; hack for taking into account list of arms in desigs, e.g.(:gripper  (:left :right))
+  (let* ((?temp-list))
+    (map-into ?temp-list (lambda (action-designator-parameter)
+                           (format t "desig parameter list: ~a~%" action-designator-parameters)
+                           (let* ((parameter-name (first action-designator-parameter))
+                                  (parameter-value ;;(second action-designator-parameter)
+                                    ;;if value is a list
+                                    (if (and (listp (second action-designator-parameter)) (equal parameter-name :GRIPPER))
+                                        ;;true
+                                        (progn (format t "--- the push ~a~%" (second action-designator-parameter))
+                                               (push (list parameter-name (cadr (second action-designator-parameter))) action-designator-parameters)
+                                               (format t "--- action-desig-param ~a~%" (car (second action-designator-parameter)))
+                                               (car (second action-designator-parameter)))
+                                        ;;false
+                                        (progn
+                                          (format t "second parameter: ~a~%" action-designator-parameter)
+                                          (second action-designator-parameter)))))
+              
+                             (format t "~%parameter-name: ~a~%" parameter-name)
+                             (format t "parameter-value: ~a~%" parameter-value)
+                             (let* ((logging-function (get-logging-function-for-action-designator-parameter parameter-name))
+                                    (action-type (get-knowrob-action-name (get-property-value-str action-designator-parameters :TYPE) ""))
+                                    (logging-args (list action-designator-logging-id action-type parameter-value)))
+                               (execute-logging-function-with-arguments
+                                action-designator-logging-id action-type parameter-name logging-function logging-args))))
+              action-designator-parameters)))
 
 (defun execute-logging-function-with-arguments (action-designator-logging-id
                                                 action-type
                                                 parameter-name
                                                 logging-parameter-function
                                                 logging-parameter-function-arguments)
+  (format t "[elf] action-desig-log-id: ~a~% action-type: ~a~% parameter-name ~a~% log-param-func: ~a~% log-param-func-args: ~a~%"
+          action-designator-logging-id action-type parameter-name logging-parameter-function logging-parameter-function-arguments)
     (if logging-parameter-function 
         (apply logging-parameter-function logging-parameter-function-arguments)
         (let ((parameter-name-str (write-to-string parameter-name)))
-          (when (string-not-equal ":TYPE" parameter-name-str) (send-comment action-designator-logging-id (concatenate 'string "Unknown Parameter: " parameter-name-str " -####- " (write-to-string (cadr logging-parameter-function-arguments))))))))
+          (when (string-not-equal ":TYPE" parameter-name-str)
+            (send-comment action-designator-logging-id
+                          (concatenate 'string "Unknown Parameter: " parameter-name-str " -####- "
+                                       (write-to-string (cadr logging-parameter-function-arguments))))))))

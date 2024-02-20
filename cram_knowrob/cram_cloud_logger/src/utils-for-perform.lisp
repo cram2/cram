@@ -57,6 +57,11 @@
     (setf (gethash "IAI-KITCHEN" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#IAI-KitchenPart'")
     (setf (gethash "IAI-POPCORN-TABLE-DRAWER-RIGHT-MAIN" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#IAIPopcornTableDrawerRightMain'")
     (setf (gethash "IAI-POPCORN-TABLE-DRAWER-LEFT-MAIN" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#IAIPopcornTableDrawerLeftMain'")
+    ;;apartment demo pouring
+    (setf (gethash "HANLDE-CAB1-TOP-DOOR" lookup-table) "'http://knowrob.org/kb/iai-apartment.owl#handle_cab1_top_door'")
+    (setf (gethash "JEROEN-CUP" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#Cup'")
+    (setf (gethash "APARTMENT" lookup-table) "'http://knowrob.org/kb/iai-apartment.owl#apartment_root'")
+
     lookup-table))
 
 
@@ -81,6 +86,8 @@
     (setf (gethash "SALT-1" lookup-table) "'package://cram_pr2_popcorn_demo/resource/salt.dae'")
     (setf (gethash "POPCORN-POT-1" lookup-table) "'package://cram_pr2_popcorn_demo/resource/popcorn_pot.dae'")
     (setf (gethash "POPCORN-POT-LID-1" lookup-table) "'package://cram_pr2_popcorn_demo/resource/popcorn_pot_lid.dae'")
+
+    (setf (gethash "JEROEN-CUP" lookup-table) "'package://cram_projection_demos/resource/household/jeroen_cup.dae'")
     lookup-table))
 
 
@@ -104,7 +111,9 @@
     (setf (gethash "IKEA-PLATE-1" lookup-table) "[0.0,0.0,0.0,1.0]")
     (setf (gethash "SALT-1" lookup-table) "[0.0,0.0,0.0,1.0]")
     (setf (gethash "POPCORN-POT-1" lookup-table) "[0.0,0.0,0.0,1.0]")
-    (setf (gethash "POPCORN-POT-LID-1" lookup-table) "[0.0,0.0,0.0,1.0]")   
+    (setf (gethash "POPCORN-POT-LID-1" lookup-table) "[0.0,0.0,0.0,1.0]")
+
+    (setf (gethash "JEROEN-CUP" lookup-table) "[-1.0,0.0,0.0,1.0]")
     lookup-table))
 
 ;;another hack
@@ -116,6 +125,9 @@
     (setf (gethash "SALT" det-obj) "SALT-1")
     (setf (gethash "POPCORN-POT" det-obj) "POPCORN-POT-1")
     (setf (gethash "POPCORN-POT-LID" det-obj) "POPCORN-POT-LID-1")
+    (setf (gethash "BOWL" det-obj) "BOWL-1")
+    (setf (gethash "JEROEN-CUP" det-obj) "JEROEN-CUP-1")
+    
     det-obj))
     
 
@@ -194,7 +206,8 @@
             (cram-action-name (get-designator-property-value-str designator :TYPE)))
         ;;; publish designator data to topic
         ;(publisher (string-downcase (desig-to-string designator)))
-        ;;; end publish designator data to topic 
+        ;;; end publish designator data to topic
+        (format t "[CCL] entered generic perform for action designator: ~a~%" designator)
         (cpl:with-failure-handling
             ((cpl:plan-failure (e)
                (set-event-status-to-failed action-id)
@@ -209,6 +222,8 @@
           (print "HERE 0")
           (multiple-value-bind (perform-result action-desig)
               (call-next-method)
+            (format t "--- perform result: ~a" perform-result)
+            (format t "--- action desig: ~a" action-desig)
             (let ((referenced-action-id "")
                   (action-designator-parameters (desig:properties (or action-desig designator))))
               (print "HERE 2")
@@ -224,6 +239,7 @@
               (print "HERE 4")
               (ccl::stop-situation action-id)
               (print "HERE 5")
+              (format t "--- perform result after: ~a~% " perform-result)
               perform-result))))
        (cpl:with-failure-handling
             ((cpl:plan-failure (e)
@@ -276,7 +292,7 @@
             (send-cram-set-subaction
              (convert-to-prolog-str parent-id)
              (convert-to-prolog-str child-id))))))
-
+;; why ???
 (defun is-motion (knowrob-action-name)
   (let ((motion nil))
     (cond ((string-equal knowrob-action-name "BaseMovement")
@@ -300,7 +316,18 @@
           ((string-equal knowrob-action-name "Pulling")
            (setf motion t))
           ((string-equal knowrob-action-name "Retracting")
-           (setf motion t)))
+           (setf motion t))
+          ;;added for pouring demo
+          ((string-equal knowrob-action-name "MovingArmJoints")
+           (setf motion t))
+          ((string-equal knowrob-action-name "MovingTCP")
+           (setf motion t))
+          ((string-equal knowrob-action-name "MovingGripperJoint")
+           (setf motion t))
+          ;;is also an action. Same for detecting
+          ;;((string-equal knowrob-action-name "Gripping")
+          ;; (setf motion t))
+          )
     motion))
 
 (defun log-cram-sibling-action (parent-id child-id child-knowrob-name)
@@ -316,14 +343,14 @@
       (setf (gethash parent-id *action-siblings*) (cpl:make-fluent :name parent-id :value (cons child-id '()))))))
 
 (defun log-cram-prev-action (current-id previous-id current-knowrob-name)
-  ;;(if (is-motion current-knowrob-name)
-  (if nil
+  (if (is-motion current-knowrob-name)
+ ;; (if nil
       (send-cram-previous-motion (convert-to-prolog-str current-id) (convert-to-prolog-str previous-id)) 
       (send-cram-previous-action (convert-to-prolog-str current-id) (convert-to-prolog-str previous-id))))
 
 (defun log-cram-next-action (current-id next-id current-knowrob-name)
-  ;;(if (is-motion current-knowrob-name)
-  (if nil
+  (if (is-motion current-knowrob-name)
+  ;; (if nil
       (send-cram-next-motion (convert-to-prolog-str current-id) (convert-to-prolog-str next-id))
       (send-cram-next-action (convert-to-prolog-str current-id) (convert-to-prolog-str next-id))))
 
@@ -344,5 +371,5 @@
 
 (defun remember(name)
   (json-prolog:prolog-simple
-   (concatenate 'string "remember('/home/alina/Desktop/knowrob_memory/" name "').")))
+   (concatenate 'string "remember('/home/ahawkin/ros_ws/neems_library/pr2_pouring_simulation/" name "').")))
 

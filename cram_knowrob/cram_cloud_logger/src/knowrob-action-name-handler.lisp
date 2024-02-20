@@ -29,7 +29,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
 (in-package :ccl)
-
+;;;lisp side - owl side
 (defun init-action-name-mapper ()
   (let ((action-name-mapper (make-instance 'ccl::cram-2-knowrob-mapper))
     (definition
@@ -66,7 +66,12 @@
        ("positioning-arm" "PositioningArm") ;park-arms
        ("opening-gripper" "OpeningGripper")
        ("moving-arms" "MovingArms")
-       ("moving-tcp" "MovingTCP"))))
+       ("moving-tcp" "MovingTCP")
+       ("moving-gripper-joint" "MovingGripperJoint")
+       ("tilting" "Tilting")
+       ("pouring" "Pouring")
+       ("pouring-without-retries" "Pouring")
+       ("turning-towards" "TurningTowards"))))
     (ccl::add-definition-to-mapper definition action-name-mapper)
     action-name-mapper))
 

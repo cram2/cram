@@ -58,6 +58,7 @@
 (defun finish-logging ()
   (print "Finished"))
 ;;(ccl::send-query-1-without-result "ros_logger_stop" ""))
+;; ??? is this commented out for preventing closing the entire episode?
 
 (defun get-grasp-type-lookup-table()
   (let ((lookup-table (make-hash-table :test 'equal)))
@@ -348,6 +349,7 @@
     (send-rdf-query a b c)))
 
 (defun send-rdf-query (a b c)
+  (format t "send rdf query: abc: ~a | ~a | ~a" a b c )
   (send-prolog-query-1 (create-rdf-assert-query a b c)))
 
 ;;(defun send-object-action-parameter (action-inst object-designator)
@@ -419,10 +421,14 @@
         )
     (let ((3d-vector-id (send-create-3d-vector 3d-vector))
           (quaternion-id (send-create-quaternion orientation)))
-      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:relativeTo" (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_base_footprint"))
-      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:translation" (create-string-owl-literal (convert-to-prolog-str 3d-vector-id)))
-      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:quaternion" (create-string-owl-literal (convert-to-prolog-str quaternion-id)))
-      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:child-id" (create-string-owl-literal (convert-to-prolog-str child-frame)))
+      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:relativeTo"
+                      (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_base_footprint"))
+      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:translation"
+                      (create-string-owl-literal (convert-to-prolog-str 3d-vector-id)))
+      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:quaternion"
+                      (create-string-owl-literal (convert-to-prolog-str quaternion-id)))
+      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:child-id"
+                      (create-string-owl-literal (convert-to-prolog-str child-frame)))
       pose-stamped-instance-id)))
 
 (defun send-create-pose-stamped (pose-stamped)
@@ -434,12 +440,15 @@
     (let ((3d-vector-id (send-create-3d-vector origin))
           (quaternion-id (send-create-quaternion orientation)))
       (if (string-equal frame-id "base_footprint")
-          (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:relativeTo" (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_base_footprint"))
+          (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:relativeTo"
+                          (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_base_footprint"))
           (unless (string-equal frame-id "map")
             (format t "~%~%~%FRAME ~a NOT KNOWN.~%~%~%" frame-id)))
       ;;(send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:stamp" (create-float-owl-literal stamp))
-      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:translation" (create-string-owl-literal (convert-to-prolog-str 3d-vector-id)))
-      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:quaternion" (create-string-owl-literal (convert-to-prolog-str quaternion-id))))
+      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:translation"
+                      (create-string-owl-literal (convert-to-prolog-str 3d-vector-id)))
+      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:quaternion"
+                      (create-string-owl-literal (convert-to-prolog-str quaternion-id))))
     pose-stamped-instance-id))
 
 (defun send-left-pose-stamped-list-action-parameter (action-inst pose-stamped-list)
@@ -452,22 +461,31 @@
   (let ((pose-stamp (get-last-element-in-list pose-stamped-list)))
     (if pose-stamp (progn
                      (send-rdf-query (convert-to-prolog-str action-inst)
-                                     "knowrob:goalLocation" (convert-to-prolog-str (send-create-pose-stamped pose-stamp)))
+                                     "knowrob:goalLocation"
+                                     (convert-to-prolog-str (send-create-pose-stamped pose-stamp)))
                      (if (string-equal "left" list-name)
-                         (send-gripper-action-parameter action-inst :left)
-                         (send-gripper-action-parameter action-inst :right))))))
+                         (send-gripper-action-parameter action-inst list-name :left)
+                         (send-gripper-action-parameter action-inst list-name :right))))))
 
 (defun send-arm-action-parameter (action-inst arm-value)
   (let((arm-value-str (write-to-string arm-value)))
-    (cond ((string-equal ":RIGHT" arm-value-str) (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:arm" (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_right_arm")))
-          ((string-equal ":LEFT" arm-value-str) (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:arm" (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_left_arm"))))))
-
-(defun send-gripper-action-parameter (action-inst gripper-value)
+    (cond ((string-equal ":RIGHT" arm-value-str)
+           (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:arm"
+                           (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_right_arm")))
+          ((string-equal ":LEFT" arm-value-str)
+           (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:arm"
+                           (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_left_arm"))))))
+;; action name is not used
+(defun send-gripper-action-parameter (action-inst action-name gripper-value)
   (let((gripper-value-str (write-to-string gripper-value)))
-    (cond ((string-equal ":RIGHT" gripper-value-str) (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:bodyPartsUsed" (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_right_gripper")))
-          ((string-equal ":LEFT" gripper-value-str) (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:bodyPartsUsed" (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_left_gripper"))))))
-
-(defun send-location-action-parameter (action-inst location-designator)
+    (cond ((string-equal ":RIGHT" gripper-value-str)
+           (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:bodyPartsUsed"
+                           (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_right_gripper")))
+          ((string-equal ":LEFT" gripper-value-str)
+           (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:bodyPartsUsed"
+                           (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_left_gripper"))))))
+;; action name is not used
+(defun send-location-action-parameter (action-inst action-type location-designator)
    (send-location-designator action-inst location-designator "knowrob:goalLocation"))
 
 (defun send-target-action-parameter (action-inst location-designator)
