@@ -10,7 +10,7 @@
   ;;overwrite the default links to the owls and other dependencies
   (setf ccl::*environment-owl* "'package://iai_apartment/owl/iai-apartment.owl'")
   (setf ccl::*environment-owl-individual-name* "'http://knowrob.org/kb/iai-apartment.owl#apartment_root'")
-  (setf ccl::*environment-urdf* "'package://iai_apartment/urdf/apartment.urdf'")
+  (setf ccl::*environment-urdf* "'package://iai_apartment/urdf/iai-apartment.urdf'")
   (setf ccl::*environment-urdf-prefix* "'iai_apartment/'")
   (setf ccl::*agent-owl* "'package://knowrob/owl/robots/PR2.owl'")
   (setf ccl::*agent-owl-individual-name* "'http://knowrob.org/kb/PR2.owl#PR2_0'")
@@ -27,5 +27,14 @@
   (urdf-proj:with-simulated-robot
     (ccl::start-episode)
     (apartment-demo-merged :step 0)
+    (sleep 3)
     (ccl::stop-episode)))
   
+(defun pouring-neems (repeats)
+  (urdf-proj:with-simulated-robot
+    (ccl::start-episode)
+    (dotimes (n repeats)
+      (apartment-demo-merged :step 0)
+      (format t "repeating for the ~a~% time" n)
+      (sleep 3))
+    (ccl::stop-episode)))

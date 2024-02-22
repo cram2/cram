@@ -109,19 +109,19 @@
   </node>
   <node pkg="robot_state_publisher" type="robot_state_publisher"
         name="environment_tf_publisher" output="screen">
-    <param name="tf_prefix" value="iai_kitchen"/>
+    <param name="tf_prefix" value="iai_apartment"/>
     <param name="publish_frequency" value="25"/>
     <remap from="robot_description" to="kitchen_description" />
     <remap from="joint_states" to="kitchen/joint_states" />
   </node>
   <group if="$(arg apartment)">
     <node pkg="tf" type="static_transform_publisher" name="kitchen_link_broadcaster"
-          args="0 0 0 0 0 0 /map /iai_kitchen/apartment_root 25">
+          args="0 0 0 0 0 0 /map /iai_apartment/apartment_root 25">
     </node>
   </group>
   <group unless="$(arg apartment)">
     <node pkg="tf" type="static_transform_publisher" name="kitchen_link_broadcaster"
-          args="0 0 0 0 0 0 /map /iai_kitchen/world 25">
+          args="0 0 0 0 0 0 /map /iai_apartment/world 25">
     </node>
   </group>
 
