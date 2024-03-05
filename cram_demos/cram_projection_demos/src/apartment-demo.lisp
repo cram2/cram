@@ -547,14 +547,14 @@
            (cl-transforms-stamped:make-pose-stamped
             "map"
             0.0
-            (cl-transforms:make-3d-vector 2.5 2.6 1.0126) ;;;was 2.0 2.6 1.0126
+            (cl-transforms:make-3d-vector 2.0 2.6 1.0126)
             (cl-transforms:make-quaternion 0 1 0 0)))
 
          (?on-counter-top-target-cup-look-pose
            (cl-transforms-stamped:make-pose-stamped
             "map"
             0.0
-            (cl-transforms:make-3d-vector 2.5 2.2 1.0126) ;;;was 2.0 2.2 2.0126
+            (cl-transforms:make-3d-vector 2.0 2.2 1.0126)
             (cl-transforms:make-quaternion 0 1 0 0)))
          (?third-cup-park-pose
            (cl-transforms-stamped:make-pose-stamped

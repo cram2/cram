@@ -219,14 +219,10 @@
 
           (push action-id *action-parents*)
           (ccl::start-situation action-id)
-          (print "HERE 0")
           (multiple-value-bind (perform-result action-desig)
               (call-next-method)
-            (format t "--- perform result: ~a" perform-result)
-            (format t "--- action desig: ~a" action-desig)
             (let ((referenced-action-id "")
                   (action-designator-parameters (desig:properties (or action-desig designator))))
-              (print "HERE 2")
               (log-action-designator-parameters-for-logged-action-designator action-designator-parameters action-id)
               (when (string-equal cram-action-name "grasping")
                 (print action-designator-parameters))
@@ -234,12 +230,8 @@
                 (handle-detected-object designator))
               ;; (when (and (string-equal cram-action-name "looking") action-desig) ;;make sure it's an action not a motion
               ;;   (handle-detected-object perform-result))
-              (print "HERE 3")
               (set-event-status-to-succeeded action-id)
-              (print "HERE 4")
               (ccl::stop-situation action-id)
-              (print "HERE 5")
-              (format t "--- perform result after: ~a~% " perform-result)
               perform-result))))
        (cpl:with-failure-handling
             ((cpl:plan-failure (e)
