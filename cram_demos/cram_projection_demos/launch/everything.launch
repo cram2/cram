@@ -33,8 +33,7 @@
     <group if="$(arg pr2)">
       <param name="robot_description"
              command="$(find xacro)/xacro
-                      '$(find iai_pr2_description)/robots/pr2_with_ft2_cableguide.xacro'" />
-                    <!--  '$(find pr2_description)/robots/pr2.urdf.xacro'" /> -->
+                      '$(find pr2_description)/robots/pr2.urdf.xacro'" />
     </group>
     <group if="$(arg boxy)">
       <include file="$(find iai_boxy_description)/launch/upload_boxy.launch" />
