@@ -336,13 +336,11 @@
 
 (defun log-cram-prev-action (current-id previous-id current-knowrob-name)
   (if (is-motion current-knowrob-name)
- ;; (if nil
       (send-cram-previous-motion (convert-to-prolog-str current-id) (convert-to-prolog-str previous-id)) 
       (send-cram-previous-action (convert-to-prolog-str current-id) (convert-to-prolog-str previous-id))))
 
 (defun log-cram-next-action (current-id next-id current-knowrob-name)
   (if (is-motion current-knowrob-name)
-  ;; (if nil
       (send-cram-next-motion (convert-to-prolog-str current-id) (convert-to-prolog-str next-id))
       (send-cram-next-action (convert-to-prolog-str current-id) (convert-to-prolog-str next-id))))
 
