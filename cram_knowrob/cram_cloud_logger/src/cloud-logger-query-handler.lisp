@@ -39,14 +39,18 @@
 (defparameter *agent-owl* "'package://knowrob/owl/robots/PR2.owl'")
 (defparameter *agent-owl-individual-name* "'http://knowrob.org/kb/PR2.owl#PR2_0'")
 (defparameter *agent-urdf* "'package://knowrob/urdf/pr2.urdf'")
+(defparameter *neem-interface-path* "")
 
 (defun get-parent-folder-path()
   (namestring (physics-utils:parse-uri "package://cram_cloud_logger/src")))
 
 (defun send-load-neem-generation-interface ()
-  (let ((path-to-interface-file
-          (concatenate 'string "'" (get-parent-folder-path) "/neem-interface.pl'")))
-    (ccl::send-query-1-without-result "ensure_loaded" path-to-interface-file)))
+  (if (string= *neem-interface-path* "")
+      (let ((path-to-interface-file
+             (concatenate 'string "'" (get-parent-folder-path) "/neem-interface.pl'")))
+        (ccl::send-query-1-without-result "ensure_loaded" path-to-interface-file))
+      (ccl::send-query-1-without-result "ensure_loaded" *neem-interface-path*)
+    ))
 
 (defun init-logging ()
   (send-load-neem-generation-interface))
@@ -54,6 +58,7 @@
 (defun finish-logging ()
   (print "Finished"))
 ;;(ccl::send-query-1-without-result "ros_logger_stop" ""))
+;; ??? is this commented out for preventing closing the entire episode?
 
 (defun get-grasp-type-lookup-table()
   (let ((lookup-table (make-hash-table :test 'equal)))
@@ -162,7 +167,10 @@
 (defun get-url-from-send-query-1 (url-parameter query-name &rest query-parameters)
   (let* ((query (create-query query-name query-parameters))
          (query-result (send-query-1 query)))
-    (when (eq query-result nil) (break))
+    (when (eq query-result nil)
+      ;(break) TODO remove?
+      (print "query result was nil. ignoring")
+      )
     (ccl::get-url-variable-result-as-str-from-json-prolog-result url-parameter query-result)))
 
 (defun send-comment (action-inst comment)
@@ -170,40 +178,48 @@
 
 (defun send-container-object-action-parameter (action-inst action-type object-designator)
   (declare (ignore action-type))
-  (let ((owl-name (get-designator-property-value-str object-designator :OWL-NAME)))
+  (format t "IN CONTAINER OBJ with obj-desig: ~a~%" object-designator)
+
+  (let* ((owl-name (get-designator-property-value-str object-designator :URDF-NAME))
+        (soma-name (get-ease-object-id-of-cram-object-by-name owl-name))); was OWL-name
     (when owl-name
       (send-query-1-without-result "add_participant_with_role"
                                    action-inst
-                                   (concatenate 'string "'" owl-name "'")
+                                   soma-name
                                    "'http://www.ease-crc.org/ont/SOMA.owl#AlteredObject'"))))
 
 (defun send-object-action-parameter (action-inst action-type object-designator)
   (when object-designator
    (let* ((role (gethash action-type *object-parameter-role-lookup-table*))
           (object-name (get-designator-property-value-str object-designator :NAME))
-          (object-ease-id (get-ease-object-id-of-detected-object-by-name object-name)))
+          (object-ease-id (get-ease-object-id-of-detected-object-by-name object-name))
+          (soma-name (get-ease-object-id-of-cram-object-by-name object-name)))
      (roslisp:ros-info (ccl send-object-action-parameter)
                        "object-name:~%~a" object-name)
      (when (not object-ease-id)
-       (let ((owl-name (get-designator-property-value-str object-designator :OWL-NAME)))
+       (let ((owl-name (get-designator-property-value-str object-designator :OWL-NAME))) ;;was OWL-NAME
          (when owl-name
            (roslisp:ros-info (ccl send-object-action-parameter)
                              "owl-name:~%~a" owl-name)
-           (send-query-1-without-result "add_participant_with_role"
+           (progn
+             (format t "+++ OBJ-NAME +++: ~a" soma-name)     
+                  (send-query-1-without-result "add_participant_with_role"
                                         action-inst
-                                        (concatenate 'string "'" owl-name "'")
-                                        "'http://www.ease-crc.org/ont/SOMA.owl#AlteredObject'"))))
+                                        soma-name ;;owl-name
+                                        "'http://www.ease-crc.org/ont/SOMA.owl#AlteredObject'")
+                  (format t "+++ PARTICIPANT+++: ~a" object-name)))))
+     
      (when object-ease-id
        (roslisp:ros-info (ccl send-object-action-parameter)
                          "object-ease-id:~%~a" object-ease-id)
        (if (and (not role) object-ease-id)
            (send-query-1-without-result "add_participant_with_role"
                                         action-inst
-                                        object-ease-id
+                                        soma-name ;; was object-ease-id
                                         "'http://www.ease-crc.org/ont/SOMA.owl#Item'")
            (send-query-1-without-result "add_participant_with_role"
                                         action-inst
-                                        object-ease-id
+                                        soma-name;; was object-ease-id
                                         (concatenate 'string
                                                      "'http://www.ease-crc.org/ont/SOMA.owl#"
                                                      role "'")))))))
@@ -214,6 +230,11 @@
       (send-query-1-without-result "add_participant_with_role"
                                    action-inst
                                    object-ease-id
+                                   "'http://www.ease-crc.org/ont/SOMA.owl#AffectedObject'"))
+    (when (not object-ease-id)
+      (send-query-1-without-result "add_participant_with_role"
+                                   action-inst
+                                   (get-ease-object-id-of-cram-object-by-name object-name)
                                    "'http://www.ease-crc.org/ont/SOMA.owl#AffectedObject'"))))
 
 (defun send-grasp-action-parameter (action-inst action-type grasp)
@@ -328,6 +349,7 @@
     (send-rdf-query a b c)))
 
 (defun send-rdf-query (a b c)
+  (format t "send rdf query: abc: ~a | ~a | ~a" a b c )
   (send-prolog-query-1 (create-rdf-assert-query a b c)))
 
 ;;(defun send-object-action-parameter (action-inst object-designator)
@@ -399,10 +421,14 @@
         )
     (let ((3d-vector-id (send-create-3d-vector 3d-vector))
           (quaternion-id (send-create-quaternion orientation)))
-      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:relativeTo" (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_base_footprint"))
-      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:translation" (create-string-owl-literal (convert-to-prolog-str 3d-vector-id)))
-      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:quaternion" (create-string-owl-literal (convert-to-prolog-str quaternion-id)))
-      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:child-id" (create-string-owl-literal (convert-to-prolog-str child-frame)))
+      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:relativeTo"
+                      (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_base_footprint"))
+      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:translation"
+                      (create-string-owl-literal (convert-to-prolog-str 3d-vector-id)))
+      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:quaternion"
+                      (create-string-owl-literal (convert-to-prolog-str quaternion-id)))
+      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:child-id"
+                      (create-string-owl-literal (convert-to-prolog-str child-frame)))
       pose-stamped-instance-id)))
 
 (defun send-create-pose-stamped (pose-stamped)
@@ -414,12 +440,15 @@
     (let ((3d-vector-id (send-create-3d-vector origin))
           (quaternion-id (send-create-quaternion orientation)))
       (if (string-equal frame-id "base_footprint")
-          (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:relativeTo" (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_base_footprint"))
+          (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:relativeTo"
+                          (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_base_footprint"))
           (unless (string-equal frame-id "map")
             (format t "~%~%~%FRAME ~a NOT KNOWN.~%~%~%" frame-id)))
       ;;(send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:stamp" (create-float-owl-literal stamp))
-      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:translation" (create-string-owl-literal (convert-to-prolog-str 3d-vector-id)))
-      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:quaternion" (create-string-owl-literal (convert-to-prolog-str quaternion-id))))
+      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:translation"
+                      (create-string-owl-literal (convert-to-prolog-str 3d-vector-id)))
+      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:quaternion"
+                      (create-string-owl-literal (convert-to-prolog-str quaternion-id))))
     pose-stamped-instance-id))
 
 (defun send-left-pose-stamped-list-action-parameter (action-inst pose-stamped-list)
@@ -432,22 +461,31 @@
   (let ((pose-stamp (get-last-element-in-list pose-stamped-list)))
     (if pose-stamp (progn
                      (send-rdf-query (convert-to-prolog-str action-inst)
-                                     "knowrob:goalLocation" (convert-to-prolog-str (send-create-pose-stamped pose-stamp)))
+                                     "knowrob:goalLocation"
+                                     (convert-to-prolog-str (send-create-pose-stamped pose-stamp)))
                      (if (string-equal "left" list-name)
-                         (send-gripper-action-parameter action-inst :left)
-                         (send-gripper-action-parameter action-inst :right))))))
+                         (send-gripper-action-parameter action-inst list-name :left)
+                         (send-gripper-action-parameter action-inst list-name :right))))))
 
 (defun send-arm-action-parameter (action-inst arm-value)
   (let((arm-value-str (write-to-string arm-value)))
-    (cond ((string-equal ":RIGHT" arm-value-str) (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:arm" (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_right_arm")))
-          ((string-equal ":LEFT" arm-value-str) (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:arm" (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_left_arm"))))))
-
-(defun send-gripper-action-parameter (action-inst gripper-value)
+    (cond ((string-equal ":RIGHT" arm-value-str)
+           (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:arm"
+                           (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_right_arm")))
+          ((string-equal ":LEFT" arm-value-str)
+           (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:arm"
+                           (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_left_arm"))))))
+;; action name is not used
+(defun send-gripper-action-parameter (action-inst action-name gripper-value)
   (let((gripper-value-str (write-to-string gripper-value)))
-    (cond ((string-equal ":RIGHT" gripper-value-str) (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:bodyPartsUsed" (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_right_gripper")))
-          ((string-equal ":LEFT" gripper-value-str) (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:bodyPartsUsed" (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_left_gripper"))))))
-
-(defun send-location-action-parameter (action-inst location-designator)
+    (cond ((string-equal ":RIGHT" gripper-value-str)
+           (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:bodyPartsUsed"
+                           (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_right_gripper")))
+          ((string-equal ":LEFT" gripper-value-str)
+           (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:bodyPartsUsed"
+                           (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_left_gripper"))))))
+;; action name is not used
+(defun send-location-action-parameter (action-inst action-type location-designator)
    (send-location-designator action-inst location-designator "knowrob:goalLocation"))
 
 (defun send-target-action-parameter (action-inst location-designator)

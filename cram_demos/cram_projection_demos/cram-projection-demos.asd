@@ -76,6 +76,9 @@
                cram-kukabot-description
                cram-tiago-description
                ;; cram-hsrb-description
+
+               ;; for logging
+               cram-cloud-logger
                )
   :components
   ((:module "src"
@@ -94,4 +97,5 @@
                                                   "household-demo"))
      (:file "apartment-demo" :depends-on ("package" "utils"
                                                     ;; for initializing
-                                                    "household-demo"))))))
+                                                    "household-demo"))
+     (:file "demo-logging-wrapper" :depends-on ("package"))))))
