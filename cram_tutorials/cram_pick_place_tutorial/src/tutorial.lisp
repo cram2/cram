@@ -57,10 +57,13 @@
    (apply #'cl-transforms:make-quaternion (second pose))))
 
 (defun park-arms ()
-  (pp-plans::park-arms))
+  (pp-plans::park-arms :right-arm T :left-arm T))
 
 (defun park-arm (arm)
-  (pp-plans::park-arms :arm arm))
+  (case arm
+    (:right (pp-plans::park-arms :right-arm T))
+    (:left (pp-plans::park-arms :left-arm T))
+    (otherwise (park-arms))))
 
 (defmacro handle-failure (errors program-body &body error-handler-body)
   `(progn
