@@ -94,6 +94,14 @@
 (defun storage-demo (&optional (objects-list '(:dish-washer-tabs :balea-bottle
                                                :chassis :front-wheel :propeller
                                                :bowl :cup :spoon :milk :breakfast-cereal)))
+  (when (eq (rob-int:get-robot-name) :tiago-dual)
+    (btr-belief:vary-kitchen-urdf
+     `(("left_leg_to_storage_origin"
+        ((2.0d0 -0.7d0 -0.1d0)
+         (0.0d0 0.0d0 0.24740395925452294d0 0.9689124217106447d0)))))
+    (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
+    (btr-belief:spawn-world))
+
   ;; (setf cram-tf:*tf-broadcasting-enabled* t)
   (urdf-proj:with-simulated-robot
     (spawn-storage-objects :objects-list objects-list)

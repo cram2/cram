@@ -177,6 +177,43 @@ and renames POSE into OLD-POSE."
       (setf (btr:pose (btr:object btr:*current-bullet-world* object-name))
             (cl-transforms:transform->pose map-T-obj)))))
 
+(defun find-other-object-type-in-obj-in-obj-transform-method (object-type attachment)
+  (let ((third-specializer
+          (third
+           (sb-pcl:method-specializers
+            (car
+             (remove-if-not
+              (lambda (specializers)
+                (let ((first-specializer (first specializers))
+                      (fifth-specializer (fifth specializers)))
+                  (and (typep first-specializer 'sb-mop:eql-specializer)
+                       (eql (sb-mop:eql-specializer-object first-specializer)
+                            object-type)
+                       (typep fifth-specializer 'sb-mop:eql-specializer)
+                       (eql (sb-mop:eql-specializer-object fifth-specializer)
+                            attachment))))
+              (sb-mop:generic-function-methods
+               #'man-int:get-object-type-in-other-object-transform)
+              :key (lambda (method) (sb-pcl:method-specializers method))))))))
+    (when (typep third-specializer 'sb-mop:eql-specializer)
+      (sb-mop:eql-specializer-object third-specializer))))
+
+(defun snap-object-onto-environment (object-type object-name link attachment)
+  (let* ((map-T-link
+           (cl-transforms:reference-transform
+            (btr:link-pose (btr:get-environment-object) link)))
+         (other-object-type
+           (find-other-object-type-in-obj-in-obj-transform-method
+            object-type attachment))
+         (link-T-obj
+           (man-int:get-object-type-in-other-object-transform
+            object-type object-name other-object-type (rob-int:get-environment-name) attachment))
+         (map-T-obj
+           (cl-transforms:transform*
+            map-T-link link-T-obj)))
+    (setf (btr:pose (btr:object btr:*current-bullet-world* object-name))
+          (cl-transforms:transform->pose map-T-obj))))
+
 (defmethod cram-occasions-events:on-event btr-attach-object 2 ((event cpoe:object-attached-robot))
   "2 means this method has to be ordered based on integer qualifiers.
 It could have been 1 but 1 is reserved in case somebody has to be even more urgently
@@ -234,7 +271,19 @@ If there is no other method with 1 as qualifier, this method will be executed al
       ;; In that case please call the function yourself directly.
       ;; For environment objects, which are also robot objects,
       ;; the grasp transform is not defined, so this only works for robot robots.
-      ;; (snap-object-onto-robot (car (btr:item-types btr-object)) btr-object-name arm grasp)
+      (when grasp
+        (if (eql robot-object-name (rob-int:get-environment-name))
+            (snap-object-onto-environment (car (btr:item-types btr-object)) btr-object-name link grasp)
+            (snap-object-onto-robot (car (btr:item-types btr-object)) btr-object-name arm grasp)))
+      ;;
+      ;; if the object is attached to an environment object, then make the object
+      ;; weight-less, so it doesn't fall off when the robot releases the object.
+      ;; unfortunately no way to reset the weight when the object is picked up again.
+      ;; (when (and grasp
+      ;;            (typep environment-object 'btr:robot-object))
+      ;;   (mapcar (lambda (rigid-body)
+      ;;             (setf (btr::mass rigid-body) 0))
+      ;;           (btr:rigid-bodies btr-object)))
       ;; attach
       (btr:attach-object robot-object btr-object :link link :loose nil :grasp grasp)
       ;; invalidate the pose in the designator
@@ -264,7 +313,16 @@ If there is no other method with 1 as qualifier, this method will be executed al
         ;; if btr-object-name was given, detach it from the robot link
         (let ((btr-object (btr:object btr:*current-bullet-world* btr-object-name)))
           (when btr-object
-            (btr:detach-object robot-object btr-object :link link)
+            (btr:detach-object robot-object btr-object
+                               :link link
+                               :make-object-dynamic
+                               t
+                               ;; (not
+                               ;;  (find :jeroen-cup-1
+                               ;;        (btr:attached-objects
+                               ;;         (btr:get-environment-object))
+                               ;;        :key #'car))
+                               )
             (btr:simulate btr:*current-bullet-world* 100)
             ;; find the links and items that support the object
             ;; and attach the object to them.

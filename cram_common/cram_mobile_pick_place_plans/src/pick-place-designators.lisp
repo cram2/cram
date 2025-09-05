@@ -233,6 +233,8 @@
     (once (or (desig:desig-prop ?current-location-designator
                                 (:on ?other-object-desig))
               (desig:desig-prop ?current-location-designator
+                                (:above ?other-object-desig))
+              (desig:desig-prop ?current-location-designator
                                 (:in ?other-object-desig))
               (equal ?other-object-desig NIL)))
     (desig:current-designator ?other-object-desig ?other-object-designator)

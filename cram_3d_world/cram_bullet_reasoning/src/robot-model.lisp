@@ -207,7 +207,8 @@ Otherwise, the attachment is only used as information but does not affect the wo
                        (create-static-collision-information obj)))
                 attached-objects)))))
 
-(defmethod detach-object ((robot-object robot-object) (object object) &key link)
+(defmethod detach-object ((robot-object robot-object) (object object)
+                          &key link (make-object-dynamic t))
   "Detaches `object' from the set of attached objects.
  If `link' is specified, detaches `object' only from
  `link'. Otherwise, detaches `object' from all links."
@@ -221,10 +222,12 @@ Otherwise, the attachment is only used as information but does not affect the wo
                (unless (second attachment)
                  (setf attached-objects (remove (name object) attached-objects
                                                 :key #'car))
-                 (reset-collision-information object (cdr (cdr attachment)))))
+                 (when make-object-dynamic
+                       (reset-collision-information object (cdr (cdr attachment))))))
               (t (setf attached-objects (remove (name object) attached-objects
                                                 :key #'car))
-                 (reset-collision-information object (cdr (cdr attachment)))))))))
+                 (when make-object-dynamic
+                   (reset-collision-information object (cdr (cdr attachment))))))))))
 
 (defmethod detach-all-from-link ((robot-object robot-object) link)
   "Removes all objects form the given `link' of `robot-object'."

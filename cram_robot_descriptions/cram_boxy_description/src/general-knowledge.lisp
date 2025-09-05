@@ -46,7 +46,7 @@
                                            costmap:orientation-samples
                                            costmap:orientation-sample-step
                                            costmap:visibility-costmap-size)
-  (<- (costmap:costmap-padding :boxy-description 0.5))
+  (<- (costmap:costmap-padding :boxy-description 0.4))
   (<- (costmap:costmap-manipulation-padding :boxy-description 0.2))
   (<- (costmap:costmap-in-reach-distance :boxy-description 1.7))
   (<- (costmap:costmap-reach-minimal-distance :boxy-description 0.65))

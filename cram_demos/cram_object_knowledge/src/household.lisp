@@ -494,8 +494,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;; jeroen-cup ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *jeroen-cup-grasp-xy-offset* 0.04 "in meters")
-(defparameter *jeroen-cup-grasp-z-offset* 0.0 "in meters")
-(defparameter *jeroen-cup-pregrasp-xy-offset* 0.30 "in meters")
+(defparameter *jeroen-cup-grasp-z-offset* 0.02 "in meters")
+(defparameter *jeroen-cup-pregrasp-xy-offset* 0.15 "in meters")
 (defparameter *jeroen-cup-2nd-pregrasp-xy-offset* 0.10 "in meters")
 (defparameter *jeroen-cup-3rd-pregrasp-xy-offset* 0.07 "in meters")
 (defparameter *jeroen-cup-4th-pregrasp-xy-offset* 0.04 "in meters")
@@ -506,11 +506,11 @@
 (defparameter *jeroen-cup-top-grasp-x-offset* 0.0"in meters")
 (defparameter *jeroen-cup-top-grasp-z-offset* 0.03 "in meters")
 (defparameter *jeroen-cup-bottom-grasp-z-offset* 0.03 "in meters")
-(defparameter *jeroen-cup-bottom-pregrasp-z-offset* 0.05 "in meters")
-(defparameter *jeroen-cup-bottom-lift-z-offset* 0.05 "in meters")
-(defparameter *jeroen-cup-postgrasp-x-offset* 0.2 "in meters")
+(defparameter *jeroen-cup-bottom-pregrasp-z-offset* 0.01 "in meters")
+(defparameter *jeroen-cup-bottom-lift-z-offset* 0.01 "in meters")
+(defparameter *jeroen-cup-postgrasp-x-offset* 0.1 "in meters")
 (defparameter *jeroen-cup-postgrasp-y-offset* 0.0 "in meters")
-(defparameter *jeroen-cup-surface-lift-offset* 0.3 "in meters")
+(defparameter *jeroen-cup-surface-lift-offset* 0.2 "in meters")
 (defparameter *jeroen-cup-lift-z-offset* 0.05 "in meters")
 
 ;; TOP grasp
@@ -1577,15 +1577,24 @@
 
 (man-int:def-object-type-in-other-object-transform :jeroen-cup :drawer
   :jeroen-cup-in-dishwasher-1
-  :attachment-translation `(-0.2 -0.15 0.13)
+  :attachment-translation `(-0.15 -0.10 0.0)
   :attachment-rot-matrix man-int:*rotation-around-x-180-matrix*)
 
 (man-int:def-object-type-in-other-object-transform :jeroen-cup :drawer
   :jeroen-cup-in-dishwasher-2
-  :attachment-translation `(-0.2 -0.15 0.13)
+  :attachment-translation `(-0.15 -0.10 0.0)
   :attachment-rot-matrix man-int:*rotation-around-y-180-matrix*)
 
 (man-int:def-object-type-in-other-object-transform :jeroen-cup :shelf
   :jeroen-cup-on-shelf
-  :attachment-translation `(0.20 0.05 0.08)
+  :attachment-translation `(0.21 0.05 0.08)
   :attachment-rot-matrix man-int:*rotation-around-x-180-matrix*)
+
+(defmethod man-int:get-z-offset-for-placing-with-dropping ((object (eql :jeroen-cup))
+                                                           (other-object (eql :drawer))
+                                                           (attachment (eql :jeroen-cup-in-dishwasher-1)))
+  0.20)
+(defmethod man-int:get-z-offset-for-placing-with-dropping ((object (eql :jeroen-cup))
+                                                           (other-object (eql :drawer))
+                                                           (attachment (eql :jeroen-cup-in-dishwasher-2)))
+  0.20)

@@ -247,9 +247,9 @@
                                            costmap:reachability-orientation-offset
                                            costmap:visibility-orientation-offset
                                            costmap:visibility-costmap-size)
-  (<- (costmap:costmap-padding :iai-donbot 0.5))
-  (<- (costmap:costmap-manipulation-padding :iai-donbot 0.5))
-  (<- (costmap:costmap-in-reach-distance :iai-donbot 1.25))
+  (<- (costmap:costmap-padding :iai-donbot 0.4))
+  (<- (costmap:costmap-manipulation-padding :iai-donbot 0.4))
+  (<- (costmap:costmap-in-reach-distance :iai-donbot 1.35))
   (<- (costmap:costmap-reach-minimal-distance :iai-donbot 0.1))
   (<- (costmap:orientation-samples :iai-donbot 1))
   (<- (costmap:orientation-sample-step :iai-donbot 0.3))

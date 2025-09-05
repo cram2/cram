@@ -54,6 +54,40 @@
      "iai_fridge_door_shelf1_bottom"
      ((-0.01 -0.05 0.094) (0 0 0 1)))))
 
+(defun calculate-object-relative-pose (object-name environment-link-name)
+  (let* ((map-T-surface
+           (cl-transforms:pose->transform
+            (btr:link-pose (btr:get-environment-object) environment-link-name)))
+         (map-P-object
+           (btr:pose (btr:object btr:*current-bullet-world* object-name)))
+         (surface-T-map
+           (cl-transforms:transform-inv map-T-surface))
+         (surface-P-object
+           (cl-transforms:transform-pose surface-T-map map-P-object)))
+    surface-P-object))
+
+(defparameter *demo-cleaning-object-spawning-poses*
+  '((:bowl
+     "dining_area_jokkmokk_table_main"
+     ((-0.4901632821795422d0 -0.07937315488456553d0 0.44914658864339196d0)
+      (4.998668024974227d-6 -4.0327310018806425d-5 -0.988375266779019d0 -0.15203375827753585d0)))
+    (:cup
+     "dining_area_jokkmokk_table_main"
+     ((-0.2892828678714361d0 -0.2084833268601652d0 0.4741430918375651d0)
+      (2.7431975497357576d-5 1.4161433435356543d-4 0.7567652594564254d0 0.6536867208259298d0)))
+    (:spoon
+     "dining_area_jokkmokk_table_main"
+     ((-0.48945043610495714d0 -0.2600382442683263d0 0.4052788416544597d0)
+      (-0.018034393124989095d0 1.5979714468583595d-4 -0.006121914144676499d0 0.9998186842546031d0)))
+    (:breakfast-cereal
+     "dining_area_jokkmokk_table_main"
+     ((-0.054522423239494244d0 -0.07004216565166033d0 0.5004799524943034d0)
+      (-0.0066037486142642805d0 0.009767137347488464d0 -0.6083720669902252d0 0.7935643952858581d0)))
+    (:milk
+     "dining_area_jokkmokk_table_main"
+     ((-0.17573913811866587d0 -0.12943699824994166d0 0.4862785975138346d0)
+      (-0.0010631891747419327d0 0.011173761275651943d0 0.4621035340723137d0 0.8867549564483963d0)))))
+
 (defparameter *object-grasps*
   '((:cup . (:left-side :right-side :back :front))
     ;; PR2 cannot grasp the cereal from the top on the oven shelf
@@ -207,6 +241,7 @@
 
 
 (defun household-demo (&key (object-list '(:bowl :breakfast-cereal :milk :cup :spoon))
+                            (demo-part :set-and-clear)
                          varied-kitchen)
   (urdf-proj:with-simulated-robot
 
@@ -228,35 +263,39 @@
           (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
           (btr-belief:spawn-world)))
     (initialize)
-    (setf btr:*visibility-threshold* 0.7)
-    (when cram-projection:*projection-environment*
-      (spawn-objects-on-fixed-spots
-       :object-types object-list
-       :spawning-poses-relative *demo-object-spawning-poses*))
     (park-robot)
+    (setf btr:*visibility-threshold* 0.7)
 
-    ;; set the table
-    (dolist (?object-type object-list)
-      (exe:perform
-       (desig:an action
-                 (type transporting)
-                 (object (desig:an object (type ?object-type)))
-                 (context table-setting))))
+    (when (member demo-part '(:set :set-and-clear))
+      (when cram-projection:*projection-environment*
+        (spawn-objects-on-fixed-spots
+         :object-types object-list
+         :spawning-poses-relative *demo-object-spawning-poses*))
 
-    ;; clean up
-    ;; (when cram-projection:*projection-environment*
-    ;;   (spawn-objects-on-fixed-spots
-    ;;    :object-types object-list
-    ;;    :spawning-poses-relative *delivery-poses-relative*))
-
-    (dolist (?object-type (reverse object-list))
-      (let ((?grasps (cdr (assoc ?object-type *object-grasps*))))
+      ;; set the table
+      (dolist (?object-type object-list)
         (exe:perform
          (desig:an action
                    (type transporting)
                    (object (desig:an object (type ?object-type)))
-                   (context table-cleaning)
-                   (grasps ?grasps)))))))
+                   (context table-setting)))))
+
+    (when (member demo-part '(:clear))
+      (when cram-projection:*projection-environment*
+        (spawn-objects-on-fixed-spots
+         :object-types object-list
+         :spawning-poses-relative *demo-cleaning-object-spawning-poses*)))
+
+    (when (member demo-part '(:clear :set-and-clear))
+      ;; clean up
+      (dolist (?object-type (reverse object-list))
+        (let ((?grasps (cdr (assoc ?object-type *object-grasps*))))
+          (exe:perform
+           (desig:an action
+                     (type transporting)
+                     (object (desig:an object (type ?object-type)))
+                     (context table-cleaning)
+                     (grasps ?grasps))))))))
 
 
 

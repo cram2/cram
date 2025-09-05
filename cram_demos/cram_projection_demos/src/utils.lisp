@@ -114,3 +114,119 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
           (remove-if-not (lambda (obj) (typep obj 'btr:item))
                          (btr:objects btr:*current-bullet-world*)))
   (btr:clear-costmap-vis-object))
+
+
+
+
+
+
+(defun get-rgb-color-name (r-g-b-list-between-0-and-1)
+  (let* ((colors
+           '((:yellow 1 1 0)
+             (:magenta 1 0 1)
+             (:cyan 0 1 1)
+             (:red 1 0 0)
+             (:green 0 1 0)
+             (:blue 0 0 1)
+             (:black -0.5 -0.5 -0.5)
+             (:white 1.5 1.5 1.5)
+             (:gray 0.9 0.9 0.9)))
+         (color-distances
+           (mapcar (lambda (color-name-and-r-g-b-list)
+                     (cons (car color-name-and-r-g-b-list)
+                           (+ (expt (- (second color-name-and-r-g-b-list)
+                                       (first r-g-b-list-between-0-and-1))
+                                    2)
+                              (expt (- (third color-name-and-r-g-b-list)
+                                       (second r-g-b-list-between-0-and-1))
+                                    2)
+                              (expt (- (fourth color-name-and-r-g-b-list)
+                                       (third r-g-b-list-between-0-and-1))
+                                    2))))
+                   colors))
+         (closest-distance
+           (reduce (lambda (one-name-and-distance
+                            two-name-and-distance)
+                     (if (<= (cdr one-name-and-distance)
+                             (cdr two-name-and-distance))
+                         one-name-and-distance
+                         two-name-and-distance))
+                   color-distances)))
+    (car closest-distance)))
+
+(defun get-item-color (item)
+  (let ((collision-shape
+          (cl-bullet:collision-shape
+           (car (btr:rigid-bodies item))))
+        mesh-shape)
+    (when (typep collision-shape
+                 'cl-bullet-vis:convex-hull-mesh-shape)
+      (setf mesh-shape collision-shape))
+    (when (typep collision-shape
+                 'cl-bullet:compound-shape)
+      (setf mesh-shape
+            (setf mesh-shape (car (cl-bullet:children collision-shape)))))
+    (when (listp mesh-shape)
+      (setf mesh-shape (car mesh-shape)))
+    (cl-bullet-vis:collision-shape-color
+     mesh-shape)))
+
+(defun get-item-color-name (item)
+    (get-rgb-color-name (get-item-color item)))
+
+(defmethod desig:resolve-designator ((desig desig:object-designator) (role t))
+  (let (objects)
+    (if (desig:desig-prop-value desig :part-of)
+        ;; referring to environment or robot link
+        (progn
+          (setf objects
+                (alexandria:hash-table-values
+                 (cl-urdf:links
+                  (btr:urdf
+                   (btr:object btr:*current-bullet-world*
+                               (desig:desig-prop-value desig :part-of))))))
+          (when (or (desig:desig-prop-value desig :urdf-name)
+                    (desig:desig-prop-value desig :name))
+            (setf objects (remove-if-not
+                           (lambda (link) (string-equal
+                                           (roslisp-utilities:rosify-underscores-lisp-name
+                                            (or (desig:desig-prop-value desig :urdf-name)
+                                                (desig:desig-prop-value desig :name)))
+                                           (cl-urdf:name link)))
+                           objects)))
+          (when (desig:desig-prop-value desig :type)
+            (setf objects (remove-if-not
+                           (lambda (link) (search
+                                           (roslisp-utilities:rosify-underscores-lisp-name
+                                            (desig:desig-prop-value desig :type))
+                                           (cl-urdf:name link)))
+                           objects))))
+        ;; referring to an item
+        (progn
+          (setf objects
+                (remove-if-not
+                 (lambda (obj) (typep obj 'btr:item))
+                 (btr:objects btr:*current-bullet-world*)))
+          (when (desig:desig-prop-value desig :type)
+            (setf objects (remove-if-not
+                           (lambda (item) (member (desig:desig-prop-value desig :type)
+                                                  (btr:item-types item)))
+                           objects)))
+          (when (desig:desig-prop-value desig :name)
+            (setf objects (remove-if-not
+                           (lambda (item) (eql (desig:desig-prop-value desig :name)
+                                               (btr:name item)))
+                           objects)))
+          (when (desig:desig-prop-value desig :color)
+            (setf objects (remove-if-not
+                           (lambda (item) (eql (desig:desig-prop-value desig :color)
+                                               (get-item-color-name item)))
+                           objects)))))
+    (unless objects
+      (error 'desig:designator-error
+             :format-control "Unable to resolve designator `~a'"
+             :format-arguments (list desig)
+             :designator desig))
+    (if (eq (desig:quantifier desig) :all)
+        objects
+        (car objects))))

@@ -279,7 +279,11 @@
          (?other-object
            (desig:an object
                      (type ?other-object-type)
-                     (location ?other-object-location))))
+                     (location ?other-object-location)))
+         (?arms-to-use
+           (when (and (eq ?object-type :top-wing)
+                      (eq (rob-int:get-environment-name) :tiago-dual))
+             '(:right))))
     (exe:perform
      (desig:an action
                (type transporting)
@@ -287,7 +291,9 @@
                (target (desig:a location
                                 (on ?other-object)
                                 (for ?object)
-                                (attachments (?attachment-type))))))))
+                                (attachments (?attachment-type))))
+               (desig:when ?arms-to-use
+                 (arms ?arms-to-use))))))
 
 ;;; ASSEMBLY STEPS:
 ;;; (1)  put chassis on holder (bump inwards)
@@ -320,11 +326,18 @@
   (urdf-proj:with-projected-robot
     ;;(setf cram-robosherlock::*no-robosherlock-mode* t)
     (spawn-assembly-objects)
-    (let ((old-visibility btr:*visibility-threshold*))
+    (let ((old-visibility
+            btr:*visibility-threshold*)
+          (old-object-position-convergence-delta
+            btr-belief::*object-position-convergence-delta*)
+          (old-object-rotation-convergence-delta
+            btr-belief::*object-rotation-convergence-delta*))
       (setf btr:*visibility-threshold*
             (case (rob-int:get-robot-name)
               (:iai-donbot 0.1) ; perceiving with an object in hand is hard
               (t 0.4)))
+      (setf btr-belief::*object-position-convergence-delta* 0.03) ; in meters
+      (setf btr-belief::*object-rotation-convergence-delta* 0.1) ; in rad
       (unwind-protect
            (let* ((?env-name
                     (rob-int:get-environment-name))
@@ -385,7 +398,6 @@
              (transport :bolt :bolt :window '(:range 0.3)
                         :window-thread
                         wooden-plate)
-
              ;; 10
              (transport :top-wing  '(:range 0.3) :holder-plane-vertical '(:side :left)
                         :vertical-attachment
@@ -401,7 +413,11 @@
                         :propeller-thread
                         wooden-plate))
         (setf *plate-z* *original-plate-z*)
-        (setf btr:*visibility-threshold* old-visibility)))))
+        (setf btr:*visibility-threshold* old-visibility)
+        (setf btr-belief::*object-position-convergence-delta*
+              old-object-position-convergence-delta)
+        (setf btr-belief::*object-rotation-convergence-delta*
+              old-object-rotation-convergence-delta)))))
 
 
 #+boxy-action-examples

@@ -432,7 +432,7 @@
            (cl-transforms:copy-3d-vector base-P-tcp-origin :z 0.0))
          (length (cl-transforms:v-norm projected-on-the-floor)))
     length))
-  (<- (costmap:costmap-in-reach-distance :tiago-dual 0.93))
+  (<- (costmap:costmap-in-reach-distance :tiago-dual 1.03))
   (<- (costmap:costmap-reach-minimal-distance :tiago-dual 0.2))
   (<- (costmap:orientation-samples :tiago-dual 1))
   (<- (costmap:orientation-sample-step :tiago-dual 0.3))

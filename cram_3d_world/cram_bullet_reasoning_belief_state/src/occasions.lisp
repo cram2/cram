@@ -516,6 +516,7 @@
   ;; compare the exact poses
   (<- (%object-at-location ?world ?object ?location-designator)
     (lisp-type ?location-designator desig:location-designator)
+    (not (cpoe:object-in-hand ?object))
     (btr:bullet-world ?world)
     (lisp-fun desig:current-desig ?location-designator ?current-location)
     (lisp-pred identity ?current-location)

@@ -81,9 +81,11 @@
         (gl:light :light0 :diffuse #(0.8 0.8 0.8 1))
         (gl:light :light0 :specular #(0.8 0.8 0.8 1))
         (gl:load-identity)
-        (gl:rotate 90 1 0 0)
-        (gl:rotate -90 0 0 1)
-        (gl:rotate 180 1 0 0)
+        ;; rotating the camera here has no impact,
+        ;; as the camera pose is reassigned in btr:render-to-framebuffer
+        ;; (gl:rotate 90 1 0 0)
+        ;; (gl:rotate -90 0 0 1)
+        ;; (gl:rotate 180 1 0 0)
         (gl:depth-func :lequal)
         (gl:shade-model :smooth)
         (gl:blend-func :src-alpha :one-minus-src-alpha)

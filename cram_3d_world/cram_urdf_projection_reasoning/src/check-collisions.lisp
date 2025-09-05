@@ -30,7 +30,7 @@
 
 (in-package :proj-reasoning)
 
-(defparameter *projection-checks-enabled* t)
+(defvar *projection-checks-enabled* t)
 
 (defun infer-move-base (object-designator action-designator)
   (not
@@ -382,7 +382,7 @@ Store found pose into designator or throw error if good pose not found."
 
 
 
-(defun check-environment-manipulation-collisions (action-desig &optional (retries 30))
+(defun check-environment-manipulation-collisions (action-desig &optional (retries 50))
   (when *projection-checks-enabled*
     (let ((world-pose-info (btr:get-world-objects-pose-info)))
       (unwind-protect

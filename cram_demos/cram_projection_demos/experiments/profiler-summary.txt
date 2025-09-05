@@ -1,0 +1,122 @@
+call-ik-service
+
+pr2
+retailing      0.002028
+assembling     0.001728
+setting        0.002100
+clearing       0.001935
+
+boxy
+r              0.007405
+a              0.030435
+s              0.031665
+
+donbot
+r              0.004045
+a              0.018970
+s              0.018732
+
+tiago
+r              0.007405
+a              0.006293
+s              0.005931
+c              0.005247
+avg            0.006219
+
+kukabot
+r              0.003925
+a              0.003502
+s              0.003250
+c              0.003402
+avg            0.003519
+
+
+DETECT
+
+pr2
+r               1.796166
+a               0.278245
+s               0.088658
+c               0.144199
+
+boxy
+r               2.884499
+a               0.165261
+s               0.059749
+
+donbot
+r               1.620666
+a               0.122149
+s               0.050520
+
+tiago
+r               1.123856
+a               0.122152
+s               0.066249
+c               0.217542
+
+kukabot
+r               0.534458
+a               0.261348
+s               0.100624
+c               0.105249
+
+
+
+
+get-ik-joint-positions
+
+pr2
+r                0.222308
+a                0.099724
+s                0.093672
+c                0.086301
+
+boxy
+r                 0.194588
+a                 0.126725
+s                 0.123445
+
+donbot
+r                 0.148258
+a                 0.110441
+s                 0.086672
+
+tiago
+r                 0.156768
+a                 0.050819
+s                 0.035373
+c                 0.030755
+avg               0.068428
+
+kukabot
+r                 0.118700
+a                 0.038667
+s                 0.033051
+c                 0.031814
+avg               0.055558
+
+
+merge-costmaps
+
+donbot setting-and-half-clearing   0.413784
+boxy setting                       0.857316
+pr2 setting                        0.738149
+pr2 clearing                       0.037651
+
+
+get-neck-ik
+
+donbot
+r            0.254665
+a            0.261918
+s            0.157863
+
+boxy
+r            0.363339
+a            0.288975
+s            0.220180
+
+
+
+

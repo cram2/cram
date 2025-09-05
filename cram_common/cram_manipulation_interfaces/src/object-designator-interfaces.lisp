@@ -39,7 +39,15 @@
   (car (getassoc :pose (desig:desig-prop-value object-designator :pose))))
 
 (defun get-object-transform-in-map (object-designator)
-  (car (getassoc :transform-in-map (desig:desig-prop-value object-designator :pose))))
+  (car (getassoc :transform-in-map (desig:desig-prop-value object-designator :pose)))
+  ;; (or (car (getassoc :transform-in-map (desig:desig-prop-value object-designator :pose)))
+  ;;     (let* ((object-name (desig:desig-prop-value object-designator :name))
+  ;;            (object-frame (roslisp-utilities:rosify-underscores-lisp-name object-name)))
+  ;;       (cram-tf:pose->transform-stamped cram-tf:*fixed-frame*
+  ;;                                        object-frame
+  ;;                                        0.0
+  ;;                                        (btr:object-pose object-name))))
+  )
 
 (defun get-object-pose-in-map (object-designator)
   (car (getassoc :pose-in-map (desig:desig-prop-value object-designator :pose))))

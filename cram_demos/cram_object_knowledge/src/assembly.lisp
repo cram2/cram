@@ -66,9 +66,9 @@
 (defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :window)))
   0.017)
 (defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :underbody)))
-    0.08)
+  0.08)
 (defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :top-wing)))
-  0.05)
+  0.035)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -76,6 +76,9 @@
 (defmethod man-int:get-object-type-carry-config :heuristics 20
     ((object-type (eql :assembly-item)) grasp)
   :carry)
+(defmethod man-int:get-object-type-carry-config :heuristics 20
+    ((object-type (eql :top-wing)) grasp)
+  :carry-top)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; CHASSIS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

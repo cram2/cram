@@ -1,0 +1,6 @@
+<launch>
+  <include file="$(find cram_projection_demos)/launch/everything.launch">
+    <arg name="tiago" value="true"/>
+    <arg name="storage" value="true"/>
+  </include>
+</launch>

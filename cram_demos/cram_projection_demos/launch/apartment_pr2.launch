@@ -1,0 +1,6 @@
+<launch>
+  <include file="$(find cram_projection_demos)/launch/everything.launch">
+    <arg name="pr2" value="true"/>
+    <arg name="apartment" value="true"/>
+  </include>
+</launch>

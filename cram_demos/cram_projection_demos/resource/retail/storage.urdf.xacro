@@ -36,22 +36,22 @@
   <xacro:property name="wall_thickness" value="0.2" />
   <xacro:property name="wall_height" value="2.4" />
   <xacro:property name="room_link" value="storage_origin" />
-  <wall parent="${room_link}" name="back_wall"
+  <xacro:wall parent="${room_link}" name="back_wall"
         size="6.0 ${wall_thickness} ${wall_height}">
     <origin xyz="0.0 -2.0 ${wall_height/2}" rpy="0 0 0"/>
-  </wall>
-  <wall parent="${room_link}" name="left_wall"
+  </xacro:wall>
+  <xacro:wall parent="${room_link}" name="left_wall"
         size="${wall_thickness} 4.0 ${wall_height}">
     <origin xyz="3.0 0.0 ${wall_height/2}" rpy="0 0 0"/>
-  </wall>
-  <wall parent="${room_link}" name="front_wall"
+  </xacro:wall>
+  <xacro:wall parent="${room_link}" name="front_wall"
         size="6.0 ${wall_thickness} ${wall_height}">
     <origin xyz="0.0 2.0 ${wall_height/2}" rpy="0 0 0"/>
-  </wall>
-  <wall parent="${room_link}" name="right_wall"
+  </xacro:wall>
+  <xacro:wall parent="${room_link}" name="right_wall"
         size="${wall_thickness} 4.0 ${wall_height}">
     <origin xyz="-3.0 0.0 ${wall_height/2}" rpy="0 0 0"/>
-  </wall>
+  </xacro:wall>
 
 
   <!-- SHELF -->

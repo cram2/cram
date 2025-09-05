@@ -1,0 +1,332 @@
+DONBOT RETAILING
+
+             (sb-profile:report)
+measuring PROFILE overhead..done
+  seconds  |     gc     |     consed     | calls |  sec/call  |  name
+------------------------------------------------------------
+    20.015 |      0.100 | 15,660,120,448 |   135 |   0.148258 | CRAM-URDF-PROJECTION::GET-IK-JOINT-POSITIONS
+     9.724 |      0.000 |  2,339,979,712 |     6 |   1.620666 | CRAM-URDF-PROJECTION::DETECT
+     2.292 |      0.008 |  1,998,699,456 |     9 |   0.254665 | CRAM-URDF-PROJECTION::GET-NECK-IK
+     1.060 |      0.000 |    241,958,800 |   262 |   0.004045 | CRAM-IK-INTERFACE:CALL-IK-SERVICE
+     0.574 |      0.000 |    332,676,448 |    70 |   0.008196 | CRAM-URDF-PROJECTION::MOVE-TCP-ONE-POSE
+     0.034 |      0.000 |     28,714,336 |     9 |   0.003775 | CRAM-URDF-PROJECTION::LOOK-AT
+------------------------------------------------------------
+    33.698 |      0.108 | 20,602,149,200 |   491 |            | Total
+
+estimated total profiling overhead: 0.00 seconds
+overhead estimation parameters:
+  1.8e-8s/call, 1.1799999e-6s total profiling, 5.96e-7s internal profiling
+
+
+
+
+BODY RETAILING
+
+               (sb-profile:report)
+  seconds  |     gc     |     consed     | calls |  sec/call  |  name
+------------------------------------------------------------
+    50.982 |      0.262 | 42,279,792,592 |   262 |   0.194588 | CRAM-URDF-PROJECTION::GET-IK-JOINT-POSITIONS
+   132.687 |      0.180 | 32,734,824,464 |    46 |   2.884499 | CRAM-URDF-PROJECTION::DETECT
+    17.804 |      0.123 | 14,148,762,400 |    49 |   0.363339 | CRAM-URDF-PROJECTION::GET-NECK-IK
+    26.281 |      0.000 |  6,210,916,608 | 3,549 |   0.007405 | CRAM-IK-INTERFACE:CALL-IK-SERVICE
+     1.496 |      0.000 |    736,535,728 |   131 |   0.011420 | CRAM-URDF-PROJECTION::MOVE-TCP-ONE-POSE
+     0.154 |      0.000 |     82,272,448 |    51 |   0.003012 | CRAM-URDF-PROJECTION::LOOK-AT
+------------------------------------------------------------
+   229.403 |      0.565 | 96,193,104,240 | 4,088 |            | Total
+
+estimated total profiling overhead: 0.00 seconds
+overhead estimation parameters:
+  1.8e-8s/call, 1.1799999e-6s total profiling, 5.96e-7s internal profiling
+
+
+PR2 RETAILING
+
+             (sb-profile:report)
+  seconds  |     gc     |     consed     | calls |  sec/call  |  name
+------------------------------------------------------------
+    34.235 |      0.181 | 16,710,624,352 |   154 |   0.222308 | CRAM-URDF-PROJECTION::GET-IK-JOINT-POSITIONS
+    10.777 |      0.000 |  1,337,059,552 |     6 |   1.796166 | CRAM-URDF-PROJECTION::DETECT
+     1.617 |      0.000 |    117,591,632 |   797 |   0.002028 | CRAM-IK-INTERFACE:CALL-IK-SERVICE
+     1.415 |      0.000 |    419,292,336 |    77 |   0.018382 | CRAM-URDF-PROJECTION::MOVE-TCP-ONE-POSE
+     0.091 |      0.000 |     26,100,608 |    15 |   0.006066 | CRAM-URDF-PROJECTION::LOOK-AT
+------------------------------------------------------------
+    48.135 |      0.181 | 18,610,668,480 | 1,049 |            | Total
+
+estimated total profiling overhead: 0.00 seconds
+overhead estimation parameters:
+  1.8e-8s/call, 1.1799999e-6s total profiling, 5.96e-7s internal profiling
+
+
+
+
+PR2 ASSEMBLING
+
+             (sb-profile:report)
+  seconds  |     gc     |     consed     | calls |  sec/call  |  name
+------------------------------------------------------------
+    49.762 |      0.621 | 23,405,195,568 |   499 |   0.099724 | CRAM-URDF-PROJECTION::GET-IK-JOINT-POSITIONS
+    16.973 |      0.017 |  1,315,638,368 |    61 |   0.278245 | CRAM-URDF-PROJECTION::DETECT
+     4.630 |      0.000 |    276,780,464 | 2,679 |   0.001728 | CRAM-IK-INTERFACE:CALL-IK-SERVICE
+     4.746 |      0.027 |  1,238,563,472 |   250 |   0.018984 | CRAM-URDF-PROJECTION::MOVE-TCP-ONE-POSE
+     0.410 |      0.000 |    152,775,360 |    99 |   0.004141 | CRAM-URDF-PROJECTION::LOOK-AT
+------------------------------------------------------------
+    76.521 |      0.665 | 26,388,953,232 | 3,588 |            | Total
+
+estimated total profiling overhead: 0.00 seconds
+overhead estimation parameters:
+  1.8e-8s/call, 1.1799999e-6s total profiling, 5.96e-7s internal profiling
+
+
+
+BOXY ASSEMBLING
+
+             (sb-profile:report)
+  seconds  |     gc     |     consed     | calls |  sec/call  |  name
+------------------------------------------------------------
+    82.878 |      0.370 | 41,290,261,904 |   654 |   0.126725 | CRAM-URDF-PROJECTION::GET-IK-JOINT-POSITIONS
+    10.742 |      0.019 |  1,881,677,712 |    65 |   0.165261 | CRAM-URDF-PROJECTION::DETECT
+    37.278 |      0.043 | 15,035,480,128 |   129 |   0.288975 | CRAM-URDF-PROJECTION::GET-NECK-IK
+   126.061 |      0.021 |  3,576,407,680 | 4,142 |   0.030435 | CRAM-IK-INTERFACE:CALL-IK-SERVICE
+     6.690 |      0.000 |  1,931,209,744 |   336 |   0.019911 | CRAM-URDF-PROJECTION::MOVE-TCP-ONE-POSE
+     0.483 |      0.000 |    173,037,008 |   129 |   0.003742 | CRAM-URDF-PROJECTION::LOOK-AT
+------------------------------------------------------------
+   264.131 |      0.453 | 63,888,074,176 | 5,455 |            | Total
+
+estimated total profiling overhead: 0.01 seconds
+overhead estimation parameters:
+  1.8e-8s/call, 1.1799999e-6s total profiling, 5.96e-7s internal profiling
+
+
+
+DONBOT ASSEMBLING
+
+             (sb-profile:report)
+  seconds  |     gc     |     consed     | calls |  sec/call  |  name
+------------------------------------------------------------
+    59.086 |      0.247 | 26,121,252,832 |   535 |   0.110441 | CRAM-URDF-PROJECTION::GET-IK-JOINT-POSITIONS
+    36.992 |      0.417 |  1,115,832,624 | 1,950 |   0.018970 | CRAM-IK-INTERFACE:CALL-IK-SERVICE
+    32.478 |      0.151 | 11,010,188,672 |   124 |   0.261918 | CRAM-URDF-PROJECTION::GET-NECK-IK
+     8.184 |      0.000 |  1,320,224,880 |    67 |   0.122149 | CRAM-URDF-PROJECTION::DETECT
+     4.715 |      0.026 |  1,159,776,112 |   289 |   0.016313 | CRAM-URDF-PROJECTION::MOVE-TCP-ONE-POSE
+     1.097 |      0.000 |    383,971,008 |   124 |   0.008844 | CRAM-URDF-PROJECTION::LOOK-AT
+------------------------------------------------------------
+   142.550 |      0.841 | 41,111,246,128 | 3,089 |            | Total
+
+estimated total profiling overhead: 0.00 seconds
+overhead estimation parameters:
+  1.8e-8s/call, 1.1799999e-6s total profiling, 5.96e-7s internal profiling
+
+
+DONBOT SETTING AND HALF CLEARING
+
+             (sb-profile:report)
+  seconds  |     gc     |     consed     | calls |  sec/call  |  name
+------------------------------------------------------------
+   130.756 |      0.023 |  8,282,658,704 |   316 |   0.413784 | CRAM-LOCATION-COSTMAP:MERGE-COSTMAPS
+   128.428 |      0.023 |  4,565,272,400 | 6,856 |   0.018732 | CRAM-IK-INTERFACE:CALL-IK-SERVICE
+   121.601 |      0.452 | 59,916,131,360 | 1,403 |   0.086672 | CRAM-URDF-PROJECTION::GET-IK-JOINT-POSITIONS
+    23.206 |      0.122 | 11,690,838,240 |   147 |   0.157863 | CRAM-URDF-PROJECTION::GET-NECK-IK
+     8.639 |      0.026 |  1,543,436,848 |   171 |   0.050520 | CRAM-URDF-PROJECTION::DETECT
+     6.568 |      0.025 |  2,707,196,032 |   804 |   0.008169 | CRAM-URDF-PROJECTION::MOVE-TCP-ONE-POSE
+     1.236 |      0.000 |    453,280,928 |   148 |   0.008349 | CRAM-URDF-PROJECTION::LOOK-AT
+------------------------------------------------------------
+   420.433 |      0.671 | 89,158,814,512 | 9,845 |            | Total
+
+estimated total profiling overhead: 0.01 seconds
+overhead estimation parameters:
+  1.8e-8s/call, 1.1799999e-6s total profiling, 5.96e-7s internal profiling
+
+
+
+
+BOXY SETTING
+
+             (sb-profile:report)
+  seconds  |     gc     |     consed     | calls |  sec/call  |  name
+------------------------------------------------------------
+   248.442 |      0.075 |  7,288,865,232 | 7,846 |   0.031665 | CRAM-IK-INTERFACE:CALL-IK-SERVICE
+   102.878 |      0.020 |  6,158,274,080 |   120 |   0.857316 | CRAM-LOCATION-COSTMAP:MERGE-COSTMAPS
+    71.969 |      0.298 | 35,032,074,096 |   583 |   0.123445 | CRAM-URDF-PROJECTION::GET-IK-JOINT-POSITIONS
+    11.670 |      0.052 |  5,666,938,016 |    53 |   0.220180 | CRAM-URDF-PROJECTION::GET-NECK-IK
+     3.893 |      0.000 |  1,561,421,728 |   307 |   0.012682 | CRAM-URDF-PROJECTION::MOVE-TCP-ONE-POSE
+     1.673 |      0.000 |    249,777,232 |    28 |   0.059749 | CRAM-URDF-PROJECTION::DETECT
+     0.261 |      0.000 |     79,383,872 |    55 |   0.004754 | CRAM-URDF-PROJECTION::LOOK-AT
+------------------------------------------------------------
+   440.786 |      0.445 | 56,036,734,256 | 8,992 |            | Total
+
+estimated total profiling overhead: 0.01 seconds
+overhead estimation parameters:
+  1.8e-8s/call, 1.1799999e-6s total profiling, 5.96e-7s internal profiling
+
+
+PR2 SETTING
+
+             (sb-profile:report)
+  seconds  |     gc     |     consed     | calls |  sec/call  |  name
+------------------------------------------------------------
+   103.341 |      0.056 |  6,051,417,360 |   140 |   0.738149 | CRAM-LOCATION-COSTMAP:MERGE-COSTMAPS
+    57.421 |      0.218 | 25,484,877,328 |   613 |   0.093672 | CRAM-URDF-PROJECTION::GET-IK-JOINT-POSITIONS
+    13.556 |      0.000 |    756,602,368 | 6,456 |   0.002100 | CRAM-IK-INTERFACE:CALL-IK-SERVICE
+     7.802 |      0.000 |    907,448,144 |    88 |   0.088658 | CRAM-URDF-PROJECTION::DETECT
+     3.772 |      0.000 |  1,415,967,632 |   311 |   0.012128 | CRAM-URDF-PROJECTION::MOVE-TCP-ONE-POSE
+     0.500 |      0.000 |    139,457,056 |    78 |   0.006410 | CRAM-URDF-PROJECTION::LOOK-AT
+------------------------------------------------------------
+   186.391 |      0.274 | 34,755,769,888 | 7,686 |            | Total
+
+estimated total profiling overhead: 0.01 seconds
+overhead estimation parameters:
+  1.8e-8s/call, 1.1799999e-6s total profiling, 5.96e-7s internal profiling
+
+
+PR2 CLEARING
+
+             (sb-profile:report)
+  seconds  |     gc     |     consed     | calls |  sec/call  |  name
+------------------------------------------------------------
+    72.493 |      0.401 | 35,614,876,640 |   840 |   0.086301 | CRAM-URDF-PROJECTION::GET-IK-JOINT-POSITIONS
+    11.882 |      0.000 |    691,968,736 | 6,141 |   0.001935 | CRAM-IK-INTERFACE:CALL-IK-SERVICE
+     5.750 |      0.000 |  2,035,874,176 |   423 |   0.013593 | CRAM-URDF-PROJECTION::MOVE-TCP-ONE-POSE
+     3.464 |      0.022 |    534,528,432 |    92 |   0.037651 | CRAM-LOCATION-COSTMAP:MERGE-COSTMAPS
+     1.442 |      0.000 |    101,980,832 |    10 |   0.144199 | CRAM-URDF-PROJECTION::DETECT
+     0.327 |      0.000 |     85,899,408 |    52 |   0.006288 | CRAM-URDF-PROJECTION::LOOK-AT
+------------------------------------------------------------
+    95.358 |      0.423 | 39,065,128,224 | 7,558 |            | Total
+
+estimated total profiling overhead: 0.01 seconds
+overhead estimation parameters:
+  1.8e-8s/call, 1.1799999e-6s total profiling, 5.96e-7s internal profiling
+
+
+
+
+TIAGO SETTING
+
+            (sb-profile:report)
+measuring PROFILE overhead..done
+  seconds  |     gc     |     consed     |  calls |  sec/call  |  name
+-------------------------------------------------------------
+    74.589 |      0.037 | 11,203,283,712 | 12,576 |   0.005931 | CRAM-IK-INTERFACE:CALL-IK-SERVICE
+    24.054 |      0.148 | 23,061,725,632 |    680 |   0.035373 | CRAM-URDF-PROJECTION::GET-IK-JOINT-POSITIONS
+     1.590 |      0.000 |    400,049,888 |     24 |   0.066249 | CRAM-URDF-PROJECTION::DETECT
+-------------------------------------------------------------
+   100.233 |      0.185 | 34,665,059,232 | 13,280 |            | Total
+
+estimated total profiling overhead: 0.02 seconds
+overhead estimation parameters:
+  4.0000003e-9s/call, 1.504e-6s total profiling, 7.32e-7s internal profiling
+
+
+TIAGO CLEARING
+
+            (sb-profile:report)
+  seconds  |     gc     |     consed     |  calls |  sec/call  |  name
+-------------------------------------------------------------
+    91.196 |      0.099 | 12,664,987,760 | 17,380 |   0.005247 | CRAM-IK-INTERFACE:CALL-IK-SERVICE
+    32.601 |      0.200 | 34,658,542,080 |  1,060 |   0.030755 | CRAM-URDF-PROJECTION::GET-IK-JOINT-POSITIONS
+     7.614 |      0.000 |    804,104,688 |     35 |   0.217542 | CRAM-URDF-PROJECTION::DETECT
+-------------------------------------------------------------
+   131.411 |      0.299 | 48,127,634,528 | 18,475 |            | Total
+
+estimated total profiling overhead: 0.03 seconds
+overhead estimation parameters:
+  4.0000003e-9s/call, 1.504e-6s total profiling, 7.32e-7s internal profiling
+
+
+
+TIAGO ASSEMBLING
+
+             (sb-profile:report)
+  seconds  |     gc     |     consed     | calls |  sec/call  |  name
+------------------------------------------------------------
+    29.119 |      0.487 | 24,394,656,224 |   573 |   0.050819 | CRAM-URDF-PROJECTION::GET-IK-JOINT-POSITIONS
+    23.942 |      0.027 |  6,004,919,648 |   196 |   0.122152 | CRAM-URDF-PROJECTION::DETECT
+    18.703 |      0.000 |  2,186,660,224 | 2,972 |   0.006293 | CRAM-IK-INTERFACE:CALL-IK-SERVICE
+------------------------------------------------------------
+    71.764 |      0.514 | 32,586,236,096 | 3,741 |            | Total
+
+estimated total profiling overhead: 0.01 seconds
+overhead estimation parameters:
+  4.0000003e-9s/call, 1.504e-6s total profiling, 7.32e-7s internal profiling
+
+
+
+TIAGO RETAILING
+
+measuring PROFILE overhead..done
+  seconds  |     gc     |     consed     | calls |  sec/call  |  name
+------------------------------------------------------------
+    25.710 |      0.135 | 18,754,888,832 |   164 |   0.156768 | CRAM-URDF-PROJECTION::GET-IK-JOINT-POSITIONS
+     8.204 |      0.013 |  1,933,795,296 | 1,108 |   0.007405 | CRAM-IK-INTERFACE:CALL-IK-SERVICE
+     7.867 |      0.013 |  1,935,901,120 |     7 |   1.123856 | CRAM-URDF-PROJECTION::DETECT
+------------------------------------------------------------
+    41.781 |      0.161 | 22,624,585,248 | 1,279 |            | Total
+
+estimated total profiling overhead: 0.00 seconds
+overhead estimation parameters:
+  4.0000003e-9s/call, 1.4860001e-6s total profiling, 7.1600005e-7s internal profiling
+
+
+
+KUKABOT SETTING
+
+             (sb-profile:report)
+measuring PROFILE overhead..done
+  seconds  |     gc     |     consed     | calls |  sec/call  |  name
+------------------------------------------------------------
+    23.367 |      0.203 | 22,737,528,048 |   707 |   0.033051 | CRAM-URDF-PROJECTION::GET-IK-JOINT-POSITIONS
+     9.002 |      0.000 |  1,381,417,456 | 2,770 |   0.003250 | CRAM-IK-INTERFACE:CALL-IK-SERVICE
+     3.220 |      0.000 |    271,631,424 |    32 |   0.100624 | CRAM-URDF-PROJECTION::DETECT
+------------------------------------------------------------
+    35.589 |      0.203 | 24,390,576,928 | 3,509 |            | Total
+
+estimated total profiling overhead: 0.01 seconds
+overhead estimation parameters:
+  2.2e-8s/call, 1.452e-6s total profiling, 6.8400004e-7s internal profiling
+
+
+KUKABOT CLEARING
+
+             (sb-profile:report)
+  seconds  |     gc     |     consed     |  calls |  sec/call  |  name
+-------------------------------------------------------------
+    67.000 |      0.908 | 63,791,120,096 |  2,106 |   0.031814 | CRAM-URDF-PROJECTION::GET-IK-JOINT-POSITIONS
+    40.721 |      0.032 |  5,666,937,936 | 11,969 |   0.003402 | CRAM-IK-INTERFACE:CALL-IK-SERVICE
+     2.947 |      0.000 |    265,392,000 |     28 |   0.105249 | CRAM-URDF-PROJECTION::DETECT
+-------------------------------------------------------------
+   110.668 |      0.940 | 69,723,450,032 | 14,103 |            | Total
+
+estimated total profiling overhead: 0.02 seconds
+overhead estimation parameters:
+  2.2e-8s/call, 1.452e-6s total profiling, 6.8400004e-7s internal profiling
+
+
+KUKABOT ASSEMBLING
+
+             (sb-profile:report)
+  seconds  |     gc     |     consed     | calls |  sec/call  |  name
+------------------------------------------------------------
+    80.234 |      0.081 | 10,299,362,672 |   307 |   0.261348 | CRAM-URDF-PROJECTION::DETECT
+    26.603 |      0.556 | 23,905,739,200 |   688 |   0.038667 | CRAM-URDF-PROJECTION::GET-IK-JOINT-POSITIONS
+     9.417 |      0.019 |  1,641,380,720 | 2,689 |   0.003502 | CRAM-IK-INTERFACE:CALL-IK-SERVICE
+------------------------------------------------------------
+   116.254 |      0.656 | 35,846,482,592 | 3,684 |            | Total
+
+estimated total profiling overhead: 0.01 seconds
+overhead estimation parameters:
+  2.2e-8s/call, 1.452e-6s total profiling, 6.8400004e-7s internal profiling
+
+
+KUKABOT RETAILING
+
+             (sb-profile:report)
+  seconds  |     gc     |     consed     | calls |  sec/call  |  name
+------------------------------------------------------------
+    16.737 |      0.107 | 14,248,095,472 |   141 |   0.118700 | CRAM-URDF-PROJECTION::GET-IK-JOINT-POSITIONS
+    12.827 |      0.016 |  2,631,984,992 |    24 |   0.534458 | CRAM-URDF-PROJECTION::DETECT
+     6.178 |      0.000 |  1,373,989,104 | 1,574 |   0.003925 | CRAM-IK-INTERFACE:CALL-IK-SERVICE
+------------------------------------------------------------
+    35.742 |      0.123 | 18,254,069,568 | 1,739 |            | Total
+
+estimated total profiling overhead: 0.00 seconds
+overhead estimation parameters:
+  2.2e-8s/call, 1.452e-6s total profiling, 6.8400004e-7s internal profiling
