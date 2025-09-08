@@ -230,3 +230,25 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
     (if (eq (desig:quantifier desig) :all)
         objects
         (car objects))))
+
+
+
+(defun replace-placeholders (key-value-pair-list)
+  (map 'list (lambda (key-value-pair)
+               (when (and (keywordp (second key-value-pair))
+                          (eql (aref (string-upcase (second key-value-pair)) 0) #\&))
+                 (setf (second key-value-pair)
+                       (second (find (intern
+                                      (subseq (string-upcase (second key-value-pair)) 1)
+                                      :keyword)
+                                     key-value-pair-list
+                                     :key #'car)))))
+       key-value-pair-list)
+  key-value-pair-list)
+
+(defmethod desig:make-designator ((type standard-class) description &optional parent)
+  (let ((desig (make-instance type
+                 :description (replace-placeholders description))))
+    (when parent
+      (equate parent desig))
+    desig))
