@@ -149,13 +149,13 @@
 
   (<- (%property ?designator (?number-key ?value))
     (lisp-pred typep ?designator desig:action-designator)
-    (member ?number-key (:position :effort :distance :duration))
+    (member ?number-key (:position :effort :distance))
     (property-member (?number-key ?value) ?designator)
     (assert-type ?value number "ACTION SPEC:PROPERTY"))
 
   (<- (%property ?designator (?key ?value))
     (lisp-pred typep ?designator desig:action-designator)
-    (member ?key (:joint-angle-threshold))
+    (member ?key (:joint-angle-threshold :duration))
     (property-member (?key ?value) ?designator)
     (assert-type ?value (or number null) "ACTION SPEC:PROPERTY"))
 

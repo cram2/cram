@@ -407,6 +407,10 @@
 
 
 
-  (<- (desig:action-grounding ?action-designator (wait ?action-designator))
+  (<- (desig:action-grounding ?action-designator (wait ?resolved-action-designator))
     (spec:property ?action-designator (:type :waiting))
-    (spec:property ?action-designator (:duration ?_))))
+    (once (or (spec:property ?action-designator (:duration ?duration))
+              (equal ?duration 0)))
+    (desig:designator :action ((:type :waiting)
+                               (:duration ?duration))
+                      ?resolved-action-designator)))

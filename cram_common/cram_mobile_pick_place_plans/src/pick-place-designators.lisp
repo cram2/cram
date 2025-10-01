@@ -101,6 +101,10 @@
     (-> (spec:property ?action-designator (:arm ?arm))
         (true)
         (man-int:robot-free-hand ?robot ?arm))
+    (once (or (and (cpoe:object-in-hand ?object-designator ?other-arm)
+                   (lisp-pred identity ?other-arm)
+                   (bound ?other-arm))
+              (equal ?other-arm NIL)))
     (lisp-fun man-int:get-object-transform ?current-object-desig ?object-transform)
 
     ;; infer missing information like ?grasp type, gripping ?maximum-effort, manipulation poses
@@ -166,6 +170,7 @@
     (desig:designator :action ((:type :picking-up)
                                (:object ?current-object-desig)
                                (:arm ?arm)
+                               (:other-arm-holding-object ?other-arm)
                                (:gripper-opening ?gripper-opening)
                                (:effort ?effort)
                                (:grasp ?grasp)

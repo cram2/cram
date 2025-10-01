@@ -41,6 +41,7 @@
 (defun pick-up (&key
                   ((:object ?object-designator))
                   ((:arm ?arm))
+                  ((:other-arm-holding-object ?other-arm))
                   ((:gripper-opening ?gripper-opening))
                   ((:effort ?grip-effort))
                   ((:grasp ?grasp))
@@ -127,6 +128,14 @@
                (effort ?grip-effort)
                (object ?object-designator)
                (grasp ?grasp)
+               (goal ?goal))))
+  (let ((?goal `(not (cpoe:object-in-hand ,?object-designator ,?other-arm))))
+    (roslisp:ros-info (pick-place pick-up) "Releasing other hand")
+    (exe:perform
+     (desig:an action
+               (type releasing)
+               (gripper ?other-arm)
+               (object ?object-designator)
                (goal ?goal))))
   (roslisp:ros-info (pick-place pick-up) "Lifting")
   (cpl:pursue

@@ -516,7 +516,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                           (let* ((?goal
                                    `(cpoe:object-in-hand
                                      ,?more-precise-perceived-object-desig
-                                     :left-or-right))
+                                     ,?arm))
                                  (pick-up-action
                                    ;; if pick-up-action already exists,
                                    ;; use its params for picking up

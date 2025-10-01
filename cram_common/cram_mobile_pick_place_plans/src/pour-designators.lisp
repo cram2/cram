@@ -152,8 +152,8 @@
                       ?resolved-action-designator))
 
 
-  (<- (action-grounding ?action-designator (move-arms-in-sequence
-                                            ?resolved-action-designator))
+  (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
+                                                  ?resolved-action-designator))
     (spec:property ?action-designator (:type :tilting))
     (once (or (spec:property ?action-designator (:left-poses ?left-poses))
               (equal ?left-poses nil)))
@@ -161,7 +161,7 @@
               (equal ?right-poses nil)))
     (once (or (spec:property ?action-designator (:collision-mode ?collision))
               (equal ?collision :avoid-all)))
-    (desig:designator :action ((:type ?action-type)
+    (desig:designator :action ((:type :tilting)
                                (:left-poses ?left-poses)
                                (:right-poses ?right-poses)
                                (:collision-mode ?collision)

@@ -94,6 +94,7 @@
                              (lisp-fun man-int:get-object-pose-in-map ?object
                                        ?to-reach-pose)
                              (lisp-pred identity ?to-reach-pose)
+                             (not (man-int:object-always-reachable ?object))
                              (-> (desig:desig-prop ?object (:location ?loc))
                                  (not (man-int:location-always-reachable ?loc))
                                  (true)))
@@ -165,6 +166,7 @@
                             (lisp-fun man-int:get-object-pose-in-map ?object
                                       ?to-see-pose)
                             (lisp-pred identity ?to-see-pose)
+                            (not (man-int:object-always-reachable ?object))
                             (-> (desig:desig-prop ?object (:location ?loc))
                                 (not (man-int:location-always-reachable ?loc))
                                 (true)))

@@ -261,6 +261,8 @@
                            ("l_elbow_flex_joint" -1.3)
                            ("l_forearm_roll_joint" 0)
                            ("l_wrist_flex_joint" -0.75))))
+  (<- (robot-joint-states :pr2 :arm :right :hand-over
+                          (("r_shoulder_pan_joint" -1))))
   (<- (robot-joint-states :pr2 :arm :left :carry-side-gripper-vertical
                           (("l_shoulder_pan_joint" 1.2469064067488675d0)
                            ("l_shoulder_lift_joint" 0.013567714247075813d0)

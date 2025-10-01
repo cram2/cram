@@ -252,3 +252,23 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
     (when parent
       (equate parent desig))
     desig))
+
+
+
+(def-fact-group designator-stuff (desig:location-grounding
+                                  man-int:object-always-reachable)
+  ;; Resolving (a location
+  ;;              (reachable-for ?robot)  OR (visible-for ?robot)
+  ;;              (object ?object))
+  ;; Where ?object is in the robot's hand
+  (<- (desig:location-grounding ?location-designator ?pose-stamped)
+    (desig:current-designator ?location-designator ?current-location-designator)
+    (or (rob-int:reachability-designator ?current-location-designator)
+        (rob-int:visibility-designator ?current-location-designator))
+    (desig:desig-prop ?current-location-designator (:object ?some-object))
+    (desig:current-designator ?some-object ?object)
+    (cpoe:object-in-hand ?object)
+    (lisp-fun cram-tf:robot-current-pose ?pose-stamped))
+
+  (<- (man-int:object-always-reachable ?some-object)
+    (cpoe:object-in-hand ?some-object)))

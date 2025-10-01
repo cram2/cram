@@ -200,7 +200,10 @@
     (desig:current-designator ?some-location-designator ?location-designator)
     (or (spec:property ?location-designator (:attachment ?_))
         (spec:property ?location-designator (:attachments ?_))
-        (spec:property ?location-designator (:above ?_)))))
+        (spec:property ?location-designator (:above ?_))))
+
+  (<- (object-always-reachable ?some-object-designator)
+    (fail)))
 
 
 

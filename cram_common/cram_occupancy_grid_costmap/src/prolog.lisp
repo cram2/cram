@@ -55,6 +55,7 @@
     ;; if it is, don't generate a costmap
     (-> (desig:desig-prop ?desig (:object ?some-object))
         (and (desig:current-designator ?some-object ?object)
+             (not (man-int:object-always-reachable ?object))
              (-> (desig:desig-prop ?object (:location ?some-loc))
                  (not (man-int:location-always-reachable ?some-loc))
                  (true)))

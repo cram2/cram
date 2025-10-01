@@ -274,7 +274,8 @@ If there is no other method with 1 as qualifier, this method will be executed al
       (when grasp
         (if (eql robot-object-name (rob-int:get-environment-name))
             (snap-object-onto-environment (car (btr:item-types btr-object)) btr-object-name link grasp)
-            (snap-object-onto-robot (car (btr:item-types btr-object)) btr-object-name arm grasp)))
+            (when arm
+              (snap-object-onto-robot (car (btr:item-types btr-object)) btr-object-name arm grasp))))
       ;;
       ;; if the object is attached to an environment object, then make the object
       ;; weight-less, so it doesn't fall off when the robot releases the object.

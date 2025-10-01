@@ -48,6 +48,7 @@
    #:unidirectional-attachment
    #:object-tf-prefix
    #:location-always-reachable
+   #:object-always-reachable
    #:object-is-a-robot
    #:object-is-a-container
    #:object-is-a-prismatic-container

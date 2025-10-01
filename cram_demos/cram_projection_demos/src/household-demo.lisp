@@ -81,7 +81,7 @@
       (-0.018034393124989095d0 1.5979714468583595d-4 -0.006121914144676499d0 0.9998186842546031d0)))
     (:breakfast-cereal
      "dining_area_jokkmokk_table_main"
-     ((-0.054522423239494244d0 -0.07004216565166033d0 0.5004799524943034d0)
+     ((0.054522423239494244d0 -0.07004216565166033d0 0.5004799524943034d0)
       (-0.0066037486142642805d0 0.009767137347488464d0 -0.6083720669902252d0 0.7935643952858581d0)))
     (:milk
      "dining_area_jokkmokk_table_main"
@@ -127,9 +127,11 @@
                                        (spawning-poses-relative
                                         *demo-object-spawning-poses*)
                                        (object-types
-                                        '(:breakfast-cereal :cup :bowl :spoon :milk)))
+                                        '(:breakfast-cereal :cup :bowl :spoon :milk))
+                                       (cleanup t))
   ;; clean up
-  (kill-and-detach-all)
+  (when cleanup
+    (kill-and-detach-all))
 
   ;; spawn objects at default poses
   (let* ((spawning-poses-absolute
